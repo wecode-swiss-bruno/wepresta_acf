@@ -1,0 +1,149 @@
+# Module Starter - Routes Symfony
+# Documentation: https://devdocs.prestashop.com/8/modules/concepts/controllers/admin-controllers/
+
+# =========================================================================
+# Configuration
+# =========================================================================
+
+wepresta_acf_configuration:
+    path: /modules/wepresta_acf/configuration
+    methods: [GET, POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::configuration'
+        _legacy_controller: AdminWeprestaAcfConfiguration
+        _legacy_link: AdminWeprestaAcfConfiguration
+
+# =========================================================================
+# Items CRUD
+# =========================================================================
+
+wepresta_acf_items_index:
+    path: /modules/wepresta_acf/items
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::index'
+        _legacy_controller: AdminWeprestaAcfItems
+        _legacy_link: AdminWeprestaAcfItems
+
+wepresta_acf_items_create:
+    path: /modules/wepresta_acf/items/create
+    methods: [GET, POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::create'
+        _legacy_controller: AdminWeprestaAcfItems
+        _legacy_link: AdminWeprestaAcfItems:create
+
+wepresta_acf_items_edit:
+    path: /modules/wepresta_acf/items/{itemId}/edit
+    methods: [GET, POST]
+    requirements:
+        itemId: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::edit'
+        _legacy_controller: AdminWeprestaAcfItems
+        _legacy_link: AdminWeprestaAcfItems:edit
+
+wepresta_acf_items_delete:
+    path: /modules/wepresta_acf/items/{itemId}/delete
+    methods: [POST, DELETE]
+    requirements:
+        itemId: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::delete'
+        _legacy_controller: AdminWeprestaAcfItems
+        _legacy_link: AdminWeprestaAcfItems:delete
+
+wepresta_acf_items_toggle:
+    path: /modules/wepresta_acf/items/{itemId}/toggle
+    methods: [POST]
+    requirements:
+        itemId: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::toggle'
+        _legacy_controller: AdminWeprestaAcfItems
+
+wepresta_acf_items_update_position:
+    path: /modules/wepresta_acf/items/update-position
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::updatePosition'
+        _legacy_controller: AdminWeprestaAcfItems
+
+# =========================================================================
+# Bulk Actions
+# =========================================================================
+
+wepresta_acf_items_bulk_enable:
+    path: /modules/wepresta_acf/items/bulk/enable
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::bulkEnable'
+        _legacy_controller: AdminWeprestaAcfItems
+
+wepresta_acf_items_bulk_disable:
+    path: /modules/wepresta_acf/items/bulk/disable
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::bulkDisable'
+        _legacy_controller: AdminWeprestaAcfItems
+
+wepresta_acf_items_bulk_delete:
+    path: /modules/wepresta_acf/items/bulk/delete
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::bulkDelete'
+        _legacy_controller: AdminWeprestaAcfItems
+
+# =========================================================================
+# API Routes
+# =========================================================================
+
+wepresta_acf_api_items_list:
+    path: /api/wepresta_acf/items
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::list'
+
+wepresta_acf_api_items_get:
+    path: /api/wepresta_acf/items/{id}
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::get'
+
+wepresta_acf_api_items_create:
+    path: /api/wepresta_acf/items
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::create'
+
+wepresta_acf_api_items_update:
+    path: /api/wepresta_acf/items/{id}
+    methods: [PUT, PATCH]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::update'
+
+wepresta_acf_api_items_delete:
+    path: /api/wepresta_acf/items/{id}
+    methods: [DELETE]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::delete'
+
+wepresta_acf_api_items_toggle:
+    path: /api/wepresta_acf/items/{id}/toggle
+    methods: [POST]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::toggle'
+
+wepresta_acf_api_health:
+    path: /api/wepresta_acf/health
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::health'

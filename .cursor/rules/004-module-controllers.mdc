@@ -1,0 +1,777 @@
+---
+description: Contrôleurs admin Symfony et front-office legacy
+globs: ["src/Presentation/Controller/**/*.php", "controllers/**/*.php"]
+alwaysApply: false
+---
+
+# Contrôleurs PrestaShop
+
+## 🔧 Contrôleurs Admin (Symfony - PS 8+)
+
+### Structure de base
+
+```php
+<?php
+// src/Presentation/Controller/Admin/ConfigurationController.php
+
+declare(strict_types=1);
+
+namespace ModuleStarter\Presentation\Controller\Admin;
+
+use ModuleStarter\Application\Form\ConfigurationType;
+use ModuleStarter\Application\Service\ModuleStarterService;
+use ModuleStarter\Infrastructure\Adapter\ConfigurationAdapter;
+use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
+use PrestaShopBundle\Security\Annotation\AdminSecurity;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+/**
+ * Contrôleur de configuration du module.
+ *
+ * @Route("/modules/modulestarter")
+ */
+class ConfigurationController extends FrameworkBundleAdminController
+{
+    public function __construct(
+        private readonly ModuleStarterService $service,
+        private readonly ConfigurationAdapter $config
+    ) {
+    }
+
+    /**
+     * Page de configuration principale.
+     *
+     * @Route("/configuration", name="modulestarter_configuration", methods={"GET", "POST"})
+     * @AdminSecurity(
+     *     "is_granted('read', request.get('_legacy_controller'))",
+     *     message="Access denied."
+     * )
+     */
+    public function configuration(Request $request): Response
+    {
+        // Créer le formulaire avec les valeurs actuelles
+        $form = $this->createForm(ConfigurationType::class, [
+            'active' => $this->config->getBool('MODULESTARTER_ACTIVE'),
+            'title' => $this->config->get('MODULESTARTER_TITLE', ''),
+            'description' => $this->config->get('MODULESTARTER_DESCRIPTION', ''),
+            'debug' => $this->config->getBool('MODULESTARTER_DEBUG'),
+        ]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+
+            // Sauvegarder la configuration
+            $this->config->set('MODULESTARTER_ACTIVE', $data['active']);
+            $this->config->set('MODULESTARTER_TITLE', $data['title']);
+            $this->config->set('MODULESTARTER_DESCRIPTION', $data['description']);
+            $this->config->set('MODULESTARTER_DEBUG', $data['debug']);
+
+            // Message flash
+            $this->addFlash(
+                'success',
+                $this->trans('Configuration saved successfully.', 'Admin.Notifications.Success')
+            );
+
+            // Redirect PRG pattern
+            return $this->redirectToRoute('modulestarter_configuration');
+        }
+
+        return $this->render('@Modules/modulestarter/views/templates/admin/configuration.html.twig', [
+            'configurationForm' => $form->createView(),
+            'help_link' => false,
+            'layoutTitle' => $this->trans('Module Starter', 'Modules.Modulestarter.Admin'),
+        ]);
+    }
+}
+```
+
+### CRUD avec Grid (PrestaShop 9)
+
+```php
+<?php
+// src/Presentation/Controller/Admin/ItemController.php
+
+declare(strict_types=1);
+
+namespace ModuleStarter\Presentation\Controller\Admin;
+
+use ModuleStarter\Application\Service\ModuleStarterService;
+use ModuleStarter\Domain\ValueObject\ItemId;
+use ModuleStarter\Presentation\Grid\ItemGridDefinitionFactory;
+use PrestaShop\PrestaShop\Core\Grid\GridFactoryInterface;
+use PrestaShop\PrestaShop\Core\Grid\Search\SearchCriteria;
+use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
+use PrestaShopBundle\Security\Attribute\AdminSecurity;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class ItemController extends FrameworkBundleAdminController
+{
+    public function __construct(
+        private readonly ModuleStarterService $service,
+        private readonly GridFactoryInterface $gridFactory
+    ) {
+    }
+
+    /**
+     * Liste des items avec Grid.
+     * 
+     * ⚠️ PrestaShop 9: buildSearchCriteriaFromRequest n'existe PAS
+     *    Construire SearchCriteria manuellement
+     */
+    #[AdminSecurity("is_granted('read', 'AdminModules')", redirectRoute: 'admin_module_manage')]
+    public function indexAction(Request $request): Response
+    {
+        // ✅ PrestaShop 9: Construire SearchCriteria manuellement
+        $filters = $request->query->all(ItemGridDefinitionFactory::GRID_ID) ?: [];
+        $searchCriteria = new SearchCriteria(
+            $filters['filters'] ?? [],
+            $filters['orderBy'] ?? 'id_item',
+            $filters['sortOrder'] ?? 'desc',
+            (int) ($filters['offset'] ?? 0),
+            (int) ($filters['limit'] ?? 10)
+        );
+
+        $grid = $this->gridFactory->getGrid($searchCriteria);
+
+        return $this->render('@Modules/modulestarter/views/templates/admin/items/index.html.twig', [
+            'grid' => $this->presentGrid($grid),
+            'layoutTitle' => $this->trans('Items', 'Modules.Modulestarter.Admin'),
+            'help_link' => false,
+            'enableSidebar' => true,
+        ]);
+    }
+
+    /**
+     * Création d'un item.
+     *
+     * @Route("/create", name="modulestarter_items_create", methods={"GET", "POST"})
+     * @AdminSecurity("is_granted('create', request.get('_legacy_controller'))")
+     */
+    public function create(Request $request): Response
+    {
+        $form = $this->createForm(ItemType::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $data = $form->getData();
+                $this->service->create($data['name'], $data['description']);
+
+                $this->addFlash('success', $this->trans('Item created.', 'Modules.Modulestarter.Admin'));
+                return $this->redirectToRoute('modulestarter_items_index');
+            } catch (\Exception $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        }
+
+        return $this->render('@Modules/modulestarter/views/templates/admin/items/form.html.twig', [
+            'form' => $form->createView(),
+            'layoutTitle' => $this->trans('Create Item', 'Modules.Modulestarter.Admin'),
+        ]);
+    }
+
+    /**
+     * Édition d'un item.
+     *
+     * @Route("/{itemId}/edit", name="modulestarter_items_edit", methods={"GET", "POST"})
+     * @AdminSecurity("is_granted('update', request.get('_legacy_controller'))")
+     */
+    public function edit(int $itemId, Request $request): Response
+    {
+        $item = $this->service->getItem(new ItemId($itemId));
+
+        if ($item === null) {
+            $this->addFlash('error', $this->trans('Item not found.', 'Modules.Modulestarter.Admin'));
+            return $this->redirectToRoute('modulestarter_items_index');
+        }
+
+        $form = $this->createForm(ItemType::class, [
+            'name' => $item->getName()->getValue(),
+            'description' => $item->getDescription(),
+            'active' => $item->isActive(),
+        ]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $this->service->update(new ItemId($itemId), $form->getData());
+                $this->addFlash('success', $this->trans('Item updated.', 'Modules.Modulestarter.Admin'));
+                return $this->redirectToRoute('modulestarter_items_index');
+            } catch (\Exception $e) {
+                $this->addFlash('error', $e->getMessage());
+            }
+        }
+
+        return $this->render('@Modules/modulestarter/views/templates/admin/items/form.html.twig', [
+            'form' => $form->createView(),
+            'item' => $item,
+            'layoutTitle' => $this->trans('Edit Item', 'Modules.Modulestarter.Admin'),
+        ]);
+    }
+
+    /**
+     * Suppression d'un item.
+     *
+     * @Route("/{itemId}/delete", name="modulestarter_items_delete", methods={"POST", "DELETE"})
+     * @AdminSecurity("is_granted('delete', request.get('_legacy_controller'))")
+     */
+    public function delete(int $itemId, Request $request): Response
+    {
+        // Vérification CSRF
+        if (!$this->isCsrfTokenValid('delete-item-' . $itemId, $request->request->get('_token'))) {
+            $this->addFlash('error', $this->trans('Invalid CSRF token.', 'Admin.Notifications.Error'));
+            return $this->redirectToRoute('modulestarter_items_index');
+        }
+
+        try {
+            $this->service->delete(new ItemId($itemId));
+            $this->addFlash('success', $this->trans('Item deleted.', 'Modules.Modulestarter.Admin'));
+        } catch (\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('modulestarter_items_index');
+    }
+
+    /**
+     * Toggle actif/inactif (AJAX).
+     *
+     * @Route("/{itemId}/toggle", name="modulestarter_items_toggle", methods={"POST"})
+     * @AdminSecurity("is_granted('update', request.get('_legacy_controller'))")
+     */
+    public function toggle(int $itemId): JsonResponse
+    {
+        try {
+            $item = $this->service->toggle(new ItemId($itemId));
+
+            return new JsonResponse([
+                'success' => true,
+                'active' => $item?->isActive(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Actions en masse.
+     *
+     * @Route("/bulk/{action}", name="modulestarter_items_bulk", methods={"POST"})
+     * @AdminSecurity("is_granted('update', request.get('_legacy_controller'))")
+     */
+    public function bulk(string $action, Request $request): Response
+    {
+        $ids = $request->request->all('items');
+
+        if (empty($ids)) {
+            $this->addFlash('warning', $this->trans('No items selected.', 'Admin.Notifications.Warning'));
+            return $this->redirectToRoute('modulestarter_items_index');
+        }
+
+        try {
+            $count = 0;
+            foreach ($ids as $id) {
+                $itemId = new ItemId((int) $id);
+
+                switch ($action) {
+                    case 'enable':
+                        $this->service->activate($itemId);
+                        break;
+                    case 'disable':
+                        $this->service->deactivate($itemId);
+                        break;
+                    case 'delete':
+                        $this->service->delete($itemId);
+                        break;
+                }
+                $count++;
+            }
+
+            $this->addFlash('success', $this->trans(
+                '%count% items processed.',
+                'Modules.Modulestarter.Admin',
+                ['%count%' => $count]
+            ));
+        } catch (\Exception $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('modulestarter_items_index');
+    }
+}
+```
+
+## 🌐 Contrôleurs Front-Office (Legacy)
+
+### Structure de base
+
+```php
+<?php
+// controllers/front/display.php
+
+declare(strict_types=1);
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+/**
+ * Contrôleur front-office pour l'affichage principal.
+ *
+ * Naming: {ModuleName}{ControllerName}ModuleFrontController
+ * URL: /module/modulestarter/display
+ */
+class ModuleStarterDisplayModuleFrontController extends ModuleFrontController
+{
+    /**
+     * @var string Identifiant de la page pour SEO
+     */
+    public $php_self = 'display';
+
+    /**
+     * @var bool Utilise le layout du thème
+     */
+    public $display_column_left = false;
+    public $display_column_right = false;
+
+    /**
+     * Initialisation du contrôleur.
+     */
+    public function init(): void
+    {
+        parent::init();
+
+        // Vérifier que le module est actif
+        if (!Configuration::get('MODULESTARTER_ACTIVE')) {
+            Tools::redirect('index.php?controller=404');
+        }
+
+        // Vérifier les permissions si nécessaire
+        if ($this->requiresAuth() && !$this->context->customer->isLogged()) {
+            Tools::redirect('index.php?controller=authentication');
+        }
+    }
+
+    /**
+     * Définir les assets CSS/JS.
+     */
+    public function setMedia(): void
+    {
+        parent::setMedia();
+
+        // CSS
+        $this->registerStylesheet(
+            'modulestarter-display',
+            'modules/' . $this->module->name . '/views/css/front.css',
+            ['media' => 'all', 'priority' => 150]
+        );
+
+        // JS
+        $this->registerJavascript(
+            'modulestarter-display',
+            'modules/' . $this->module->name . '/views/js/front.js',
+            ['position' => 'bottom', 'priority' => 150, 'attributes' => 'defer']
+        );
+    }
+
+    /**
+     * Construction du contenu de la page.
+     */
+    public function initContent(): void
+    {
+        parent::initContent();
+
+        // Récupérer les données via le service
+        $service = $this->module->getService(ModuleStarterService::class);
+        $items = $service?->getActiveItems() ?? [];
+
+        // Assigner les variables Smarty
+        $this->context->smarty->assign([
+            'modulestarter' => [
+                'items' => $items,
+                'title' => Configuration::get('MODULESTARTER_TITLE'),
+                'description' => Configuration::get('MODULESTARTER_DESCRIPTION'),
+            ],
+            'breadcrumb' => $this->getBreadcrumbLinks(),
+        ]);
+
+        // Définir le template
+        $this->setTemplate('module:modulestarter/views/templates/front/display.tpl');
+    }
+
+    /**
+     * Traitement POST.
+     */
+    public function postProcess(): void
+    {
+        if (!Tools::isSubmit('submitModulestarter')) {
+            return;
+        }
+
+        // Validation CSRF
+        if (!$this->isTokenValid()) {
+            $this->errors[] = $this->trans('Invalid security token.', [], 'Shop.Notifications.Error');
+            return;
+        }
+
+        // Traiter le formulaire
+        $data = [
+            'name' => Tools::getValue('name'),
+            'email' => Tools::getValue('email'),
+        ];
+
+        // Validation
+        if (empty($data['name'])) {
+            $this->errors[] = $this->trans('Name is required.', [], 'Modules.Modulestarter.Shop');
+        }
+
+        if (!Validate::isEmail($data['email'])) {
+            $this->errors[] = $this->trans('Invalid email address.', [], 'Modules.Modulestarter.Shop');
+        }
+
+        if (empty($this->errors)) {
+            try {
+                $service = $this->module->getService(ModuleStarterService::class);
+                $service->processForm($data);
+
+                $this->success[] = $this->trans('Form submitted successfully.', [], 'Modules.Modulestarter.Shop');
+            } catch (\Exception $e) {
+                $this->errors[] = $e->getMessage();
+            }
+        }
+    }
+
+    /**
+     * Métadonnées de la page.
+     */
+    public function getTemplateVarPage(): array
+    {
+        $page = parent::getTemplateVarPage();
+
+        $page['meta']['title'] = Configuration::get('MODULESTARTER_TITLE')
+            . ' - ' . Configuration::get('PS_SHOP_NAME');
+
+        $page['meta']['description'] = Configuration::get('MODULESTARTER_DESCRIPTION');
+
+        return $page;
+    }
+
+    /**
+     * Fil d'Ariane.
+     */
+    public function getBreadcrumbLinks(): array
+    {
+        $breadcrumb = parent::getBreadcrumbLinks();
+
+        $breadcrumb['links'][] = [
+            'title' => Configuration::get('MODULESTARTER_TITLE') ?: 'Module Starter',
+            'url' => $this->context->link->getModuleLink('modulestarter', 'display'),
+        ];
+
+        return $breadcrumb;
+    }
+
+    /**
+     * Canonical URL.
+     */
+    public function getCanonicalURL(): string
+    {
+        return $this->context->link->getModuleLink('modulestarter', 'display');
+    }
+
+    /**
+     * Vérifie si l'authentification est requise.
+     */
+    private function requiresAuth(): bool
+    {
+        return (bool) Configuration::get('MODULESTARTER_REQUIRE_AUTH');
+    }
+}
+```
+
+### Contrôleur AJAX
+
+```php
+<?php
+// controllers/front/ajax.php
+
+declare(strict_types=1);
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+/**
+ * Contrôleur AJAX pour les requêtes asynchrones.
+ */
+class ModuleStarterAjaxModuleFrontController extends ModuleFrontController
+{
+    /**
+     * @var bool Pas de layout pour les réponses AJAX
+     */
+    public $ajax = true;
+
+    /**
+     * Initialisation.
+     */
+    public function init(): void
+    {
+        parent::init();
+
+        // Vérifier que c'est bien une requête AJAX
+        if (!$this->ajax) {
+            $this->ajaxDie(json_encode(['error' => 'Invalid request']));
+        }
+
+        // Vérifier le module actif
+        if (!Configuration::get('MODULESTARTER_ACTIVE')) {
+            $this->ajaxDie(json_encode(['error' => 'Module disabled']));
+        }
+    }
+
+    /**
+     * Traitement de la requête.
+     */
+    public function postProcess(): void
+    {
+        $action = Tools::getValue('action');
+
+        switch ($action) {
+            case 'getItems':
+                $this->handleGetItems();
+                break;
+
+            case 'addItem':
+                $this->handleAddItem();
+                break;
+
+            case 'search':
+                $this->handleSearch();
+                break;
+
+            default:
+                $this->ajaxResponse([
+                    'success' => false,
+                    'error' => 'Unknown action',
+                ], 400);
+        }
+    }
+
+    /**
+     * Récupère les items paginés.
+     */
+    private function handleGetItems(): void
+    {
+        $page = (int) Tools::getValue('page', 1);
+        $perPage = (int) Tools::getValue('per_page', 10);
+
+        $service = $this->module->getService(ModuleStarterService::class);
+        $items = $service->getActiveItems();
+
+        // Pagination manuelle
+        $total = count($items);
+        $items = array_slice($items, ($page - 1) * $perPage, $perPage);
+
+        $this->ajaxResponse([
+            'success' => true,
+            'items' => array_map(fn($item) => $item->toArray(), $items),
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+                'has_more' => ($page * $perPage) < $total,
+            ],
+        ]);
+    }
+
+    /**
+     * Ajoute un item (POST).
+     */
+    private function handleAddItem(): void
+    {
+        // Vérifier le token CSRF
+        if (!$this->isTokenValid()) {
+            $this->ajaxResponse([
+                'success' => false,
+                'error' => 'Invalid token',
+            ], 403);
+            return;
+        }
+
+        $name = Tools::getValue('name');
+        $description = Tools::getValue('description', '');
+
+        if (empty($name)) {
+            $this->ajaxResponse([
+                'success' => false,
+                'error' => 'Name is required',
+            ], 400);
+            return;
+        }
+
+        try {
+            $service = $this->module->getService(ModuleStarterService::class);
+            $item = $service->create($name, $description);
+
+            $this->ajaxResponse([
+                'success' => true,
+                'item' => $item->toArray(),
+                'message' => 'Item created',
+            ], 201);
+        } catch (\Exception $e) {
+            $this->ajaxResponse([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Recherche.
+     */
+    private function handleSearch(): void
+    {
+        $query = Tools::getValue('q', '');
+
+        if (strlen($query) < 2) {
+            $this->ajaxResponse([
+                'success' => true,
+                'results' => [],
+            ]);
+            return;
+        }
+
+        $service = $this->module->getService(ModuleStarterService::class);
+        $results = $service->search($query);
+
+        $this->ajaxResponse([
+            'success' => true,
+            'results' => $results,
+        ]);
+    }
+
+    /**
+     * Envoie une réponse JSON.
+     */
+    private function ajaxResponse(array $data, int $statusCode = 200): void
+    {
+        header('Content-Type: application/json');
+        http_response_code($statusCode);
+        $this->ajaxDie(json_encode($data));
+    }
+}
+```
+
+## 📋 Routes YAML
+
+```yaml
+# config/routes.yml
+
+# Configuration
+modulestarter_configuration:
+    path: /modules/modulestarter/configuration
+    methods: [GET, POST]
+    defaults:
+        _controller: 'ModuleStarter\Presentation\Controller\Admin\ConfigurationController::configuration'
+        _legacy_controller: AdminModuleStarterConfiguration
+        _legacy_link: AdminModuleStarterConfiguration
+
+# Items CRUD
+modulestarter_items_index:
+    path: /modules/modulestarter/items
+    methods: [GET]
+    defaults:
+        _controller: 'ModuleStarter\Presentation\Controller\Admin\ItemController::index'
+        _legacy_controller: AdminModuleStarterItems
+
+modulestarter_items_create:
+    path: /modules/modulestarter/items/create
+    methods: [GET, POST]
+    defaults:
+        _controller: 'ModuleStarter\Presentation\Controller\Admin\ItemController::create'
+
+modulestarter_items_edit:
+    path: /modules/modulestarter/items/{itemId}/edit
+    methods: [GET, POST]
+    requirements:
+        itemId: \d+
+    defaults:
+        _controller: 'ModuleStarter\Presentation\Controller\Admin\ItemController::edit'
+
+modulestarter_items_delete:
+    path: /modules/modulestarter/items/{itemId}/delete
+    methods: [POST, DELETE]
+    requirements:
+        itemId: \d+
+    defaults:
+        _controller: 'ModuleStarter\Presentation\Controller\Admin\ItemController::delete'
+
+modulestarter_items_toggle:
+    path: /modules/modulestarter/items/{itemId}/toggle
+    methods: [POST]
+    requirements:
+        itemId: \d+
+    defaults:
+        _controller: 'ModuleStarter\Presentation\Controller\Admin\ItemController::toggle'
+```
+
+## ✅ Bonnes Pratiques
+
+1. **Sécurité `@AdminSecurity`** sur toutes les actions admin
+2. **Validation CSRF** pour les POST/DELETE
+3. **Pattern PRG** (Post-Redirect-Get) après les formulaires
+4. **Messages flash** pour le feedback utilisateur
+5. **Injection de dépendances** via constructeur
+6. **Services pour la logique métier** - pas dans le contrôleur
+7. **Types stricts** sur les paramètres de route
+
+## ⚠️ AdminSecurity - Attributes PHP 8 obligatoires (PS9)
+
+PrestaShop 9 utilise les **Attributes PHP 8** (`#[AdminSecurity]`), pas les annotations docblock (`@AdminSecurity`).
+De plus, `admin_domain` est la route de redirection par défaut, qui n'existe pas.
+
+**Erreur courante:**
+```
+No route found for "GET /admin-dev/modules/.../admin_domain"
+```
+
+**Solution: Utiliser les Attributes PHP 8 avec `redirectRoute`** :
+
+```php
+use PrestaShopBundle\Security\Attribute\AdminSecurity;
+
+// ❌ MAUVAIS - Annotations docblock (PS 1.7/8.0 legacy)
+/**
+ * @AdminSecurity("is_granted('read', request.get('_legacy_controller'))")
+ */
+public function index(): Response
+
+// ⚠️ RISQUÉ - _legacy_controller peut ne pas avoir de permissions configurées
+#[AdminSecurity("is_granted('read', request.get('_legacy_controller'))", redirectRoute: 'admin_module_manage')]
+public function index(): Response
+
+// ✅ BON - Utiliser AdminModules comme contrôleur de référence
+#[AdminSecurity("is_granted('read', 'AdminModules')", redirectRoute: 'admin_module_manage')]
+public function index(): Response
+```
+
+**Routes de redirection valides PS9:**
+- `admin_module_manage` - Page des modules
+- `admin_products_index` - Liste produits
+- `admin_orders_index` - Liste commandes
+
+**Import obligatoire:**
+```php
+use PrestaShopBundle\Security\Attribute\AdminSecurity;  // ✅ Attribute
+// NOT: use PrestaShopBundle\Security\Annotation\AdminSecurity;  // ❌ Annotation
+```

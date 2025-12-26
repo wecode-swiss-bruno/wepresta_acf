@@ -1,0 +1,9 @@
+# Extensions WEDEV installées
+# Format: NOM=LIGNES
+UI=1200
+Http=1350
+Rules=1850
+Jobs=1150
+Audit=500
+Notifications=700
+Import=640
