@@ -1,21 +1,31 @@
 /**
  * WePresta ACF - Admin Styles
+ * Uses WEDEV UI Extension variables for PrestaShop 9 consistency
  */
 
-/* CSS Variables */
+// Import WEDEV UI variables (PS9 design system)
+@use '../../src/Wedev/Extension/UI/Assets/scss/_variables' as vars;
 
+// CSS Variables mapped from WEDEV UI SCSS variables
 :root {
-  --acf-primary:#25b9d7;
-  --acf-primary-dark:#1e9bb4;
-  --acf-success:#70b580;
-  --acf-danger:#e76f51;
-  --acf-warning:#f0ad4e;
-  --acf-gray:#6c757d;
-  --acf-text:#363a41;
-  --acf-border:#e9e9e9;
-  --acf-bg:#f9fafb;
-  --acf-card-bg:#ffffff;
-  --acf-shadow:0 1px 3px rgba(0, 0, 0, 0.08);
+  --acf-primary: #{vars.$ps-primary};
+  --acf-primary-dark: #1e9bb4;  // Pre-calculated darken value
+  --acf-success: #{vars.$ps-success};
+  --acf-danger: #{vars.$ps-danger};
+  --acf-warning: #{vars.$ps-warning};
+  --acf-gray: #{vars.$ps-gray-700};
+  --acf-text: #{vars.$ps-gray-800};
+  --acf-border: #{vars.$ps-gray-400};
+  --acf-bg: #{vars.$ps-gray-100};
+  --acf-card-bg: #ffffff;
+  --acf-shadow: #{vars.$ps-shadow-sm};
+
+  // Additional PS9 variables
+  --acf-font-family: #{vars.$ps-font-family};
+  --acf-border-radius: #{vars.$ps-border-radius};
+  --acf-border-radius-lg: #{vars.$ps-border-radius-lg};
+  --acf-spacer: #{vars.$ps-spacer};
+  --acf-transition: #{vars.$ps-transition-base};
 }
 
 /* Container */
@@ -494,70 +504,173 @@
    Toggle Switch - PrestaShop 9 Style
    ============================================ */
 
+/* ============================================
+   PS-Switch - PrestaShop 9 Style Toggle
+   Matches prestakit _ps-switch.scss exactly
+   ============================================ */
+span.ps-switch,
 .ps-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  min-width: 90px;
+  height: 24px;
 
-  input[type="checkbox"] {
-    position: relative;
-    width: 40px;
-    height: 22px;
-    appearance: none;
-    -webkit-appearance: none;
-    background-color: #c5ced6;
-    border-radius: 11px;
+  // Labels - positioned, only visible when their input is checked
+  label {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    z-index: 1;
+    padding-left: 44px;
+    margin-bottom: 0;
+    opacity: 0;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 400;
+    color: #363a41;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    margin: 0;
-    flex-shrink: 0;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+  }
 
-    &::before {
-      content: '';
+  // The sliding pill button
+  .slide-button {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    display: block;
+    width: 36px;
+    height: 24px;
+    background: #bebebe;
+    border-radius: 9999px;
+    transition: background 0.15s ease;
+
+    &::after {
       position: absolute;
       top: 2px;
       left: 2px;
-      width: 18px;
-      height: 18px;
-      background-color: #fff;
+      width: 20px;
+      height: 20px;
+      content: "";
+      background: #fff;
       border-radius: 50%;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-      transition: transform 0.2s ease;
-    }
-
-    &:checked {
-      background-color: var(--acf-primary, #25b9d7);
-
-      &::before {
-        transform: translateX(18px);
-      }
-    }
-
-    &:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(37, 185, 215, 0.25);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      transition: transform 0.15s ease;
     }
   }
 
-  label {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: 400;
-    color: var(--acf-text, #363a41);
+  // Radio inputs - invisible but clickable
+  input[type="radio"] {
+    position: absolute;
+    left: 0;
+    z-index: 3;
+    width: 36px;
+    height: 24px;
     cursor: pointer;
-    user-select: none;
+    opacity: 0;
+    margin: 0;
+    padding: 0;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+
+    &:checked {
+      z-index: 0;
+    }
+
+    // Use direct sibling (+) to show correct label
+    &:checked + label {
+      opacity: 1;
+    }
+
+    &:disabled:checked + label {
+      opacity: 0.4;
+    }
+  }
+
+  // value=0 (Non/OFF) checked - gray, circle left
+  input[value="0"]:checked ~ .slide-button {
+    background: #bebebe;
+
+    &::after {
+      transform: translateX(0);
+    }
+  }
+
+  // value=1 (Oui/ON) checked - green, circle right
+  input[value="1"]:checked ~ .slide-button {
+    background: #207f4c;
+
+    &::after {
+      transform: translateX(12px);
+    }
+  }
+
+  // Disabled slide-button
+  input:disabled ~ .slide-button {
+    opacity: 0.4;
+  }
+
+  // Disabled state
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 
 /* Form group with switch */
 .form-group .ps-switch {
   margin-top: 0.25rem;
+}
+
+/* ============================================
+   Field Type Badge
+   ============================================ */
+
+.field-type {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--acf-gray, #6c757d);
+  background: var(--acf-bg, #f8f9fa);
+  border-radius: var(--acf-border-radius, 4px);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================
+   Select Fields - PrestaShop 9 Style
+   ============================================ */
+
+.acfps-field-configurator select.form-control,
+.acfps-group-settings select.form-control,
+.acfps-app select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23363a41' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px 10px;
+  padding-right: 2.25rem;
+  border: 1px solid var(--acf-border, #bbcdd2);
+  border-radius: var(--acf-border-radius, 4px);
+  height: calc(1.5em + 0.75rem + 2px);
+  font-size: 0.875rem;
+  color: var(--acf-text, #363a41);
+  background-color: #fff;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+  &:focus {
+    border-color: var(--acf-primary, #25b9d7);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(37, 185, 215, 0.25);
+  }
+
+  &:disabled {
+    background-color: #e9ecef;
+    opacity: 1;
+  }
 }
 
 /* ============================================
@@ -604,3 +717,90 @@
     box-shadow: inset 0 0 0 2px rgba(37, 185, 215, 0.2);
   }
 }
+
+/* ============================================
+   ACF List Field
+   ============================================ */
+
+.acf-list-field {
+  .acf-list-items {
+    margin-bottom: 0.5rem;
+  }
+
+  .acf-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    input {
+      flex: 1;
+    }
+
+    .acf-list-remove {
+      flex-shrink: 0;
+      padding: 0.25rem 0.5rem;
+      line-height: 1;
+    }
+  }
+
+  .acf-list-add {
+    margin-top: 0.25rem;
+  }
+}
+
+/* ============================================
+   ACF Repeater Field
+   ============================================ */
+
+.acf-repeater-field {
+  .acf-repeater-rows {
+    margin-bottom: 0.5rem;
+  }
+
+  .acf-repeater-row {
+    border: 1px solid var(--acf-border, #e9e9e9);
+    border-radius: var(--acf-border-radius, 4px);
+    background: var(--acf-card-bg, #fff);
+
+    .card-header {
+      background: var(--acf-bg, #f8f9fa);
+      border-bottom: 1px solid var(--acf-border, #e9e9e9);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .card-body {
+      padding: 0.75rem;
+    }
+
+    .acf-repeater-row-handle {
+      color: var(--acf-gray, #6c757d);
+      user-select: none;
+    }
+
+    .acf-repeater-remove {
+      padding: 0.15rem 0.4rem;
+      line-height: 1;
+    }
+
+    .form-group {
+      margin-bottom: 0.5rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .form-control-label {
+      font-size: 0.8125rem;
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  .acf-repeater-add {
+    margin-top: 0.25rem;
+  }
+}
+
+

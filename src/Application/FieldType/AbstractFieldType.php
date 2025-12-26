@@ -56,9 +56,10 @@ abstract class AbstractFieldType implements FieldTypeInterface
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $a = $this->buildInputAttrs($field, $context);
-        $escapedValue = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+        $escapedValue = htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
         $placeholder = htmlspecialchars($field['config']['placeholder'] ?? '', ENT_QUOTES, 'UTF-8');
-        return sprintf('<input type="text" class="form-control %s %s" id="%s%s" %s %s value="%s" placeholder="%s">', $a['sizeClass'], $a['inputClass'], $a['idPrefix'], $a['slug'], $a['nameAttr'], $a['dataAttr'], $escapedValue, $placeholder);
+        $inputId = $a['idPrefix'] . $a['slug'] . $a['suffix'];
+        return sprintf('<input type="text" class="form-control %s %s" id="%s" %s %s value="%s" placeholder="%s">', $a['sizeClass'], $a['inputClass'], $inputId, $a['nameAttr'], $a['dataAttr'], $escapedValue, $placeholder);
     }
 
     public function getJsTemplate(array $field): string
@@ -70,22 +71,27 @@ abstract class AbstractFieldType implements FieldTypeInterface
 
     protected function escapeAttr(string $value): string { return htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); }
 
-    /** @return array{slug: string, sizeClass: string, nameAttr: string, dataAttr: string, inputClass: string, idPrefix: string} */
+    /** @return array{slug: string, sizeClass: string, nameAttr: string, dataAttr: string, inputClass: string, idPrefix: string, suffix: string, fullName: string} */
     protected function buildInputAttrs(array $field, array $context = []): array
     {
         $slug = $field['slug'] ?? '';
         $size = $context['size'] ?? '';
         $prefix = $context['prefix'] ?? 'acf_';
+        $suffix = $context['suffix'] ?? ''; // For language-specific inputs (e.g., '_1' for lang id 1)
         $dataSubfield = !empty($context['dataSubfield']);
         $idPrefix = $context['idPrefix'] ?? 'acf_';
         $escapedSlug = $this->escapeAttr($slug);
+        $escapedSuffix = $this->escapeAttr($suffix);
+        $fullName = $prefix . $escapedSlug . $escapedSuffix;
         return [
             'slug' => $escapedSlug,
             'sizeClass' => $size ? "form-control-{$size}" : '',
-            'nameAttr' => $dataSubfield ? '' : sprintf('name="%s%s"', $prefix, $escapedSlug),
+            'nameAttr' => $dataSubfield ? '' : sprintf('name="%s"', $fullName),
             'dataAttr' => $dataSubfield ? sprintf('data-subfield="%s"', $escapedSlug) : '',
             'inputClass' => $dataSubfield ? 'acf-subfield-input' : '',
             'idPrefix' => $idPrefix,
+            'suffix' => $escapedSuffix,
+            'fullName' => $fullName,
         ];
     }
 

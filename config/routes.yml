@@ -137,3 +137,9 @@ wepresta_acf_api_field_types_grouped:
     methods: [GET]
     defaults:
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::fieldTypesGrouped'
+
+wepresta_acf_api_slugify:
+    path: /modules/wepresta_acf/api/slugify
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::slugify'

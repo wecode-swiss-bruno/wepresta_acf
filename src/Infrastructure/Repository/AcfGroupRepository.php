@@ -4,104 +4,160 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Repository;
 
-use Db;
 use DbQuery;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
+use WeprestaAcf\Wedev\Core\Repository\AbstractRepository;
 
-final class AcfGroupRepository implements AcfGroupRepositoryInterface
+/**
+ * Repository for ACF Groups extending WEDEV Core AbstractRepository.
+ */
+final class AcfGroupRepository extends AbstractRepository implements AcfGroupRepositoryInterface
 {
-    private const TABLE = 'wepresta_acf_group';
     private const TABLE_SHOP = 'wepresta_acf_group_shop';
-    private const PK = 'id_wepresta_acf_group';
 
-    public function findById(int $id): ?array
+    protected function getTableName(): string
     {
-        $sql = new DbQuery();
-        $sql->select('*')->from(self::TABLE)->where(self::PK . ' = ' . (int) $id);
-        $result = Db::getInstance()->getRow($sql);
-        return $result ?: null;
+        return 'wepresta_acf_group';
+    }
+
+    protected function getPrimaryKey(): string
+    {
+        return 'id_wepresta_acf_group';
     }
 
     public function findBySlug(string $slug): ?array
     {
-        $sql = new DbQuery();
-        $sql->select('*')->from(self::TABLE)->where("slug = '" . pSQL($slug) . "'");
-        $result = Db::getInstance()->getRow($sql);
-        return $result ?: null;
+        return $this->findOneBy(['slug' => $slug]);
     }
 
     public function findActiveGroups(?int $shopId = null): array
     {
         $sql = new DbQuery();
-        $sql->select('g.*')->from(self::TABLE, 'g')->where('g.active = 1')->orderBy('g.priority ASC');
+        $sql->select('g.*')
+            ->from($this->getTableName(), 'g')
+            ->where('g.active = 1')
+            ->orderBy('g.priority ASC');
+
         if ($shopId !== null) {
-            $sql->innerJoin(self::TABLE_SHOP, 'gs', 'g.' . self::PK . ' = gs.' . self::PK . ' AND gs.id_shop = ' . (int) $shopId);
+            $sql->innerJoin(
+                self::TABLE_SHOP,
+                'gs',
+                'g.' . $this->getPrimaryKey() . ' = gs.' . $this->getPrimaryKey() . ' AND gs.id_shop = ' . (int) $shopId
+            );
         }
-        $result = Db::getInstance()->executeS($sql);
-        return $result ?: [];
+
+        return $this->db->executeS($sql) ?: [];
     }
 
-    public function findAll(): array
+    /**
+     * @return array[]
+     */
+    public function findAll(?int $limit = null, ?int $offset = null): array
     {
         $sql = new DbQuery();
-        $sql->select('*')->from(self::TABLE)->orderBy('priority ASC');
-        $result = Db::getInstance()->executeS($sql);
-        return $result ?: [];
+        $sql->select('*')
+            ->from($this->getTableName())
+            ->orderBy('priority ASC');
+
+        if ($limit !== null) {
+            $sql->limit($limit, $offset ?? 0);
+        }
+
+        return $this->db->executeS($sql) ?: [];
     }
 
+    /**
+     * Create a new group with mapped data.
+     */
     public function create(array $data): int
     {
-        $now = date('Y-m-d H:i:s');
-        $insert = [
-            'uuid' => pSQL($data['uuid'] ?? ''),
-            'title' => pSQL($data['title'] ?? ''),
-            'slug' => pSQL($data['slug'] ?? ''),
-            'description' => pSQL($data['description'] ?? ''),
-            'location_rules' => pSQL(json_encode($data['locationRules'] ?? [], JSON_THROW_ON_ERROR)),
-            'placement_tab' => pSQL($data['placementTab'] ?? 'description'),
-            'placement_position' => pSQL($data['placementPosition'] ?? ''),
-            'priority' => (int) ($data['priority'] ?? 10),
-            'bo_options' => pSQL(json_encode($data['boOptions'] ?? [], JSON_THROW_ON_ERROR)),
-            'fo_options' => pSQL(json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR)),
-            'active' => (int) ($data['active'] ?? 1),
-            'date_add' => $now,
-            'date_upd' => $now,
-        ];
-        Db::getInstance()->insert(self::TABLE, $insert);
-        return (int) Db::getInstance()->Insert_ID();
+        $mapped = $this->mapDataForInsert($data);
+
+        return $this->insert($mapped);
     }
 
+    /**
+     * Update a group with mapped data.
+     */
     public function update(int $id, array $data): bool
     {
-        $update = [
-            'title' => pSQL($data['title'] ?? ''),
-            'slug' => pSQL($data['slug'] ?? ''),
-            'description' => pSQL($data['description'] ?? ''),
-            'location_rules' => pSQL(json_encode($data['locationRules'] ?? [], JSON_THROW_ON_ERROR)),
-            'placement_tab' => pSQL($data['placementTab'] ?? 'description'),
-            'placement_position' => pSQL($data['placementPosition'] ?? ''),
-            'priority' => (int) ($data['priority'] ?? 10),
-            'bo_options' => pSQL(json_encode($data['boOptions'] ?? [], JSON_THROW_ON_ERROR)),
-            'fo_options' => pSQL(json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR)),
-            'active' => (int) ($data['active'] ?? 1),
-            'date_upd' => date('Y-m-d H:i:s'),
-        ];
-        return Db::getInstance()->update(self::TABLE, $update, self::PK . ' = ' . (int) $id);
-    }
+        $mapped = $this->mapDataForUpdate($data);
 
-    public function delete(int $id): bool
-    {
-        return Db::getInstance()->delete(self::TABLE, self::PK . ' = ' . (int) $id);
+        return parent::update($id, $mapped);
     }
 
     public function slugExists(string $slug, ?int $excludeId = null): bool
     {
         $sql = new DbQuery();
-        $sql->select('COUNT(*)')->from(self::TABLE)->where("slug = '" . pSQL($slug) . "'");
+        $sql->select('COUNT(*)')
+            ->from($this->getTableName())
+            ->where("slug = '" . pSQL($slug) . "'");
+
         if ($excludeId !== null) {
-            $sql->where(self::PK . ' != ' . (int) $excludeId);
+            $sql->where($this->getPrimaryKey() . ' != ' . (int) $excludeId);
         }
-        return (int) Db::getInstance()->getValue($sql) > 0;
+
+        return (int) $this->db->getValue($sql) > 0;
+    }
+
+    /**
+     * Associate a group with a shop.
+     */
+    public function addShopAssociation(int $groupId, int $shopId): bool
+    {
+        return $this->db->insert(self::TABLE_SHOP, [
+            $this->getPrimaryKey() => (int) $groupId,
+            'id_shop' => (int) $shopId,
+        ], false, true, \Db::ON_DUPLICATE_KEY);
+    }
+
+    /**
+     * Associate a group with all active shops.
+     */
+    public function addAllShopAssociations(int $groupId): void
+    {
+        $shops = \Shop::getShops(true);
+        foreach ($shops as $shop) {
+            $this->addShopAssociation($groupId, (int) $shop['id_shop']);
+        }
+    }
+
+    /**
+     * Map input data to database columns for insert.
+     */
+    private function mapDataForInsert(array $data): array
+    {
+        return [
+            'uuid' => $data['uuid'] ?? '',
+            'title' => $data['title'] ?? '',
+            'slug' => $data['slug'] ?? '',
+            'description' => $data['description'] ?? '',
+            'location_rules' => json_encode($data['locationRules'] ?? [], JSON_THROW_ON_ERROR),
+            'placement_tab' => $data['placementTab'] ?? 'description',
+            'placement_position' => $data['placementPosition'] ?? '',
+            'priority' => (int) ($data['priority'] ?? 10),
+            'bo_options' => json_encode($data['boOptions'] ?? [], JSON_THROW_ON_ERROR),
+            'fo_options' => json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR),
+            'active' => (int) ($data['active'] ?? 1),
+        ];
+    }
+
+    /**
+     * Map input data to database columns for update.
+     */
+    private function mapDataForUpdate(array $data): array
+    {
+        return [
+            'title' => $data['title'] ?? '',
+            'slug' => $data['slug'] ?? '',
+            'description' => $data['description'] ?? '',
+            'location_rules' => json_encode($data['locationRules'] ?? [], JSON_THROW_ON_ERROR),
+            'placement_tab' => $data['placementTab'] ?? 'description',
+            'placement_position' => $data['placementPosition'] ?? '',
+            'priority' => (int) ($data['priority'] ?? 10),
+            'bo_options' => json_encode($data['boOptions'] ?? [], JSON_THROW_ON_ERROR),
+            'fo_options' => json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR),
+            'active' => (int) ($data['active'] ?? 1),
+        ];
     }
 }
-

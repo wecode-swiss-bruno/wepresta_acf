@@ -164,9 +164,10 @@
 
 {# -----------------------------------------------------------------------------
  # Form Section - Section de formulaire avec titre
- # Usage: {% call forms.section('General Settings', 'settings') %}...{% endcall %}
+ # Note: In Twig, use this as wrapper by passing content as parameter:
+ # Usage: {{ forms.section('General Settings', 'settings', formContent) }}
  # -------------------------------------------------------------------------- #}
-{% macro section(title, icon) %}
+{% macro section(title, icon, content) %}
 <div class="form-section mb-4">
     <h4 class="form-section-title d-flex align-items-center mb-3">
         {% if icon %}
@@ -175,7 +176,7 @@
         {{ title }}
     </h4>
     <hr class="mb-3">
-    {{ caller() }}
+    {{ content|raw }}
 </div>
 {% endmacro %}
 

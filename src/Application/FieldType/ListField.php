@@ -37,12 +37,25 @@ final class ListField extends AbstractFieldType
 
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
-        $a = $this->buildInputAttrs($field, $context);
+        $slug = $field['slug'] ?? '';
+        $prefix = $context['prefix'] ?? 'acf_';
+        $sizeClass = isset($context['size']) ? "form-control-{$context['size']}" : '';
         $items = $this->denormalizeValue($value);
-        $html = '<div class="acf-list-field" data-field="' . $a['slug'] . '">';
+        $escapedSlug = $this->escapeAttr($slug);
+
+        $html = '<div class="acf-list-field" data-field="' . $escapedSlug . '">';
         $html .= '<div class="acf-list-items">';
-        foreach ($items as $idx => $item) {
-            $html .= sprintf('<div class="acf-list-item mb-2"><input type="text" class="form-control %s" %s[] value="%s"><button type="button" class="btn btn-sm btn-outline-danger ms-2 acf-list-remove">×</button></div>', $a['sizeClass'], $a['nameAttr'], $this->escapeAttr((string) $item));
+        foreach ($items as $item) {
+            $html .= sprintf(
+                '<div class="acf-list-item mb-2 d-flex align-items-center">' .
+                '<input type="text" class="form-control %s" name="%s%s[]" value="%s">' .
+                '<button type="button" class="btn btn-sm btn-outline-danger ms-2 acf-list-remove">×</button>' .
+                '</div>',
+                $sizeClass,
+                $prefix,
+                $escapedSlug,
+                $this->escapeAttr((string) $item)
+            );
         }
         $html .= '</div>';
         $html .= '<button type="button" class="btn btn-sm btn-outline-primary acf-list-add">+ Add Item</button>';

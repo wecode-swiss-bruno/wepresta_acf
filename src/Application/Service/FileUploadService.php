@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace WeprestaAcf\Application\Service;
 
 use Configuration;
+use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 
+/**
+ * Handles file uploads for ACF fields.
+ */
 final class FileUploadService
 {
+    use LoggerTrait;
+
     private string $uploadDir;
     private string $moduleUrl;
 
@@ -20,19 +26,33 @@ final class FileUploadService
     /** @param array<string, mixed> $file @param array<string> $allowedMimes @return array<string, mixed> */
     public function upload(array $file, int $fieldId, int $productId, int $shopId, string $type = 'files', array $allowedMimes = [], bool $useFixedPath = true, ?int $maxFileSize = null, bool $deleteExisting = true): array
     {
+        $this->logInfo('File upload started', [
+            'field_id' => $fieldId,
+            'product_id' => $productId,
+            'original_name' => $file['name'] ?? 'unknown',
+            'size' => $file['size'] ?? 0,
+        ]);
+
         $this->validateUpload($file, $allowedMimes, $maxFileSize);
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $dir = $this->uploadDir . $type . '/';
         $this->ensureDirectory($dir);
-        if ($deleteExisting) { $this->deleteExisting($fieldId, $productId, $shopId, $type); }
+        if ($deleteExisting) {
+            $this->deleteExisting($fieldId, $productId, $shopId, $type);
+        }
 
         $filename = $useFixedPath
             ? sprintf('%d_%d_%d.%s', $fieldId, $productId, $shopId, $extension)
             : sprintf('%d_%d_%d_%d_%s.%s', $fieldId, $productId, $shopId, time(), bin2hex(random_bytes(4)), $extension);
 
         $destination = $dir . $filename;
-        if (!copy($file['tmp_name'], $destination)) { throw new \RuntimeException('Failed to copy uploaded file'); }
+        if (!copy($file['tmp_name'], $destination)) {
+            $this->logError('Failed to copy uploaded file', ['destination' => $destination]);
+            throw new \RuntimeException('Failed to copy uploaded file');
+        }
         chmod($destination, 0o644);
+
+        $this->logInfo('File uploaded successfully', ['filename' => $filename, 'path' => $type . '/' . $filename]);
 
         return [
             'filename' => $filename, 'path' => $type . '/' . $filename,

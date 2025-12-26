@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import PsSwitch from '@/components/ui/PsSwitch.vue'
 
 const props = defineProps<{
   config: FieldConfig
@@ -12,6 +14,11 @@ const emit = defineEmits<{
 
 const { t } = useTranslations()
 
+const allowMultiple = computed({
+  get: () => props.config.allowMultiple === true,
+  set: (value: boolean) => emit('update:config', { ...props.config, allowMultiple: value })
+})
+
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
   emit('update:config', { ...props.config, [key]: value })
 }
@@ -21,7 +28,7 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
   <div class="select-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('choices') }} *</label>
-      <textarea 
+      <textarea
         class="form-control"
         rows="6"
         :value="config.choices"
@@ -41,7 +48,7 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
 
     <div class="form-group">
       <label class="form-control-label">{{ t('defaultValue') }}</label>
-      <input 
+      <input
         type="text"
         class="form-control"
         :value="config.defaultValue"
@@ -53,15 +60,11 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
     </div>
 
     <div class="form-group">
-      <div class="ps-switch">
-        <input 
-          id="select-allow-multiple"
-          type="checkbox"
-          :checked="config.allowMultiple"
-          @change="updateConfig('allowMultiple', ($event.target as HTMLInputElement).checked)"
-        >
-        <label for="select-allow-multiple">{{ t('allowMultiple') }}</label>
-      </div>
+      <label class="form-control-label">{{ t('allowMultiple') }}</label>
+      <PsSwitch
+        v-model="allowMultiple"
+        id="select-allow-multiple"
+      />
       <small class="form-text text-muted">
         Allow selecting multiple values (renders as checkboxes).
       </small>

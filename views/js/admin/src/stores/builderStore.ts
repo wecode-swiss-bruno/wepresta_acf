@@ -19,15 +19,15 @@ export const useBuilderStore = defineStore('builder', () => {
   const successMessage = ref<string | null>(null)
 
   // Getters
-  const activeGroups = computed(() => 
+  const activeGroups = computed(() =>
     groups.value.filter(g => g.active)
   )
 
-  const currentFields = computed(() => 
+  const currentFields = computed(() =>
     currentGroup.value?.fields || []
   )
 
-  const fieldTypes = computed<FieldTypeDefinition[]>(() => 
+  const fieldTypes = computed<FieldTypeDefinition[]>(() =>
     window.acfConfig?.fieldTypes || []
   )
 
@@ -92,7 +92,7 @@ export const useBuilderStore = defineStore('builder', () => {
       if (groupId) {
         // Update existing group
         const updated = await api.updateGroup(groupId, currentGroup.value)
-        
+
         // Merge updated group data but keep local fields for now
         const localFields = currentGroup.value.fields || []
         currentGroup.value = { ...updated, fields: localFields }
@@ -115,9 +115,9 @@ export const useBuilderStore = defineStore('builder', () => {
       const fieldsToSave = currentGroup.value.fields || []
       for (const field of fieldsToSave) {
         if (!field.title.trim()) continue // Skip fields without title
-        
+
         let savedField: AcfField
-        
+
         if (field.id) {
           // Update existing field
           savedField = await api.updateField(field.id, field)
@@ -127,7 +127,7 @@ export const useBuilderStore = defineStore('builder', () => {
         } else {
           continue
         }
-        
+
         // Update field in local state
         const idx = currentGroup.value.fields!.findIndex(f => f.uuid === field.uuid)
         if (idx !== -1) {
@@ -135,17 +135,17 @@ export const useBuilderStore = defineStore('builder', () => {
           const localChildren = field.children || []
           currentGroup.value.fields![idx] = { ...savedField, children: localChildren }
         }
-        
+
         // Save subfields for repeater fields
         if (field.type === 'repeater' && field.children && field.children.length > 0 && savedField.id) {
           const savedChildren: AcfField[] = []
-          
+
           for (const subfield of field.children) {
             if (!subfield.title.trim()) continue
-            
+
             // Set the parent ID to the saved repeater's ID
             const subfieldData = { ...subfield, parentId: savedField.id }
-            
+
             let savedSubfield: AcfField
             if (subfield.id) {
               savedSubfield = await api.updateField(subfield.id, subfieldData)
@@ -154,10 +154,10 @@ export const useBuilderStore = defineStore('builder', () => {
             } else {
               continue
             }
-            
+
             savedChildren.push(savedSubfield)
           }
-          
+
           // Update children in local state
           if (idx !== -1) {
             currentGroup.value.fields![idx].children = savedChildren
@@ -239,8 +239,8 @@ export const useBuilderStore = defineStore('builder', () => {
       config: {},
       validation: {},
       conditions: {},
-      wrapper: {},
-      foOptions: {},
+      wrapper: { width: '100' },
+      foOptions: { visible: true },
       position: 0,
       translatable: false,
       active: true,
@@ -253,7 +253,7 @@ export const useBuilderStore = defineStore('builder', () => {
       }
       newField.position = parentField.children.length
       parentField.children.push(newField)
-      
+
       // Update parent in currentGroup - need to find the actual field in the store
       const fieldInStore = currentGroup.value?.fields?.find(f => f.uuid === parentField.uuid)
       if (fieldInStore) {
@@ -267,14 +267,14 @@ export const useBuilderStore = defineStore('builder', () => {
       newField.position = currentGroup.value.fields.length
       currentGroup.value.fields.push(newField)
     }
-    
+
     selectedField.value = newField
   }
 
   // Helper to update a field in the current group (including nested)
   function updateFieldInGroup(field: AcfField): void {
     if (!currentGroup.value?.fields) return
-    
+
     const index = currentGroup.value.fields.findIndex(f => f.uuid === field.uuid)
     if (index !== -1) {
       currentGroup.value.fields[index] = { ...field }
@@ -289,7 +289,7 @@ export const useBuilderStore = defineStore('builder', () => {
   // Remove subfield from a repeater
   async function removeSubfield(parentField: AcfField, subfield: AcfField): Promise<void> {
     if (!parentField.children) return
-    
+
     const index = parentField.children.findIndex(f => f.uuid === subfield.uuid)
     if (index === -1) return
 
@@ -324,7 +324,7 @@ export const useBuilderStore = defineStore('builder', () => {
       ...field,
       position: index,
     }))
-    
+
     updateFieldInGroup(parentField)
 
     // If parent is saved, update via API
@@ -332,7 +332,7 @@ export const useBuilderStore = defineStore('builder', () => {
       const fieldIds = newOrder
         .filter(f => f.id !== undefined)
         .map(f => f.id as number)
-      
+
       if (fieldIds.length > 0) {
         try {
           await api.reorderFields(parentField.id, fieldIds)
@@ -345,7 +345,7 @@ export const useBuilderStore = defineStore('builder', () => {
 
   async function saveField(field: AcfField): Promise<void> {
     if (!currentGroup.value) return
-    
+
     // Validate required fields before saving
     if (!field.title.trim()) {
       error.value = 'Field title is required'
@@ -388,7 +388,7 @@ export const useBuilderStore = defineStore('builder', () => {
     if (!currentGroup.value) return
 
     const fields = currentGroup.value.fields || []
-    
+
     // First, try to find in top-level fields
     const index = fields.findIndex(f => f.uuid === field.uuid)
 
@@ -423,7 +423,7 @@ export const useBuilderStore = defineStore('builder', () => {
 
     const fields = currentGroup.value.fields || []
     const index = fields.findIndex(f => f.uuid === field.uuid)
-    
+
     if (index === -1) return
 
     // If field has an ID (saved), delete via API
@@ -463,7 +463,7 @@ export const useBuilderStore = defineStore('builder', () => {
       const fieldIds = newOrder
         .filter(f => f.id !== undefined)
         .map(f => f.id as number)
-      
+
       if (fieldIds.length > 0) {
         try {
           await api.reorderFields(currentGroup.value.id, fieldIds)

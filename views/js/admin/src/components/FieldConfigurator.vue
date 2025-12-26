@@ -26,6 +26,7 @@ import FilesFieldConfig from '@/components/fields/FilesFieldConfig.vue'
 import RelationFieldConfig from '@/components/fields/RelationFieldConfig.vue'
 import ListFieldConfig from '@/components/fields/ListFieldConfig.vue'
 import RepeaterFieldConfig from '@/components/fields/RepeaterFieldConfig.vue'
+import PsSwitch from '@/components/ui/PsSwitch.vue'
 
 const store = useBuilderStore()
 const { t } = useTranslations()
@@ -39,7 +40,14 @@ const localField = ref<AcfField | null>(null)
 // Sync with store selection
 watch(() => store.selectedField, (newField) => {
   if (newField) {
-    localField.value = JSON.parse(JSON.stringify(newField))
+    const copy = JSON.parse(JSON.stringify(newField))
+    // Ensure defaults for nested objects
+    copy.wrapper = { width: '100', ...copy.wrapper }
+    copy.foOptions = { visible: true, ...copy.foOptions }
+    copy.validation = copy.validation || {}
+    copy.conditions = copy.conditions || {}
+    copy.config = copy.config || {}
+    localField.value = copy
   } else {
     localField.value = null
   }
@@ -49,7 +57,7 @@ watch(() => store.selectedField, (newField) => {
 const slugTimeout = ref<number | null>(null)
 function onTitleChange(): void {
   if (!localField.value) return
-  
+
   // Only auto-generate if slug is empty or matches previous auto-generated
   if (!localField.value.slug || !localField.value.id) {
     if (slugTimeout.value) {
@@ -86,7 +94,7 @@ const needsSaving = computed(() => {
 // Get field type config component
 const fieldConfigComponent = computed(() => {
   if (!localField.value) return null
-  
+
   switch (localField.value.type) {
     case 'text':
       return TextFieldConfig
@@ -152,7 +160,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
     <template v-else>
       <!-- Save button for new unsaved fields -->
       <div v-if="needsSaving" class="acfps-save-field-bar">
-        <button 
+        <button
           class="btn btn-primary btn-sm"
           :disabled="store.saving"
           @click="saveFieldToApi"
@@ -165,28 +173,28 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
 
       <!-- Config tabs -->
       <div class="acfps-config-tabs">
-        <button 
+        <button
           class="acfps-config-tab"
           :class="{ active: activeTab === 'general' }"
           @click="activeTab = 'general'"
         >
           {{ t('general') }}
         </button>
-        <button 
+        <button
           class="acfps-config-tab"
           :class="{ active: activeTab === 'validation' }"
           @click="activeTab = 'validation'"
         >
           {{ t('validation') }}
         </button>
-        <button 
+        <button
           class="acfps-config-tab"
           :class="{ active: activeTab === 'presentation' }"
           @click="activeTab = 'presentation'"
         >
           {{ t('presentation') }}
         </button>
-        <button 
+        <button
           class="acfps-config-tab"
           :class="{ active: activeTab === 'conditions' }"
           @click="activeTab = 'conditions'"
@@ -201,7 +209,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
           <div class="acfps-form-section">
             <div class="form-group">
               <label class="form-control-label">{{ t('fieldTitle') }} *</label>
-              <input 
+              <input
                 v-model="localField.title"
                 type="text"
                 class="form-control"
@@ -211,7 +219,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
 
             <div class="form-group">
               <label class="form-control-label">{{ t('fieldSlug') }} *</label>
-              <input 
+              <input
                 v-model="localField.slug"
                 type="text"
                 class="form-control"
@@ -225,7 +233,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
 
             <div class="form-group">
               <label class="form-control-label">{{ t('fieldInstructions') }}</label>
-              <textarea 
+              <textarea
                 v-model="localField.instructions"
                 class="form-control"
                 rows="3"
@@ -240,7 +248,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
           <!-- Type-specific config -->
           <div v-if="fieldConfigComponent" class="acfps-form-section">
             <h4>{{ t('fieldType') }}: {{ localField.type }}</h4>
-            <component 
+            <component
               :is="fieldConfigComponent"
               v-model:config="localField.config"
               @update:config="onFieldChange"
@@ -252,22 +260,19 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
         <template v-if="activeTab === 'validation'">
           <div class="acfps-form-section">
             <div class="form-group">
-              <div class="ps-switch">
-                <input 
-                  id="field-required"
-                  v-model="localField.validation.required"
-                  type="checkbox"
-                  @change="onFieldChange"
-                >
-                <label for="field-required">{{ t('required') }}</label>
-              </div>
+              <label class="form-control-label">{{ t('required') }}</label>
+              <PsSwitch
+                v-model="localField.validation.required"
+                id="field-required"
+                @update:model-value="onFieldChange"
+              />
             </div>
 
             <template v-if="localField.type === 'text'">
               <div class="form-row">
                 <div class="form-group col-6">
                   <label class="form-control-label">{{ t('minLength') }}</label>
-                  <input 
+                  <input
                     v-model.number="localField.validation.minLength"
                     type="number"
                     class="form-control"
@@ -277,7 +282,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
                 </div>
                 <div class="form-group col-6">
                   <label class="form-control-label">{{ t('maxLength') }}</label>
-                  <input 
+                  <input
                     v-model.number="localField.validation.maxLength"
                     type="number"
                     class="form-control"
@@ -289,7 +294,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
 
               <div class="form-group">
                 <label class="form-control-label">{{ t('pattern') }}</label>
-                <input 
+                <input
                   v-model="localField.validation.pattern"
                   type="text"
                   class="form-control"
@@ -303,7 +308,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
               <div class="form-row">
                 <div class="form-group col-6">
                   <label class="form-control-label">{{ t('minValue') }}</label>
-                  <input 
+                  <input
                     v-model.number="localField.validation.min"
                     type="number"
                     class="form-control"
@@ -312,7 +317,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
                 </div>
                 <div class="form-group col-6">
                   <label class="form-control-label">{{ t('maxValue') }}</label>
-                  <input 
+                  <input
                     v-model.number="localField.validation.max"
                     type="number"
                     class="form-control"
@@ -324,7 +329,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
 
             <div class="form-group">
               <label class="form-control-label">{{ t('errorMessage') }}</label>
-              <input 
+              <input
                 v-model="localField.validation.message"
                 type="text"
                 class="form-control"
@@ -340,15 +345,14 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
           <div class="acfps-form-section">
             <div class="form-group">
               <label class="form-control-label">{{ t('wrapperWidth') }}</label>
-              <select 
+              <select
                 v-model="localField.wrapper.width"
                 class="form-control"
                 @change="onFieldChange"
               >
-                <option value="">100%</option>
-                <option 
-                  v-for="opt in layoutOptions.widths" 
-                  :key="opt.value" 
+                <option
+                  v-for="opt in layoutOptions.widths"
+                  :key="opt.value"
                   :value="opt.value"
                 >
                   {{ opt.label }}
@@ -358,7 +362,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
 
             <div class="form-group">
               <label class="form-control-label">{{ t('wrapperClass') }}</label>
-              <input 
+              <input
                 v-model="localField.wrapper.class"
                 type="text"
                 class="form-control"
@@ -369,7 +373,7 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
 
             <div class="form-group">
               <label class="form-control-label">{{ t('wrapperId') }}</label>
-              <input 
+              <input
                 v-model="localField.wrapper.id"
                 type="text"
                 class="form-control"
@@ -381,41 +385,32 @@ const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths
 
           <div class="acfps-form-section">
             <h4>{{ t('frontendOptions') }}</h4>
-            
+
             <div class="form-group">
-              <div class="ps-switch">
-                <input 
-                  id="field-translatable"
-                  v-model="localField.translatable"
-                  type="checkbox"
-                  @change="onFieldChange"
-                >
-                <label for="field-translatable">{{ t('translatable') }}</label>
-              </div>
+              <label class="form-control-label">{{ t('translatable') }}</label>
+              <PsSwitch
+                v-model="localField.translatable"
+                id="field-translatable"
+                @update:model-value="onFieldChange"
+              />
             </div>
 
             <div class="form-group">
-              <div class="ps-switch">
-                <input 
-                  id="field-active"
-                  v-model="localField.active"
-                  type="checkbox"
-                  @change="onFieldChange"
-                >
-                <label for="field-active">{{ t('active') }}</label>
-              </div>
+              <label class="form-control-label">{{ t('active') }}</label>
+              <PsSwitch
+                v-model="localField.active"
+                id="field-active"
+                @update:model-value="onFieldChange"
+              />
             </div>
 
             <div class="form-group">
-              <div class="ps-switch">
-                <input 
-                  id="field-fo-visible"
-                  v-model="localField.foOptions.visible"
-                  type="checkbox"
-                  @change="onFieldChange"
-                >
-                <label for="field-fo-visible">{{ t('showOnFrontend') }}</label>
-              </div>
+              <label class="form-control-label">{{ t('showOnFrontend') }}</label>
+              <PsSwitch
+                v-model="localField.foOptions.visible"
+                id="field-fo-visible"
+                @update:model-value="onFieldChange"
+              />
             </div>
           </div>
         </template>

@@ -45,6 +45,18 @@ import '../scss/admin.scss';
 
             // AJAX form
             $(document).on('submit', '.wepresta_acf-ajax-form', this.handleAjaxForm.bind(this));
+
+            // ACF List field - Add item
+            $(document).on('click', '.acf-list-add', this.handleListAdd.bind(this));
+
+            // ACF List field - Remove item
+            $(document).on('click', '.acf-list-remove', this.handleListRemove.bind(this));
+
+            // ACF Repeater field - Add row
+            $(document).on('click', '.acf-repeater-add', this.handleRepeaterAdd.bind(this));
+
+            // ACF Repeater field - Remove row
+            $(document).on('click', '.acf-repeater-remove', this.handleRepeaterRemove.bind(this));
         },
 
         /**
@@ -379,6 +391,97 @@ import '../scss/admin.scss';
          */
         showWarning: function (message) {
             alert(message);
+        },
+
+        /**
+         * ACF List field - Add item
+         */
+        handleListAdd: function (event) {
+            event.preventDefault();
+            const $button = $(event.currentTarget);
+            const $container = $button.closest('.acf-list-field');
+            const $items = $container.find('.acf-list-items');
+            const fieldName = $container.data('field');
+
+            const $newItem = $(`
+                <div class="acf-list-item mb-2 d-flex align-items-center">
+                    <input type="text" class="form-control" name="acf_${fieldName}[]" value="">
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2 acf-list-remove">×</button>
+                </div>
+            `);
+
+            $items.append($newItem);
+            $newItem.find('input').focus();
+        },
+
+        /**
+         * ACF List field - Remove item
+         */
+        handleListRemove: function (event) {
+            event.preventDefault();
+            const $button = $(event.currentTarget);
+            $button.closest('.acf-list-item').remove();
+        },
+
+        /**
+         * ACF Repeater field - Add row
+         */
+        handleRepeaterAdd: function (event) {
+            event.preventDefault();
+            const $button = $(event.currentTarget);
+            const $container = $button.closest('.acf-repeater-field');
+            const $rows = $container.find('.acf-repeater-rows');
+            const fieldName = $container.data('field');
+            const rowIndex = $rows.find('.acf-repeater-row').length;
+
+            // Get subfield configuration if available
+            const subfields = $container.data('subfields') || [];
+
+            let rowHtml = `<div class="acf-repeater-row card mb-2" data-row="${rowIndex}">
+                <div class="card-header d-flex justify-content-between align-items-center py-2">
+                    <span class="acf-repeater-row-handle" style="cursor:move;">☰ Row ${rowIndex + 1}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger acf-repeater-remove">×</button>
+                </div>
+                <div class="card-body py-2">`;
+
+            if (subfields.length > 0) {
+                // Render configured subfields
+                subfields.forEach(function (sub) {
+                    rowHtml += `
+                        <div class="form-group mb-2">
+                            <label class="form-control-label">${sub.title || sub.slug}</label>
+                            <input type="text" class="form-control form-control-sm"
+                                   name="acf_${fieldName}[${rowIndex}][${sub.slug}]" value="">
+                        </div>`;
+                });
+            } else {
+                // Default: single text input
+                rowHtml += `
+                    <div class="form-group mb-2">
+                        <label class="form-control-label">Value</label>
+                        <input type="text" class="form-control form-control-sm"
+                               name="acf_${fieldName}[${rowIndex}][value]" value="">
+                    </div>`;
+            }
+
+            rowHtml += `</div></div>`;
+
+            $rows.append(rowHtml);
+        },
+
+        /**
+         * ACF Repeater field - Remove row
+         */
+        handleRepeaterRemove: function (event) {
+            event.preventDefault();
+            const $button = $(event.currentTarget);
+            const $row = $button.closest('.acf-repeater-row');
+
+            if (confirm('Remove this row?')) {
+                $row.fadeOut(200, function () {
+                    $(this).remove();
+                });
+            }
         },
     };
 

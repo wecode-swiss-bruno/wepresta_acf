@@ -8,7 +8,6 @@ use WeprestaAcf\Application\Service\SlugGenerator;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -52,12 +51,16 @@ class GroupApiController extends FrameworkBundleAdminController
             }
 
             $groupId = $this->groupRepository->create([
-                'uuid' => Uuid::uuid4()->toString(), 'title' => $data['title'], 'slug' => $slug,
+                'uuid' => $this->generateUuid(), 'title' => $data['title'], 'slug' => $slug,
                 'description' => $data['description'] ?? null, 'locationRules' => $data['locationRules'] ?? [],
                 'placementTab' => $data['placementTab'] ?? 'modules', 'placementPosition' => $data['placementPosition'] ?? null,
                 'priority' => $data['priority'] ?? 10, 'boOptions' => $data['boOptions'] ?? [],
                 'foOptions' => $data['foOptions'] ?? [], 'active' => $data['active'] ?? true,
             ]);
+
+            // Associate with all active shops
+            $this->groupRepository->addAllShopAssociations($groupId);
+
             return $this->json(['success' => true, 'data' => $this->serializeGroup($this->groupRepository->findById($groupId))], Response::HTTP_CREATED);
         } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
     }
@@ -104,16 +107,19 @@ class GroupApiController extends FrameworkBundleAdminController
 
             $newSlug = $this->slugGenerator->generateUnique($group['slug'] . '-copy', fn($s, $i) => $this->groupRepository->slugExists($s, $i));
             $newGroupId = $this->groupRepository->create([
-                'uuid' => Uuid::uuid4()->toString(), 'title' => $group['title'] . ' (Copy)', 'slug' => $newSlug,
+                'uuid' => $this->generateUuid(), 'title' => $group['title'] . ' (Copy)', 'slug' => $newSlug,
                 'description' => $group['description'], 'locationRules' => json_decode($group['location_rules'] ?? '[]', true),
                 'placementTab' => $group['placement_tab'], 'placementPosition' => $group['placement_position'],
                 'priority' => $group['priority'], 'boOptions' => json_decode($group['bo_options'] ?? '[]', true),
                 'foOptions' => json_decode($group['fo_options'] ?? '[]', true), 'active' => false,
             ]);
 
+            // Associate with all active shops
+            $this->groupRepository->addAllShopAssociations($newGroupId);
+
             foreach ($this->fieldRepository->findAllByGroup((int) $group['id_wepresta_acf_group']) as $field) {
                 $this->fieldRepository->create([
-                    'uuid' => Uuid::uuid4()->toString(), 'idAcfGroup' => $newGroupId,
+                    'uuid' => $this->generateUuid(), 'idAcfGroup' => $newGroupId,
                     'type' => $field['type'], 'title' => $field['title'],
                     'slug' => $this->slugGenerator->generateUnique($field['slug'], fn($s, $i) => $this->fieldRepository->slugExistsInGroup($s, $newGroupId, $i)),
                     'instructions' => $field['instructions'], 'config' => json_decode($field['config'] ?? '[]', true),
@@ -178,6 +184,14 @@ class GroupApiController extends FrameworkBundleAdminController
     private function jsonError(string $message, int $status = Response::HTTP_INTERNAL_SERVER_ERROR): JsonResponse
     {
         return $this->json(['success' => false, 'error' => $message], $status);
+    }
+
+    private function generateUuid(): string
+    {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // Version 4
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // Variant RFC 4122
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 }
 

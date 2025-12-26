@@ -134,8 +134,18 @@ class WeprestaAcf extends Module
             $groups = $groupRepository->findActiveGroups((int) $this->context->shop->id);
             if (empty($groups)) { return ''; }
 
-            $values = $valueProvider->getProductFieldValues($productId);
             $languages = Language::getLanguages(true);
+            $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
+            $currentLangId = (int) $this->context->language->id;
+
+            // Get values for current language (non-translatable fields)
+            $values = $valueProvider->getProductFieldValues($productId, null, $currentLangId);
+
+            // Get values for all languages (translatable fields)
+            $valuesPerLang = [];
+            foreach ($languages as $lang) {
+                $valuesPerLang[(int) $lang['id_lang']] = $valueProvider->getProductFieldValues($productId, null, (int) $lang['id_lang']);
+            }
 
             $groupsData = [];
             foreach ($groups as $group) {
@@ -146,17 +156,47 @@ class WeprestaAcf extends Module
                 foreach ($fields as $field) {
                     $slug = $field['slug'];
                     $type = $field['type'];
-                    $value = $values[$slug] ?? null;
+                    $isTranslatable = (bool) $field['translatable'];
                     $fieldType = $fieldTypeRegistry->getOrNull($type);
 
-                    $fieldsHtml[] = [
+                    if (!$fieldType) {
+                        continue;
+                    }
+
+                    $fieldData = [
                         'slug' => $slug,
                         'title' => $field['title'],
                         'instructions' => $field['instructions'],
                         'required' => (bool) (json_decode($field['validation'] ?? '{}', true)['required'] ?? false),
-                        'translatable' => (bool) $field['translatable'],
-                        'html' => $fieldType ? $fieldType->renderAdminInput($field, $value, ['prefix' => 'acf_']) : '',
+                        'translatable' => $isTranslatable,
                     ];
+
+                    if ($isTranslatable) {
+                        // Render field for each language
+                        $langInputs = [];
+                        foreach ($languages as $lang) {
+                            $langId = (int) $lang['id_lang'];
+                            $langValue = $valuesPerLang[$langId][$slug] ?? null;
+                            $langInputs[] = [
+                                'id_lang' => $langId,
+                                'iso_code' => $lang['iso_code'],
+                                'name' => $lang['name'],
+                                'is_default' => $langId === $defaultLangId,
+                                'html' => $fieldType->renderAdminInput($field, $langValue, [
+                                    'prefix' => 'acf_',
+                                    'suffix' => '_' . $langId,
+                                ]),
+                            ];
+                        }
+                        $fieldData['lang_inputs'] = $langInputs;
+                        $fieldData['html'] = ''; // Will be built in template
+                    } else {
+                        $value = $values[$slug] ?? null;
+                        $fieldData['html'] = $fieldType->renderAdminInput($field, $value, ['prefix' => 'acf_']);
+                        $fieldData['lang_inputs'] = [];
+                    }
+
+                    $fieldsHtml[] = $fieldData;
                 }
 
                 $groupsData[] = [
@@ -171,6 +211,7 @@ class WeprestaAcf extends Module
                 'acf_groups' => $groupsData,
                 'acf_product_id' => $productId,
                 'acf_languages' => $languages,
+                'acf_default_lang' => $defaultLangId,
             ]);
 
             return $this->fetch('module:wepresta_acf/views/templates/admin/product-fields.tpl');
@@ -201,14 +242,47 @@ class WeprestaAcf extends Module
             $valueHandler = AcfServiceContainer::getValueHandler();
             $fieldRepository = AcfServiceContainer::getFieldRepository();
             $fileUploadService = AcfServiceContainer::getFileUploadService();
+            $languages = Language::getLanguages(true);
+            $shopId = (int) $this->context->shop->id;
 
             // Collect values from $_POST
+            // Format: acf_slug (non-translatable) or acf_slug_langId (translatable)
             $values = [];
+            $translatableValues = []; // [slug => [langId => value]]
+
             foreach ($_POST as $key => $value) {
-                if (str_starts_with($key, 'acf_')) {
-                    $slug = substr($key, 4);
-                    $values[$slug] = $value;
+                if (!str_starts_with($key, 'acf_')) {
+                    continue;
                 }
+
+                $keyWithoutPrefix = substr($key, 4); // Remove 'acf_'
+
+                // Check if this is a language-specific key (ends with _N where N is a number)
+                if (preg_match('/^(.+)_(\d+)$/', $keyWithoutPrefix, $matches)) {
+                    $slug = $matches[1];
+                    $langId = (int) $matches[2];
+
+                    // Verify this is actually a language ID
+                    $isLangId = false;
+                    foreach ($languages as $lang) {
+                        if ((int) $lang['id_lang'] === $langId) {
+                            $isLangId = true;
+                            break;
+                        }
+                    }
+
+                    if ($isLangId) {
+                        // This is a translatable field value
+                        $field = $fieldRepository->findBySlug($slug);
+                        if ($field && (bool) $field['translatable']) {
+                            $translatableValues[$slug][$langId] = $value;
+                            continue;
+                        }
+                    }
+                }
+
+                // Non-translatable field or field slug that happens to end with a number
+                $values[$keyWithoutPrefix] = $value;
             }
 
             // Handle file uploads
@@ -223,15 +297,22 @@ class WeprestaAcf extends Module
                 $allowedMimes = $field['type'] === 'image' ? ['image/jpeg', 'image/png', 'image/gif', 'image/webp'] : [];
 
                 try {
-                    $uploadResult = $fileUploadService->upload($file, $fieldId, $productId, (int) $this->context->shop->id, $type, $allowedMimes);
+                    $uploadResult = $fileUploadService->upload($file, $fieldId, $productId, $shopId, $type, $allowedMimes);
                     $values[$slug] = json_encode($uploadResult);
                 } catch (\Exception $e) {
                     $this->log('File upload failed for ' . $slug . ': ' . $e->getMessage(), 2);
                 }
             }
 
-            // Save all values
-            $valueHandler->saveProductFieldValues($productId, $values, (int) $this->context->shop->id);
+            // Save non-translatable values
+            $valueHandler->saveProductFieldValues($productId, $values, $shopId);
+
+            // Save translatable values per language
+            foreach ($translatableValues as $slug => $langValues) {
+                foreach ($langValues as $langId => $value) {
+                    $valueHandler->saveFieldValue($productId, $slug, $value, $shopId, $langId);
+                }
+            }
         } catch (\Exception $e) {
             $this->log('Error saving product fields: ' . $e->getMessage(), 3);
         }

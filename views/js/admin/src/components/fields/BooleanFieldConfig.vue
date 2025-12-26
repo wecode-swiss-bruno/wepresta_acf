@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import PsSwitch from '@/components/ui/PsSwitch.vue'
 
 const props = defineProps<{
   config: FieldConfig
@@ -12,6 +14,11 @@ const emit = defineEmits<{
 
 const { t } = useTranslations()
 
+const defaultValue = computed({
+  get: () => props.config.defaultValue === true,
+  set: (value: boolean) => emit('update:config', { ...props.config, defaultValue: value })
+})
+
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
   emit('update:config', { ...props.config, [key]: value })
 }
@@ -21,20 +28,16 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
   <div class="boolean-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('defaultValue') }}</label>
-      <div class="ps-switch">
-        <input 
-          id="boolean-default"
-          type="checkbox"
-          :checked="config.defaultValue"
-          @change="updateConfig('defaultValue', ($event.target as HTMLInputElement).checked)"
-        >
-        <label for="boolean-default">Default to checked</label>
-      </div>
+      <PsSwitch
+        v-model="defaultValue"
+        id="boolean-default"
+      />
+      <small class="form-text text-muted">Default to checked</small>
     </div>
 
     <div class="form-group">
       <label class="form-control-label">True Label</label>
-      <input 
+      <input
         type="text"
         class="form-control"
         :value="config.trueLabel || 'Yes'"
@@ -47,7 +50,7 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
 
     <div class="form-group">
       <label class="form-control-label">False Label</label>
-      <input 
+      <input
         type="text"
         class="form-control"
         :value="config.falseLabel || 'No'"

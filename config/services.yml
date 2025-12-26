@@ -1,5 +1,8 @@
 # WePresta ACF - Services Symfony
 
+imports:
+    - { resource: '../src/Wedev/Extension/UI/config/services_ui.yml' }
+
 services:
     _defaults:
         autowire: true
@@ -22,6 +25,7 @@ services:
         resource: '../src/Infrastructure/*'
         exclude:
             - '../src/Infrastructure/Api/'
+            - '../src/Infrastructure/Adapter/'
 
     WeprestaAcf\Presentation\Controller\:
         resource: '../src/Presentation/Controller/*'
@@ -83,7 +87,17 @@ services:
     WeprestaAcf\Application\Service\AcfServiceContainer:
         public: true
 
-    WeprestaAcf\Infrastructure\Adapter\ConfigurationAdapter:
+    # =========================================================================
+    # Core Adapters (from Wedev/Core)
+    # =========================================================================
+
+    WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter:
+        public: true
+
+    WeprestaAcf\Wedev\Core\Adapter\ContextAdapter:
+        public: true
+
+    WeprestaAcf\Wedev\Core\Adapter\ShopAdapter:
         public: true
 
     # =========================================================================
@@ -109,6 +123,7 @@ services:
     WeprestaAcf\Infrastructure\Api\UtilityApiController:
         arguments:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+            $slugGenerator: '@WeprestaAcf\Application\Service\SlugGenerator'
         tags: ['controller.service_arguments']
         public: true
 
@@ -158,3 +173,4 @@ services:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
         tags: ['controller.service_arguments']
         public: true
+

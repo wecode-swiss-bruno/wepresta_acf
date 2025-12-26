@@ -51,10 +51,45 @@ final class RepeaterField extends AbstractFieldType
 
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
-        // Repeater rendering is handled specially by the module hook
-        // This is a fallback that shows basic structure
-        $a = $this->buildInputAttrs($field, $context);
-        return sprintf('<div class="acf-repeater-field" data-field="%s"><div class="acf-repeater-rows"></div><button type="button" class="btn btn-sm btn-outline-primary acf-repeater-add">+ Add Row</button></div>', $a['slug']);
+        $slug = $field['slug'] ?? '';
+        $prefix = $context['prefix'] ?? 'acf_';
+        $rows = $this->denormalizeValue($value);
+        $escapedSlug = $this->escapeAttr($slug);
+
+        $html = '<div class="acf-repeater-field" data-field="' . $escapedSlug . '">';
+        $html .= '<div class="acf-repeater-rows">';
+
+        foreach ($rows as $idx => $row) {
+            $html .= '<div class="acf-repeater-row card mb-2" data-row="' . $idx . '">';
+            $html .= '<div class="card-header d-flex justify-content-between align-items-center py-2">';
+            $html .= '<span class="acf-repeater-row-handle" style="cursor:move;">☰ Row ' . ($idx + 1) . '</span>';
+            $html .= '<button type="button" class="btn btn-sm btn-outline-danger acf-repeater-remove">×</button>';
+            $html .= '</div>';
+            $html .= '<div class="card-body py-2">';
+
+            // Render row values
+            if (is_array($row)) {
+                foreach ($row as $key => $val) {
+                    $html .= '<div class="form-group mb-2">';
+                    $html .= '<label class="form-control-label">' . $this->escapeAttr($key) . '</label>';
+                    $html .= sprintf(
+                        '<input type="text" class="form-control form-control-sm" name="%s%s[%d][%s]" value="%s">',
+                        $prefix,
+                        $escapedSlug,
+                        $idx,
+                        $this->escapeAttr($key),
+                        $this->escapeAttr((string) $val)
+                    );
+                    $html .= '</div>';
+                }
+            }
+
+            $html .= '</div></div>';
+        }
+
+        $html .= '</div>';
+        $html .= '<button type="button" class="btn btn-sm btn-outline-primary acf-repeater-add">+ Add Row</button>';
+        return $html . '</div>';
     }
 
     public function getDefaultConfig(): array

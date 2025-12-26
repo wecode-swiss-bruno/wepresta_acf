@@ -7,7 +7,6 @@ namespace WeprestaAcf\Domain\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Uuid;
 
 /**
  * @ORM\Entity(repositoryClass="WeprestaAcf\Infrastructure\Repository\AcfFieldRepository")
@@ -78,11 +77,19 @@ class AcfField
 
     public function __construct()
     {
-        $this->uuid = Uuid::uuid4()->toString();
+        $this->uuid = self::generateUuid();
         $this->children = new ArrayCollection();
         $this->values = new ArrayCollection();
         $this->dateAdd = new \DateTime();
         $this->dateUpd = new \DateTime();
+    }
+
+    private static function generateUuid(): string
+    {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
     /** @ORM\PreUpdate */

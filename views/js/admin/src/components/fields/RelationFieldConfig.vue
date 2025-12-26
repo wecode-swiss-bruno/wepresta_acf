@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import PsSwitch from '@/components/ui/PsSwitch.vue'
 
 const props = defineProps<{
   config: FieldConfig
@@ -11,6 +13,26 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
+
+const multiple = computed({
+  get: () => props.config.multiple === true,
+  set: (value: boolean) => emit('update:config', { ...props.config, multiple: value })
+})
+
+const filterActive = computed({
+  get: () => props.config.filters?.active !== false,
+  set: (value: boolean) => updateFilter('active', value)
+})
+
+const filterInStock = computed({
+  get: () => props.config.filters?.in_stock === true,
+  set: (value: boolean) => updateFilter('in_stock', value)
+})
+
+const filterExcludeCurrent = computed({
+  get: () => props.config.filters?.exclude_current !== false,
+  set: (value: boolean) => updateFilter('exclude_current', value)
+})
 
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
   emit('update:config', { ...props.config, [key]: value })
@@ -26,7 +48,7 @@ function updateFilter(key: string, value: unknown): void {
   <div class="relation-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('entityType') || 'Entity Type' }} *</label>
-      <select 
+      <select
         class="form-control"
         :value="config.entityType || 'product'"
         @change="updateConfig('entityType', ($event.target as HTMLSelectElement).value)"
@@ -40,15 +62,11 @@ function updateFilter(key: string, value: unknown): void {
     </div>
 
     <div class="form-group">
-      <div class="ps-switch">
-        <input 
-          id="relation-multiple"
-          type="checkbox"
-          :checked="config.multiple"
-          @change="updateConfig('multiple', ($event.target as HTMLInputElement).checked)"
-        >
-        <label for="relation-multiple">{{ t('allowMultiple') || 'Allow Multiple' }}</label>
-      </div>
+      <label class="form-control-label">{{ t('allowMultiple') || 'Allow Multiple' }}</label>
+      <PsSwitch
+        v-model="multiple"
+        id="relation-multiple"
+      />
       <small class="form-text text-muted">
         Allow selecting multiple items.
       </small>
@@ -56,7 +74,7 @@ function updateFilter(key: string, value: unknown): void {
 
     <div class="form-group">
       <label class="form-control-label">{{ t('displayFormat') || 'Display Format' }}</label>
-      <select 
+      <select
         class="form-control"
         :value="config.displayFormat || 'name'"
         @change="updateConfig('displayFormat', ($event.target as HTMLSelectElement).value)"
@@ -73,7 +91,7 @@ function updateFilter(key: string, value: unknown): void {
     <div v-if="config.multiple" class="form-row">
       <div class="form-group col-6">
         <label class="form-control-label">{{ t('minItems') || 'Minimum items' }}</label>
-        <input 
+        <input
           type="number"
           class="form-control"
           min="0"
@@ -83,7 +101,7 @@ function updateFilter(key: string, value: unknown): void {
       </div>
       <div class="form-group col-6">
         <label class="form-control-label">{{ t('maxItems') || 'Maximum items' }}</label>
-        <input 
+        <input
           type="number"
           class="form-control"
           min="0"
@@ -99,45 +117,33 @@ function updateFilter(key: string, value: unknown): void {
     <h5>{{ t('filters') || 'Filters' }}</h5>
 
     <div class="form-group">
-      <div class="ps-switch">
-        <input 
-          id="filter-active"
-          type="checkbox"
-          :checked="config.filters?.active !== false"
-          @change="updateFilter('active', ($event.target as HTMLInputElement).checked)"
-        >
-        <label for="filter-active">{{ t('activeOnly') || 'Active only' }}</label>
-      </div>
+      <label class="form-control-label">{{ t('activeOnly') || 'Active only' }}</label>
+      <PsSwitch
+        v-model="filterActive"
+        id="filter-active"
+      />
       <small class="form-text text-muted">
         Only show active products/categories.
       </small>
     </div>
 
     <div v-if="config.entityType === 'product'" class="form-group">
-      <div class="ps-switch">
-        <input 
-          id="filter-stock"
-          type="checkbox"
-          :checked="config.filters?.in_stock === true"
-          @change="updateFilter('in_stock', ($event.target as HTMLInputElement).checked)"
-        >
-        <label for="filter-stock">{{ t('inStockOnly') || 'In stock only' }}</label>
-      </div>
+      <label class="form-control-label">{{ t('inStockOnly') || 'In stock only' }}</label>
+      <PsSwitch
+        v-model="filterInStock"
+        id="filter-stock"
+      />
       <small class="form-text text-muted">
         Only show products with stock available.
       </small>
     </div>
 
     <div v-if="config.entityType === 'product'" class="form-group">
-      <div class="ps-switch">
-        <input 
-          id="filter-exclude"
-          type="checkbox"
-          :checked="config.filters?.exclude_current !== false"
-          @change="updateFilter('exclude_current', ($event.target as HTMLInputElement).checked)"
-        >
-        <label for="filter-exclude">{{ t('excludeCurrent') || 'Exclude current product' }}</label>
-      </div>
+      <label class="form-control-label">{{ t('excludeCurrent') || 'Exclude current product' }}</label>
+      <PsSwitch
+        v-model="filterExcludeCurrent"
+        id="filter-exclude"
+      />
       <small class="form-text text-muted">
         Don't show the current product in the search results.
       </small>
@@ -145,7 +151,7 @@ function updateFilter(key: string, value: unknown): void {
 
     <div v-if="config.entityType === 'product'" class="form-group">
       <label class="form-control-label">{{ t('limitCategories') || 'Limit to categories' }}</label>
-      <input 
+      <input
         type="text"
         class="form-control"
         placeholder="e.g., 3, 5, 12"

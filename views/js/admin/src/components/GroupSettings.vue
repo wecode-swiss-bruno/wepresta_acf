@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
 import { useApi } from '@/composables/useApi'
+import PsSwitch from '@/components/ui/PsSwitch.vue'
 
 const store = useBuilderStore()
 const { t } = useTranslations()
@@ -15,7 +16,7 @@ const productTabs = computed(() => window.acfConfig?.productTabs || [])
 let slugTimeout: number | null = null
 async function onTitleChange(): Promise<void> {
   if (!group.value) return
-  
+
   // Only auto-generate if slug is empty or group is new
   if (!group.value.slug || !group.value.id) {
     if (slugTimeout) {
@@ -37,7 +38,7 @@ async function onTitleChange(): Promise<void> {
 
       <div class="form-group">
         <label class="form-control-label">{{ t('groupTitle') }} *</label>
-        <input 
+        <input
           v-model="group.title"
           type="text"
           class="form-control"
@@ -47,7 +48,7 @@ async function onTitleChange(): Promise<void> {
 
       <div class="form-group">
         <label class="form-control-label">{{ t('groupSlug') }} *</label>
-        <input 
+        <input
           v-model="group.slug"
           type="text"
           class="form-control"
@@ -60,7 +61,7 @@ async function onTitleChange(): Promise<void> {
 
       <div class="form-group">
         <label class="form-control-label">{{ t('groupDescription') }}</label>
-        <textarea 
+        <textarea
           v-model="group.description"
           class="form-control"
           rows="3"
@@ -74,9 +75,9 @@ async function onTitleChange(): Promise<void> {
       <div class="form-group">
         <label class="form-control-label">{{ t('placementTab') }}</label>
         <select v-model="group.placementTab" class="form-control">
-          <option 
-            v-for="tab in productTabs" 
-            :key="tab.value" 
+          <option
+            v-for="tab in productTabs"
+            :key="tab.value"
             :value="tab.value"
           >
             {{ tab.label }}
@@ -89,7 +90,7 @@ async function onTitleChange(): Promise<void> {
 
       <div class="form-group">
         <label class="form-control-label">{{ t('priority') }}</label>
-        <input 
+        <input
           v-model.number="group.priority"
           type="number"
           class="form-control"
@@ -106,28 +107,22 @@ async function onTitleChange(): Promise<void> {
       <h4>{{ t('options') }}</h4>
 
       <div class="form-group">
-        <div class="ps-switch">
-          <input 
-            id="group-active"
-            v-model="group.active"
-            type="checkbox"
-          >
-          <label for="group-active">{{ t('active') }}</label>
-        </div>
+        <label class="form-control-label">{{ t('active') }}</label>
+        <PsSwitch
+          v-model="group.active"
+          id="group-active"
+        />
         <small class="form-text text-muted">
           Inactive groups are hidden in the product form.
         </small>
       </div>
 
       <div class="form-group">
-        <div class="ps-switch">
-          <input 
-            id="group-fo-visible"
-            v-model="group.foOptions.visible"
-            type="checkbox"
-          >
-          <label for="group-fo-visible">{{ t('showOnFrontend') }}</label>
-        </div>
+        <label class="form-control-label">{{ t('showOnFrontend') }}</label>
+        <PsSwitch
+          v-model="group.foOptions.visible"
+          id="group-fo-visible"
+        />
         <small class="form-text text-muted">
           Display this group's fields on the product page.
         </small>

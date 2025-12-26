@@ -8,7 +8,6 @@ use WeprestaAcf\Application\Service\SlugGenerator;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,7 +39,7 @@ class FieldApiController extends FrameworkBundleAdminController
             }
 
             $fieldId = $this->fieldRepository->create([
-                'uuid' => Uuid::uuid4()->toString(), 'idAcfGroup' => $groupId,
+                'uuid' => $this->generateUuid(), 'idAcfGroup' => $groupId,
                 'idParent' => $data['parentId'] ?? null, 'type' => $data['type'], 'title' => $data['title'], 'slug' => $slug,
                 'instructions' => $data['instructions'] ?? null, 'config' => $data['config'] ?? [],
                 'validation' => $data['validation'] ?? [], 'conditions' => $data['conditions'] ?? [],
@@ -134,6 +133,14 @@ class FieldApiController extends FrameworkBundleAdminController
     private function jsonError(string $message, int $status = Response::HTTP_INTERNAL_SERVER_ERROR): JsonResponse
     {
         return $this->json(['success' => false, 'error' => $message], $status);
+    }
+
+    private function generateUuid(): string
+    {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 }
 

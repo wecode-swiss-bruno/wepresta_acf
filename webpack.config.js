@@ -52,8 +52,8 @@ Encore
     .cleanupOutputBeforeBuild()
     .enableBuildNotifications()
     .enableSourceMaps(!Encore.isProduction())
-    // enables hashed filenames (e.g. app.abc123.css)
-    .enableVersioning(Encore.isProduction())
+    // Disable versioning for PrestaShop modules (simpler asset loading)
+    .enableVersioning(false)
 
     // configure Babel
     .configureBabel((config) => {
