@@ -1,9 +1,16 @@
-# Module Starter - Routes Symfony
-# Documentation: https://devdocs.prestashop.com/8/modules/concepts/controllers/admin-controllers/
+# WePresta ACF - Routes Symfony
 
 # =========================================================================
-# Configuration
+# Builder Admin (Vue.js SPA)
 # =========================================================================
+
+wepresta_acf_builder:
+    path: /modules/wepresta_acf/builder
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\BuilderController::index'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _legacy_link: AdminWeprestaAcfBuilder
 
 wepresta_acf_configuration:
     path: /modules/wepresta_acf/configuration
@@ -14,136 +21,119 @@ wepresta_acf_configuration:
         _legacy_link: AdminWeprestaAcfConfiguration
 
 # =========================================================================
-# Items CRUD
+# API - Groups
 # =========================================================================
 
-wepresta_acf_items_index:
-    path: /modules/wepresta_acf/items
+wepresta_acf_api_groups_list:
+    path: /modules/wepresta_acf/api/groups
     methods: [GET]
     defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::index'
-        _legacy_controller: AdminWeprestaAcfItems
-        _legacy_link: AdminWeprestaAcfItems
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::list'
 
-wepresta_acf_items_create:
-    path: /modules/wepresta_acf/items/create
-    methods: [GET, POST]
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::create'
-        _legacy_controller: AdminWeprestaAcfItems
-        _legacy_link: AdminWeprestaAcfItems:create
-
-wepresta_acf_items_edit:
-    path: /modules/wepresta_acf/items/{itemId}/edit
-    methods: [GET, POST]
-    requirements:
-        itemId: \d+
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::edit'
-        _legacy_controller: AdminWeprestaAcfItems
-        _legacy_link: AdminWeprestaAcfItems:edit
-
-wepresta_acf_items_delete:
-    path: /modules/wepresta_acf/items/{itemId}/delete
-    methods: [POST, DELETE]
-    requirements:
-        itemId: \d+
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::delete'
-        _legacy_controller: AdminWeprestaAcfItems
-        _legacy_link: AdminWeprestaAcfItems:delete
-
-wepresta_acf_items_toggle:
-    path: /modules/wepresta_acf/items/{itemId}/toggle
-    methods: [POST]
-    requirements:
-        itemId: \d+
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::toggle'
-        _legacy_controller: AdminWeprestaAcfItems
-
-wepresta_acf_items_update_position:
-    path: /modules/wepresta_acf/items/update-position
+wepresta_acf_api_groups_create:
+    path: /modules/wepresta_acf/api/groups
     methods: [POST]
     defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::updatePosition'
-        _legacy_controller: AdminWeprestaAcfItems
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::create'
 
-# =========================================================================
-# Bulk Actions
-# =========================================================================
-
-wepresta_acf_items_bulk_enable:
-    path: /modules/wepresta_acf/items/bulk/enable
-    methods: [POST]
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::bulkEnable'
-        _legacy_controller: AdminWeprestaAcfItems
-
-wepresta_acf_items_bulk_disable:
-    path: /modules/wepresta_acf/items/bulk/disable
-    methods: [POST]
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::bulkDisable'
-        _legacy_controller: AdminWeprestaAcfItems
-
-wepresta_acf_items_bulk_delete:
-    path: /modules/wepresta_acf/items/bulk/delete
-    methods: [POST]
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\ConfigurationController::bulkDelete'
-        _legacy_controller: AdminWeprestaAcfItems
-
-# =========================================================================
-# API Routes
-# =========================================================================
-
-wepresta_acf_api_items_list:
-    path: /api/wepresta_acf/items
-    methods: [GET]
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::list'
-
-wepresta_acf_api_items_get:
-    path: /api/wepresta_acf/items/{id}
+wepresta_acf_api_groups_show:
+    path: /modules/wepresta_acf/api/groups/{id}
     methods: [GET]
     requirements:
         id: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::get'
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::show'
 
-wepresta_acf_api_items_create:
-    path: /api/wepresta_acf/items
-    methods: [POST]
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::create'
-
-wepresta_acf_api_items_update:
-    path: /api/wepresta_acf/items/{id}
+wepresta_acf_api_groups_update:
+    path: /modules/wepresta_acf/api/groups/{id}
     methods: [PUT, PATCH]
     requirements:
         id: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::update'
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::update'
 
-wepresta_acf_api_items_delete:
-    path: /api/wepresta_acf/items/{id}
+wepresta_acf_api_groups_delete:
+    path: /modules/wepresta_acf/api/groups/{id}
     methods: [DELETE]
     requirements:
         id: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::delete'
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::delete'
 
-wepresta_acf_api_items_toggle:
-    path: /api/wepresta_acf/items/{id}/toggle
+wepresta_acf_api_groups_duplicate:
+    path: /modules/wepresta_acf/api/groups/{id}/duplicate
     methods: [POST]
     requirements:
         id: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::toggle'
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::duplicate'
 
-wepresta_acf_api_health:
-    path: /api/wepresta_acf/health
+# =========================================================================
+# API - Fields
+# =========================================================================
+
+wepresta_acf_api_fields_create:
+    path: /modules/wepresta_acf/api/groups/{groupId}/fields
+    methods: [POST]
+    requirements:
+        groupId: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::create'
+
+wepresta_acf_api_fields_update:
+    path: /modules/wepresta_acf/api/fields/{id}
+    methods: [PUT, PATCH]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::update'
+
+wepresta_acf_api_fields_delete:
+    path: /modules/wepresta_acf/api/fields/{id}
+    methods: [DELETE]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::delete'
+
+wepresta_acf_api_fields_reorder:
+    path: /modules/wepresta_acf/api/groups/{groupId}/fields/reorder
+    methods: [POST]
+    requirements:
+        groupId: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::reorder'
+
+# =========================================================================
+# API - Values
+# =========================================================================
+
+wepresta_acf_api_values_save:
+    path: /modules/wepresta_acf/api/values
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ValueApiController::save'
+
+wepresta_acf_api_values_get:
+    path: /modules/wepresta_acf/api/values/{productId}
+    methods: [GET]
+    requirements:
+        productId: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\ValueApiController::get'
+
+# =========================================================================
+# API - Utility
+# =========================================================================
+
+wepresta_acf_api_field_types:
+    path: /modules/wepresta_acf/api/field-types
     methods: [GET]
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\ApiController::health'
+        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::fieldTypes'
+
+wepresta_acf_api_field_types_grouped:
+    path: /modules/wepresta_acf/api/field-types/grouped
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::fieldTypesGrouped'

@@ -1,0 +1,8 @@
+# ACF Files - Allow downloads, deny execution
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "\.(pdf|doc|docx|xls|xlsx|csv|txt|zip|rar)$">
+    Require all granted
+</FilesMatch>
+

@@ -1,0 +1,51 @@
+{% extends '@PrestaShop/Admin/layout.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('modules/wepresta_acf/views/css/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div id="acf-builder-app" data-module-url="{{ path('wepresta_acf_builder') }}">
+        <div class="acf-loading text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">{{ 'Loading...'|trans({}, 'Admin.Global') }}</span>
+            </div>
+            <p class="mt-2">{{ 'Loading ACF Builder...'|trans({}, 'Modules.Weprestaacf.Admin') }}</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        window.acfConfig = {
+            apiUrl: '{{ path('wepresta_acf_api_groups_list') | split('/groups')[0] }}',
+            token: '{{ csrf_token('wepresta_acf') }}',
+            translations: {},
+            fieldTypes: [],
+            productTabs: [
+                { value: 'description', label: '{{ 'Description'|trans({}, 'Admin.Catalog.Feature') }}' },
+                { value: 'pricing', label: '{{ 'Pricing'|trans({}, 'Admin.Catalog.Feature') }}' },
+                { value: 'seo', label: '{{ 'SEO'|trans({}, 'Admin.Catalog.Feature') }}' },
+                { value: 'shipping', label: '{{ 'Shipping'|trans({}, 'Admin.Catalog.Feature') }}' },
+                { value: 'options', label: '{{ 'Options'|trans({}, 'Admin.Catalog.Feature') }}' }
+            ],
+            layoutOptions: {
+                widths: [
+                    { value: '100', label: '100%' },
+                    { value: '75', label: '75%' },
+                    { value: '50', label: '50%' },
+                    { value: '33', label: '33%' },
+                    { value: '25', label: '25%' }
+                ],
+                positions: [
+                    { value: 'before', label: '{{ 'Before'|trans({}, 'Modules.Weprestaacf.Admin') }}' },
+                    { value: 'after', label: '{{ 'After'|trans({}, 'Modules.Weprestaacf.Admin') }}' }
+                ]
+            }
+        };
+    </script>
+    <script src="{{ asset('modules/wepresta_acf/views/js/admin/dist/acf-admin.js') }}" defer></script>
+{% endblock %}
+

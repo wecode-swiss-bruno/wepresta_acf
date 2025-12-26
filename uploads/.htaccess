@@ -1,0 +1,17 @@
+# ACF Uploads Security
+# Prevent direct PHP execution
+
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+
+# Deny access to hidden files
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Allow only specific file types
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx|csv|txt|mp4|webm|ogg|mp3|wav|zip|rar|svg)$">
+    Require all granted
+</FilesMatch>
+

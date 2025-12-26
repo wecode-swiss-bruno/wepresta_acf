@@ -1,5 +1,4 @@
-# Module Starter - Services Symfony
-# Documentation: https://devdocs.prestashop.com/8/modules/concepts/services/
+# WePresta ACF - Services Symfony
 
 services:
     _defaults:
@@ -13,108 +12,111 @@ services:
     # Auto-registration
     # =========================================================================
 
-    # Application layer
     WeprestaAcf\Application\:
         resource: '../src/Application/*'
         exclude:
             - '../src/Application/Form/'
+            - '../src/Application/FieldType/'
 
-    # Infrastructure layer
     WeprestaAcf\Infrastructure\:
         resource: '../src/Infrastructure/*'
         exclude:
             - '../src/Infrastructure/Api/'
 
-    # Presentation layer - Controllers only (Grids are configured explicitly below)
     WeprestaAcf\Presentation\Controller\:
         resource: '../src/Presentation/Controller/*'
         tags: ['controller.service_arguments']
 
     # =========================================================================
-    # Explicit service definitions
+    # Domain Repository Interfaces
     # =========================================================================
 
-    # Configuration Adapter
+    WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface:
+        alias: WeprestaAcf\Infrastructure\Repository\AcfGroupRepository
+
+    WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface:
+        alias: WeprestaAcf\Infrastructure\Repository\AcfFieldRepository
+
+    WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface:
+        alias: WeprestaAcf\Infrastructure\Repository\AcfFieldValueRepository
+
+    # =========================================================================
+    # Repositories (Public for service container access)
+    # =========================================================================
+
+    WeprestaAcf\Infrastructure\Repository\AcfGroupRepository:
+        public: true
+
+    WeprestaAcf\Infrastructure\Repository\AcfFieldRepository:
+        public: true
+
+    WeprestaAcf\Infrastructure\Repository\AcfFieldValueRepository:
+        public: true
+
+    # =========================================================================
+    # Services
+    # =========================================================================
+
+    WeprestaAcf\Application\Service\FieldTypeRegistry:
+        public: true
+
+    WeprestaAcf\Application\Service\ValueProvider:
+        arguments:
+            $valueRepository: '@WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface'
+        public: true
+
+    WeprestaAcf\Application\Service\ValueHandler:
+        arguments:
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $valueRepository: '@WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface'
+            $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+        public: true
+
+    WeprestaAcf\Application\Service\SlugGenerator:
+        public: true
+
+    WeprestaAcf\Application\Service\FileUploadService:
+        arguments:
+            $moduleDir: '%kernel.project_dir%/modules/wepresta_acf/'
+        public: true
+
+    WeprestaAcf\Application\Service\AcfServiceContainer:
+        public: true
+
     WeprestaAcf\Infrastructure\Adapter\ConfigurationAdapter:
         public: true
-
-    # Repository
-    WeprestaAcf\Infrastructure\Repository\WeprestaAcfRepository:
-        arguments:
-            $db: '@=service("prestashop.adapter.legacy.context").getContext().database'
-        public: true
-
-    WeprestaAcf\Domain\Repository\WeprestaAcfRepositoryInterface:
-        alias: WeprestaAcf\Infrastructure\Repository\WeprestaAcfRepository
-
-    # Main Service
-    WeprestaAcf\Application\Service\WeprestaAcfService:
-        arguments:
-            $repository: '@WeprestaAcf\Domain\Repository\WeprestaAcfRepositoryInterface'
-            $config: '@WeprestaAcf\Infrastructure\Adapter\ConfigurationAdapter'
-            $logger: '@?logger'
-        public: true
-
-    # Alias pour faciliter l'injection
-    wepresta_acf.service:
-        alias: WeprestaAcf\Application\Service\WeprestaAcfService
-        public: true
-
-    # =========================================================================
-    # Event Subscribers
-    # =========================================================================
-
-    WeprestaAcf\Infrastructure\EventSubscriber\ProductEventSubscriber:
-        tags:
-            - { name: kernel.event_subscriber }
-
-    WeprestaAcf\Infrastructure\EventSubscriber\OrderEventSubscriber:
-        tags:
-            - { name: kernel.event_subscriber }
-
-    # =========================================================================
-    # Grid Framework
-    # =========================================================================
-    # 
-    # Pour créer un Grid, voir: src/Presentation/Grid/.gitkeep
-    # 
-    # Exemple de configuration:
-    #
-    # WeprestaAcf\Presentation\Grid\MyEntityGridDefinitionFactory:
-    #     parent: 'prestashop.core.grid.definition.factory.abstract_grid_definition'
-    #     public: true
-    #
-    # WeprestaAcf\Presentation\Grid\MyEntityGridQueryBuilder:
-    #     arguments:
-    #         $connection: '@doctrine.dbal.default_connection'
-    #         $dbPrefix: '%database_prefix%'
-    #
-    # wepresta_acf.grid.data_provider:
-    #     class: 'PrestaShop\PrestaShop\Core\Grid\Data\Factory\DoctrineGridDataFactory'
-    #     arguments:
-    #         $gridQueryBuilder: '@WeprestaAcf\Presentation\Grid\MyEntityGridQueryBuilder'
-    #         $hookDispatcher: '@prestashop.core.hook.dispatcher'
-    #         $queryParser: '@prestashop.core.grid.query.doctrine_query_parser'
-    #         $gridId: 'my_entity'
-    #
-    # wepresta_acf.grid.factory:
-    #     class: 'PrestaShop\PrestaShop\Core\Grid\GridFactory'
-    #     arguments:
-    #         $definitionFactory: '@WeprestaAcf\Presentation\Grid\MyEntityGridDefinitionFactory'
-    #         $dataFactory: '@wepresta_acf.grid.data_provider'
-    #         $filterFormFactory: '@prestashop.core.grid.filter.form_factory'
-    #         $hookDispatcher: '@prestashop.core.hook.dispatcher'
 
     # =========================================================================
     # API Controllers
     # =========================================================================
 
-    WeprestaAcf\Infrastructure\Api\ApiController:
+    WeprestaAcf\Infrastructure\Api\GroupApiController:
         arguments:
-            $service: '@WeprestaAcf\Application\Service\WeprestaAcfService'
-            $config: '@WeprestaAcf\Infrastructure\Adapter\ConfigurationAdapter'
-        tags:
-            - { name: controller.service_arguments }
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $slugGenerator: '@WeprestaAcf\Application\Service\SlugGenerator'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\FieldApiController:
+        arguments:
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $slugGenerator: '@WeprestaAcf\Application\Service\SlugGenerator'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\UtilityApiController:
+        arguments:
+            $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\ValueApiController:
+        arguments:
+            $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
+            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
+        tags: ['controller.service_arguments']
         public: true
 
     # =========================================================================
@@ -126,3 +128,41 @@ services:
         public: true
         tags:
             - { name: form.type }
+
+    # =========================================================================
+    # Event Bus
+    # =========================================================================
+
+    WeprestaAcf\Domain\Event\EventBus:
+        public: true
+
+    # =========================================================================
+    # Providers
+    # =========================================================================
+
+    WeprestaAcf\Application\Provider\LocationProviderRegistry:
+        public: true
+
+    # =========================================================================
+    # Template Export/Import
+    # =========================================================================
+
+    WeprestaAcf\Application\Template\FieldGroupExporter:
+        arguments:
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+        public: true
+
+    WeprestaAcf\Application\Template\FieldGroupImporter:
+        arguments:
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+        public: true
+
+    # =========================================================================
+    # Presentation Controllers
+    # =========================================================================
+
+    WeprestaAcf\Presentation\Controller\Admin\BuilderController:
+        tags: ['controller.service_arguments']
+        public: true

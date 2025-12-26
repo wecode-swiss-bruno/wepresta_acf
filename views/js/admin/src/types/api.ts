@@ -1,0 +1,81 @@
+import type { AcfGroup, AcfField } from './index'
+
+/**
+ * Standard API response wrapper
+ */
+export interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+}
+
+/**
+ * Groups list response
+ */
+export type GroupsListResponse = ApiResponse<AcfGroup[]>
+
+/**
+ * Single group response
+ */
+export type GroupResponse = ApiResponse<AcfGroup>
+
+/**
+ * Single field response
+ */
+export type FieldResponse = ApiResponse<AcfField>
+
+/**
+ * Slug generation response
+ */
+export interface SlugifyResponse {
+  success: boolean
+  data?: {
+    slug: string
+  }
+  error?: string
+}
+
+/**
+ * Field types list response
+ */
+export interface FieldTypesResponse {
+  success: boolean
+  data?: Array<{
+    type: string
+    label: string
+    icon: string
+    category: string
+  }>
+  error?: string
+}
+
+/**
+ * Window configuration injected by PHP
+ */
+export interface AcfConfig {
+  apiUrl: string
+  token: string
+  translations: Record<string, string>
+  fieldTypes: Array<{
+    type: string
+    label: string
+    icon: string
+    category: string
+  }>
+  productTabs: Array<{
+    value: string
+    label: string
+  }>
+  layoutOptions: {
+    widths: Array<{ value: string; label: string }>
+    positions: Array<{ value: string; label: string }>
+  }
+}
+
+// Extend Window interface
+declare global {
+  interface Window {
+    acfConfig: AcfConfig
+  }
+}

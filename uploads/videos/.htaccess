@@ -1,0 +1,8 @@
+# ACF Videos - Allow video types only
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "\.(mp4|webm|ogg)$">
+    Require all granted
+</FilesMatch>
+

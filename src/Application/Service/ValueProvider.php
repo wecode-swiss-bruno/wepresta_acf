@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WeprestaAcf\Application\Service;
+
+use WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface;
+
+final class ValueProvider
+{
+    public function __construct(
+        private readonly AcfFieldValueRepositoryInterface $valueRepository
+    ) {}
+
+    /** @return array<string, mixed> */
+    public function getProductFieldValues(int $productId, ?int $shopId = null, ?int $langId = null): array
+    {
+        return $this->valueRepository->findByProduct($productId, $shopId, $langId);
+    }
+
+    /** @return array<int, array{slug: string, title: string, type: string, value: mixed, instructions: string|null}> */
+    public function getProductFieldValuesWithMeta(int $productId, ?int $shopId = null, ?int $langId = null): array
+    {
+        return $this->valueRepository->findByProductWithMeta($productId, $shopId, $langId);
+    }
+}
+
