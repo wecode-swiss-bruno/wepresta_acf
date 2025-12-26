@@ -51,6 +51,29 @@ final class AcfServiceContainer
         return self::$services[FieldTypeRegistry::class];
     }
 
+    public static function getFieldTypeLoader(): FieldTypeLoader
+    {
+        if (!isset(self::$services[FieldTypeLoader::class])) {
+            $service = self::tryGet(FieldTypeLoader::class);
+            $modulePath = _PS_MODULE_DIR_ . 'wepresta_acf';
+            self::$services[FieldTypeLoader::class] = $service ?? new FieldTypeLoader(
+                self::getFieldTypeRegistry(),
+                $modulePath
+            );
+        }
+        /** @var FieldTypeLoader */
+        return self::$services[FieldTypeLoader::class];
+    }
+
+    /**
+     * Load custom field types from theme and uploads directories.
+     * Should be called before using the registry in hooks.
+     */
+    public static function loadCustomFieldTypes(): void
+    {
+        self::getFieldTypeLoader()->loadAllCustomTypes();
+    }
+
     public static function getGroupRepository(): AcfGroupRepository
     {
         if (!isset(self::$services[AcfGroupRepository::class])) {

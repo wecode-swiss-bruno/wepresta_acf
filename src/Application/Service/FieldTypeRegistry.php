@@ -27,6 +27,7 @@ use WeprestaAcf\Application\FieldType\FilesField;
 use WeprestaAcf\Application\FieldType\RelationField;
 use WeprestaAcf\Application\FieldType\ListField;
 use WeprestaAcf\Application\FieldType\RepeaterField;
+use WeprestaAcf\Application\FieldType\StarRatingField;
 
 final class FieldTypeRegistry
 {
@@ -50,6 +51,7 @@ final class FieldTypeRegistry
         $this->register(new CheckboxField());
         $this->register(new RadioField());
         $this->register(new BooleanField());
+        $this->register(new StarRatingField());
         // Content
         $this->register(new DateField());
         $this->register(new TimeField());

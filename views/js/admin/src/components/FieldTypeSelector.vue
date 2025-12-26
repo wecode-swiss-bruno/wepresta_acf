@@ -16,6 +16,9 @@ const emit = defineEmits<{
 const store = useBuilderStore()
 const { t } = useTranslations()
 
+// Category order (custom at the end)
+const categoryOrder = ['basic', 'choice', 'content', 'media', 'relational', 'layout', 'custom']
+
 // Group field types by category
 const groupedTypes = computed(() => {
   const groups: Record<string, FieldTypeDefinition[]> = {}
@@ -28,7 +31,21 @@ const groupedTypes = computed(() => {
     groups[category].push(type)
   }
   
-  return groups
+  // Sort by category order
+  const sorted: Record<string, FieldTypeDefinition[]> = {}
+  for (const cat of categoryOrder) {
+    if (groups[cat]) {
+      sorted[cat] = groups[cat]
+    }
+  }
+  // Add any remaining categories
+  for (const cat in groups) {
+    if (!sorted[cat]) {
+      sorted[cat] = groups[cat]
+    }
+  }
+  
+  return sorted
 })
 
 function selectType(type: string): void {
@@ -50,8 +67,12 @@ function selectType(type: string): void {
           v-for="(types, category) in groupedTypes" 
           :key="category"
           class="type-category"
+          :class="{ 'type-category--custom': category === 'custom' }"
         >
-          <h6 class="category-title">{{ fieldTypeCategories[category as keyof typeof fieldTypeCategories] || category }}</h6>
+          <h6 class="category-title">
+            <span v-if="category === 'custom'" class="material-icons category-icon">extension</span>
+            {{ fieldTypeCategories[category as keyof typeof fieldTypeCategories] || category }}
+          </h6>
           <div class="acfps-type-grid">
             <button
               v-for="fieldType in types"
@@ -138,6 +159,24 @@ function selectType(type: string): void {
   letter-spacing: 0.5px;
   color: var(--gray, #6c757d);
   margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.category-icon {
+  font-size: 14px;
+}
+
+.type-category--custom {
+  background: linear-gradient(135deg, #f8f4ff 0%, #fff8f0 100%);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px dashed #9c88ff;
+}
+
+.type-category--custom .category-title {
+  color: #6c5ce7;
 }
 </style>
 

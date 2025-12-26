@@ -171,6 +171,7 @@ services:
     WeprestaAcf\Presentation\Controller\Admin\BuilderController:
         arguments:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+            $fieldTypeLoader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
         tags: ['controller.service_arguments']
         public: true
 

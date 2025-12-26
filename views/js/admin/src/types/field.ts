@@ -96,7 +96,8 @@ export interface FieldTypeDefinition {
   type: string
   label: string
   icon: string
-  category: 'basic' | 'choice' | 'content' | 'media' | 'relational' | 'layout'
+  category: 'basic' | 'choice' | 'content' | 'media' | 'relational' | 'layout' | 'custom'
+  source?: 'core' | 'theme' | 'uploaded'
 }
 
 /**
@@ -109,4 +110,5 @@ export const fieldTypeCategories = {
   media: 'Media',
   relational: 'Relational',
   layout: 'Layout',
+  custom: 'Custom',
 } as const

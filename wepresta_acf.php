@@ -132,6 +132,9 @@ class WeprestaAcf extends Module
         if ($productId <= 0) { return ''; }
 
         try {
+            // Load custom field types from theme/uploads before using the registry
+            AcfServiceContainer::loadCustomFieldTypes();
+
             $groupRepository = AcfServiceContainer::getGroupRepository();
             $fieldRepository = AcfServiceContainer::getFieldRepository();
             $valueProvider = AcfServiceContainer::getValueProvider();
@@ -245,6 +248,9 @@ class WeprestaAcf extends Module
         if ($productId <= 0) { return; }
 
         try {
+            // Load custom field types from theme/uploads
+            AcfServiceContainer::loadCustomFieldTypes();
+
             $valueHandler = AcfServiceContainer::getValueHandler();
             $fieldRepository = AcfServiceContainer::getFieldRepository();
             $fileUploadService = AcfServiceContainer::getFileUploadService();
@@ -353,6 +359,9 @@ class WeprestaAcf extends Module
         if ($productId <= 0) { return ''; }
 
         try {
+            // Load custom field types from theme/uploads
+            AcfServiceContainer::loadCustomFieldTypes();
+
             $valueProvider = AcfServiceContainer::getValueProvider();
             $fieldTypeRegistry = AcfServiceContainer::getFieldTypeRegistry();
 

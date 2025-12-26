@@ -8,6 +8,7 @@ use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\Response;
 use WeprestaAcf\Application\Service\FieldTypeRegistry;
+use WeprestaAcf\Application\Service\FieldTypeLoader;
 
 /**
  * Vue.js Field Builder SPA Controller
@@ -15,19 +16,36 @@ use WeprestaAcf\Application\Service\FieldTypeRegistry;
 final class BuilderController extends FrameworkBundleAdminController
 {
     public function __construct(
-        private readonly FieldTypeRegistry $fieldTypeRegistry
+        private readonly FieldTypeRegistry $fieldTypeRegistry,
+        private readonly FieldTypeLoader $fieldTypeLoader
     ) {}
 
-    #[AdminSecurity("is_granted('read', request.get('_legacy_controller'))", redirectRoute: 'admin_dashboard')]
+    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
     public function index(): Response
     {
+        // Load custom field types from theme/uploads
+        $this->fieldTypeLoader->loadAllCustomTypes();
+        
+        // Get loaded types info to know which are custom
+        $loadedTypesInfo = $this->fieldTypeLoader->getLoadedTypesInfo();
+        
         $fieldTypes = [];
         foreach ($this->fieldTypeRegistry->getAll() as $type => $fieldType) {
+            // Check if this is a custom type (from theme or uploaded)
+            $source = $loadedTypesInfo[$type]['source'] ?? 'core';
+            $category = $fieldType->getCategory();
+            
+            // Override category to 'custom' for non-core types
+            if ($source !== 'core') {
+                $category = 'custom';
+            }
+            
             $fieldTypes[] = [
                 'type' => $type,
                 'label' => $fieldType->getLabel(),
                 'icon' => $fieldType->getIcon(),
-                'category' => $fieldType->getCategory(),
+                'category' => $category,
+                'source' => $source,
             ];
         }
 
