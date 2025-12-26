@@ -172,17 +172,6 @@ function updateFilter(key: string, value: unknown): void {
   color: #666;
 }
 
-.ps-switch {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ps-switch input {
-  width: 18px;
-  height: 18px;
-}
-
 .form-row {
   display: flex;
   margin: 0 -0.5rem;

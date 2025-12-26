@@ -120,16 +120,6 @@ services:
         public: true
 
     # =========================================================================
-    # Forms
-    # =========================================================================
-
-    WeprestaAcf\Application\Form\ConfigurationType:
-        parent: 'form.type.translatable.aware'
-        public: true
-        tags:
-            - { name: form.type }
-
-    # =========================================================================
     # Event Bus
     # =========================================================================
 
@@ -164,5 +154,7 @@ services:
     # =========================================================================
 
     WeprestaAcf\Presentation\Controller\Admin\BuilderController:
+        arguments:
+            $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
         tags: ['controller.service_arguments']
         public: true

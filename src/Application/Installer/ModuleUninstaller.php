@@ -58,9 +58,7 @@ final class ModuleUninstaller
      */
     private function uninstallTabs(): bool
     {
-        $tabClassNames = [
-            'AdminWeprestaAcfConfiguration',
-        ];
+        $tabClassNames = $this->getTabClassNames();
 
         foreach ($tabClassNames as $className) {
             $tabId = (int) Tab::getIdFromClassName($className);
@@ -74,6 +72,18 @@ final class ModuleUninstaller
         }
 
         return true;
+    }
+
+    /**
+     * Liste des onglets à désinstaller (enfants avant parent)
+     */
+    private function getTabClassNames(): array
+    {
+        return [
+            'AdminWeprestaAcfBuilder',
+            'AdminWeprestaAcfConfiguration',
+            'AdminWeprestaAcf', // Parent last
+        ];
     }
 
     private function executeSqlFile(string $filePath): bool

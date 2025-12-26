@@ -9,7 +9,7 @@ const { t } = useTranslations()
 const api = useApi()
 
 const group = computed(() => store.currentGroup)
-const productTabs = computed(() => window.acfpsConfig?.productTabs || [])
+const productTabs = computed(() => window.acfConfig?.productTabs || [])
 
 // Auto-generate slug from title
 let slugTimeout: number | null = null
@@ -51,7 +51,7 @@ async function onTitleChange(): Promise<void> {
           v-model="group.slug"
           type="text"
           class="form-control"
-          pattern="[a-z0-9_-]+"
+          pattern="[a-z0-9_\-]+"
         >
         <small class="form-text text-muted">
           Unique identifier used in templates: <code>acf('{{ group.slug || 'slug' }}', 'field_name')</code>
@@ -139,17 +139,6 @@ async function onTitleChange(): Promise<void> {
 <style scoped>
 .acfps-group-settings {
   padding: 0;
-}
-
-.ps-switch {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ps-switch input {
-  width: 18px;
-  height: 18px;
 }
 </style>
 

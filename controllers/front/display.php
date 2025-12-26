@@ -38,13 +38,13 @@ class WeprestaAcfDisplayModuleFrontController extends ModuleFrontController
 
         $this->registerStylesheet(
             'wepresta_acf-display',
-            'modules/' . $this->module->name . '/views/css/front.css',
+            'modules/' . $this->module->name . '/views/dist/front.css',
             ['media' => 'all', 'priority' => 150]
         );
 
         $this->registerJavascript(
             'wepresta_acf-display',
-            'modules/' . $this->module->name . '/views/js/front.js',
+            'modules/' . $this->module->name . '/views/dist/front.js',
             ['position' => 'bottom', 'priority' => 150]
         );
     }

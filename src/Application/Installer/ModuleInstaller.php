@@ -80,17 +80,33 @@ final class ModuleInstaller
     private function getTabsToInstall(): array
     {
         return [
-            // Décommentez pour ajouter un menu admin
-            /*
+            // Parent tab (top-level menu)
+            [
+                'class_name' => 'AdminWeprestaAcf',
+                'route_name' => '',
+                'name' => 'ACF',
+                'parent' => 'SELL',
+                'icon' => 'extension',
+                'visible' => true,
+            ],
+            // Field Groups sub-tab
+            [
+                'class_name' => 'AdminWeprestaAcfBuilder',
+                'route_name' => 'wepresta_acf_builder',
+                'name' => 'Field Groups',
+                'parent' => 'AdminWeprestaAcf',
+                'icon' => 'view_list',
+                'visible' => true,
+            ],
+            // Configuration sub-tab
             [
                 'class_name' => 'AdminWeprestaAcfConfiguration',
                 'route_name' => 'wepresta_acf_configuration',
-                'name' => 'Module Starter',
-                'parent' => 'AdminParentModulesSf',
+                'name' => 'Configuration',
+                'parent' => 'AdminWeprestaAcf',
                 'icon' => 'settings',
                 'visible' => true,
             ],
-            */
         ];
     }
 

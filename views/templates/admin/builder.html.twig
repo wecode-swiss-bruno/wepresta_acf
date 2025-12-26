@@ -2,7 +2,11 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('modules/wepresta_acf/views/css/admin.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    {# Admin SCSS compiled by Webpack Encore → views/dist/admin.css #}
+    <link rel="stylesheet" href="/modules/wepresta_acf/views/dist/admin.css">
+    {# Vue.js Builder CSS compiled by Vite → views/js/admin/dist/acf-main.css #}
+    <link rel="stylesheet" href="/modules/wepresta_acf/views/js/admin/dist/acf-main.css">
 {% endblock %}
 
 {% block content %}
@@ -22,9 +26,57 @@
         window.acfConfig = {
             apiUrl: '{{ path('wepresta_acf_api_groups_list') | split('/groups')[0] }}',
             token: '{{ csrf_token('wepresta_acf') }}',
-            translations: {},
-            fieldTypes: [],
+            translations: {
+                loading: '{{ 'Loading...'|trans({}, 'Admin.Global') }}',
+                fieldGroups: '{{ 'Field Groups'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addGroup: '{{ 'Add Group'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noGroups: '{{ 'No field groups yet. Create your first one!'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupTitle: '{{ 'Title'|trans({}, 'Admin.Global') }}',
+                groupSlug: '{{ 'Slug'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fields: '{{ 'Fields'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                placementTab: '{{ 'Tab'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                active: '{{ 'Active'|trans({}, 'Admin.Global') }}',
+                options: '{{ 'Options'|trans({}, 'Admin.Global') }}',
+                untitled: '{{ 'Untitled'|trans({}, 'Admin.Global') }}',
+                edit: '{{ 'Edit'|trans({}, 'Admin.Actions') }}',
+                duplicate: '{{ 'Duplicate'|trans({}, 'Admin.Actions') }}',
+                delete: '{{ 'Delete'|trans({}, 'Admin.Actions') }}',
+                confirmDeleteGroup: '{{ 'Are you sure you want to delete this group?'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addField: '{{ 'Add Field'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noFields: '{{ 'No fields yet'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectField: '{{ 'Select a field type'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectFieldToEdit: '{{ 'Select a field to edit'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                save: '{{ 'Save'|trans({}, 'Admin.Actions') }}',
+                back: '{{ 'Back'|trans({}, 'Admin.Actions') }}',
+                general: '{{ 'General Settings'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                location: '{{ 'Location'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationRulesHelp: '{{ 'Define where this field group should appear.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                settings: '{{ 'Settings'|trans({}, 'Admin.Global') }}',
+                validation: '{{ 'Validation'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                presentation: '{{ 'Presentation'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                conditions: '{{ 'Conditions'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldTitle: '{{ 'Field Title'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldSlug: '{{ 'Field Name'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldType: '{{ 'Field Type'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldInstructions: '{{ 'Instructions'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                required: '{{ 'Required'|trans({}, 'Admin.Global') }}',
+                minLength: '{{ 'Min Length'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                maxLength: '{{ 'Max Length'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                minValue: '{{ 'Min Value'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                maxValue: '{{ 'Max Value'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                pattern: '{{ 'Pattern'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                errorMessage: '{{ 'Error Message'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                wrapperWidth: '{{ 'Width'|trans({}, 'Admin.Global') }}',
+                wrapperClass: '{{ 'CSS Class'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                wrapperId: '{{ 'CSS ID'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                frontendOptions: '{{ 'Frontend Options'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                translatable: '{{ 'Translatable'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                showOnFrontend: '{{ 'Show on Frontend'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                saving: '{{ 'Saving...'|trans({}, 'Admin.Global') }}'
+            },
+            fieldTypes: {{ fieldTypes|json_encode|raw }},
             productTabs: [
+                { value: 'extra', label: '{{ 'Extra Tab (ACF)'|trans({}, 'Modules.Weprestaacf.Admin') }}' },
                 { value: 'description', label: '{{ 'Description'|trans({}, 'Admin.Catalog.Feature') }}' },
                 { value: 'pricing', label: '{{ 'Pricing'|trans({}, 'Admin.Catalog.Feature') }}' },
                 { value: 'seo', label: '{{ 'SEO'|trans({}, 'Admin.Catalog.Feature') }}' },
@@ -46,6 +98,6 @@
             }
         };
     </script>
-    <script src="{{ asset('modules/wepresta_acf/views/js/admin/dist/acf-admin.js') }}" defer></script>
+    <script src="/modules/wepresta_acf/views/js/admin/dist/acf-admin.js" defer></script>
 {% endblock %}
 

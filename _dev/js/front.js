@@ -163,7 +163,7 @@ class WeprestaAcf {
      * Ajoute des items au container
      */
     appendItems(items) {
-        if (!this.elements.container || !items?.length) {
+        if (!this.elements.container || !items || !items.length) {
             return;
         }
 
@@ -188,7 +188,10 @@ class WeprestaAcf {
             // Remplir le template avec les données
             const element = clone.querySelector('.wepresta_acf-item');
             element.dataset.id = item.id;
-            element.querySelector('.title')?.textContent = item.title;
+            const titleEl = element.querySelector('.title');
+            if (titleEl) {
+                titleEl.textContent = item.title;
+            }
             return clone;
         }
 
@@ -204,7 +207,8 @@ class WeprestaAcf {
      * Récupère le numéro de page suivant
      */
     getNextPage() {
-        const currentItems = this.elements.container?.querySelectorAll('.wepresta_acf-item').length || 0;
+        const container = this.elements.container;
+        const currentItems = container ? container.querySelectorAll('.wepresta_acf-item').length : 0;
         const perPage = this.config.perPage || 10;
         return Math.floor(currentItems / perPage) + 1;
     }

@@ -61,15 +61,6 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
 </template>
 
 <style scoped>
-.ps-switch {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ps-switch input {
-  width: 18px;
-  height: 18px;
-}
+/* Global .ps-switch styles from admin.scss */
 </style>
 

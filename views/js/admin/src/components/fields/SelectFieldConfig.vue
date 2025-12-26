@@ -75,16 +75,5 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
   background: var(--light-bg, #f8f9fa);
   border-radius: 4px;
 }
-
-.ps-switch {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ps-switch input {
-  width: 18px;
-  height: 18px;
-}
 </style>
 

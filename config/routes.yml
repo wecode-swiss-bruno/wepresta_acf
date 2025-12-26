@@ -120,7 +120,7 @@ wepresta_acf_api_values_get:
     requirements:
         productId: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\ValueApiController::get'
+        _controller: 'WeprestaAcf\Infrastructure\Api\ValueApiController::show'
 
 # =========================================================================
 # API - Utility

@@ -137,7 +137,7 @@ const fieldConfigComponent = computed(() => {
   }
 })
 
-const layoutOptions = computed(() => window.acfpsConfig?.layoutOptions || { widths: [], positions: [] })
+const layoutOptions = computed(() => window.acfConfig?.layoutOptions || { widths: [], positions: [] })
 </script>
 
 <template>
@@ -460,17 +460,6 @@ const layoutOptions = computed(() => window.acfpsConfig?.layoutOptions || { widt
 .col-6 {
   flex: 0 0 50%;
   max-width: 50%;
-}
-
-.ps-switch {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ps-switch input {
-  width: 18px;
-  height: 18px;
 }
 
 .acfps-save-field-bar {

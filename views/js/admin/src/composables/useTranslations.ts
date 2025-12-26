@@ -1,8 +1,8 @@
 /**
- * Translation composable for ACF-PS
+ * Translation composable for WePresta ACF
  */
 export function useTranslations() {
-  const translations = window.acfpsConfig?.translations || {}
+  const translations = window.acfConfig?.translations || {}
 
   /**
    * Get a translated string

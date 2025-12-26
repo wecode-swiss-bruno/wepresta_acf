@@ -28,7 +28,7 @@ export const useBuilderStore = defineStore('builder', () => {
   )
 
   const fieldTypes = computed<FieldTypeDefinition[]>(() => 
-    window.acfpsConfig?.fieldTypes || []
+    window.acfConfig?.fieldTypes || []
   )
 
   const hasUnsavedChanges = computed(() => {

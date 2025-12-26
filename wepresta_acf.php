@@ -241,8 +241,8 @@ class WeprestaAcf extends Module
     {
         $controller = Tools::getValue('controller');
         if (in_array($controller, ['AdminProducts', 'AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration'], true)) {
-            $this->context->controller->addCSS($this->_path . 'views/css/admin.css');
-            $this->context->controller->addJS($this->_path . 'views/js/admin.js');
+            $this->context->controller->addCSS($this->_path . 'views/dist/admin.css');
+            $this->context->controller->addJS($this->_path . 'views/dist/admin.js');
         }
     }
 
@@ -253,7 +253,7 @@ class WeprestaAcf extends Module
     public function hookDisplayHeader(array $params): string
     {
         if (!$this->isActive()) { return ''; }
-        $this->context->controller->registerStylesheet('wepresta_acf-front', 'modules/' . $this->name . '/views/css/front.css', ['media' => 'all', 'priority' => 150]);
+        $this->context->controller->registerStylesheet('wepresta_acf-front', 'modules/' . $this->name . '/views/dist/front.css', ['media' => 'all', 'priority' => 150]);
         return '';
     }
 

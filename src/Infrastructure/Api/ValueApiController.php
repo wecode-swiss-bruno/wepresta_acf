@@ -42,7 +42,7 @@ class ValueApiController extends FrameworkBundleAdminController
         } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
     }
 
-    public function get(int $productId, Request $request): JsonResponse
+    public function show(int $productId, Request $request): JsonResponse
     {
         try {
             $shopId = $request->query->has('shopId') ? (int) $request->query->get('shopId') : null;
