@@ -174,3 +174,60 @@ services:
         tags: ['controller.service_arguments']
         public: true
 
+    WeprestaAcf\Presentation\Controller\Admin\ConfigurationController:
+        arguments:
+            $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
+            $syncService: '@WeprestaAcf\Application\Service\SyncService'
+            $fieldTypeLoader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
+        tags: ['controller.service_arguments']
+        public: true
+
+    # =========================================================================
+    # Sync Services
+    # =========================================================================
+
+    WeprestaAcf\Application\Service\SyncService:
+        arguments:
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
+            $modulePath: '%kernel.project_dir%/modules/wepresta_acf'
+        public: true
+
+    WeprestaAcf\Application\Service\SyncStatusResolver:
+        arguments:
+            $syncService: '@WeprestaAcf\Application\Service\SyncService'
+        public: true
+
+    WeprestaAcf\Application\Service\FieldTypeLoader:
+        arguments:
+            $registry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+            $modulePath: '%kernel.project_dir%/modules/wepresta_acf'
+        public: true
+
+    # =========================================================================
+    # Sync API Controllers
+    # =========================================================================
+
+    WeprestaAcf\Infrastructure\Api\SyncApiController:
+        arguments:
+            $syncService: '@WeprestaAcf\Application\Service\SyncService'
+            $statusResolver: '@WeprestaAcf\Application\Service\SyncStatusResolver'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\FieldTypeApiController:
+        arguments:
+            $registry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+            $loader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
+        tags: ['controller.service_arguments']
+        public: true
+
+    # =========================================================================
+    # Form Types
+    # =========================================================================
+
+    WeprestaAcf\Application\Form\ConfigurationType:
+        parent: 'form.type.translatable.aware'
+        public: true
+

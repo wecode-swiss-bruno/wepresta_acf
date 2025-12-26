@@ -48,6 +48,12 @@ class WeprestaAcf extends Module
         'WEPRESTA_ACF_ACTIVE' => true,
         'WEPRESTA_ACF_MAX_FILE_SIZE' => 10485760, // 10MB
         'WEPRESTA_ACF_DEBUG' => false,
+        // Sync settings
+        'WEPRESTA_ACF_SYNC_ENABLED' => false,
+        'WEPRESTA_ACF_AUTO_SYNC_ON_SAVE' => false,
+        'WEPRESTA_ACF_SYNC_ON_INSTALL' => true,
+        'WEPRESTA_ACF_SYNC_PATH_TYPE' => 'theme',  // 'theme', 'parent', 'custom'
+        'WEPRESTA_ACF_SYNC_CUSTOM_PATH' => '',
     ];
 
     private ?ConfigurationAdapter $config = null;

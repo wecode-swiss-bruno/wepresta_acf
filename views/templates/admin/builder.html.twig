@@ -76,7 +76,20 @@
                 frontendOptions: '{{ 'Frontend Options'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 translatable: '{{ 'Translatable'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 showOnFrontend: '{{ 'Show on Frontend'|trans({}, 'Modules.Weprestaacf.Admin') }}',
-                saving: '{{ 'Saving...'|trans({}, 'Admin.Global') }}'
+                saving: '{{ 'Saving...'|trans({}, 'Admin.Global') }}',
+                // Sync translations
+                sync: '{{ 'Sync'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                syncActions: '{{ 'Sync Actions'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                pushToTheme: '{{ 'Push to Theme'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                pullFromTheme: '{{ 'Pull from Theme'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                exportJson: '{{ 'Export JSON'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                themeOnlyGroups: '{{ 'Groups available in theme'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                import: '{{ 'Import'|trans({}, 'Admin.Actions') }}',
+                groupPushedSuccess: '{{ 'Group pushed to theme successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupPulledSuccess: '{{ 'Group imported from theme successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                syncError: '{{ 'Sync error'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                exportError: '{{ 'Export error'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                confirmPullFromTheme: '{{ 'Are you sure? This will overwrite the current group.'|trans({}, 'Modules.Weprestaacf.Admin') }}'
             },
             fieldTypes: {{ fieldTypes|json_encode|raw }},
             productTabs: [
