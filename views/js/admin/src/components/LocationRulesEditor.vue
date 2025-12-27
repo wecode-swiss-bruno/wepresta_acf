@@ -188,7 +188,7 @@ function removeRule(index: number): void {
 
         <div v-else class="alert alert-info mb-3">
           <i class="material-icons" style="vertical-align: middle; font-size: 18px;">info</i>
-          Tab placement is only available for Product entities. 
+          Tab placement is only available for Product entities.
           For other entities, fields appear in the main edit form.
         </div>
 
