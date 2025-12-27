@@ -1,0 +1,7 @@
+# ACF Module Twig Configuration
+# Registers custom form themes for ACF fields
+
+twig:
+    form_themes:
+        - '@Modules/wepresta_acf/views/templates/admin/form-theme/acf_form_theme.html.twig'
+

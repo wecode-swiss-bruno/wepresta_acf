@@ -1,0 +1,84 @@
+{#
+ # ACF - Entity Fields Admin Template (Twig version)
+ # Displays custom field groups for any entity type in Symfony forms
+ #}
+<div class="acf-entity-fields" id="acf-entity-fields"
+     data-entity-type="{{ entity_type|e('html_attr') }}"
+     data-entity-id="{{ entity_id }}"
+     data-api-url="{{ api_url|e('html_attr') }}">
+
+    {# AJAX Save Button #}
+    <div class="acf-save-toolbar mb-3 d-flex align-items-center justify-content-between">
+        <div class="acf-save-status">
+            <span class="acf-status-text text-muted small"></span>
+        </div>
+        <button type="button" class="btn btn-primary acf-save-btn" id="acf-ajax-save">
+            <span class="acf-save-icon material-icons me-1" style="font-size:18px;vertical-align:middle;">save</span>
+            <span class="acf-save-label">{{ 'Save Custom Fields'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
+            <span class="acf-save-spinner spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
+        </button>
+    </div>
+
+    {% for group in groups %}
+        <div class="acf-group card mb-3" data-group-id="{{ group.id }}">
+            <div class="card-header">
+                <h3 class="card-header-title mb-0">{{ group.title|e }}</h3>
+                {% if group.description %}
+                    <p class="text-muted small mb-0">{{ group.description|e }}</p>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% for field in group.fields %}
+                    <div class="acf-field form-group row mb-4 pb-4" data-field-slug="{{ field.slug|e('html_attr') }}">
+                        <div class="col-md-3 col-lg-2 text-md-left">
+                            <label class="form-control-label{% if field.required %} required{% endif %}">
+                                {{ field.title|e }}
+                                {% if field.required %}<span class="text-danger">*</span>{% endif %}
+                                {% if field.translatable %}<span class="acf-translatable-badge" title="{{ 'Translatable field'|trans({}, 'Modules.Weprestaacf.Admin') }}">🌐</span>{% endif %}
+                            </label>
+                            {% if field.instructions %}
+                                <small class="form-text text-muted d-block">{{ field.instructions|e }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9 col-lg-10 acf-field-input">
+                            {% if field.translatable and field.lang_inputs|length > 0 %}
+                                {# Native PrestaShop translatable field structure #}
+                                <div class="translations tabbable" id="acf_{{ field.slug }}" tabindex="1">
+                                    <ul class="translationsLocales nav nav-pills">
+                                        {% for lang_input in field.lang_inputs %}
+                                            <li class="nav-item">
+                                                <a href="#"
+                                                   data-locale="{{ lang_input.iso_code|lower }}"
+                                                   class="nav-link{% if lang_input.is_default %} active{% endif %}"
+                                                   data-toggle="tab"
+                                                   data-target=".translationsFields-acf_{{ field.slug }}_{{ lang_input.id_lang }}">
+                                                    {{ lang_input.iso_code|upper }}
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <div class="translationsFields tab-content">
+                                        {% for lang_input in field.lang_inputs %}
+                                            <div data-locale="{{ lang_input.iso_code|lower }}"
+                                                 class="translationsFields-acf_{{ field.slug }}_{{ lang_input.id_lang }} tab-pane translation-field panel panel-default translation-label-{{ lang_input.iso_code|lower }}{% if lang_input.is_default %} show active{% endif %}">
+                                                {{ lang_input.html|raw }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                {# Non-translatable field #}
+                                {{ field.html|raw }}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            {{ 'No custom field groups defined for this entity.'|trans({}, 'Modules.Weprestaacf.Admin') }}
+        </div>
+    {% endfor %}
+</div>
+

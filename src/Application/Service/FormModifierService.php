@@ -7,7 +7,8 @@ namespace WeprestaAcf\Application\Service;
 use Context;
 use Language;
 use Symfony\Component\Form\FormBuilderInterface;
-use WeprestaAcf\Application\Config\EntityHooksConfig;
+use Twig\Environment;
+use WeprestaAcf\Application\Form\Type\AcfContainerType;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
@@ -22,7 +23,8 @@ use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
  * - Extracting ACF data from submitted forms
  * - Saving ACF data after form submission (via FormHandler hooks)
  *
- * Based on PrestaShop 9's FormBuilderModifier pattern.
+ * Uses Twig rendering to provide full ACF field support including complex types
+ * (image, file, gallery, repeater, list, relation).
  *
  * @see https://devdocs.prestashop-project.org/9/modules/sample-modules/grid-and-identifiable-object-form-hooks-usage-example/
  */
@@ -35,7 +37,8 @@ final class FormModifierService
         private readonly AcfFieldRepositoryInterface $fieldRepository,
         private readonly FieldTypeRegistry $fieldTypeRegistry,
         private readonly ValueProvider $valueProvider,
-        private readonly ValueHandler $valueHandler
+        private readonly ValueHandler $valueHandler,
+        private readonly Environment $twig
     ) {
     }
 
@@ -93,48 +96,191 @@ final class FormModifierService
             }
 
             if (empty($matchingGroups)) {
+                \PrestaShopLogger::addLog('[ACF modifyForm] No matching groups', 1);
                 return;
             }
 
-            // Get existing values if editing
-            $existingValues = [];
-            if ($entityId !== null && $entityId > 0) {
-                $existingValues = $this->valueProvider->getEntityFieldValues($entityType, $entityId);
-            }
+            \PrestaShopLogger::addLog('[ACF modifyForm] Found ' . count($matchingGroups) . ' matching groups', 1);
 
-            // Add ACF fields to form
-            foreach ($matchingGroups as $group) {
-                $groupId = (int) $group['id_wepresta_acf_group'];
-                $fields = $this->fieldRepository->findByGroup($groupId);
+            // Render ACF fields using Twig for full field support
+            $html = $this->renderAcfFields($matchingGroups, $entityType, $entityId);
+            
+            \PrestaShopLogger::addLog('[ACF modifyForm] Rendered HTML length: ' . strlen($html), 1);
+            // Log meaningful preview - skip leading whitespace
+            $trimmedHtml = ltrim($html);
+            \PrestaShopLogger::addLog('[ACF modifyForm] HTML preview: ' . substr($trimmedHtml, 0, 400), 1);
 
-                foreach ($fields as $field) {
-                    $slug = $field['slug'];
-                    $fieldType = $this->fieldTypeRegistry->getOrNull($field['type']);
-
-                    if (!$fieldType) {
-                        continue;
-                    }
-
-                    // Build Symfony form field options
-                    $formFieldName = 'acf_' . $slug;
-                    $formFieldOptions = $this->buildFormFieldOptions($field, $existingValues[$slug] ?? null);
-
-                    // Add field to form
-                    $symfonyType = $this->mapToSymfonyFormType($field['type']);
-                    $formBuilder->add($formFieldName, $symfonyType, $formFieldOptions);
-
-                    // Pre-populate data
-                    if (isset($existingValues[$slug])) {
-                        $data[$formFieldName] = $existingValues[$slug];
-                    }
-                }
-            }
+            // Add container with pre-rendered HTML
+            $formBuilder->add('acf_fields', AcfContainerType::class, [
+                'acf_html' => $html,
+            ]);
+            
+            \PrestaShopLogger::addLog('[ACF modifyForm] Added acf_fields to form', 1);
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog(
                 'ACF FormModifierService error: ' . $e->getMessage(),
                 3
             );
         }
+    }
+
+    /**
+     * Renders ACF fields using Twig for full field support.
+     *
+     * @param array $matchingGroups Groups that match location rules
+     * @param string $entityType Entity type
+     * @param int|null $entityId Entity ID
+     * @return string Rendered HTML
+     */
+    private function renderAcfFields(array $matchingGroups, string $entityType, ?int $entityId): string
+    {
+        $languages = Language::getLanguages(true);
+        $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+        $currentLangId = (int) Context::getContext()->language->id;
+        $shopId = (int) Context::getContext()->shop->id;
+
+        // Get field values for the entity
+        $values = [];
+        $valuesPerLang = [];
+        if ($entityId !== null && $entityId > 0) {
+            $values = $this->valueProvider->getEntityFieldValues($entityType, $entityId, null, $currentLangId);
+            foreach ($languages as $lang) {
+                $valuesPerLang[(int) $lang['id_lang']] = $this->valueProvider->getEntityFieldValues(
+                    $entityType,
+                    $entityId,
+                    null,
+                    (int) $lang['id_lang']
+                );
+            }
+        }
+
+        // Build groups data for Twig
+        $groupsData = [];
+        \PrestaShopLogger::addLog('[ACF renderAcfFields] Processing ' . count($matchingGroups) . ' groups', 1);
+        foreach ($matchingGroups as $group) {
+            $groupId = (int) $group['id_wepresta_acf_group'];
+            \PrestaShopLogger::addLog('[ACF renderAcfFields] Group ID: ' . $groupId . ', Title: ' . ($group['title'] ?? 'N/A'), 1);
+            $fields = $this->fieldRepository->findByGroup($groupId);
+            \PrestaShopLogger::addLog('[ACF renderAcfFields] Found ' . count($fields) . ' fields', 1);
+
+            $fieldsHtml = [];
+            foreach ($fields as $field) {
+                $slug = $field['slug'];
+                $type = $field['type'];
+                $isTranslatable = (bool) $field['translatable'];
+                $fieldType = $this->fieldTypeRegistry->getOrNull($type);
+
+                if (!$fieldType) {
+                    continue;
+                }
+
+                $fieldData = [
+                    'slug' => $slug,
+                    'title' => $field['title'],
+                    'instructions' => $field['instructions'],
+                    'required' => (bool) (json_decode($field['validation'] ?? '{}', true)['required'] ?? false),
+                    'translatable' => $isTranslatable,
+                ];
+
+                // For repeater fields, load children and generate JS templates
+                if ($type === 'repeater') {
+                    $fieldId = (int) $field['id_wepresta_acf_field'];
+                    $children = $this->fieldRepository->findByParent($fieldId);
+                    $field['children'] = $children;
+                    $field['jsTemplates'] = [];
+                    foreach ($children as $child) {
+                        $childType = $this->fieldTypeRegistry->getOrNull($child['type']);
+                        if ($childType) {
+                            $field['jsTemplates'][$child['slug']] = $childType->getJsTemplate($child);
+                        }
+                    }
+                }
+
+                if ($isTranslatable) {
+                    // Render field for each language
+                    $langInputs = [];
+                    foreach ($languages as $lang) {
+                        $langId = (int) $lang['id_lang'];
+                        $langValue = $valuesPerLang[$langId][$slug] ?? null;
+                        $langInputs[] = [
+                            'id_lang' => $langId,
+                            'iso_code' => $lang['iso_code'],
+                            'name' => $lang['name'],
+                            'is_default' => $langId === $defaultLangId,
+                            'html' => $fieldType->renderAdminInput($field, $langValue, [
+                                'prefix' => 'acf_',
+                                'suffix' => '_' . $langId,
+                                'fieldRenderer' => $this->fieldTypeRegistry,
+                            ]),
+                        ];
+                    }
+                    $fieldData['lang_inputs'] = $langInputs;
+                    $fieldData['html'] = '';
+                } else {
+                    $value = $values[$slug] ?? null;
+                    $fieldData['html'] = $fieldType->renderAdminInput($field, $value, [
+                        'prefix' => 'acf_',
+                        'fieldRenderer' => $this->fieldTypeRegistry,
+                    ]);
+                    $fieldData['lang_inputs'] = [];
+                }
+
+                $fieldsHtml[] = $fieldData;
+            }
+
+            $groupsData[] = [
+                'id' => $groupId,
+                'title' => $group['title'],
+                'description' => $group['description'],
+                'fields' => $fieldsHtml,
+            ];
+        }
+
+        // Build API URL
+        $apiUrl = $this->getAdminApiBaseUrl();
+
+        \PrestaShopLogger::addLog('[ACF renderAcfFields] Total groups to render: ' . count($groupsData), 1);
+        foreach ($groupsData as $g) {
+            \PrestaShopLogger::addLog('[ACF renderAcfFields] Group "' . $g['title'] . '" has ' . count($g['fields']) . ' fields', 1);
+        }
+
+        // Render using Twig
+        return $this->twig->render('@Modules/wepresta_acf/views/templates/admin/form-theme/acf_entity_fields.html.twig', [
+            'groups' => $groupsData,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId ?? 0,
+            'api_url' => $apiUrl,
+        ]);
+    }
+
+    /**
+     * Gets the admin API base URL.
+     *
+     * @return string
+     */
+    private function getAdminApiBaseUrl(): string
+    {
+        $context = Context::getContext();
+        $link = $context->link;
+
+        if ($link === null) {
+            return '';
+        }
+
+        try {
+            // Try to get the API URL from the router
+            $router = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance()->get('router');
+            if ($router) {
+                return $router->generate('wepresta_acf_api_groups_list');
+            }
+        } catch (\Exception $e) {
+            // Fallback
+        }
+
+        // Fallback to manual URL construction
+        $adminDir = basename(_PS_ADMIN_DIR_);
+        $baseUrl = $context->shop->getBaseURL(true) . $adminDir;
+        return $baseUrl . '/modules/wepresta_acf/api';
     }
 
     /**
@@ -252,81 +398,4 @@ final class FormModifierService
 
         return null;
     }
-
-    /**
-     * Maps ACF field type to Symfony form type.
-     *
-     * @param string $acfType ACF field type
-     * @return string Symfony form type class
-     */
-    private function mapToSymfonyFormType(string $acfType): string
-    {
-        return match ($acfType) {
-            'text', 'url', 'email' => \Symfony\Component\Form\Extension\Core\Type\TextType::class,
-            'textarea' => \Symfony\Component\Form\Extension\Core\Type\TextareaType::class,
-            'richtext' => \PrestaShopBundle\Form\Admin\Type\FormattedTextareaType::class,
-            'number' => \Symfony\Component\Form\Extension\Core\Type\NumberType::class,
-            'boolean' => \Symfony\Component\Form\Extension\Core\Type\CheckboxType::class,
-            'select' => \Symfony\Component\Form\Extension\Core\Type\ChoiceType::class,
-            'radio' => \Symfony\Component\Form\Extension\Core\Type\ChoiceType::class,
-            'checkbox' => \Symfony\Component\Form\Extension\Core\Type\CheckboxType::class,
-            'date' => \Symfony\Component\Form\Extension\Core\Type\DateType::class,
-            'datetime' => \Symfony\Component\Form\Extension\Core\Type\DateTimeType::class,
-            'time' => \Symfony\Component\Form\Extension\Core\Type\TimeType::class,
-            'color' => \Symfony\Component\Form\Extension\Core\Type\ColorType::class,
-            default => \Symfony\Component\Form\Extension\Core\Type\TextType::class,
-        };
-    }
-
-    /**
-     * Builds form field options from ACF field configuration.
-     *
-     * @param array $field ACF field configuration
-     * @param mixed $existingValue Existing value if editing
-     * @return array Symfony form field options
-     */
-    private function buildFormFieldOptions(array $field, mixed $existingValue): array
-    {
-        $validation = json_decode($field['validation'] ?? '{}', true) ?: [];
-        $settings = json_decode($field['settings'] ?? '{}', true) ?: [];
-
-        $options = [
-            'label' => $field['title'] ?? $field['slug'],
-            'required' => (bool) ($validation['required'] ?? false),
-            'attr' => [
-                'class' => 'acf-field acf-field-' . $field['type'],
-            ],
-        ];
-
-        // Add help text
-        if (!empty($field['instructions'])) {
-            $options['help'] = $field['instructions'];
-        }
-
-        // Set default value
-        if ($existingValue !== null) {
-            $options['data'] = $existingValue;
-        } elseif (isset($field['default_value'])) {
-            $options['data'] = $field['default_value'];
-        }
-
-        // Handle select/radio choices
-        if (in_array($field['type'], ['select', 'radio'], true)) {
-            $choices = $settings['options'] ?? [];
-            $options['choices'] = array_combine($choices, $choices);
-
-            if ($field['type'] === 'radio') {
-                $options['expanded'] = true;
-                $options['multiple'] = false;
-            }
-        }
-
-        // Checkbox options
-        if ($field['type'] === 'checkbox') {
-            $options['value'] = '1';
-        }
-
-        return $options;
-    }
 }
-

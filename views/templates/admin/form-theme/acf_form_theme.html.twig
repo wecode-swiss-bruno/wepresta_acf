@@ -1,0 +1,9 @@
+{#
+ # ACF Form Theme for Symfony Forms
+ # Renders the pre-generated ACF HTML within Symfony forms
+ #}
+
+{% block acf_container_widget %}
+    {{ form.vars.acf_html|raw }}
+{% endblock %}
+

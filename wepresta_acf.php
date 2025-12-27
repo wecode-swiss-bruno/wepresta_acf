@@ -273,6 +273,9 @@ class WeprestaAcf extends Module
      */
     public function __call(string $method, array $args): mixed
     {
+        // Log every __call invocation for debugging
+        \PrestaShopLogger::addLog('[ACF __call] Method: ' . $method, 1);
+        
         // Only handle hook* methods
         if (!str_starts_with($method, 'hook')) {
             return null;
@@ -280,13 +283,18 @@ class WeprestaAcf extends Module
 
         $hookName = substr($method, 4); // Remove 'hook' prefix
         $params = $args[0] ?? [];
+        
+        \PrestaShopLogger::addLog('[ACF __call] hookName: ' . $hookName, 1);
 
         // Pattern 1: action{EntityName}FormBuilderModifier
         // Example: actionCustomerFormBuilderModifier -> customer
         // Note: Using /i flag for case-insensitive matching (PrestaShop passes hooks with varying case)
         if (preg_match('/^action(\w+)FormBuilderModifier$/i', $hookName, $matches)) {
+            \PrestaShopLogger::addLog('[ACF __call] Matched FormBuilderModifier pattern', 1);
             $entityType = $this->entityTypeFromFormBuilderHook($hookName);
+            \PrestaShopLogger::addLog('[ACF __call] entityType: ' . ($entityType ?? 'NULL'), 1);
             if ($entityType !== null) {
+                \PrestaShopLogger::addLog('[ACF __call] Calling handleFormBuilderModifierHook', 1);
                 $this->handleFormBuilderModifierHook($entityType, $params);
                 return null;
             }
@@ -333,26 +341,36 @@ class WeprestaAcf extends Module
      */
     private function handleFormBuilderModifierHook(string $entityType, array $params): void
     {
+        \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] START for: ' . $entityType, 1);
+        
         if (!$this->isActive()) {
+            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Module not active', 1);
             return;
         }
 
         try {
+            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Getting service', 1);
             $formModifierService = $this->getService(FormModifierService::class);
             if ($formModifierService === null) {
+                \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Service is NULL', 3);
                 return;
             }
 
             $formBuilder = $params['form_builder'] ?? null;
             if (!$formBuilder instanceof \Symfony\Component\Form\FormBuilderInterface) {
+                \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] No form_builder in params', 3);
                 return;
             }
 
             $entityId = $formModifierService->getEntityIdFromParams($entityType, $params);
+            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Entity ID: ' . ($entityId ?? 'NULL'), 1);
             $data = &$params['data'];
 
+            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Calling modifyForm', 1);
             $formModifierService->modifyForm($formBuilder, $entityType, $entityId, $data);
+            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] modifyForm completed', 1);
         } catch (\Exception $e) {
+            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] ERROR: ' . $e->getMessage(), 3);
             $this->log("Error in FormBuilderModifier for {$entityType}: " . $e->getMessage(), 3);
         }
     }
@@ -997,18 +1015,21 @@ class WeprestaAcf extends Module
     public function hookActionAdminControllerSetMedia(array $params): void
     {
         $controller = Tools::getValue('controller');
-        if (in_array($controller, ['AdminProducts', 'AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration'], true)) {
-            // Vue.js admin builder assets (if dist exists)
+
+        // ACF Builder and Configuration pages - load Vue.js builder assets
+        if (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration'], true)) {
             if (file_exists($this->getLocalPath() . 'views/dist/admin.css')) {
                 $this->context->controller->addCSS($this->_path . 'views/dist/admin.css');
             }
             if (file_exists($this->getLocalPath() . 'views/dist/admin.js')) {
                 $this->context->controller->addJS($this->_path . 'views/dist/admin.js');
             }
-            // ACF Admin styles and interactions
-            $this->context->controller->addCSS($this->_path . 'views/css/admin-fields.css');
-            $this->context->controller->addJS($this->_path . 'views/js/acf-admin.js');
         }
+
+        // Load ACF field assets on ALL admin pages
+        // The JS only activates if #acf-entity-fields is present on the page
+        $this->context->controller->addCSS($this->_path . 'views/css/admin-fields.css');
+        $this->context->controller->addJS($this->_path . 'views/js/acf-fields.js');
     }
 
     // =========================================================================

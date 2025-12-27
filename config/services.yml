@@ -98,7 +98,12 @@ services:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
             $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
             $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
+            $twig: '@twig'
         public: true
+
+    # ACF Container FormType for Symfony forms
+    WeprestaAcf\Application\Form\Type\AcfContainerType:
+        tags: ['form.type']
 
     WeprestaAcf\Application\Service\EntityFieldService:
         arguments:
