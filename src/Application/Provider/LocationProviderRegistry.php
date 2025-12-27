@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Provider;
 
+use WeprestaAcf\Application\Service\EntityFieldRegistryInitializer;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
 
 /**
@@ -15,11 +16,20 @@ final class LocationProviderRegistry
     private array $providers = [];
     /** @var array<array<string, mixed>>|null */
     private ?array $locationsCache = null;
+    private ?EntityFieldRegistryInitializer $initializer = null;
 
     public function __construct(
         private readonly ?EntityFieldRegistry $entityFieldRegistry = null
     ) {
         $this->register(new CoreLocationProvider($this->entityFieldRegistry));
+    }
+
+    /**
+     * Set the initializer to ensure entity types are registered before getting locations
+     */
+    public function setInitializer(EntityFieldRegistryInitializer $initializer): void
+    {
+        $this->initializer = $initializer;
     }
 
     public function register(LocationProviderInterface $provider): self
@@ -52,6 +62,11 @@ final class LocationProviderRegistry
     {
         if ($this->locationsCache !== null) {
             return $this->locationsCache;
+        }
+
+        // Ensure entity types are registered before retrieving locations
+        if ($this->initializer !== null) {
+            $this->initializer->initialize();
         }
 
         $locations = [];

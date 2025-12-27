@@ -179,6 +179,8 @@ services:
     WeprestaAcf\Application\Provider\LocationProviderRegistry:
         arguments:
             $entityFieldRegistry: '@wedev.entity_field_registry'
+        calls:
+            - [setInitializer, ['@WeprestaAcf\Application\Service\EntityFieldRegistryInitializer']]
         public: true
 
     # =========================================================================
@@ -281,6 +283,7 @@ services:
         arguments:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
             $fieldTypeLoader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
+            $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
         tags: ['controller.service_arguments']
         public: true
 
