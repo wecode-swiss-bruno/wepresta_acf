@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
 import type { JsonLogicRule } from '@/types'
 import type { LocationOption } from '@/types/api'
@@ -12,7 +13,12 @@ const emit = defineEmits<{
   'update:rules': [rules: JsonLogicRule[]]
 }>()
 
+const store = useBuilderStore()
 const { t } = useTranslations()
+
+// Access group for placement settings
+const group = computed(() => store.currentGroup)
+const productTabs = computed(() => window.acfConfig?.productTabs || [])
 
 // Get locations from window config
 const locations = computed<Record<string, LocationOption[]>>(() => {
@@ -37,6 +43,9 @@ const operators = [
 const selectedEntityType = ref<string>('')
 const selectedOperator = ref<string>('==')
 
+// Ensure rules is always an array
+const safeRules = computed(() => props.rules || [])
+
 function addRule(): void {
   if (!selectedEntityType.value) return
 
@@ -47,13 +56,13 @@ function addRule(): void {
     ]
   }
 
-  const updatedRules = [...props.rules, newRule]
+  const updatedRules = [...safeRules.value, newRule]
   emit('update:rules', updatedRules)
   selectedEntityType.value = ''
 }
 
 function removeRule(index: number): void {
-  const updatedRules = props.rules.filter((_, i) => i !== index)
+  const updatedRules = safeRules.value.filter((_, i) => i !== index)
   emit('update:rules', updatedRules)
 }
 </script>
@@ -63,11 +72,11 @@ function removeRule(index: number): void {
     <p class="text-muted mb-3">{{ t('locationRulesHelp') }}</p>
     
     <!-- Current rules -->
-    <div v-if="rules.length > 0" class="mb-3">
+    <div v-if="safeRules.length > 0" class="mb-3">
       <h5 class="mb-2">{{ t('currentRules') || 'Current Rules' }}</h5>
       <div class="list-group">
         <div 
-          v-for="(rule, index) in rules" 
+          v-for="(rule, index) in safeRules" 
           :key="index"
           class="list-group-item d-flex justify-content-between align-items-center"
         >
@@ -138,16 +147,48 @@ function removeRule(index: number): void {
       </div>
     </div>
 
-    <!-- Debug: Show available locations count -->
-    <div v-if="locationGroups.length === 0" class="alert alert-warning mt-3">
-      <strong>Debug:</strong> No locations loaded from backend. Check window.acfConfig.locations
+    <!-- Placement Settings -->
+    <div v-if="group" class="card mt-4">
+      <div class="card-header">
+        <h5 class="mb-0">{{ t('presentation') || 'Presentation' }}</h5>
+      </div>
+      <div class="card-body">
+        <div class="form-group mb-3">
+          <label>{{ t('placementTab') || 'Tab' }}</label>
+          <select v-model="group.placementTab" class="form-control">
+            <option
+              v-for="tab in productTabs"
+              :key="tab.value"
+              :value="tab.value"
+            >
+              {{ tab.label }}
+            </option>
+          </select>
+          <small class="form-text text-muted">
+            Product page tab where this field group will appear.
+          </small>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>{{ t('priority') || 'Priority' }}</label>
+          <input
+            v-model.number="group.priority"
+            type="number"
+            class="form-control"
+            min="0"
+            max="100"
+          >
+          <small class="form-text text-muted">
+            Lower numbers appear first. Default is 10.
+          </small>
+        </div>
+      </div>
     </div>
 
     <!-- Info -->
     <div class="alert alert-info mt-3">
       <strong>{{ t('info') || 'Info' }}</strong><br>
       {{ t('locationRulesInfo') || 'Select entity types where this field group should appear. If no rules are defined, the group will appear on all entities.' }}
-      <br><small class="text-muted">Available groups: {{ locationGroups.length }}</small>
     </div>
   </div>
 </template>

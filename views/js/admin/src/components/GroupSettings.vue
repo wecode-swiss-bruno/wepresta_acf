@@ -10,7 +10,6 @@ const { t } = useTranslations()
 const api = useApi()
 
 const group = computed(() => store.currentGroup)
-const productTabs = computed(() => window.acfConfig?.productTabs || [])
 
 // Auto-generate slug from title
 let slugTimeout: number | null = null
@@ -66,40 +65,6 @@ async function onTitleChange(): Promise<void> {
           class="form-control"
           rows="3"
         />
-      </div>
-    </div>
-
-    <div class="acfps-form-section">
-      <h4>{{ t('presentation') }}</h4>
-
-      <div class="form-group">
-        <label class="form-control-label">{{ t('placementTab') }}</label>
-        <select v-model="group.placementTab" class="form-control">
-          <option
-            v-for="tab in productTabs"
-            :key="tab.value"
-            :value="tab.value"
-          >
-            {{ tab.label }}
-          </option>
-        </select>
-        <small class="form-text text-muted">
-          Product page tab where this field group will appear.
-        </small>
-      </div>
-
-      <div class="form-group">
-        <label class="form-control-label">{{ t('priority') }}</label>
-        <input
-          v-model.number="group.priority"
-          type="number"
-          class="form-control"
-          min="0"
-          max="100"
-        >
-        <small class="form-text text-muted">
-          Lower numbers appear first. Default is 10.
-        </small>
       </div>
     </div>
 
