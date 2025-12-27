@@ -175,11 +175,8 @@ class UtilityApiController extends FrameworkBundleAdminController
                 return $this->json(['success' => false, 'error' => 'Failed to create group'], 500);
             }
 
-            // Link group to shop 1
-            $db->insert('wepresta_acf_group_shop', [
-                'id_wepresta_acf_group' => $groupId,
-                'id_shop' => 1,
-            ]);
+            // Associate with all active shops (same as GroupApiController::create)
+            $this->groupRepository->addAllShopAssociations($groupId);
 
             // Define all field types with their configs
             $fields = [

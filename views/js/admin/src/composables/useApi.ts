@@ -13,7 +13,10 @@ export function useApi() {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${config.apiUrl}${endpoint}`
+    // Ensure endpoint starts with / and apiUrl doesn't end with /
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+    const cleanApiUrl = config.apiUrl.endsWith('/') ? config.apiUrl.slice(0, -1) : config.apiUrl
+    const url = `${cleanApiUrl}${cleanEndpoint}`
     
     const response = await fetch(url, {
       ...options,

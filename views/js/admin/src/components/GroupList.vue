@@ -22,7 +22,7 @@ onMounted(async () => {
 
 async function loadSyncStatus(): Promise<void> {
   try {
-    const response = await api.fetchJson('/api/sync/status')
+    const response = await api.fetchJson('/sync/status')
     if (response.success && response.data) {
       syncEnabled.value = response.data.enabled
 
@@ -57,7 +57,7 @@ function confirmDelete(id: number): void {
 
 async function pushToTheme(groupId: number): Promise<void> {
   try {
-    const response = await api.fetchJson(`/api/sync/push/${groupId}`, { method: 'POST' })
+    const response = await api.fetchJson(`/sync/push/${groupId}`, { method: 'POST' })
     if (response.success) {
       alert(t('groupPushedSuccess'))
       await loadSyncStatus()
@@ -73,7 +73,7 @@ async function pullFromTheme(slug: string): Promise<void> {
   if (!confirm(t('confirmPullFromTheme'))) return
 
   try {
-    const response = await api.fetchJson(`/api/sync/pull/${slug}`, { method: 'POST' })
+    const response = await api.fetchJson(`/sync/pull/${slug}`, { method: 'POST' })
     if (response.success) {
       alert(t('groupPulledSuccess'))
       // Reload groups list
@@ -89,7 +89,7 @@ async function pullFromTheme(slug: string): Promise<void> {
 
 async function exportGroup(groupId: number): Promise<void> {
   try {
-    const response = await api.fetchJson(`/api/sync/export/${groupId}`)
+    const response = await api.fetchJson(`/sync/export/${groupId}`)
     if (response.success && response.data) {
       // Download as JSON file
       const blob = new Blob([JSON.stringify(response.data.content, null, 2)], { type: 'application/json' })
@@ -114,7 +114,7 @@ async function runSeed(): Promise<void> {
 
   seeding.value = true
   try {
-    const response = await api.fetchJson('/api/seed', { method: 'POST' })
+    const response = await api.fetchJson('/seed', { method: 'POST' })
     if (response.success) {
       if (response.skipped) {
         alert(t('seedSkipped'))
