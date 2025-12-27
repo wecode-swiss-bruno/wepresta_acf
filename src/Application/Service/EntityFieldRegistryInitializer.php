@@ -66,6 +66,10 @@ final class EntityFieldRegistryInitializer implements EventSubscriberInterface
      */
     public function initialize(): void
     {
+        if ($this->initialized) {
+            return;
+        }
+
         foreach ($this->providers as $provider) {
             if ($provider instanceof EntityFieldProviderInterface) {
                 $this->registry->registerEntityType(
@@ -74,6 +78,8 @@ final class EntityFieldRegistryInitializer implements EventSubscriberInterface
                 );
             }
         }
+
+        $this->initialized = true;
     }
 }
 

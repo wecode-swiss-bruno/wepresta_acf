@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Provider;
 
-use WeprestaAcf\Application\Service\EntityFieldRegistryInitializer;
+use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldProviderInterface;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
 
 /**
@@ -16,7 +16,9 @@ final class LocationProviderRegistry
     private array $providers = [];
     /** @var array<array<string, mixed>>|null */
     private ?array $locationsCache = null;
-    private ?EntityFieldRegistryInitializer $initializer = null;
+    /** @var array<EntityFieldProviderInterface> */
+    private array $entityFieldProviders = [];
+    private bool $entityFieldsInitialized = false;
 
     public function __construct(
         private readonly ?EntityFieldRegistry $entityFieldRegistry = null
@@ -25,11 +27,36 @@ final class LocationProviderRegistry
     }
 
     /**
-     * Set the initializer to ensure entity types are registered before getting locations
+     * Set the entity field providers directly - they will be registered on demand
+     *
+     * @param array<EntityFieldProviderInterface> $providers
      */
-    public function setInitializer(EntityFieldRegistryInitializer $initializer): void
+    public function setEntityFieldProviders(array $providers): void
     {
-        $this->initializer = $initializer;
+        $this->entityFieldProviders = $providers;
+        $this->entityFieldsInitialized = false;
+        $this->locationsCache = null;
+    }
+
+    /**
+     * Ensure all entity field providers are registered with the registry
+     */
+    private function ensureEntityFieldsInitialized(): void
+    {
+        if ($this->entityFieldsInitialized || $this->entityFieldRegistry === null) {
+            return;
+        }
+
+        foreach ($this->entityFieldProviders as $provider) {
+            if ($provider instanceof EntityFieldProviderInterface) {
+                $this->entityFieldRegistry->registerEntityType(
+                    $provider->getEntityType(),
+                    $provider
+                );
+            }
+        }
+
+        $this->entityFieldsInitialized = true;
     }
 
     public function register(LocationProviderInterface $provider): self
@@ -65,9 +92,7 @@ final class LocationProviderRegistry
         }
 
         // Ensure entity types are registered before retrieving locations
-        if ($this->initializer !== null) {
-            $this->initializer->initialize();
-        }
+        $this->ensureEntityFieldsInitialized();
 
         $locations = [];
         foreach ($this->getAll() as $provider) {

@@ -180,7 +180,24 @@ services:
         arguments:
             $entityFieldRegistry: '@wedev.entity_field_registry'
         calls:
-            - [setInitializer, ['@WeprestaAcf\Application\Service\EntityFieldRegistryInitializer']]
+            - [setEntityFieldProviders, [[
+                '@WeprestaAcf\Application\Provider\EntityField\ProductEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CategoryEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CustomerEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CustomerAddressEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CustomerGroupEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\BrandEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\SupplierEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CmsPageEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CmsCategoryEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\LanguageEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\ZoneEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CountryEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\StateEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CurrencyEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\OrderEntityFieldProvider',
+                '@WeprestaAcf\Application\Provider\EntityField\CartEntityFieldProvider'
+            ]]]
         public: true
 
     # =========================================================================
