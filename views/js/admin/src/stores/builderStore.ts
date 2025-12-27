@@ -5,6 +5,18 @@ import { useApi } from '@/composables/useApi'
 
 export type ViewMode = 'list' | 'edit'
 
+/**
+ * Normalize group data to ensure foOptions and boOptions are objects, not arrays.
+ * This handles legacy data that might have been stored as arrays.
+ */
+function normalizeGroup(group: AcfGroup): AcfGroup {
+  return {
+    ...group,
+    boOptions: Array.isArray(group.boOptions) ? {} : (group.boOptions || {}),
+    foOptions: Array.isArray(group.foOptions) ? {} : (group.foOptions || {}),
+  }
+}
+
 export const useBuilderStore = defineStore('builder', () => {
   const api = useApi()
 
@@ -41,7 +53,8 @@ export const useBuilderStore = defineStore('builder', () => {
     loading.value = true
     error.value = null
     try {
-      groups.value = await api.getGroups()
+      const loadedGroups = await api.getGroups()
+      groups.value = loadedGroups.map(normalizeGroup)
     } catch (e) {
       error.value = (e as Error).message
     } finally {
@@ -53,7 +66,8 @@ export const useBuilderStore = defineStore('builder', () => {
     loading.value = true
     error.value = null
     try {
-      currentGroup.value = await api.getGroup(id)
+      const loadedGroup = await api.getGroup(id)
+      currentGroup.value = normalizeGroup(loadedGroup)
       viewMode.value = 'edit'
     } catch (e) {
       error.value = (e as Error).message
@@ -92,23 +106,25 @@ export const useBuilderStore = defineStore('builder', () => {
       if (groupId) {
         // Update existing group
         const updated = await api.updateGroup(groupId, currentGroup.value)
+        const normalizedUpdated = normalizeGroup(updated)
 
         // Merge updated group data but keep local fields for now
         const localFields = currentGroup.value.fields || []
-        currentGroup.value = { ...updated, fields: localFields }
+        currentGroup.value = { ...normalizedUpdated, fields: localFields }
 
         // Update in list
-        const index = groups.value.findIndex(g => g.id === updated.id)
+        const index = groups.value.findIndex(g => g.id === normalizedUpdated.id)
         if (index !== -1) {
-          groups.value[index] = updated
+          groups.value[index] = normalizedUpdated
         }
       } else {
         // Create new group first
         const created = await api.createGroup(currentGroup.value)
-        groupId = created.id
+        const normalizedCreated = normalizeGroup(created)
+        groupId = normalizedCreated.id
         const localFields = currentGroup.value.fields || []
-        currentGroup.value = { ...created, fields: localFields }
-        groups.value.push(created)
+        currentGroup.value = { ...normalizedCreated, fields: localFields }
+        groups.value.push(normalizedCreated)
       }
 
       // Now save all fields that need saving (including subfields)

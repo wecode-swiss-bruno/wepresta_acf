@@ -29,7 +29,7 @@ class CacheService
 
     public function __construct(
         ?CacheInterface $symfonyCache = null,
-        string $prefix = 'wepresta_acf_',
+        string $prefix = 'modulestarter_',
         int $defaultTtl = 3600
     ) {
         $this->symfonyCache = $symfonyCache;

@@ -22,8 +22,8 @@ imports:
 ### Notification Simple
 
 ```php
-use WeprestaAcf\Extension\Notifications\NotificationService;
-use WeprestaAcf\Extension\Notifications\Notification;
+use ModuleStarter\Extension\Notifications\NotificationService;
+use ModuleStarter\Extension\Notifications\Notification;
 
 $service = new NotificationService();
 
@@ -81,7 +81,7 @@ $service->send(Notification::toMany(
 ### Email (par défaut)
 
 ```php
-use WeprestaAcf\Extension\Notifications\Channel\EmailChannel;
+use ModuleStarter\Extension\Notifications\Channel\EmailChannel;
 
 $channel = new EmailChannel(
     langId: 1,
@@ -95,7 +95,7 @@ $service->registerChannel('email', $channel);
 ### SMS
 
 ```php
-use WeprestaAcf\Extension\Notifications\Channel\SmsChannel;
+use ModuleStarter\Extension\Notifications\Channel\SmsChannel;
 
 // Twilio
 $channel = new SmsChannel('twilio', [
@@ -118,7 +118,7 @@ $service->send(new Notification(
 ### Push
 
 ```php
-use WeprestaAcf\Extension\Notifications\Channel\PushChannel;
+use ModuleStarter\Extension\Notifications\Channel\PushChannel;
 
 // Firebase
 $channel = new PushChannel('firebase', [
@@ -177,8 +177,8 @@ $service->notifyAdmins(
 ## Créer un Canal Personnalisé
 
 ```php
-use WeprestaAcf\Extension\Notifications\Channel\ChannelInterface;
-use WeprestaAcf\Extension\Notifications\NotificationInterface;
+use ModuleStarter\Extension\Notifications\Channel\ChannelInterface;
+use ModuleStarter\Extension\Notifications\NotificationInterface;
 
 final class SlackChannel implements ChannelInterface
 {

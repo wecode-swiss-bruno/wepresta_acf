@@ -53,6 +53,9 @@ final class BuilderController extends FrameworkBundleAdminController
             'layoutTitle' => $this->trans('ACF Field Builder', 'Modules.Weprestaacf.Admin'),
             'enableSidebar' => true,
             'fieldTypes' => $fieldTypes,
+            // Toolbar buttons are now handled dynamically via Vue.js and DOM manipulation
+            // The buttons are injected via header_toolbar_btn block and controlled by Vue state
+            'layoutHeaderToolbarBtn' => [],
         ]);
     }
 }

@@ -4,31 +4,26 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Domain\Event;
 
-final class FieldValueDeletedEvent extends AbstractAcfEvent
+use WeprestaAcf\Wedev\Extension\Events\AbstractDomainEvent;
+
+/**
+ * Event dispatched when a field value is deleted.
+ */
+final class FieldValueDeletedEvent extends AbstractDomainEvent
 {
     public function __construct(
-        private readonly int $fieldId,
-        private readonly int $productId,
-        private readonly int $shopId,
-        private readonly string $slug
+        public readonly int $fieldId,
+        public readonly string $fieldSlug,
+        public readonly int $objectId,
+        public readonly string $objectType,
+        public readonly int $langId,
+        public readonly mixed $deletedValue = null
     ) {
         parent::__construct();
     }
 
-    public function getEventName(): string { return 'field_value_deleted'; }
-    public function getFieldId(): int { return $this->fieldId; }
-    public function getProductId(): int { return $this->productId; }
-    public function getShopId(): int { return $this->shopId; }
-    public function getSlug(): string { return $this->slug; }
-
-    public function toArray(): array
+    public function getEventName(): string
     {
-        return array_merge(parent::toArray(), [
-            'field_id' => $this->fieldId,
-            'product_id' => $this->productId,
-            'shop_id' => $this->shopId,
-            'slug' => $this->slug,
-        ]);
+        return 'acf.field_value.deleted';
     }
 }
-

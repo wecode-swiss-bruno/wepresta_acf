@@ -54,15 +54,16 @@ final class DependencyException extends ModuleException
     /**
      * Crée une exception pour une dépendance circulaire.
      *
-     * @param array<string> $chain La chaîne de dépendances qui a créé le cycle
+     * @param array<string>|string $chain La chaîne de dépendances qui a créé le cycle
      */
-    public static function circularDependency(array $chain): self
+    public static function circularDependency(array|string $chain): self
     {
+        $message = is_array($chain)
+            ? implode(' -> ', $chain)
+            : $chain;
+
         return new self(
-            sprintf(
-                'Circular dependency detected: %s',
-                implode(' -> ', $chain)
-            ),
+            sprintf('Circular dependency detected: %s', $message),
             self::CODE_DEPENDENCY
         );
     }
@@ -95,6 +96,32 @@ final class DependencyException extends ModuleException
             sprintf(
                 'Extension "%s" requires extension "%s" which is not installed.',
                 $extension,
+                $requires
+            ),
+            self::CODE_DEPENDENCY
+        );
+    }
+
+    /**
+     * Crée une exception pour un plugin non trouvé.
+     */
+    public static function pluginNotFound(string $plugin): self
+    {
+        return new self(
+            sprintf('Plugin "%s" not found.', $plugin),
+            self::CODE_DEPENDENCY
+        );
+    }
+
+    /**
+     * Crée une exception pour une dépendance manquante d'un plugin.
+     */
+    public static function missingPluginDependency(string $plugin, string $requires): self
+    {
+        return new self(
+            sprintf(
+                'Plugin "%s" requires "%s" which is not available.',
+                $plugin,
                 $requires
             ),
             self::CODE_DEPENDENCY

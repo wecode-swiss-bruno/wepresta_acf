@@ -1,66 +1,388 @@
 <?php
+
+/**
+ * Copyright since 2024 WeCode
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License version 3.0
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * https://opensource.org/licenses/AFL-3.0
+ *
+ * @author    Wecode <prestashop@wecode.swiss>
+ * @copyright Since 2024 WeCode
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
+ */
+
 declare(strict_types=1);
+
 namespace WeprestaAcf\Application\FieldType;
 
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
+/**
+ * Select field type
+ *
+ * Dropdown/select field with static or dynamic choices.
+ * Supports single and multiple selection.
+ */
 final class SelectField extends AbstractFieldType
 {
-    public function getType(): string { return 'select'; }
-    public function getLabel(): string { return 'Select'; }
-    public function getFormType(): string { return ChoiceType::class; }
-    public function getCategory(): string { return 'choice'; }
-    public function getIcon(): string { return 'arrow_drop_down_circle'; }
+    /**
+     * {@inheritdoc}
+     */
+    public function getType(): string
+    {
+        return 'select';
+    }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getLabel(): string
+    {
+        return 'Select';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getFormType(): string
+    {
+        return ChoiceType::class;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getFormOptions(array $fieldConfig, array $validation = []): array
     {
         $options = parent::getFormOptions($fieldConfig, $validation);
-        $options['choices'] = $this->parseChoices($fieldConfig['choices'] ?? []);
-        $options['multiple'] = $fieldConfig['multiple'] ?? false;
-        $options['placeholder'] = $fieldConfig['placeholder'] ?? 'Select...';
+
+        // Build choices from config
+        $options['choices'] = $this->buildChoices($fieldConfig);
+
+        // Multiple selection
+        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+        $options['multiple'] = (bool) $multiple;
+
+        // Allow empty selection
+        $options['placeholder'] = $this->getConfigValue($fieldConfig, 'placeholder', 'Choose an option...');
+
+        // Expanded (radio buttons or checkboxes) vs collapsed (dropdown)
+        $options['expanded'] = (bool) $this->getConfigValue($fieldConfig, 'expanded', false);
+
+        // Allow custom value (freeform entry)
+        if ($this->getConfigValue($fieldConfig, 'allowCustom', false)) {
+            $options['attr']['data-allow-custom'] = 'true';
+        }
+
         return $options;
     }
 
+    /**
+     * Build choices array from field config
+     *
+     * @param array<string, mixed> $fieldConfig
+     *
+     * @return array<string, string>
+     */
+    private function buildChoices(array $fieldConfig): array
+    {
+        $choices = [];
+        $rawChoices = $this->getConfigValue($fieldConfig, 'choices', []);
+
+        if (!is_array($rawChoices)) {
+            return $choices;
+        }
+
+        foreach ($rawChoices as $choice) {
+            if (is_array($choice) && isset($choice['label'], $choice['value'])) {
+                // Format: [{label: 'Label', value: 'value'}, ...]
+                $choices[$choice['label']] = $choice['value'];
+            } elseif (is_string($choice)) {
+                // Format: ['value1', 'value2', ...] - use value as label
+                $choices[$choice] = $choice;
+            }
+        }
+
+        return $choices;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
-        if ($value === null || $value === '') { return null; }
-        if (is_array($value)) { return json_encode(array_values($value), JSON_THROW_ON_ERROR); }
+        if ($value === null || $value === '' || $value === []) {
+            return null;
+        }
+
+        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+
+        if ($multiple) {
+            // Store multiple values as JSON array
+            if (is_array($value)) {
+                return json_encode(array_values($value), JSON_THROW_ON_ERROR);
+            }
+
+            return json_encode([$value], JSON_THROW_ON_ERROR);
+        }
+
+        // Single value: store as string
         return (string) $value;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function denormalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
-        if ($value === null) { return null; }
-        if (is_string($value) && str_starts_with($value, '[')) {
-            return json_decode($value, true) ?? $value;
+        if ($value === null || $value === '') {
+            return null;
         }
+
+        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+
+        if ($multiple) {
+            // Decode JSON array
+            if (is_string($value)) {
+                $decoded = json_decode($value, true);
+
+                return is_array($decoded) ? $decoded : [$value];
+            }
+
+            return is_array($value) ? $value : [$value];
+        }
+
         return $value;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
+    {
+        if ($value === null || $value === '' || $value === []) {
+            return '';
+        }
+
+        // Get the choices map for label lookup
+        $choicesMap = $this->buildValueToLabelMap($fieldConfig);
+        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+
+        if ($multiple) {
+            // Handle multiple values
+            $values = is_array($value) ? $value : json_decode((string) $value, true) ?? [];
+            $labels = [];
+
+            foreach ($values as $val) {
+                $labels[] = htmlspecialchars($choicesMap[$val] ?? (string) $val, ENT_QUOTES, 'UTF-8');
+            }
+
+            $separator = $renderOptions['separator'] ?? ', ';
+
+            return implode($separator, $labels);
+        }
+
+        // Single value
+        $label = $choicesMap[$value] ?? (string) $value;
+
+        return htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
+    }
+
+    /**
+     * Build value => label map for rendering
+     *
+     * @param array<string, mixed> $fieldConfig
+     *
+     * @return array<string, string>
+     */
+    private function buildValueToLabelMap(array $fieldConfig): array
+    {
+        $map = [];
+        $rawChoices = $this->getConfigValue($fieldConfig, 'choices', []);
+
+        if (!is_array($rawChoices)) {
+            return $map;
+        }
+
+        foreach ($rawChoices as $choice) {
+            if (is_array($choice) && isset($choice['label'], $choice['value'])) {
+                $map[$choice['value']] = $choice['label'];
+            } elseif (is_string($choice)) {
+                $map[$choice] = $choice;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIndexValue(mixed $value, array $fieldConfig = []): ?string
+    {
+        if ($value === null || $value === '' || $value === []) {
+            return null;
+        }
+
+        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+
+        if ($multiple) {
+            $values = is_array($value) ? $value : json_decode((string) $value, true) ?? [];
+
+            return implode(',', array_slice($values, 0, 5)); // First 5 values for index
+        }
+
+        return substr((string) $value, 0, 255);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array
+    {
+        $errors = parent::validate($value, $fieldConfig, $validation);
+
+        // Skip further validation if empty (and not required)
+        if ($this->isEmpty($value)) {
+            return $errors;
+        }
+
+        // Validate against allowed choices (unless allowCustom is enabled)
+        if (!$this->getConfigValue($fieldConfig, 'allowCustom', false)) {
+            $validValues = array_values($this->buildChoices($fieldConfig));
+            $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+
+            if ($multiple) {
+                $values = is_array($value) ? $value : [$value];
+                foreach ($values as $val) {
+                    if (!in_array($val, $validValues, true)) {
+                        $errors[] = sprintf('Invalid choice: %s', $val);
+                    }
+                }
+            } else {
+                if (!in_array($value, $validValues, true)) {
+                    $errors[] = 'Invalid choice selected.';
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefaultConfig(): array
+    {
+        return [
+            'choices' => [],
+            'multiple' => false,
+            'expanded' => false,
+            'allowCustom' => false,
+            'placeholder' => 'Choose an option...',
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getConfigSchema(): array
+    {
+        return array_merge(parent::getConfigSchema(), [
+            'choices' => [
+                'type' => 'repeater',
+                'label' => 'Choices',
+                'help' => 'Available options for selection',
+                'fields' => [
+                    'label' => ['type' => 'text', 'label' => 'Label'],
+                    'value' => ['type' => 'text', 'label' => 'Value'],
+                ],
+                'default' => [],
+            ],
+            'multiple' => [
+                'type' => 'checkbox',
+                'label' => 'Allow Multiple',
+                'help' => 'Allow selecting multiple options',
+                'default' => false,
+            ],
+            'expanded' => [
+                'type' => 'checkbox',
+                'label' => 'Expanded',
+                'help' => 'Show as radio buttons (single) or checkboxes (multiple)',
+                'default' => false,
+            ],
+            'allowCustom' => [
+                'type' => 'checkbox',
+                'label' => 'Allow Custom Values',
+                'help' => 'Allow entering values not in the list',
+                'default' => false,
+            ],
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCategory(): string
+    {
+        return 'choice';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIcon(): string
+    {
+        return 'list';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
-        $a = $this->buildInputAttrs($field, $context);
-        $config = $field['config'] ?? [];
-        $choices = $this->parseChoices($config['choices'] ?? []);
-        $multiple = $config['multiple'] ?? false;
-        $selectedValues = is_array($value) ? $value : [$value];
+        $config = $this->getFieldConfig($field);
 
-        $html = sprintf('<select class="form-control %s %s" id="%s%s" %s %s%s>', $a['sizeClass'], $a['inputClass'], $a['idPrefix'], $a['slug'], $a['nameAttr'] . ($multiple ? '[]' : ''), $a['dataAttr'], $multiple ? ' multiple' : '');
-        if (!$multiple && !empty($config['placeholder'])) { $html .= sprintf('<option value="">%s</option>', $this->escapeAttr($config['placeholder'])); }
-        foreach ($choices as $label => $val) { $selected = in_array($val, $selectedValues, true) ? ' selected' : ''; $html .= sprintf('<option value="%s"%s>%s</option>', $this->escapeAttr($val), $selected, $this->escapeAttr($label)); }
-        return $html . '</select>';
+        return $this->renderPartial('select.tpl', [
+            'field' => $field,
+            'fieldConfig' => $config,
+            'prefix' => $context['prefix'] ?? 'acf_',
+            'value' => $value,
+            'context' => $context,
+        ]);
     }
 
-    /** @param array<mixed>|string $choices @return array<string, string> */
-    private function parseChoices(array|string $choices): array
+    /**
+     * {@inheritdoc}
+     */
+    public function getJsTemplate(array $field): string
     {
-        if (is_string($choices)) { $choices = explode("\n", $choices); }
-        $result = [];
-        foreach ($choices as $choice) {
-            if (is_array($choice) && isset($choice['label'], $choice['value'])) { $result[$choice['label']] = $choice['value']; }
-            elseif (is_string($choice)) { $parts = explode(':', trim($choice), 2); $result[trim($parts[1] ?? $parts[0])] = trim($parts[0]); }
+        $slug = $field['slug'] ?? '';
+        $config = $this->getFieldConfig($field);
+        $choices = $config['choices'] ?? [];
+        if (!\is_array($choices)) {
+            $choices = [];
         }
-        return $result;
+
+        $html = sprintf(
+            '<select class="form-control form-control-sm acf-subfield-input" data-subfield="%s">',
+            $this->escapeAttr($slug)
+        );
+
+        $html .= '<option value="">-- Select --</option>';
+
+        foreach ($choices as $choice) {
+            $choiceValue = $this->escapeAttr($choice['value'] ?? '');
+            $choiceLabel = addslashes($choice['label'] ?? '');
+            $html .= sprintf('<option value="%s">%s</option>', $choiceValue, $choiceLabel);
+        }
+
+        $html .= '</select>';
+
+        return $html;
     }
 }
-

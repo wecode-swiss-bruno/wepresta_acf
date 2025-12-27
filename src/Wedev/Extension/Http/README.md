@@ -26,7 +26,7 @@ imports:
 ### Requêtes Simples
 
 ```php
-use WeprestaAcf\Extension\Http\HttpClient;
+use ModuleStarter\Extension\Http\HttpClient;
 
 $client = new HttpClient();
 
@@ -96,7 +96,7 @@ $response->throw();
 ### Bearer Token
 
 ```php
-use WeprestaAcf\Extension\Http\Auth\BearerAuth;
+use ModuleStarter\Extension\Http\Auth\BearerAuth;
 
 $auth = new BearerAuth('your-api-token');
 
@@ -108,7 +108,7 @@ $response = $client
 ### API Key
 
 ```php
-use WeprestaAcf\Extension\Http\Auth\ApiKeyAuth;
+use ModuleStarter\Extension\Http\Auth\ApiKeyAuth;
 
 // Header par défaut: X-API-Key
 $auth = new ApiKeyAuth('your-api-key');
@@ -124,7 +124,7 @@ $response = $client
 ### HTTP Basic
 
 ```php
-use WeprestaAcf\Extension\Http\Auth\BasicAuth;
+use ModuleStarter\Extension\Http\Auth\BasicAuth;
 
 $auth = new BasicAuth('username', 'password');
 
@@ -136,7 +136,7 @@ $response = $client
 ### OAuth2
 
 ```php
-use WeprestaAcf\Extension\Http\Auth\OAuth2Auth;
+use ModuleStarter\Extension\Http\Auth\OAuth2Auth;
 
 $auth = new OAuth2Auth(
     clientId: 'your-client-id',
@@ -241,8 +241,8 @@ $response = $client
 ### OpenAI API
 
 ```php
-use WeprestaAcf\Extension\Http\HttpClient;
-use WeprestaAcf\Extension\Http\Auth\BearerAuth;
+use ModuleStarter\Extension\Http\HttpClient;
+use ModuleStarter\Extension\Http\Auth\BearerAuth;
 
 $client = new HttpClient();
 $auth = new BearerAuth($_ENV['OPENAI_API_KEY']);
@@ -309,7 +309,7 @@ if ($response->isSuccess()) {
 ## Gestion des Erreurs
 
 ```php
-use WeprestaAcf\Extension\Http\HttpException;
+use ModuleStarter\Extension\Http\HttpException;
 
 try {
     $response = $client->get('https://api.example.com/data');
@@ -340,10 +340,10 @@ declare(strict_types=1);
 
 namespace MyModule\Service;
 
-use WeprestaAcf\Extension\Http\HttpClient;
-use WeprestaAcf\Extension\Http\Auth\BearerAuth;
-use WeprestaAcf\Core\Adapter\ConfigurationAdapter;
-use WeprestaAcf\Core\Trait\LoggerTrait;
+use ModuleStarter\Extension\Http\HttpClient;
+use ModuleStarter\Extension\Http\Auth\BearerAuth;
+use ModuleStarter\Core\Adapter\ConfigurationAdapter;
+use ModuleStarter\Core\Trait\LoggerTrait;
 
 class ExternalApiService
 {

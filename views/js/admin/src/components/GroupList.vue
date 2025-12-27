@@ -24,12 +24,12 @@ async function loadSyncStatus(): Promise<void> {
     const response = await api.fetchJson('/api/sync/status')
     if (response.success && response.data) {
       syncEnabled.value = response.data.enabled
-      
+
       // Map group sync statuses
       if (response.data.groups) {
         const statusMap: Record<number, { status: string }> = {}
         const themeOnly: Array<{ slug: string; title: string }> = []
-        
+
         for (const group of response.data.groups) {
           if (group.id) {
             statusMap[group.id] = { status: group.status }
@@ -37,7 +37,7 @@ async function loadSyncStatus(): Promise<void> {
             themeOnly.push({ slug: group.slug, title: group.title || group.slug })
           }
         }
-        
+
         syncStatus.value = statusMap
         themeOnlyGroups.value = themeOnly
       }
@@ -70,7 +70,7 @@ async function pushToTheme(groupId: number): Promise<void> {
 
 async function pullFromTheme(slug: string): Promise<void> {
   if (!confirm(t('confirmPullFromTheme'))) return
-  
+
   try {
     const response = await api.fetchJson(`/api/sync/pull/${slug}`, { method: 'POST' })
     if (response.success) {
@@ -112,230 +112,240 @@ function getGroupSyncStatus(groupId: number): string {
 </script>
 
 <template>
-  <div class="acfps-group-list">
-    <!-- Header with add button -->
-    <div class="acfps-list-header">
-      <button class="btn btn-primary" @click="store.createNewGroup">
-        <span class="material-icons">add</span>
-        {{ t('addGroup') }}
-      </button>
-    </div>
+  <div class="card">
 
-    <!-- Theme-only groups (not yet imported) -->
-    <div v-if="syncEnabled && themeOnlyGroups.length > 0" class="acfps-theme-only-section">
-      <h5 class="acfps-section-title">
-        <span class="material-icons">cloud_download</span>
-        {{ t('themeOnlyGroups') }}
-      </h5>
-      <div class="acfps-theme-only-list">
-        <div v-for="group in themeOnlyGroups" :key="group.slug" class="acfps-theme-only-item">
-          <div class="acfps-theme-only-info">
-            <span class="material-icons">folder</span>
-            <strong>{{ group.title }}</strong>
-            <code class="ml-2">{{ group.slug }}</code>
-            <SyncStatusBadge status="theme_only" :show-label="true" class="ml-2" />
+    <div class="card-body">
+      <!-- Theme-only groups (not yet imported) -->
+      <div v-if="syncEnabled && themeOnlyGroups.length > 0" class="alert alert-info d-flex align-items-start mb-3">
+        <i class="material-icons mr-2">cloud_download</i>
+        <div class="flex-grow-1">
+          <strong>{{ t('themeOnlyGroups') }}</strong>
+          <div class="mt-2">
+            <div v-for="group in themeOnlyGroups" :key="group.slug" class="d-flex align-items-center justify-content-between mb-2 p-2 bg-white border rounded">
+              <div>
+                <i class="material-icons text-muted" style="font-size: 16px; vertical-align: middle;">folder</i>
+                <strong class="ml-1">{{ group.title }}</strong>
+                <code class="ml-2 small">{{ group.slug }}</code>
+                <SyncStatusBadge status="theme_only" :show-label="true" class="ml-2" />
+              </div>
+              <button class="btn btn-sm btn-info" @click="pullFromTheme(group.slug)">
+                <i class="material-icons">cloud_download</i>
+                {{ t('import') }}
+              </button>
+            </div>
           </div>
-          <button class="btn btn-sm btn-info" @click="pullFromTheme(group.slug)">
-            <span class="material-icons">cloud_download</span>
-            {{ t('import') }}
-          </button>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-if="store.groups.length === 0 && themeOnlyGroups.length === 0" class="text-center py-5">
+        <i class="material-icons text-muted mb-3" style="font-size: 64px;">widgets</i>
+        <p class="text-muted mb-3">{{ t('noGroups') }}</p>
+        <button class="btn btn-outline-primary" @click="store.createNewGroup">
+          <i class="material-icons">add</i>
+          {{ t('addGroup') }}
+        </button>
+      </div>
+
+      <!-- Native PrestaShop Grid -->
+      <div v-else-if="store.groups.length > 0" class="grid js-grid" id="acf_group_grid" data-grid-id="acf_group">
+        <div class="table-responsive">
+          <table class="grid-table js-grid-table table" id="acf_group_grid_table">
+            <thead class="thead-default">
+              <tr class="column-headers">
+                <th scope="col" data-type="identifier" data-column-id="id">
+                  <span role="columnheader">ID</span>
+                </th>
+                <th scope="col" data-type="data" data-column-id="title">
+                  <span role="columnheader">{{ t('groupTitle') }}</span>
+                </th>
+                <th scope="col" data-type="data" data-column-id="slug">
+                  <span role="columnheader">{{ t('groupSlug') }}</span>
+                </th>
+                <th scope="col" data-type="data" data-column-id="fields" class="text-center">
+                  <span role="columnheader">{{ t('fields') }}</span>
+                </th>
+                <th scope="col" data-type="data" data-column-id="tab">
+                  <span role="columnheader">{{ t('placementTab') }}</span>
+                </th>
+                <th v-if="syncEnabled" scope="col" data-type="data" data-column-id="sync">
+                  <span role="columnheader">{{ t('sync') }}</span>
+                </th>
+                <th scope="col" data-type="boolean" data-column-id="active" class="text-center">
+                  <span role="columnheader">{{ t('active') }}</span>
+                </th>
+                <th scope="col" data-type="action" data-column-id="actions">
+                  <div class="grid-actions-header-text">Actions</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="group in store.groups" :key="group.id">
+                <td data-identifier class="identifier-type column-id">
+                  {{ group.id }}
+                </td>
+                <td class="data-type column-title text-left">
+                  <a
+                    href="#"
+                    class="text-primary font-weight-bold"
+                    @click.prevent="store.loadGroup(group.id!)"
+                  >
+                    {{ group.title || t('untitled') }}
+                  </a>
+                </td>
+                <td class="data-type column-slug text-left">
+                  <code class="text-muted">{{ group.slug }}</code>
+                </td>
+                <td class="data-type column-fields text-center">
+                  <span class="badge badge-pill badge-secondary">{{ group.fieldCount || 0 }}</span>
+                </td>
+                <td class="data-type column-tab text-left">
+                  <span class="badge badge-info">{{ group.placementTab || 'extra' }}</span>
+                </td>
+                <td v-if="syncEnabled" class="data-type column-sync text-left">
+                  <SyncStatusBadge
+                    :status="getGroupSyncStatus(group.id!)"
+                    :sync-enabled="syncEnabled"
+                  />
+                </td>
+                <td class="boolean-type column-active text-center">
+                  <span v-if="group.active" class="text-success">
+                    <i class="material-icons">check_circle</i>
+                  </span>
+                  <span v-else class="text-danger">
+                    <i class="material-icons">cancel</i>
+                  </span>
+                </td>
+                <td class="action-type column-actions">
+                  <div class="btn-group-action text-right">
+                    <div class="btn-group d-flex justify-content-end">
+                      <!-- Edit -->
+                      <a
+                        href="#"
+                        class="btn tooltip-link dropdown-item inline-dropdown-item"
+                        data-toggle="pstooltip"
+                        data-placement="top"
+                        :data-original-title="t('edit')"
+                        @click.prevent="store.loadGroup(group.id!)"
+                      >
+                        <i class="material-icons">edit</i>
+                      </a>
+                      <!-- Duplicate -->
+                      <a
+                        href="#"
+                        class="btn tooltip-link dropdown-item inline-dropdown-item"
+                        data-toggle="pstooltip"
+                        data-placement="top"
+                        :data-original-title="t('duplicate')"
+                        @click.prevent="store.duplicateGroup(group.id!)"
+                      >
+                        <i class="material-icons">content_copy</i>
+                      </a>
+
+                      <!-- Sync Actions Dropdown -->
+                      <div v-if="syncEnabled" class="btn-group">
+                        <a
+                          href="#"
+                          class="btn tooltip-link dropdown-item inline-dropdown-item dropdown-toggle"
+                          data-toggle="dropdown"
+                          aria-haspopup="true"
+                          aria-expanded="false"
+                          @click.prevent
+                        >
+                          <i class="material-icons">sync</i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                          <button class="dropdown-item" @click="pushToTheme(group.id!)">
+                            <i class="material-icons">cloud_upload</i>
+                            {{ t('pushToTheme') }}
+                          </button>
+                          <button
+                            class="dropdown-item"
+                            @click="pullFromTheme(group.slug)"
+                            :disabled="getGroupSyncStatus(group.id!) === 'need_push'"
+                          >
+                            <i class="material-icons">cloud_download</i>
+                            {{ t('pullFromTheme') }}
+                          </button>
+                          <div class="dropdown-divider"></div>
+                          <button class="dropdown-item" @click="exportGroup(group.id!)">
+                            <i class="material-icons">download</i>
+                            {{ t('exportJson') }}
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Delete -->
+                      <a
+                        href="#"
+                        class="btn tooltip-link dropdown-item inline-dropdown-item text-danger"
+                        data-toggle="pstooltip"
+                        data-placement="top"
+                        :data-original-title="t('delete')"
+                        @click.prevent="confirmDelete(group.id!)"
+                      >
+                        <i class="material-icons">delete</i>
+                      </a>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-
-    <!-- Empty state -->
-    <div v-if="store.groups.length === 0 && themeOnlyGroups.length === 0" class="acfps-empty-state">
-      <span class="material-icons">widgets</span>
-      <p>{{ t('noGroups') }}</p>
-      <button class="btn btn-outline-primary" @click="store.createNewGroup">
-        <span class="material-icons">add</span>
-        {{ t('addGroup') }}
-      </button>
-    </div>
-
-    <!-- Groups table -->
-    <table v-else-if="store.groups.length > 0" class="acfps-group-table">
-      <thead>
-        <tr>
-          <th>{{ t('groupTitle') }}</th>
-          <th>{{ t('groupSlug') }}</th>
-          <th>{{ t('fields') }}</th>
-          <th>{{ t('placementTab') }}</th>
-          <th v-if="syncEnabled">{{ t('sync') }}</th>
-          <th>{{ t('active') }}</th>
-          <th>{{ t('options') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="group in store.groups" :key="group.id">
-          <td>
-            <a 
-              href="#" 
-              class="group-title-link"
-              @click.prevent="store.loadGroup(group.id!)"
-            >
-              {{ group.title || t('untitled') }}
-            </a>
-          </td>
-          <td>
-            <code>{{ group.slug }}</code>
-          </td>
-          <td>{{ group.fieldCount || 0 }}</td>
-          <td>
-            <span class="badge badge-secondary">{{ group.placementTab }}</span>
-          </td>
-          <td v-if="syncEnabled">
-            <SyncStatusBadge 
-              :status="getGroupSyncStatus(group.id!)" 
-              :sync-enabled="syncEnabled"
-            />
-          </td>
-          <td>
-            <span 
-              class="acfps-status-badge"
-              :class="group.active ? 'active' : 'inactive'"
-            >
-              {{ group.active ? t('active') : 'Inactive' }}
-            </span>
-          </td>
-          <td>
-            <div class="btn-group btn-group-sm">
-              <button 
-                class="btn btn-outline-secondary"
-                :title="t('edit')"
-                @click="store.loadGroup(group.id!)"
-              >
-                <span class="material-icons">edit</span>
-              </button>
-              <button 
-                class="btn btn-outline-secondary"
-                :title="t('duplicate')"
-                @click="store.duplicateGroup(group.id!)"
-              >
-                <span class="material-icons">content_copy</span>
-              </button>
-              
-              <!-- Sync Actions Dropdown -->
-              <div v-if="syncEnabled" class="btn-group btn-group-sm">
-                <button 
-                  class="btn btn-outline-secondary dropdown-toggle"
-                  data-toggle="dropdown"
-                  :title="t('syncActions')"
-                >
-                  <span class="material-icons">sync</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right">
-                  <button class="dropdown-item" @click="pushToTheme(group.id!)">
-                    <span class="material-icons">cloud_upload</span>
-                    {{ t('pushToTheme') }}
-                  </button>
-                  <button 
-                    class="dropdown-item" 
-                    @click="pullFromTheme(group.slug)"
-                    :disabled="getGroupSyncStatus(group.id!) === 'need_push'"
-                  >
-                    <span class="material-icons">cloud_download</span>
-                    {{ t('pullFromTheme') }}
-                  </button>
-                  <div class="dropdown-divider"></div>
-                  <button class="dropdown-item" @click="exportGroup(group.id!)">
-                    <span class="material-icons">download</span>
-                    {{ t('exportJson') }}
-                  </button>
-                </div>
-              </div>
-              
-              <button 
-                class="btn btn-outline-danger"
-                :title="t('delete')"
-                @click="confirmDelete(group.id!)"
-              >
-                <span class="material-icons">delete</span>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </template>
 
 <style scoped>
-.acfps-group-list {
-  padding: 0;
+/* Native PrestaShop Grid styles - minimal overrides */
+.grid-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.acfps-list-header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color, #e9e9e9);
-  display: flex;
-  justify-content: flex-end;
-}
-
-.acfps-list-header .btn .material-icons {
-  font-size: 18px;
+.grid-table td {
   vertical-align: middle;
-  margin-right: 0.25rem;
 }
 
-.group-title-link {
-  font-weight: 500;
-  color: var(--primary, #25b9d7);
-  text-decoration: none;
+.grid-table .column-id {
+  width: 60px;
 }
 
-.group-title-link:hover {
-  text-decoration: underline;
+.grid-table .column-active {
+  width: 80px;
 }
 
-.btn-group .material-icons {
-  font-size: 16px;
+.grid-table .column-fields {
+  width: 80px;
 }
 
-/* Theme-only groups section */
-.acfps-theme-only-section {
-  padding: 1rem;
+.grid-table .column-actions {
+  width: 140px;
+}
+
+/* Action buttons - native PS styling */
+.btn-group-action .btn,
+.btn-group-action .dropdown-item.inline-dropdown-item {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: none;
+}
+
+.btn-group-action .btn:hover,
+.btn-group-action .dropdown-item.inline-dropdown-item:hover {
   background: #f8f9fa;
-  border-bottom: 1px solid var(--border-color, #e9e9e9);
 }
 
-.acfps-section-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 14px;
-  color: #6c757d;
+.btn-group-action .material-icons {
+  font-size: 20px;
 }
 
-.acfps-section-title .material-icons {
-  font-size: 18px;
-}
-
-.acfps-theme-only-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.acfps-theme-only-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  background: white;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-}
-
-.acfps-theme-only-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.acfps-theme-only-info .material-icons {
-  color: #6c757d;
+.btn-group-action .text-danger .material-icons {
+  color: #dc3545;
 }
 
 /* Dropdown styles */
@@ -353,5 +363,12 @@ function getGroupSyncStatus(groupId: number): string {
 .dropdown-item:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Card header title */
+.card-header-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
 }
 </style>

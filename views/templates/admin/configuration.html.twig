@@ -21,27 +21,25 @@
     <link rel="stylesheet" href="{{ asset('../modules/wepresta_acf/views/dist/admin.css') }}">
 {% endblock %}
 
+{# Add Save button to header toolbar #}
+{% block header_toolbar_btn %}
+    <div class="toolbar-icons">
+        <div class="wrapper">
+            <span class="badge badge-secondary mr-2" style="font-size: 11px; padding: 6px 10px;">v{{ moduleVersion }}</span>
+            <button type="submit" form="configuration-form" class="btn btn-primary">
+                <i class="material-icons">save</i>
+                {{ 'Save'|trans({}, 'Admin.Actions') }}
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
 {% block content %}
 {# Include WEDEV UI Partials #}
 {% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/confirm-modal.html.twig' %}
 {% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/toasts.html.twig' %}
 
 <div class="wepresta_acf-config">
-    {# Header #}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-header-title">
-                        {{ ui.icon('extension', 'md') }}
-                        {{ 'ACF Configuration'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                    </h3>
-                    {{ ui.badge('v' ~ moduleVersion, 'info') }}
-                </div>
-            </div>
-        </div>
-    </div>
-
     {# Tabs Navigation #}
     <ul class="nav nav-tabs mb-4" id="configTabs" role="tablist">
         <li class="nav-item">
@@ -72,7 +70,7 @@
     </ul>
 
     {# Tab Content #}
-    {{ form_start(configurationForm) }}
+    {{ form_start(configurationForm, {'attr': {'id': 'configuration-form'}}) }}
     <div class="tab-content" id="configTabsContent">
 
         {# ========== General Tab ========== #}
@@ -447,19 +445,6 @@
         </div>
     </div>
 
-    {# Save Button (fixed at bottom) #}
-    <div class="card-footer-fixed">
-        <div class="card">
-            <div class="card-body py-3">
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">
-                        {{ ui.icon('save', 'sm') }}
-                        {{ 'Save'|trans({}, 'Admin.Actions') }}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
     {{ form_end(configurationForm) }}
 </div>
 {% endblock %}

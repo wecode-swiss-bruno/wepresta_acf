@@ -14,28 +14,13 @@ const activeTab = ref<'fields' | 'settings' | 'location'>('fields')
 
 <template>
   <div class="acfps-group-builder">
-    <!-- Header -->
-    <div class="acfps-builder-header">
-      <div class="header-left">
-        <button class="btn btn-link" @click="store.goToList">
-          <span class="material-icons">arrow_back</span>
-          {{ t('fieldGroups') }}
-        </button>
-        <h4 class="group-title">
-          {{ store.currentGroup?.title || t('addGroup') }}
-        </h4>
-      </div>
-      <div class="header-right">
-        <button 
-          class="btn btn-primary"
-          :disabled="store.saving"
-          @click="store.saveGroup"
-        >
-          <span v-if="store.saving" class="spinner-border spinner-border-sm" />
-          <span v-else class="material-icons">save</span>
-          {{ t('save') }}
-        </button>
-      </div>
+    <!-- Group title indicator -->
+    <div class="acfps-builder-title-bar">
+      <h5 class="mb-0">
+        <span class="material-icons text-muted mr-2">folder</span>
+        {{ store.currentGroup?.title || t('addGroup') }}
+        <span v-if="store.saving" class="spinner-border spinner-border-sm ml-2"></span>
+      </h5>
     </div>
 
     <!-- Tabs -->

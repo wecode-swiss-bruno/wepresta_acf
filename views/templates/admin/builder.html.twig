@@ -12,10 +12,39 @@
     <link rel="stylesheet" href="/modules/wepresta_acf/views/js/admin/dist/acf-main.css">
 {% endblock %}
 
+{# Define toolbar buttons - rendered by PrestaShop Toolbar component #}
+{% set layoutHeaderToolbarBtn = {
+    'add-group': {
+        'href': '#',
+        'desc': 'Add Group'|trans({}, 'Modules.Weprestaacf.Admin'),
+        'icon': 'add_circle_outline',
+        'class': 'btn-primary acf-toolbar-list-btn',
+        'js': 'return false;'
+    },
+    'back': {
+        'href': '#',
+        'desc': 'Back'|trans({}, 'Admin.Actions'),
+        'icon': 'arrow_back',
+        'class': 'btn-outline-secondary acf-toolbar-edit-btn d-none',
+        'js': 'return false;'
+    },
+    'save': {
+        'href': '#',
+        'desc': 'Save'|trans({}, 'Admin.Actions'),
+        'icon': 'save',
+        'class': 'btn-primary acf-toolbar-edit-btn d-none',
+        'js': 'return false;'
+    }
+} %}
+
 {% block content %}
     {# Include WEDEV UI Partials #}
     {% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/confirm-modal.html.twig' %}
     {% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/toasts.html.twig' %}
+
+    {# Alerts container - populated by Vue but outside app for native styling #}
+    <div id="acf-alerts-container"></div>
+
     <div id="acf-builder-app" data-module-url="{{ path('wepresta_acf_builder') }}">
         <div class="acf-loading text-center py-5">
             {{ ui.loader('md', 'primary') }}
@@ -89,7 +118,17 @@
                 groupPulledSuccess: '{{ 'Group imported from theme successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 syncError: '{{ 'Sync error'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 exportError: '{{ 'Export error'|trans({}, 'Modules.Weprestaacf.Admin') }}',
-                confirmPullFromTheme: '{{ 'Are you sure? This will overwrite the current group.'|trans({}, 'Modules.Weprestaacf.Admin') }}'
+                confirmPullFromTheme: '{{ 'Are you sure? This will overwrite the current group.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Choice field translations
+                choices: '{{ 'Choices'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                choicesHelp: '{{ 'Define the available options'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addOption: '{{ 'Add Option'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noChoices: '{{ 'No options defined yet'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                defaultValue: '{{ 'Default Value'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                allowMultiple: '{{ 'Allow Multiple'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                allowMultipleHelp: '{{ 'Allow selecting multiple values'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectDefaultHelp: '{{ 'Select the default option'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                none: '{{ 'None'|trans({}, 'Admin.Global') }}'
             },
             fieldTypes: {{ fieldTypes|json_encode|raw }},
             productTabs: [

@@ -38,13 +38,13 @@ final class ExtensionLoader
      * @var array<string, class-string<ExtensionInterface>>
      */
     private const EXTENSIONS = [
-        'Http' => \WeprestaAcf\Extension\Http\HttpClient::class,
-        'Rules' => \WeprestaAcf\Extension\Rules\RuleEngine::class,
-        'Jobs' => \WeprestaAcf\Extension\Jobs\JobDispatcher::class,
-        'Audit' => \WeprestaAcf\Extension\Audit\AuditLogger::class,
-        'Notifications' => \WeprestaAcf\Extension\Notifications\NotificationService::class,
-        'Import' => \WeprestaAcf\Extension\Import\AbstractImporter::class,
-        'UI' => \WeprestaAcf\Extension\UI\Twig\UiExtension::class,
+        'Http' => \ModuleStarter\Extension\Http\HttpClient::class,
+        'Rules' => \ModuleStarter\Extension\Rules\RuleEngine::class,
+        'Jobs' => \ModuleStarter\Extension\Jobs\JobDispatcher::class,
+        'Audit' => \ModuleStarter\Extension\Audit\AuditLogger::class,
+        'Notifications' => \ModuleStarter\Extension\Notifications\NotificationService::class,
+        'Import' => \ModuleStarter\Extension\Import\AbstractImporter::class,
+        'UI' => \ModuleStarter\Extension\UI\Twig\UiExtension::class,
     ];
 
     /**

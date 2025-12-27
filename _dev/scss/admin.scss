@@ -31,13 +31,15 @@
 /* Container */
 
 #acf-builder-app {
-  background: var(--acf-bg);
-  min-height: 600px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   &.mounted .acf-loading {
     display: none;
   }
+}
+
+label+.form-text{
+  float: left !important;
 }
 
 /* Builder Container */
@@ -46,42 +48,21 @@
   background: var(--acf-card-bg);
   border-radius: 4px;
   box-shadow: var(--acf-shadow);
-  margin: 1rem;
 }
 
-/* Header */
+/* Title Bar - uses toolbar for back/save buttons */
 
-.acfps-builder-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
+.acfps-builder-title-bar {
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--acf-border);
   background: var(--acf-card-bg);
   border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: center;
 
-  .header-left {
+  h5 {
     display: flex;
     align-items: center;
-    gap: 1rem;
-  }
-
-  .btn-link {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: var(--acf-gray);
-    text-decoration: none;
-    font-size: 0.875rem;
-
-    &:hover {
-      color: var(--acf-primary);
-    }
-  }
-
-  .group-title {
-    margin: 0;
-    font-size: 1.25rem;
     font-weight: 600;
     color: var(--acf-text);
   }
@@ -145,7 +126,7 @@
   flex: 1;
   background: var(--acf-bg);
   overflow-y: auto;
-  padding: 1rem;
+
 }
 
 /* Empty State */
@@ -408,65 +389,7 @@
   padding: 0;
 }
 
-.acfps-list-header {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--acf-border);
-  display: flex;
-  justify-content: flex-end;
-}
-
-.acfps-group-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  th {
-    text-align: left;
-    padding: 0.75rem 1rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--acf-gray);
-    border-bottom: 1px solid var(--acf-border);
-    background: var(--acf-bg);
-  }
-
-  td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--acf-border);
-    vertical-align: middle;
-  }
-
-  .group-title-link {
-    font-weight: 500;
-    color: var(--acf-primary);
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
-
-/* Status Badge */
-
-.acfps-status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 3px;
-
-  &.active {
-    background: rgba(112, 181, 128, 0.15);
-    color: var(--acf-success);
-  }
-
-  &.inactive {
-    background: rgba(108, 117, 125, 0.15);
-    color: var(--acf-gray);
-  }
-}
+/* Group list and table now use native PrestaShop styling */
 
 /* Buttons */
 

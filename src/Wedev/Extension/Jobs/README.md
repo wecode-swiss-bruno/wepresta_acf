@@ -37,7 +37,7 @@ declare(strict_types=1);
 
 namespace MyModule\Jobs;
 
-use WeprestaAcf\Extension\Jobs\AbstractJob;
+use ModuleStarter\Extension\Jobs\AbstractJob;
 
 final class SendEmailJob extends AbstractJob
 {
@@ -101,8 +101,8 @@ final class SendEmailJob extends AbstractJob
 ## Dispatcher un Job
 
 ```php
-use WeprestaAcf\Extension\Jobs\JobDispatcher;
-use WeprestaAcf\Extension\Jobs\JobRepository;
+use ModuleStarter\Extension\Jobs\JobDispatcher;
+use ModuleStarter\Extension\Jobs\JobRepository;
 use MyModule\Jobs\SendEmailJob;
 
 $dispatcher = new JobDispatcher(new JobRepository());

@@ -19,6 +19,7 @@ import './wedev-core.js';
 import { WedevAjax } from './utils/ajax.js';
 import { confirm, confirmDelete, confirmSave, confirmLeave, confirmDisable, confirmIrreversible } from './utils/confirm.js';
 import { notify, toast } from './utils/notifications.js';
+import { clipboard } from './utils/clipboard.js';
 
 // =============================================================================
 // API Publique
@@ -38,6 +39,10 @@ const Wedev = {
     // Notifications
     notify,
     toast,
+
+    // Clipboard
+    clipboard,
+    copyToClipboard: clipboard.copy.bind(clipboard),
 
     // Version
     version: '1.0.0',
@@ -67,7 +72,7 @@ if (document.readyState === 'loading') {
 }
 
 // Export pour usage en module
-export { Wedev, WedevAjax, confirm, confirmDelete, notify, toast };
+export { Wedev, WedevAjax, confirm, confirmDelete, notify, toast, clipboard };
 export default Wedev;
 
 

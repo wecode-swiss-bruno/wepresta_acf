@@ -34,7 +34,7 @@ namespace WeprestaAcf\Wedev\Core\Contract;
  * // Dans services.yml
  * services:
  *     _instanceof:
- *         WeprestaAcf\Core\Contract\ServiceInterface:
+ *         ModuleStarter\Core\Contract\ServiceInterface:
  *             public: true
  */
 interface ServiceInterface

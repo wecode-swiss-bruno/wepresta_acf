@@ -1,33 +1,177 @@
 <?php
+
+/**
+ * Copyright since 2024 WeCode
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License version 3.0
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * https://opensource.org/licenses/AFL-3.0
+ *
+ * @author    Wecode <prestashop@wecode.swiss>
+ * @copyright Since 2024 WeCode
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
+ */
+
 declare(strict_types=1);
+
 namespace WeprestaAcf\Application\FieldType;
 
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
+/**
+ * Boolean field type
+ *
+ * Simple true/false toggle switch.
+ */
 final class BooleanField extends AbstractFieldType
 {
-    public function getType(): string { return 'boolean'; }
-    public function getLabel(): string { return 'True/False'; }
-    public function getFormType(): string { return CheckboxType::class; }
-    public function getCategory(): string { return 'choice'; }
-    public function getIcon(): string { return 'toggle_on'; }
-    public function supportsTranslation(): bool { return false; }
+    public function getType(): string
+    {
+        return 'boolean';
+    }
+
+    public function getLabel(): string
+    {
+        return 'True/False';
+    }
+
+    public function getFormType(): string
+    {
+        return CheckboxType::class;
+    }
+
+    public function getFormOptions(array $fieldConfig, array $validation = []): array
+    {
+        $options = parent::getFormOptions($fieldConfig, $validation);
+
+        // Checkbox is never required in Symfony forms (unchecked = false)
+        $options['required'] = false;
+
+        return $options;
+    }
 
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
-        if ($value === null || $value === '') { return null; }
-        return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
+        // Convert to 0/1 for storage
+        return $value ? '1' : '0';
     }
 
-    public function denormalizeValue(mixed $value, array $fieldConfig = []): mixed { return $value === '1' || $value === 1 || $value === true; }
-    public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string { return $this->denormalizeValue($value) ? 'Yes' : 'No'; }
-    public function getIndexValue(mixed $value, array $fieldConfig = []): ?string { return $this->denormalizeValue($value) ? '1' : '0'; }
+    public function denormalizeValue(mixed $value, array $fieldConfig = []): mixed
+    {
+        // Convert to boolean
+        return (bool) $value && $value !== '0';
+    }
 
+    public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
+    {
+        $boolValue = $this->denormalizeValue($value, $fieldConfig);
+
+        $trueLabel = $this->getConfigValue($fieldConfig, 'trueLabel', 'Yes');
+        $falseLabel = $this->getConfigValue($fieldConfig, 'falseLabel', 'No');
+
+        $label = $boolValue ? $trueLabel : $falseLabel;
+
+        return htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
+    }
+
+    public function getIndexValue(mixed $value, array $fieldConfig = []): ?string
+    {
+        return $this->denormalizeValue($value, $fieldConfig) ? '1' : '0';
+    }
+
+    public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array
+    {
+        // Boolean fields don't really have validation beyond required
+        // And "required" for boolean means "must be true"
+        $errors = [];
+
+        if (!empty($validation['required']) && !$this->denormalizeValue($value, $fieldConfig)) {
+            $errors[] = 'This field must be checked.';
+        }
+
+        return $errors;
+    }
+
+    public function getDefaultConfig(): array
+    {
+        return [
+            'defaultValue' => false,
+            'trueLabel' => 'Yes',
+            'falseLabel' => 'No',
+        ];
+    }
+
+    public function getConfigSchema(): array
+    {
+        return [
+            'defaultValue' => [
+                'type' => 'boolean',
+                'label' => 'Default Value',
+                'default' => false,
+            ],
+            'trueLabel' => [
+                'type' => 'text',
+                'label' => 'True Label',
+                'help' => 'Text to display when value is true',
+                'default' => 'Yes',
+            ],
+            'falseLabel' => [
+                'type' => 'text',
+                'label' => 'False Label',
+                'help' => 'Text to display when value is false',
+                'default' => 'No',
+            ],
+        ];
+    }
+
+    public function supportsTranslation(): bool
+    {
+        // Boolean values don't need translation
+        return false;
+    }
+
+    public function getCategory(): string
+    {
+        return 'choice';
+    }
+
+    public function getIcon(): string
+    {
+        return 'toggle_on';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
-        $a = $this->buildInputAttrs($field, $context);
-        $checked = $this->denormalizeValue($value) ? ' checked' : '';
-        return sprintf('<div class="form-check form-switch"><input type="checkbox" class="form-check-input %s" id="%s%s" %s %s value="1"%s><label class="form-check-label" for="%s%s">%s</label></div>', $a['inputClass'], $a['idPrefix'], $a['slug'], $a['nameAttr'], $a['dataAttr'], $checked, $a['idPrefix'], $a['slug'], $this->escapeAttr($field['title'] ?? ''));
+        $config = $this->getFieldConfig($field);
+        $boolValue = $this->denormalizeValue($value, $config);
+
+        return $this->renderPartial('boolean.tpl', [
+            'field' => $field,
+            'fieldConfig' => $config,
+            'prefix' => $context['prefix'] ?? 'acf_',
+            'value' => $boolValue,
+            'context' => $context,
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getJsTemplate(array $field): string
+    {
+        $slug = $field['slug'] ?? '';
+
+        return sprintf(
+            '<div class="custom-control custom-switch"><input type="checkbox" class="custom-control-input acf-subfield-input" data-subfield="%s" id="rep_{rowId}_%s"><label class="custom-control-label" for="rep_{rowId}_%s"></label></div>',
+            $this->escapeAttr($slug),
+            $slug,
+            $slug
+        );
     }
 }
-

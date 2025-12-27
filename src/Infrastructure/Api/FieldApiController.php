@@ -31,11 +31,17 @@ class FieldApiController extends FrameworkBundleAdminController
                 return $this->jsonError('Type and title are required', Response::HTTP_BAD_REQUEST);
             }
 
-            $slug = $data['slug'] ?? '';
-            if (empty($slug)) {
+            $slug = trim($data['slug'] ?? '');
+            if (empty($slug) || $slug === '-') {
                 $slug = $this->slugGenerator->generateUnique($data['title'], fn($s, $id) => $this->fieldRepository->slugExistsInGroup($s, $groupId, $id));
-            } elseif ($this->fieldRepository->slugExistsInGroup($slug, $groupId)) {
-                return $this->jsonError('Slug already exists in group', Response::HTTP_BAD_REQUEST);
+            } else {
+                // Normalize slug
+                $slug = $this->slugGenerator->generate($slug);
+                if (empty($slug)) {
+                    $slug = $this->slugGenerator->generateUnique($data['title'], fn($s, $id) => $this->fieldRepository->slugExistsInGroup($s, $groupId, $id));
+                } elseif ($this->fieldRepository->slugExistsInGroup($slug, $groupId)) {
+                    return $this->jsonError('Slug already exists in group', Response::HTTP_BAD_REQUEST);
+                }
             }
 
             $fieldId = $this->fieldRepository->create([
@@ -60,9 +66,17 @@ class FieldApiController extends FrameworkBundleAdminController
             $data = $this->getJsonPayload($request);
             $groupId = (int) $field['id_wepresta_acf_group'];
 
-            $newSlug = $data['slug'] ?? $field['slug'];
-            if ($newSlug !== $field['slug'] && $this->fieldRepository->slugExistsInGroup($newSlug, $groupId, $id)) {
-                return $this->jsonError('Slug already exists in group', Response::HTTP_BAD_REQUEST);
+            $newSlug = trim($data['slug'] ?? $field['slug']);
+            if (empty($newSlug) || $newSlug === '-') {
+                $newSlug = $this->slugGenerator->generateUnique($data['title'] ?? $field['title'], fn($s, $excludeId) => $this->fieldRepository->slugExistsInGroup($s, $groupId, $excludeId), $id);
+            } else {
+                // Normalize slug
+                $newSlug = $this->slugGenerator->generate($newSlug);
+                if (empty($newSlug)) {
+                    $newSlug = $this->slugGenerator->generateUnique($data['title'] ?? $field['title'], fn($s, $excludeId) => $this->fieldRepository->slugExistsInGroup($s, $groupId, $excludeId), $id);
+                } elseif ($newSlug !== $field['slug'] && $this->fieldRepository->slugExistsInGroup($newSlug, $groupId, $id)) {
+                    return $this->jsonError('Slug already exists in group', Response::HTTP_BAD_REQUEST);
+                }
             }
 
             $this->fieldRepository->update($id, [

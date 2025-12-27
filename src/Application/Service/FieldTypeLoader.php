@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use WeprestaAcf\Application\Brick\AcfBrickDiscovery;
 use WeprestaAcf\Application\FieldType\FieldTypeInterface;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 
@@ -22,6 +23,7 @@ final class FieldTypeLoader
     public const SOURCE_CORE = 'core';
     public const SOURCE_THEME = 'theme';
     public const SOURCE_UPLOADED = 'uploaded';
+    public const SOURCE_BRICK = 'brick';
 
     private const CUSTOM_TYPES_DIR = 'custom-field-types';
     private const THEME_TYPES_DIR = 'acf/field-types';
@@ -32,10 +34,14 @@ final class FieldTypeLoader
     /** @var array<string, string> */
     private array $discoveryPaths = [];
 
+    private ?AcfBrickDiscovery $brickDiscovery = null;
+
     public function __construct(
         private readonly FieldTypeRegistry $registry,
-        private readonly string $modulePath
+        private readonly string $modulePath,
+        ?AcfBrickDiscovery $brickDiscovery = null
     ) {
+        $this->brickDiscovery = $brickDiscovery;
         $this->initDiscoveryPaths();
     }
 
@@ -71,6 +77,51 @@ final class FieldTypeLoader
             $this->discoveryPaths[self::SOURCE_UPLOADED],
             self::SOURCE_UPLOADED
         );
+
+        // Load from bricks (third-party modules)
+        $this->loadTypesFromBricks();
+    }
+
+    /**
+     * Load field types from discovered bricks.
+     */
+    private function loadTypesFromBricks(): void
+    {
+        $discovery = $this->brickDiscovery ?? new AcfBrickDiscovery();
+
+        foreach ($discovery->discoverFieldTypeBricks() as $name => $brick) {
+            try {
+                $fieldType = $brick->getFieldType();
+                $type = $fieldType->getType();
+
+                // Don't override existing types
+                if ($this->registry->has($type)) {
+                    $this->logInfo('Brick field type skipped (already exists)', [
+                        'brick' => $name,
+                        'type' => $type,
+                    ]);
+                    continue;
+                }
+
+                $this->registry->register($fieldType);
+
+                $this->loadedTypes[$type] = [
+                    'type' => $fieldType,
+                    'source' => self::SOURCE_BRICK,
+                    'path' => 'brick:' . $name,
+                ];
+
+                $this->logInfo('Brick field type loaded', [
+                    'brick' => $name,
+                    'type' => $type,
+                ]);
+            } catch (\Throwable $e) {
+                $this->logError('Failed to load field type from brick', [
+                    'brick' => $name,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**

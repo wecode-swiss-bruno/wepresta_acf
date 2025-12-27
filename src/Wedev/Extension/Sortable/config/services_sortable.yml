@@ -1,0 +1,15 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Sortable Extension
+    WeprestaAcf\Wedev\Extension\Sortable\SortableExtension:
+        public: true
+
+    # Alias for easy access
+    wedev.sortable:
+        alias: WeprestaAcf\Wedev\Extension\Sortable\SortableExtension
+        public: true
+

@@ -34,8 +34,8 @@ public function installDatabase(): bool
 ### Avec le Logger
 
 ```php
-use WeprestaAcf\Extension\Audit\AuditLogger;
-use WeprestaAcf\Extension\Audit\AuditRepository;
+use ModuleStarter\Extension\Audit\AuditLogger;
+use ModuleStarter\Extension\Audit\AuditRepository;
 
 $logger = new AuditLogger(new AuditRepository());
 
@@ -73,7 +73,7 @@ $logger->logImport('Product', [
 ### Avec le Trait
 
 ```php
-use WeprestaAcf\Extension\Audit\AuditableTrait;
+use ModuleStarter\Extension\Audit\AuditableTrait;
 
 class ProductService
 {
@@ -189,8 +189,8 @@ $userHistory = $logger->getUserHistory(employeeId: 5, limit: 50);
 ### Controller Grid
 
 ```php
-use WeprestaAcf\Extension\Audit\AuditLogger;
-use WeprestaAcf\Extension\Audit\AuditRepository;
+use ModuleStarter\Extension\Audit\AuditLogger;
+use ModuleStarter\Extension\Audit\AuditRepository;
 
 class AdminAuditController extends AbstractAdminController
 {

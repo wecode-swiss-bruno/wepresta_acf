@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use WeprestaAcf\Application\Brick\AcfBrickDiscovery;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Application\Template\FieldGroupExporter;
 use WeprestaAcf\Application\Template\FieldGroupImporter;
-use WeprestaAcf\Domain\Event\EventBus;
-use WeprestaAcf\Infrastructure\Repository\AcfGroupRepository;
 use WeprestaAcf\Infrastructure\Repository\AcfFieldRepository;
 use WeprestaAcf\Infrastructure\Repository\AcfFieldValueRepository;
+use WeprestaAcf\Infrastructure\Repository\AcfGroupRepository;
+use WeprestaAcf\Wedev\Extension\Events\DomainEventDispatcher;
 
 /**
  * Manual service container for WePresta ACF
@@ -58,7 +59,8 @@ final class AcfServiceContainer
             $modulePath = _PS_MODULE_DIR_ . 'wepresta_acf';
             self::$services[FieldTypeLoader::class] = $service ?? new FieldTypeLoader(
                 self::getFieldTypeRegistry(),
-                $modulePath
+                $modulePath,
+                self::getBrickDiscovery()
             );
         }
         /** @var FieldTypeLoader */
@@ -149,14 +151,24 @@ final class AcfServiceContainer
         return self::$services[SlugGenerator::class];
     }
 
-    public static function getEventBus(): EventBus
+    public static function getEventDispatcher(): DomainEventDispatcher
     {
-        if (!isset(self::$services[EventBus::class])) {
-            $service = self::tryGet(EventBus::class);
-            self::$services[EventBus::class] = $service ?? new EventBus();
+        if (!isset(self::$services[DomainEventDispatcher::class])) {
+            $service = self::tryGet(DomainEventDispatcher::class);
+            self::$services[DomainEventDispatcher::class] = $service ?? new DomainEventDispatcher();
         }
-        /** @var EventBus */
-        return self::$services[EventBus::class];
+        /** @var DomainEventDispatcher */
+        return self::$services[DomainEventDispatcher::class];
+    }
+
+    public static function getBrickDiscovery(): AcfBrickDiscovery
+    {
+        if (!isset(self::$services[AcfBrickDiscovery::class])) {
+            $service = self::tryGet(AcfBrickDiscovery::class);
+            self::$services[AcfBrickDiscovery::class] = $service ?? new AcfBrickDiscovery();
+        }
+        /** @var AcfBrickDiscovery */
+        return self::$services[AcfBrickDiscovery::class];
     }
 
     public static function getLocationProviderRegistry(): LocationProviderRegistry

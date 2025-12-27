@@ -1,0 +1,42 @@
+{**
+ * ACF Field Partial: Boolean (Toggle Switch)
+ * Uses native PrestaShop ps-switch component
+ * Variables: $field, $fieldConfig, $prefix, $value, $context
+ *}
+{assign var="inputId" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
+{assign var="inputName" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
+{assign var="isChecked" value=$value}
+{assign var="yesLabel" value=$fieldConfig.trueLabel|default:'Oui'}
+{assign var="noLabel" value=$fieldConfig.falseLabel|default:'Non'}
+
+{if isset($context.dataSubfield) && $context.dataSubfield}
+    {* Compact version for repeater subfields *}
+    <div class="custom-control custom-switch">
+        <input type="hidden" name="{$inputName|escape:'htmlall':'UTF-8'}" value="0">
+        <input type="checkbox"
+               class="custom-control-input acf-subfield-input"
+               data-subfield="{$field.slug|escape:'htmlall':'UTF-8'}"
+               id="{$inputId|escape:'htmlall':'UTF-8'}"
+               name="{$inputName|escape:'htmlall':'UTF-8'}"
+               value="1"
+               {if $isChecked}checked{/if}>
+        <label class="custom-control-label" for="{$inputId|escape:'htmlall':'UTF-8'}"></label>
+    </div>
+{else}
+    {* Native PrestaShop toggle switch *}
+    <div class="ps-switch ps-switch-lg" id="{$inputId|escape:'htmlall':'UTF-8'}_container">
+        <input type="radio"
+               name="{$inputName|escape:'htmlall':'UTF-8'}"
+               id="{$inputId|escape:'htmlall':'UTF-8'}_off"
+               value="0"
+               {if !$isChecked}checked{/if}>
+        <label for="{$inputId|escape:'htmlall':'UTF-8'}_off">{$noLabel|escape:'htmlall':'UTF-8'}</label>
+        <input type="radio"
+               name="{$inputName|escape:'htmlall':'UTF-8'}"
+               id="{$inputId|escape:'htmlall':'UTF-8'}_on"
+               value="1"
+               {if $isChecked}checked{/if}>
+        <label for="{$inputId|escape:'htmlall':'UTF-8'}_on">{$yesLabel|escape:'htmlall':'UTF-8'}</label>
+        <span class="slide-button"></span>
+    </div>
+{/if}

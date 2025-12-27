@@ -97,7 +97,7 @@ class StarRatingField extends AbstractFieldType
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $a = $this->buildInputAttrs($field, $context);
-        $config = $field['config'] ?? [];
+        $config = $this->getFieldConfig($field);
 
         $maxStars = (int) ($config['max_stars'] ?? 5);
         $allowHalf = !empty($config['allow_half']);
@@ -106,7 +106,7 @@ class StarRatingField extends AbstractFieldType
         $colorFilled = $this->escapeAttr($config['color_filled'] ?? '#ffc107');
         $colorEmpty = $this->escapeAttr($config['color_empty'] ?? '#e0e0e0');
 
-        $inputId = $a['idPrefix'] . $a['slug'] . $a['suffix'];
+        $inputId = $a['idPrefix'] . $a['slug'] . ($a['suffix'] ?? '');
         $uniqueId = 'star-rating-' . uniqid();
 
         // Hidden input to store the value
@@ -407,7 +407,7 @@ JS;
      */
     public function getJsTemplate(array $field): string
     {
-        $config = $field['config'] ?? [];
+        $config = $this->getFieldConfig($field);
         $maxStars = (int) ($config['max_stars'] ?? 5);
         $slug = $this->escapeAttr($field['slug'] ?? '');
 

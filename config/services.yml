@@ -2,6 +2,7 @@
 
 imports:
     - { resource: '../src/Wedev/Extension/UI/config/services_ui.yml' }
+    - { resource: '../src/Wedev/Extension/Events/config/services_events.yml' }
 
 services:
     _defaults:
@@ -120,6 +121,10 @@ services:
         tags: ['controller.service_arguments']
         public: true
 
+    WeprestaAcf\Infrastructure\Api\RelationApiController:
+        tags: ['controller.service_arguments']
+        public: true
+
     WeprestaAcf\Infrastructure\Api\UtilityApiController:
         arguments:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
@@ -135,10 +140,23 @@ services:
         public: true
 
     # =========================================================================
-    # Event Bus
+    # Domain Event Dispatcher (from Wedev/Extension/Events)
     # =========================================================================
 
-    WeprestaAcf\Domain\Event\EventBus:
+    # Alias for module-specific access
+    wepresta_acf.event_dispatcher:
+        alias: WeprestaAcf\Wedev\Extension\Events\DomainEventDispatcher
+        public: true
+
+    # =========================================================================
+    # Brick Discovery
+    # =========================================================================
+
+    WeprestaAcf\Application\Brick\AcfBrickDiscovery:
+        public: true
+
+    wepresta_acf.brick_discovery:
+        alias: WeprestaAcf\Application\Brick\AcfBrickDiscovery
         public: true
 
     # =========================================================================
@@ -204,6 +222,7 @@ services:
         arguments:
             $registry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
             $modulePath: '%kernel.project_dir%/modules/wepresta_acf'
+            $brickDiscovery: '@WeprestaAcf\Application\Brick\AcfBrickDiscovery'
         public: true
 
     # =========================================================================

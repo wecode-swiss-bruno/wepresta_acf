@@ -140,12 +140,26 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
      */
     private function mapDataForInsert(array $data): array
     {
+        $slug = trim($data['slug'] ?? '');
+        if (empty($slug) || $slug === '-') {
+            // Fallback: generate from title if available
+            $title = trim($data['title'] ?? '');
+            if (!empty($title)) {
+                $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '_', $title));
+                $slug = substr($slug, 0, 255) ?: 'field';
+            } else {
+                // Generate unique slug with timestamp to avoid collisions
+                $slug = 'field_' . time() . '_' . uniqid('', true);
+                $slug = substr($slug, 0, 255);
+            }
+        }
+
         return [
             'uuid' => $data['uuid'] ?? '',
             self::GROUP_FK => (int) ($data['idAcfGroup'] ?? $data[self::GROUP_FK] ?? 0),
             'type' => $data['type'] ?? 'text',
             'title' => $data['title'] ?? '',
-            'slug' => $data['slug'] ?? '',
+            'slug' => $slug,
             'instructions' => $data['instructions'] ?? '',
             'config' => json_encode($data['config'] ?? [], JSON_THROW_ON_ERROR),
             'validation' => json_encode($data['validation'] ?? [], JSON_THROW_ON_ERROR),
@@ -163,18 +177,36 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
      */
     private function mapDataForUpdate(array $data): array
     {
-        return [
-            'title' => $data['title'] ?? '',
-            'slug' => $data['slug'] ?? '',
-            'instructions' => $data['instructions'] ?? '',
-            'config' => json_encode($data['config'] ?? [], JSON_THROW_ON_ERROR),
-            'validation' => json_encode($data['validation'] ?? [], JSON_THROW_ON_ERROR),
-            'conditions' => json_encode($data['conditions'] ?? [], JSON_THROW_ON_ERROR),
-            'wrapper' => json_encode($data['wrapper'] ?? [], JSON_THROW_ON_ERROR),
-            'fo_options' => json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR),
-            'position' => (int) ($data['position'] ?? 0),
-            'translatable' => (int) ($data['translatable'] ?? 0),
-            'active' => (int) ($data['active'] ?? 1),
-        ];
+        $mapped = [];
+
+        // Title - only update if provided
+        if (isset($data['title'])) {
+            $mapped['title'] = $data['title'];
+        }
+
+        // Slug - only update if provided and valid
+        if (isset($data['slug'])) {
+            $slug = trim($data['slug']);
+            if (empty($slug) || $slug === '-') {
+                // Slug provided but empty - generate fallback from title
+                $title = trim($data['title'] ?? '');
+                $slug = !empty($title) ? strtolower(preg_replace('/[^a-z0-9]+/i', '_', $title)) : 'field';
+                $slug = substr($slug, 0, 255) ?: 'field';
+            }
+            $mapped['slug'] = $slug;
+        }
+
+        // Other fields - include defaults if not provided
+        $mapped['instructions'] = $data['instructions'] ?? '';
+        $mapped['config'] = json_encode($data['config'] ?? [], JSON_THROW_ON_ERROR);
+        $mapped['validation'] = json_encode($data['validation'] ?? [], JSON_THROW_ON_ERROR);
+        $mapped['conditions'] = json_encode($data['conditions'] ?? [], JSON_THROW_ON_ERROR);
+        $mapped['wrapper'] = json_encode($data['wrapper'] ?? [], JSON_THROW_ON_ERROR);
+        $mapped['fo_options'] = json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR);
+        $mapped['position'] = (int) ($data['position'] ?? 0);
+        $mapped['translatable'] = (int) ($data['translatable'] ?? 0);
+        $mapped['active'] = (int) ($data['active'] ?? 1);
+
+        return $mapped;
     }
 }

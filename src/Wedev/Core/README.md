@@ -49,9 +49,9 @@ Core/
 ### Adapters
 
 ```php
-use WeprestaAcf\Core\Adapter\ConfigurationAdapter;
-use WeprestaAcf\Core\Adapter\ContextAdapter;
-use WeprestaAcf\Core\Adapter\ShopAdapter;
+use ModuleStarter\Core\Adapter\ConfigurationAdapter;
+use ModuleStarter\Core\Adapter\ContextAdapter;
+use ModuleStarter\Core\Adapter\ShopAdapter;
 
 // Configuration typée
 $config = new ConfigurationAdapter();
@@ -76,8 +76,8 @@ if ($shop->isMultiShopActive()) {
 ### Traits
 
 ```php
-use WeprestaAcf\Core\Trait\LoggerTrait;
-use WeprestaAcf\Core\Trait\MultiShopTrait;
+use ModuleStarter\Core\Trait\LoggerTrait;
+use ModuleStarter\Core\Trait\MultiShopTrait;
 
 class MyService
 {
@@ -98,7 +98,7 @@ class MyService
 ### Extension Loader
 
 ```php
-use WeprestaAcf\Core\Extension\ExtensionLoader;
+use ModuleStarter\Core\Extension\ExtensionLoader;
 
 // Vérifier si une extension est disponible
 if (ExtensionLoader::isAvailable('Http')) {
@@ -116,9 +116,9 @@ $extensions = ExtensionLoader::getAvailableExtensions();
 ### Exceptions
 
 ```php
-use WeprestaAcf\Core\Exception\EntityNotFoundException;
-use WeprestaAcf\Core\Exception\ConfigurationException;
-use WeprestaAcf\Core\Exception\DependencyException;
+use ModuleStarter\Core\Exception\EntityNotFoundException;
+use ModuleStarter\Core\Exception\ConfigurationException;
+use ModuleStarter\Core\Exception\DependencyException;
 
 // Entité non trouvée
 throw EntityNotFoundException::forId(123, 'Product');

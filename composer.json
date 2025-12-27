@@ -56,7 +56,7 @@
         }
     },
     "scripts": {
-        "copy-assets": "cp src/Wedev/Extension/*/Assets/js/*.js views/js/ 2>/dev/null || true",
+        "copy-assets": "cp src/Wedev/Extension/[name]/Assets/js/*.js views/js/ 2>/dev/null || true",
         "patch-autoload": "php scripts/patch-autoload.php",
         "post-install-cmd": [
             "@copy-assets",

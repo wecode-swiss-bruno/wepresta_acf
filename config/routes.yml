@@ -229,3 +229,13 @@ wepresta_acf_api_fieldtypes_paths:
     methods: [GET]
     defaults:
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::paths'
+
+# =========================================================================
+# API - Relation Field Search
+# =========================================================================
+
+wepresta_acf_api_relation_search:
+    path: /modules/wepresta_acf/api/relation/search
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\RelationApiController::search'

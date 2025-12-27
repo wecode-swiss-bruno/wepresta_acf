@@ -25,8 +25,8 @@ declare(strict_types=1);
 
 namespace MyModule\Import;
 
-use WeprestaAcf\Extension\Import\AbstractImporter;
-use WeprestaAcf\Extension\Import\Parser\CsvParser;
+use ModuleStarter\Extension\Import\AbstractImporter;
+use ModuleStarter\Extension\Import\Parser\CsvParser;
 
 final class ProductImporter extends AbstractImporter
 {
@@ -119,8 +119,8 @@ declare(strict_types=1);
 
 namespace MyModule\Export;
 
-use WeprestaAcf\Extension\Import\AbstractExporter;
-use WeprestaAcf\Extension\Import\Parser\CsvParser;
+use ModuleStarter\Extension\Import\AbstractExporter;
+use ModuleStarter\Extension\Import\Parser\CsvParser;
 
 final class ProductExporter extends AbstractExporter
 {
@@ -238,7 +238,7 @@ $result->toArray();
 ## Import en Background (avec Jobs)
 
 ```php
-use WeprestaAcf\Extension\Jobs\AbstractJob;
+use ModuleStarter\Extension\Jobs\AbstractJob;
 
 final class ImportProductsJob extends AbstractJob
 {

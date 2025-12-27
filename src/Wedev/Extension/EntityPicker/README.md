@@ -54,8 +54,8 @@ declare(strict_types=1);
 
 namespace MyModule\Controller\Admin;
 
-use WeprestaAcf\Extension\EntityPicker\Controller\EntitySearchTrait;
-use WeprestaAcf\Extension\EntityPicker\Provider\ProductProvider;
+use ModuleStarter\Extension\EntityPicker\Controller\EntitySearchTrait;
+use ModuleStarter\Extension\EntityPicker\Provider\ProductProvider;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -129,7 +129,7 @@ declare(strict_types=1);
 
 namespace MyModule\Provider;
 
-use WeprestaAcf\Extension\EntityPicker\Provider\AbstractEntityProvider;
+use ModuleStarter\Extension\EntityPicker\Provider\AbstractEntityProvider;
 use DbQuery;
 
 final class ManufacturerProvider extends AbstractEntityProvider

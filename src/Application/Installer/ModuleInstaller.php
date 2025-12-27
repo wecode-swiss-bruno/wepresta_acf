@@ -30,6 +30,20 @@ final class ModuleInstaller
     }
 
     /**
+     * Seeds the database with test data (optional, call manually)
+     */
+    public function seed(): bool
+    {
+        $seedFile = $this->module->getLocalPath() . 'sql/seed.sql';
+
+        if (!file_exists($seedFile)) {
+            return false;
+        }
+
+        return $this->executeSqlFile($seedFile);
+    }
+
+    /**
      * Installation des valeurs de configuration par défaut
      */
     private function installConfiguration(): bool

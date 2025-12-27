@@ -20,7 +20,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 trait TranslatorTrait
 {
     protected ?TranslatorInterface $translator = null;
-    protected string $translationDomain = 'Modules.WeprestaAcf.Admin';
+    protected string $translationDomain = 'Modules.Modulestarter.Admin';
 
     /**
      * Définit le translator.

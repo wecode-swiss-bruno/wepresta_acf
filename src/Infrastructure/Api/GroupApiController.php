@@ -82,8 +82,8 @@ class GroupApiController extends FrameworkBundleAdminController
                 'placementTab' => $data['placementTab'] ?? $group['placement_tab'],
                 'placementPosition' => $data['placementPosition'] ?? $group['placement_position'],
                 'priority' => $data['priority'] ?? $group['priority'],
-                'boOptions' => $data['boOptions'] ?? json_decode($group['bo_options'] ?? '[]', true),
-                'foOptions' => $data['foOptions'] ?? json_decode($group['fo_options'] ?? '[]', true),
+                'boOptions' => $data['boOptions'] ?? json_decode($group['bo_options'] ?? '{}', true),
+                'foOptions' => $data['foOptions'] ?? json_decode($group['fo_options'] ?? '{}', true),
                 'active' => $data['active'] ?? $group['active'],
             ]);
             return $this->json(['success' => true, 'data' => $this->serializeGroup($this->groupRepository->findById($id), true)]);
@@ -110,8 +110,8 @@ class GroupApiController extends FrameworkBundleAdminController
                 'uuid' => $this->generateUuid(), 'title' => $group['title'] . ' (Copy)', 'slug' => $newSlug,
                 'description' => $group['description'], 'locationRules' => json_decode($group['location_rules'] ?? '[]', true),
                 'placementTab' => $group['placement_tab'], 'placementPosition' => $group['placement_position'],
-                'priority' => $group['priority'], 'boOptions' => json_decode($group['bo_options'] ?? '[]', true),
-                'foOptions' => json_decode($group['fo_options'] ?? '[]', true), 'active' => false,
+                'priority' => $group['priority'], 'boOptions' => json_decode($group['bo_options'] ?? '{}', true),
+                'foOptions' => json_decode($group['fo_options'] ?? '{}', true), 'active' => false,
             ]);
 
             // Associate with all active shops
@@ -124,7 +124,7 @@ class GroupApiController extends FrameworkBundleAdminController
                     'slug' => $this->slugGenerator->generateUnique($field['slug'], fn($s, $i) => $this->fieldRepository->slugExistsInGroup($s, $newGroupId, $i)),
                     'instructions' => $field['instructions'], 'config' => json_decode($field['config'] ?? '[]', true),
                     'validation' => json_decode($field['validation'] ?? '[]', true), 'conditions' => json_decode($field['conditions'] ?? '[]', true),
-                    'wrapper' => json_decode($field['wrapper'] ?? '[]', true), 'foOptions' => json_decode($field['fo_options'] ?? '[]', true),
+                    'wrapper' => json_decode($field['wrapper'] ?? '[]', true), 'foOptions' => json_decode($field['fo_options'] ?? '{}', true),
                     'position' => $field['position'], 'translatable' => $field['translatable'], 'active' => $field['active'],
                 ]);
             }
@@ -140,8 +140,8 @@ class GroupApiController extends FrameworkBundleAdminController
             'id' => $groupId, 'uuid' => $group['uuid'], 'title' => $group['title'], 'slug' => $group['slug'],
             'description' => $group['description'] ?: null, 'locationRules' => json_decode($group['location_rules'] ?? '[]', true),
             'placementTab' => $group['placement_tab'], 'placementPosition' => $group['placement_position'] ?: null,
-            'priority' => (int) $group['priority'], 'boOptions' => json_decode($group['bo_options'] ?? '[]', true),
-            'foOptions' => json_decode($group['fo_options'] ?? '[]', true), 'active' => (bool) $group['active'],
+            'priority' => (int) $group['priority'], 'boOptions' => json_decode($group['bo_options'] ?? '{}', true),
+            'foOptions' => json_decode($group['fo_options'] ?? '{}', true), 'active' => (bool) $group['active'],
             'dateAdd' => $group['date_add'], 'dateUpd' => $group['date_upd'],
         ];
         if ($includeFields) {

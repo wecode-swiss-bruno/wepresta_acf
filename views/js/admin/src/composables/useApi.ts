@@ -116,7 +116,7 @@ export function useApi() {
 
   async function reorderFields(groupId: number, order: number[]): Promise<void> {
     await request<ApiResponse<void>>(`/groups/${groupId}/fields/reorder`, {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify({ order }),
     })
   }

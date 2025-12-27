@@ -126,7 +126,7 @@ final class SmsChannel implements ChannelInterface
         );
 
         $response = $client
-            ->withAuth(new \WeprestaAcf\Extension\Http\Auth\BasicAuth(
+            ->withAuth(new \ModuleStarter\Extension\Http\Auth\BasicAuth(
                 $this->config['account_sid'],
                 $this->config['auth_token']
             ))

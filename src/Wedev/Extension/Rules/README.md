@@ -39,11 +39,11 @@ Le `RuleContext` contient toutes les données nécessaires :
 ## Utilisation Basique
 
 ```php
-use WeprestaAcf\Extension\Rules\RuleEngine;
-use WeprestaAcf\Extension\Rules\RuleBuilder;
-use WeprestaAcf\Extension\Rules\RuleContext;
-use WeprestaAcf\Extension\Rules\Condition\CartCondition;
-use WeprestaAcf\Extension\Rules\Action\SetContextAction;
+use ModuleStarter\Extension\Rules\RuleEngine;
+use ModuleStarter\Extension\Rules\RuleBuilder;
+use ModuleStarter\Extension\Rules\RuleContext;
+use ModuleStarter\Extension\Rules\Condition\CartCondition;
+use ModuleStarter\Extension\Rules\Action\SetContextAction;
 
 // Créer une règle
 $rule = RuleBuilder::create('free_shipping')
