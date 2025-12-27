@@ -5,14 +5,6 @@ import { useTranslations } from '@/composables/useTranslations'
 import type { JsonLogicRule } from '@/types'
 import type { LocationOption } from '@/types/api'
 
-const props = defineProps<{
-  rules: JsonLogicRule[]
-}>()
-
-const emit = defineEmits<{
-  'update:rules': [rules: JsonLogicRule[]]
-}>()
-
 const store = useBuilderStore()
 const { t } = useTranslations()
 
@@ -27,8 +19,8 @@ const locations = computed<Record<string, LocationOption[]>>(() => {
 
 // Grouped locations for display
 const locationGroups = computed(() => {
-  return Object.entries(locations.value).map(([group, items]) => ({
-    name: group,
+  return Object.entries(locations.value).map(([groupName, items]) => ({
+    name: groupName,
     items: items as LocationOption[]
   }))
 })
@@ -43,47 +35,52 @@ const operators = [
 const selectedEntityType = ref<string>('')
 const selectedOperator = ref<string>('==')
 
-// Ensure rules is always an array
-const safeRules = computed(() => props.rules || [])
+// Get rules directly from store
+const rules = computed(() => store.currentGroup?.locationRules || [])
 
 function addRule(): void {
-  if (!selectedEntityType.value) return
+  if (!selectedEntityType.value || !store.currentGroup) return
 
   const newRule: JsonLogicRule = {
-    '==': [
+    [selectedOperator.value]: [
       { 'var': 'entity_type' },
       selectedEntityType.value
     ]
   }
 
-  const updatedRules = [...safeRules.value, newRule]
-  emit('update:rules', updatedRules)
+  // Directly update the store
+  if (!store.currentGroup.locationRules) {
+    store.currentGroup.locationRules = []
+  }
+  store.currentGroup.locationRules.push(newRule)
+
+  // Reset selection
   selectedEntityType.value = ''
 }
 
 function removeRule(index: number): void {
-  const updatedRules = safeRules.value.filter((_, i) => i !== index)
-  emit('update:rules', updatedRules)
+  if (!store.currentGroup?.locationRules) return
+  store.currentGroup.locationRules.splice(index, 1)
 }
 </script>
 
 <template>
   <div class="location-rules-editor">
     <p class="text-muted mb-3">{{ t('locationRulesHelp') }}</p>
-    
+
     <!-- Current rules -->
-    <div v-if="safeRules.length > 0" class="mb-3">
+    <div v-if="rules.length > 0" class="mb-3">
       <h5 class="mb-2">{{ t('currentRules') || 'Current Rules' }}</h5>
       <div class="list-group">
-        <div 
-          v-for="(rule, index) in safeRules" 
+        <div
+          v-for="(rule, index) in rules"
           :key="index"
           class="list-group-item d-flex justify-content-between align-items-center"
         >
           <span>
             <code>{{ JSON.stringify(rule) }}</code>
           </span>
-          <button 
+          <button
             class="btn btn-sm btn-outline-danger"
             @click="removeRule(index)"
           >
@@ -101,18 +98,18 @@ function removeRule(index: number): void {
       <div class="card-body">
         <div class="form-group mb-3">
           <label>{{ t('entityType') || 'Entity Type' }}</label>
-          <select 
-            v-model="selectedEntityType" 
+          <select
+            v-model="selectedEntityType"
             class="form-control"
           >
             <option value="">{{ t('selectEntityType') || 'Select an entity type...' }}</option>
-            <optgroup 
-              v-for="group in locationGroups" 
+            <optgroup
+              v-for="group in locationGroups"
               :key="group.name"
               :label="group.name"
             >
-              <option 
-                v-for="location in group.items" 
+              <option
+                v-for="location in group.items"
                 :key="location.value"
                 :value="location.value"
               >
@@ -126,8 +123,8 @@ function removeRule(index: number): void {
         <div class="form-group mb-3">
           <label>{{ t('operator') || 'Operator' }}</label>
           <select v-model="selectedOperator" class="form-control">
-            <option 
-              v-for="op in operators" 
+            <option
+              v-for="op in operators"
               :key="op.value"
               :value="op.value"
             >
@@ -136,7 +133,7 @@ function removeRule(index: number): void {
           </select>
         </div>
 
-        <button 
+        <button
           class="btn btn-primary"
           :disabled="!selectedEntityType"
           @click="addRule"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
 import FieldList from '@/components/FieldList.vue'
@@ -11,16 +11,6 @@ const store = useBuilderStore()
 const { t } = useTranslations()
 
 const activeTab = ref<'fields' | 'settings' | 'location'>('fields')
-
-// Location rules from current group (camelCase to match store)
-const locationRules = computed({
-  get: () => store.currentGroup?.locationRules || [],
-  set: (value) => {
-    if (store.currentGroup) {
-      store.currentGroup.locationRules = value
-    }
-  }
-})
 </script>
 
 <template>
@@ -83,10 +73,7 @@ const locationRules = computed({
 
       <!-- Location tab -->
       <template v-else-if="activeTab === 'location'">
-        <LocationRulesEditor
-          :rules="locationRules"
-          @update:rules="locationRules = $event"
-        />
+        <LocationRulesEditor />
       </template>
     </div>
   </div>
