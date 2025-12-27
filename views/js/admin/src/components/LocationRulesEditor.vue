@@ -35,8 +35,11 @@ const operators = [
 const selectedEntityType = ref<string>('')
 const selectedOperator = ref<string>('==')
 
-// Get rules directly from store
-const rules = computed(() => store.currentGroup?.locationRules || [])
+// Get rules directly from store (ensure it's always an array)
+const rules = computed(() => {
+  const lr = store.currentGroup?.locationRules
+  return Array.isArray(lr) ? lr : []
+})
 
 function addRule(): void {
   if (!selectedEntityType.value || !store.currentGroup) return
@@ -48,8 +51,8 @@ function addRule(): void {
     ]
   }
 
-  // Directly update the store
-  if (!store.currentGroup.locationRules) {
+  // Ensure locationRules is an array (might be {} or undefined)
+  if (!Array.isArray(store.currentGroup.locationRules)) {
     store.currentGroup.locationRules = []
   }
   store.currentGroup.locationRules.push(newRule)
@@ -59,7 +62,7 @@ function addRule(): void {
 }
 
 function removeRule(index: number): void {
-  if (!store.currentGroup?.locationRules) return
+  if (!store.currentGroup || !Array.isArray(store.currentGroup.locationRules)) return
   store.currentGroup.locationRules.splice(index, 1)
 }
 </script>
