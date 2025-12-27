@@ -30,7 +30,7 @@ use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 
 class WeprestaAcf extends Module
 {
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.1.0';
 
     public const HOOKS = [
         // Product Admin
