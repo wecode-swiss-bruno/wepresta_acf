@@ -85,6 +85,11 @@ final class TextField extends AbstractFieldType
             return null;
         }
 
+        // Handle arrays/objects (empty objects from JS become empty arrays)
+        if (is_array($value) || is_object($value)) {
+            return null;
+        }
+
         // Trim whitespace
         $value = trim((string) $value);
 

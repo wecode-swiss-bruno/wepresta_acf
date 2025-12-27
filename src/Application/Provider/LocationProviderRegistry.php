@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Provider;
 
+use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
+
 /**
  * Registry for location providers
  */
@@ -14,9 +16,10 @@ final class LocationProviderRegistry
     /** @var array<array<string, mixed>>|null */
     private ?array $locationsCache = null;
 
-    public function __construct()
-    {
-        $this->register(new CoreLocationProvider());
+    public function __construct(
+        private readonly ?EntityFieldRegistry $entityFieldRegistry = null
+    ) {
+        $this->register(new CoreLocationProvider($this->entityFieldRegistry));
     }
 
     public function register(LocationProviderInterface $provider): self
@@ -56,6 +59,22 @@ final class LocationProviderRegistry
             foreach ($provider->getLocations() as $location) {
                 $location['provider'] = $provider->getIdentifier();
                 $locations[] = $location;
+            }
+        }
+
+        // Add entity types from EntityFieldRegistry
+        if ($this->entityFieldRegistry !== null) {
+            $langId = (int) (\Context::getContext()->language->id ?? 1);
+            foreach ($this->entityFieldRegistry->getAllEntityTypes() as $entityType => $provider) {
+                $locations[] = [
+                    'type' => 'entity_type',
+                    'value' => $entityType,
+                    'label' => $provider->getEntityLabel($langId),
+                    'group' => 'PrestaShop Entities',
+                    'icon' => 'inventory_2',
+                    'description' => sprintf('Display fields on %s edit pages', $provider->getEntityLabel($langId)),
+                    'provider' => 'entity_field_registry',
+                ];
             }
         }
 

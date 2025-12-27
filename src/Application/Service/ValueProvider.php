@@ -15,13 +15,33 @@ final class ValueProvider
     /** @return array<string, mixed> */
     public function getProductFieldValues(int $productId, ?int $shopId = null, ?int $langId = null): array
     {
-        return $this->valueRepository->findByProduct($productId, $shopId, $langId);
+        return $this->getEntityFieldValues('product', $productId, $shopId, $langId);
     }
 
     /** @return array<int, array{slug: string, title: string, type: string, value: mixed, instructions: string|null}> */
     public function getProductFieldValuesWithMeta(int $productId, ?int $shopId = null, ?int $langId = null): array
     {
-        return $this->valueRepository->findByProductWithMeta($productId, $shopId, $langId);
+        return $this->getEntityFieldValuesWithMeta('product', $productId, $shopId, $langId);
+    }
+
+    /**
+     * Gets field values for any entity type.
+     *
+     * @return array<string, mixed>
+     */
+    public function getEntityFieldValues(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
+    {
+        return $this->valueRepository->findByEntity($entityType, $entityId, $shopId, $langId);
+    }
+
+    /**
+     * Gets field values with metadata for any entity type.
+     *
+     * @return array<int, array{slug: string, title: string, type: string, value: mixed, instructions: string|null, config: array<string, mixed>, fo_options: array<string, mixed>}>
+     */
+    public function getEntityFieldValuesWithMeta(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
+    {
+        return $this->valueRepository->findByEntityWithMeta($entityType, $entityId, $shopId, $langId);
     }
 }
 

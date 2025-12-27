@@ -24,23 +24,42 @@ final class ValueHandler
     /** @param array<string, mixed> $values */
     public function saveProductFieldValues(int $productId, array $values, ?int $shopId = null, ?int $langId = null): void
     {
-        $this->logInfo('Saving product field values', [
-            'product_id' => $productId,
+        $this->saveEntityFieldValues('product', $productId, $values, $shopId, $langId);
+    }
+
+    /**
+     * Saves field values for any entity type.
+     *
+     * @param array<string, mixed> $values
+     */
+    public function saveEntityFieldValues(string $entityType, int $entityId, array $values, ?int $shopId = null, ?int $langId = null): void
+    {
+        $this->logInfo('Saving entity field values', [
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
             'field_count' => count($values),
             'shop_id' => $shopId,
             'lang_id' => $langId,
         ]);
 
         foreach ($values as $slug => $value) {
-            $this->saveFieldValue($productId, $slug, $value, $shopId, $langId);
+            $this->saveEntityFieldValue($entityType, $entityId, $slug, $value, $shopId, $langId);
         }
     }
 
     public function saveFieldValue(int $productId, string $slug, mixed $value, ?int $shopId = null, ?int $langId = null): bool
     {
+        return $this->saveEntityFieldValue('product', $productId, $slug, $value, $shopId, $langId);
+    }
+
+    /**
+     * Saves a field value for any entity type.
+     */
+    public function saveEntityFieldValue(string $entityType, int $entityId, string $slug, mixed $value, ?int $shopId = null, ?int $langId = null): bool
+    {
         $field = $this->fieldRepository->findBySlug($slug);
         if (!$field) {
-            $this->logWarning('Field not found for slug', ['slug' => $slug, 'product_id' => $productId]);
+            $this->logWarning('Field not found for slug', ['slug' => $slug, 'entity_type' => $entityType, 'entity_id' => $entityId]);
             return false;
         }
 
@@ -53,12 +72,13 @@ final class ValueHandler
         $storableValue = $this->toStorableValue($normalizedValue);
         $indexValue = $this->fieldTypeRegistry->getIndexValue($fieldType, $normalizedValue, $config);
 
-        $result = $this->valueRepository->save($fieldId, $productId, $storableValue, $shopId, $langId, $isTranslatable, $indexValue);
+        $result = $this->valueRepository->saveEntity($fieldId, $entityType, $entityId, $storableValue, $shopId, $langId, $isTranslatable, $indexValue);
 
         $this->logDebug('Field value saved', [
             'field_id' => $fieldId,
             'slug' => $slug,
-            'product_id' => $productId,
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
             'success' => $result,
         ]);
 

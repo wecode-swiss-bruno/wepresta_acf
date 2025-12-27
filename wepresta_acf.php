@@ -87,11 +87,45 @@ class WeprestaAcf extends Module
     {
         try {
             $installer = new ModuleInstaller($this, Db::getInstance());
-            return parent::install() && $this->registerHook(self::HOOKS) && $installer->install();
+            $hooks = $this->getAllHooks();
+            return parent::install() && $this->registerHook($hooks) && $installer->install();
         } catch (\Exception $e) {
             $this->_errors[] = $e->getMessage();
             return false;
         }
+    }
+
+    /**
+     * Gets all hooks to register (static + dynamic from EntityFieldRegistry).
+     *
+     * @return array<string>
+     */
+    private function getAllHooks(): array
+    {
+        $staticHooks = [
+            'actionAdminControllerSetMedia',
+            'actionFrontControllerSetMedia',
+            'displayHeader',
+            'displayProductAdditionalInfo', // Front-office product display
+        ];
+
+        // Get hooks from EntityFieldRegistry
+        try {
+            $registry = $this->getService(\WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry::class);
+            if ($registry !== null) {
+                $dynamicHooks = $registry->getAllHooks();
+                return array_unique(array_merge($staticHooks, $dynamicHooks));
+            }
+        } catch (\Exception $e) {
+            $this->log('Error getting hooks from EntityFieldRegistry: ' . $e->getMessage(), 2);
+        }
+
+        // Fallback to static hooks + product hooks
+        return array_merge($staticHooks, [
+            'displayAdminProductsExtra',
+            'actionProductUpdate',
+            'actionProductAdd',
+        ]);
     }
 
     public function uninstall(): bool
@@ -891,8 +925,27 @@ class WeprestaAcf extends Module
 
     public function getService(string $serviceId): ?object
     {
-        try { return $this->getContainer()?->get($serviceId); }
-        catch (\Exception $e) { return null; }
+        try {
+            $container = $this->getContainer();
+            if ($container && $container->has($serviceId)) {
+                return $container->get($serviceId);
+            }
+            return null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Alias for getService() for compatibility.
+     *
+     * @template T of object
+     * @param class-string<T> $serviceId
+     * @return T|null
+     */
+    public function get(string $serviceId): ?object
+    {
+        return $this->getService($serviceId);
     }
 
     public function log(string $message, int $severity = 1, array $context = []): void

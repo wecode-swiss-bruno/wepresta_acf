@@ -61,6 +61,11 @@ final class RichTextField extends AbstractFieldType
             return null;
         }
 
+        // Handle arrays/objects (empty objects from JS become empty arrays)
+        if (is_array($value) || is_object($value)) {
+            return null;
+        }
+
         $html = (string) $value;
 
         // SECURITY: Sanitize HTML but preserve allowed styling

@@ -49,6 +49,11 @@ final class UrlField extends AbstractFieldType
             return null;
         }
 
+        // Handle arrays/objects (empty objects from JS become empty arrays)
+        if (is_array($value) || is_object($value)) {
+            return null;
+        }
+
         $value = trim((string) $value);
 
         if ($value === '') {

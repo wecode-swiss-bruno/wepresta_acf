@@ -365,7 +365,7 @@
                     var html = '<td class="acf-col-drag"><span class="acf-repeater-drag material-icons">drag_indicator</span></td>';
                     subfields.forEach(function(sf) {
                         var template = jsTemplates[sf.slug] || '<input type="text" class="form-control form-control-sm acf-subfield-input" data-subfield="' + sf.slug + '" value="">';
-                        html += '<td class="acf-repeater-cell" data-subfield-container="' + sf.slug + '">' + template.replace(/\{ldelim}value\{rdelim}|\{value\}/g, '') + '</td>';
+                        html += '<td class="acf-repeater-cell" data-subfield-container="' + sf.slug + '">' + template.replace(/{ldelim}value{rdelim}/g, '') + '</td>';
                     });
                     html += '<td class="acf-col-actions"><button type="button" class="btn btn-link btn-sm text-danger acf-repeater-remove p-0" title="Remove"><span class="material-icons" style="font-size:18px;">delete</span></button></td>';
                     tr.innerHTML = html;
@@ -387,7 +387,7 @@
                         var template = jsTemplates[sf.slug] || '<input type="text" class="form-control acf-subfield-input" data-subfield="' + sf.slug + '" value="">';
                         html += '<div class="acf-repeater-subfield" data-subfield-container="' + sf.slug + '">';
                         html += '<label class="form-control-label">' + (sf.title || sf.slug) + '</label>';
-                        html += template.replace(/\{ldelim}value\{rdelim}|\{value\}/g, '');
+                        html += template.replace(/{ldelim}value{rdelim}/g, '');
                         html += '</div>';
                     });
                     html += '</div></div>';

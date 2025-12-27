@@ -3,6 +3,7 @@
 imports:
     - { resource: '../src/Wedev/Extension/UI/config/services_ui.yml' }
     - { resource: '../src/Wedev/Extension/Events/config/services_events.yml' }
+    - { resource: '../src/Wedev/Extension/EntityFields/config/services_entityfields.yml' }
 
 services:
     _defaults:
@@ -88,6 +89,18 @@ services:
     WeprestaAcf\Application\Service\AcfServiceContainer:
         public: true
 
+    WeprestaAcf\Application\Service\EntityFieldService:
+        arguments:
+            $entityFieldRegistry: '@wedev.entity_field_registry'
+            $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $valueRepository: '@WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface'
+            $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
+            $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
+            $fileUploadService: '@WeprestaAcf\Application\Service\FileUploadService'
+        public: true
+
     # =========================================================================
     # Core Adapters (from Wedev/Core)
     # =========================================================================
@@ -164,6 +177,76 @@ services:
     # =========================================================================
 
     WeprestaAcf\Application\Provider\LocationProviderRegistry:
+        arguments:
+            $entityFieldRegistry: '@wedev.entity_field_registry'
+        public: true
+
+    # =========================================================================
+    # Entity Field Providers
+    # =========================================================================
+
+    WeprestaAcf\Application\Provider\EntityField\ProductEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CategoryEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CustomerEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CustomerAddressEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CustomerGroupEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\BrandEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\SupplierEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CmsPageEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CmsCategoryEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\LanguageEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\ZoneEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CountryEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\StateEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CurrencyEntityFieldProvider:
+        public: true
+
+    # Service to register all entity field providers with the registry
+    WeprestaAcf\Application\Service\EntityFieldRegistryInitializer:
+        arguments:
+            $registry: '@wedev.entity_field_registry'
+            $providers:
+                - '@WeprestaAcf\Application\Provider\EntityField\ProductEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CategoryEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CustomerEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CustomerAddressEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CustomerGroupEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\BrandEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\SupplierEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CmsPageEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CmsCategoryEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\LanguageEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\ZoneEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CountryEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\StateEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CurrencyEntityFieldProvider'
+        tags: ['kernel.event_subscriber']
         public: true
 
     # =========================================================================

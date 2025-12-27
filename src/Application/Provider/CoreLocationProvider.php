@@ -4,22 +4,29 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Provider;
 
+use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
+
 /**
  * Core PrestaShop location provider
  */
 final class CoreLocationProvider implements LocationProviderInterface
 {
+    public function __construct(
+        private readonly ?EntityFieldRegistry $entityFieldRegistry = null
+    ) {
+    }
+
     public function getIdentifier(): string { return 'prestashop_core'; }
     public function getName(): string { return 'PrestaShop'; }
 
     public function getLocations(): array
     {
+        // Legacy locations for backward compatibility
+        // Entity types are now provided by EntityFieldRegistry via LocationProviderRegistry
         return [
-            ['type' => 'entity_type', 'value' => 'product', 'label' => 'Products', 'group' => 'PrestaShop', 'icon' => 'inventory_2', 'description' => 'Display fields on product edit pages'],
-            ['type' => 'entity_type', 'value' => 'category', 'label' => 'Categories', 'group' => 'PrestaShop', 'icon' => 'folder', 'description' => 'Display fields on category edit pages'],
-            ['type' => 'entity_type', 'value' => 'manufacturer', 'label' => 'Manufacturers', 'group' => 'PrestaShop', 'icon' => 'business', 'description' => 'Display fields on manufacturer edit pages'],
-            ['type' => 'entity_type', 'value' => 'supplier', 'label' => 'Suppliers', 'group' => 'PrestaShop', 'icon' => 'local_shipping', 'description' => 'Display fields on supplier edit pages'],
-            ['type' => 'entity_type', 'value' => 'cms', 'label' => 'CMS Pages', 'group' => 'PrestaShop', 'icon' => 'article', 'description' => 'Display fields on CMS page edit pages'],
+            // Keep product_category and product_type rules
+            ['type' => 'product_category', 'value' => '', 'label' => 'Product Category', 'group' => 'PrestaShop', 'icon' => 'folder', 'description' => 'Filter by product category'],
+            ['type' => 'product_type', 'value' => '', 'label' => 'Product Type', 'group' => 'PrestaShop', 'icon' => 'category', 'description' => 'Filter by product type'],
         ];
     }
 
