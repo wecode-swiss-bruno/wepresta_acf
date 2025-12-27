@@ -67,15 +67,24 @@ function renderAlerts(container: HTMLElement): void {
 }
 
 // Connect to Twig toolbar buttons (rendered by PS Toolbar component)
+// PS Toolbar generates IDs like: page-header-desc-configuration-{key}
 function setupToolbarButtons(): void {
-  // Find buttons by their class or partial ID match
+  // Find buttons by partial ID match (PS generates IDs like page-header-desc-configuration-add-group)
   const btnAddGroup = document.querySelector('[id*="add-group"]') as HTMLElement
-  const btnBack = document.querySelector('[id*="-back"]') as HTMLElement
-  const btnSave = document.querySelector('[id*="-save"]') as HTMLElement
+  const btnBack = document.querySelector('[id*="go-back"]') as HTMLElement
+  const btnSave = document.querySelector('[id*="save-group"]') as HTMLElement
   
-  // Also try by CSS class
+  // Also collect buttons by CSS class for visibility toggling
   const listBtns = document.querySelectorAll('.acf-toolbar-list-btn')
   const editBtns = document.querySelectorAll('.acf-toolbar-edit-btn')
+
+  console.debug('[ACF] Toolbar buttons found:', { 
+    addGroup: !!btnAddGroup, 
+    back: !!btnBack, 
+    save: !!btnSave,
+    listBtns: listBtns.length,
+    editBtns: editBtns.length 
+  })
 
   // Button click handlers
   btnAddGroup?.addEventListener('click', (e) => {
@@ -93,11 +102,13 @@ function setupToolbarButtons(): void {
 
   // Toggle toolbar visibility based on view mode
   watch(() => store.viewMode, (mode) => {
-    // Show/hide list view buttons
+    console.debug('[ACF] View mode changed to:', mode)
+    
+    // Show/hide list view buttons (Add Group)
     listBtns.forEach(btn => {
       btn.classList.toggle('d-none', mode !== 'list')
     })
-    // Show/hide edit view buttons  
+    // Show/hide edit view buttons (Back, Save)
     editBtns.forEach(btn => {
       btn.classList.toggle('d-none', mode !== 'edit')
     })

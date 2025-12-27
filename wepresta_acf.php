@@ -247,7 +247,7 @@ class WeprestaAcf extends Module
                 'link' => $this->context->link,
                 'base_url' => $this->context->shop->getBaseURL(true),
                 'id_product' => $productId,
-                'acf_api_base_url' => preg_replace('/\/index\.php.*$/', '/index.php/modules/wepresta_acf/api', $this->context->link->getAdminLink('AdminModules')),
+                'acf_api_base_url' => $this->getAdminApiBaseUrl(),
             ]);
 
             return $this->fetch('module:wepresta_acf/views/templates/admin/product-fields.tpl');
@@ -855,6 +855,36 @@ class WeprestaAcf extends Module
     // =========================================================================
     // UTILITIES
     // =========================================================================
+
+    /**
+     * Get the base URL for API endpoints (Symfony routes)
+     */
+    private function getAdminApiBaseUrl(): string
+    {
+        // Try to use Symfony router
+        try {
+            $container = $this->getContainer();
+            if ($container && $container->has('router')) {
+                $router = $container->get('router');
+                // Generate URL to a known route and extract base
+                $url = $router->generate('wepresta_acf_api_relation_search');
+                // Remove the /relation/search part to get base URL
+                return preg_replace('/\/relation\/search$/', '', $url);
+            }
+        } catch (\Exception $e) {
+            // Fallback
+        }
+
+        // Fallback: build URL manually from admin link
+        $adminUrl = $this->context->link->getAdminLink('AdminModules', true);
+        // Extract base admin URL (before query string)
+        $baseAdmin = preg_replace('/\?.*$/', '', $adminUrl);
+        // Replace controller path with Symfony route path
+        $baseAdmin = preg_replace('/\/sell\/.*$/', '', $baseAdmin);
+        $baseAdmin = preg_replace('/\/configure\/.*$/', '', $baseAdmin);
+        
+        return rtrim($baseAdmin, '/') . '/modules/wepresta_acf/api';
+    }
 
     public function isActive(): bool { return (bool) Configuration::get('WEPRESTA_ACF_ACTIVE'); }
     public function getConfig(): ConfigurationAdapter { return $this->config ??= new ConfigurationAdapter(); }

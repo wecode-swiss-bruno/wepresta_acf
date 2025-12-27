@@ -3,7 +3,22 @@
  * Displays custom field groups in product edit form
  *}
 
-<div class="acf-product-fields" id="acf-product-fields" data-product-id="{$acf_product_id|intval}">
+<div class="acf-product-fields" id="acf-product-fields"
+     data-product-id="{$acf_product_id|intval}"
+     data-api-url="{$acf_api_base_url|escape:'htmlall':'UTF-8'}">
+
+    {* AJAX Save Button *}
+    <div class="acf-save-toolbar mb-3 d-flex align-items-center justify-content-between">
+        <div class="acf-save-status">
+            <span class="acf-status-text text-muted small"></span>
+        </div>
+        <button type="button" class="btn btn-primary acf-save-btn" id="acf-ajax-save">
+            <span class="acf-save-icon material-icons me-1" style="font-size:18px;vertical-align:middle;">save</span>
+            <span class="acf-save-label">{l s='Save Custom Fields' d='Modules.Weprestaacf.Admin'}</span>
+            <span class="acf-save-spinner spinner-border spinner-border-sm ms-1 d-none" role="status"></span>
+        </button>
+    </div>
+
     {foreach $acf_groups as $group}
         <div class="acf-group card mb-3" data-group-id="{$group.id|intval}">
             <div class="card-header">
@@ -350,7 +365,7 @@
                     var html = '<td class="acf-col-drag"><span class="acf-repeater-drag material-icons">drag_indicator</span></td>';
                     subfields.forEach(function(sf) {
                         var template = jsTemplates[sf.slug] || '<input type="text" class="form-control form-control-sm acf-subfield-input" data-subfield="' + sf.slug + '" value="">';
-                        html += '<td class="acf-repeater-cell" data-subfield-container="' + sf.slug + '">' + template.replace('{ldelim}value{rdelim}', '') + '</td>';
+                        html += '<td class="acf-repeater-cell" data-subfield-container="' + sf.slug + '">' + template.replace(/\{ldelim}value\{rdelim}|\{value\}/g, '') + '</td>';
                     });
                     html += '<td class="acf-col-actions"><button type="button" class="btn btn-link btn-sm text-danger acf-repeater-remove p-0" title="Remove"><span class="material-icons" style="font-size:18px;">delete</span></button></td>';
                     tr.innerHTML = html;
@@ -372,7 +387,7 @@
                         var template = jsTemplates[sf.slug] || '<input type="text" class="form-control acf-subfield-input" data-subfield="' + sf.slug + '" value="">';
                         html += '<div class="acf-repeater-subfield" data-subfield-container="' + sf.slug + '">';
                         html += '<label class="form-control-label">' + (sf.title || sf.slug) + '</label>';
-                        html += template.replace('{ldelim}value{rdelim}', '');
+                        html += template.replace(/\{ldelim}value\{rdelim}|\{value\}/g, '');
                         html += '</div>';
                     });
                     html += '</div></div>';
@@ -711,10 +726,216 @@
             });
         });
     }
+
+    // =========================================================================
+    // AJAX SAVE FUNCTIONALITY
+    // =========================================================================
+    function initAcfAjaxSave() {
+        var container = document.getElementById('acf-product-fields');
+        var saveBtn = document.getElementById('acf-ajax-save');
+        if (!container || !saveBtn) return;
+
+        var productId = parseInt(container.dataset.productId) || 0;
+        var apiUrl = container.dataset.apiUrl || '';
+        var statusText = container.querySelector('.acf-status-text');
+        var saveIcon = saveBtn.querySelector('.acf-save-icon');
+        var saveLabel = saveBtn.querySelector('.acf-save-label');
+        var saveSpinner = saveBtn.querySelector('.acf-save-spinner');
+
+        if (!productId || !apiUrl) {
+            console.error('[ACF] Missing productId or apiUrl for AJAX save');
+            return;
+        }
+
+        function setStatus(type, message) {
+            if (!statusText) return;
+            statusText.textContent = message;
+            statusText.className = 'acf-status-text small';
+            if (type === 'success') statusText.classList.add('text-success');
+            else if (type === 'error') statusText.classList.add('text-danger');
+            else statusText.classList.add('text-muted');
+        }
+
+        function setLoading(loading) {
+            if (loading) {
+                saveBtn.disabled = true;
+                saveIcon.classList.add('d-none');
+                saveSpinner.classList.remove('d-none');
+                saveLabel.textContent = '{l s="Saving..." d="Modules.Weprestaacf.Admin" js=1}';
+            } else {
+                saveBtn.disabled = false;
+                saveIcon.classList.remove('d-none');
+                saveSpinner.classList.add('d-none');
+                saveLabel.textContent = '{l s="Save Custom Fields" d="Modules.Weprestaacf.Admin" js=1}';
+            }
+        }
+
+        function collectAllValues() {
+            var values = {ldelim}{rdelim};
+
+            // Sync TinyMCE before collecting
+            if (typeof tinymce !== 'undefined') {
+                tinymce.triggerSave();
+            }
+
+            // Collect regular fields (non-translatable)
+            container.querySelectorAll('.acf-field').forEach(function(fieldEl) {
+                var slug = fieldEl.dataset.fieldSlug;
+                if (!slug) return;
+
+                // Check if translatable (has translations tabbable)
+                var translatableContainer = fieldEl.querySelector('.translations.tabbable');
+                if (translatableContainer) {
+                    // Translatable field - collect per language
+                    values[slug] = {ldelim}{rdelim};
+                    translatableContainer.querySelectorAll('.tab-pane').forEach(function(pane) {
+                        var locale = pane.dataset.locale;
+                        // Extract lang_id from class name
+                        var langMatch = pane.className.match(/translationsFields-acf_[^_]+_(\d+)/);
+                        var langId = langMatch ? langMatch[1] : null;
+                        if (!langId) return;
+
+                        var input = pane.querySelector('input, textarea, select');
+                        if (input) {
+                            var val = getInputValue(input);
+                            values[slug][langId] = val;
+                        }
+                    });
+                } else {
+                    // Non-translatable field
+                    var val = collectFieldValue(fieldEl, slug);
+                    if (val !== undefined) {
+                        values[slug] = val;
+                    }
+                }
+            });
+
+            return values;
+        }
+
+        function getInputValue(input) {
+            if (!input) return '';
+            if (input.type === 'checkbox') return input.checked ? '1' : '0';
+            if (input.type === 'radio') {
+                var checked = input.closest('form, .acf-field').querySelector('input[name="' + input.name + '"]:checked');
+                return checked ? checked.value : '';
+            }
+            return input.value || '';
+        }
+
+        function collectFieldValue(fieldEl, slug) {
+            // Check for special field types with hidden JSON values
+            var hiddenValue = fieldEl.querySelector('.acf-repeater-value, .acf-list-value, .acf-relation-value');
+            if (hiddenValue) {
+                try {
+                    return JSON.parse(hiddenValue.value || '[]');
+                } catch (e) {
+                    return hiddenValue.value;
+                }
+            }
+
+            // Check for ps-switch (boolean)
+            var psSwitch = fieldEl.querySelector('.ps-switch input:checked');
+            if (psSwitch) return psSwitch.value;
+
+            // Regular input
+            var input = fieldEl.querySelector('input[name^="acf_' + slug + '"], textarea[name^="acf_' + slug + '"], select[name^="acf_' + slug + '"]');
+            if (input) return getInputValue(input);
+
+            // Checkbox group
+            var checkboxes = fieldEl.querySelectorAll('input[type="checkbox"][name^="acf_' + slug + '"]:checked');
+            if (checkboxes.length > 0) {
+                return Array.from(checkboxes).map(function(cb) {
+                    return cb.value;
+                });
+            }
+
+            return undefined;
+        }
+
+        saveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            setLoading(true);
+            setStatus('info', '{l s="Collecting field values..." d="Modules.Weprestaacf.Admin" js=1}');
+
+            var values = collectAllValues();
+
+            setStatus('info', '{l s="Sending to server..." d="Modules.Weprestaacf.Admin" js=1}');
+
+            fetch(apiUrl + '/values', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId: productId,
+                    values: values
+                })
+            })
+            .then(function(response) {
+                return response.json().then(function(data) {
+                    return { ok: response.ok, data: data };
+                });
+            })
+            .then(function(result) {
+                setLoading(false);
+                if (result.ok && result.data.success) {
+                    setStatus('success', '{l s="Custom fields saved successfully!" d="Modules.Weprestaacf.Admin" js=1}');
+                    // Flash effect on button
+                    saveBtn.classList.add('btn-success');
+                    saveBtn.classList.remove('btn-primary');
+                    setTimeout(function() {
+                        saveBtn.classList.remove('btn-success');
+                        saveBtn.classList.add('btn-primary');
+                        setStatus('', '');
+                    }, 3000);
+                } else {
+                    var errorMsg = result.data.error || result.data.errors?.join(', ') || 'Unknown error';
+                    setStatus('error', '{l s="Error:" d="Modules.Weprestaacf.Admin" js=1} ' + errorMsg);
+                }
+            })
+            .catch(function(error) {
+                setLoading(false);
+                setStatus('error', '{l s="Network error:" d="Modules.Weprestaacf.Admin" js=1} ' + error.message);
+                console.error('[ACF] Save error:', error);
+            });
+        });
+
+        console.debug('[ACF] AJAX save initialized for product', productId);
+    }
+
+    // Initialize AJAX save on DOM ready
+    document.addEventListener('DOMContentLoaded', initAcfAjaxSave);
+    if (document.readyState !== 'loading') initAcfAjaxSave();
 })();
 </script>
 
 <style>
+/* AJAX Save Toolbar */
+.acf-save-toolbar {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(to right, #f8f9fa, #fff);
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    position: sticky;
+    top: 60px;
+    z-index: 100;
+}
+.acf-save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.acf-save-btn.btn-success {
+    animation: acf-save-flash 0.3s ease-out;
+}
+@keyframes acf-save-flash {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
 /* Translatable badge icon */
 .acf-translatable-badge {
     font-size: 0.875rem;

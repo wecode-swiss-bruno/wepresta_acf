@@ -75,12 +75,12 @@
                                 </td>
                                 {if $subfields}
                                     {foreach $subfields as $subfield}
-                                        <td class="acf-repeater-cell" data-subfield="{$subfield.slug|escape:'htmlall':'UTF-8'}">
+                                        <td class="acf-repeater-cell" data-subfield-container="{$subfield.slug|escape:'htmlall':'UTF-8'}">
                                             {assign var="subfieldValue" value=$row.values[$subfield.slug]|default:''}
                                             {if isset($fieldRenderer)}
                                                 {$fieldRenderer->renderAdminInput($subfield, $subfieldValue, ['size' => 'sm', 'dataSubfield' => true]) nofilter}
                                             {else}
-                                                <input type="text" class="form-control form-control-sm" value="{$subfieldValue|escape:'htmlall':'UTF-8'}">
+                                                <input type="text" class="form-control form-control-sm acf-subfield-input" data-subfield="{$subfield.slug|escape:'htmlall':'UTF-8'}" value="{$subfieldValue|escape:'htmlall':'UTF-8'}">
                                             {/if}
                                         </td>
                                     {/foreach}
@@ -125,13 +125,13 @@
                             <div class="acf-repeater-subfields">
                                 {if $subfields}
                                     {foreach $subfields as $subfield}
-                                        <div class="acf-repeater-subfield" data-subfield="{$subfield.slug|escape:'htmlall':'UTF-8'}">
+                                        <div class="acf-repeater-subfield" data-subfield-container="{$subfield.slug|escape:'htmlall':'UTF-8'}">
                                             <label class="form-control-label">{$subfield.title|escape:'htmlall':'UTF-8'}</label>
                                             {assign var="subfieldValue" value=$row.values[$subfield.slug]|default:''}
                                             {if isset($fieldRenderer)}
                                                 {$fieldRenderer->renderAdminInput($subfield, $subfieldValue, ['dataSubfield' => true]) nofilter}
                                             {else}
-                                                <input type="text" class="form-control" value="{$subfieldValue|escape:'htmlall':'UTF-8'}">
+                                                <input type="text" class="form-control acf-subfield-input" data-subfield="{$subfield.slug|escape:'htmlall':'UTF-8'}" value="{$subfieldValue|escape:'htmlall':'UTF-8'}">
                                             {/if}
                                         </div>
                                     {/foreach}

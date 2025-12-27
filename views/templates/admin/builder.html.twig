@@ -13,6 +13,7 @@
 {% endblock %}
 
 {# Define toolbar buttons - rendered by PrestaShop Toolbar component #}
+{# Note: PS Toolbar skips keys 'back' and 'modules-list', so use 'go-back' instead #}
 {% set layoutHeaderToolbarBtn = {
     'add-group': {
         'href': '#',
@@ -21,14 +22,14 @@
         'class': 'btn-primary acf-toolbar-list-btn',
         'js': 'return false;'
     },
-    'back': {
+    'go-back': {
         'href': '#',
         'desc': 'Back'|trans({}, 'Admin.Actions'),
         'icon': 'arrow_back',
         'class': 'btn-outline-secondary acf-toolbar-edit-btn d-none',
         'js': 'return false;'
     },
-    'save': {
+    'save-group': {
         'href': '#',
         'desc': 'Save'|trans({}, 'Admin.Actions'),
         'icon': 'save',
