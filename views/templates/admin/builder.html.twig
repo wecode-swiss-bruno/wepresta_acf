@@ -56,6 +56,34 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {# #region agent log - Debug jQuery loading #}
+    <script>
+        (function() {
+            var log = function(msg, data) {
+                fetch('http://127.0.0.1:7255/ingest/f2bffaed-a8e3-4b3c-ad3b-1dc62db7151d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'builder.html.twig:inline',message:msg,data:data,timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H3'})}).catch(function(){});
+            };
+            log('jQuery check at script start', {
+                jQueryDefined: typeof jQuery !== 'undefined',
+                dollarDefined: typeof $ !== 'undefined',
+                jQueryVersion: typeof jQuery !== 'undefined' ? jQuery.fn.jquery : null
+            });
+            document.addEventListener('DOMContentLoaded', function() {
+                log('jQuery check at DOMContentLoaded', {
+                    jQueryDefined: typeof jQuery !== 'undefined',
+                    dollarDefined: typeof $ !== 'undefined',
+                    jQueryVersion: typeof jQuery !== 'undefined' ? jQuery.fn.jquery : null
+                });
+            });
+            window.addEventListener('load', function() {
+                log('jQuery check at window.load', {
+                    jQueryDefined: typeof jQuery !== 'undefined',
+                    dollarDefined: typeof $ !== 'undefined',
+                    jQueryVersion: typeof jQuery !== 'undefined' ? jQuery.fn.jquery : null
+                });
+            });
+        })();
+    </script>
+    {# #endregion #}
     <script>
         window.acfConfig = {
             apiUrl: '{{ url('wepresta_acf_api_groups_list') | split('/groups')[0] }}',

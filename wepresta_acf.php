@@ -176,6 +176,15 @@ class WeprestaAcf extends Module
     }
 
     /**
+     * Display hook for Customer entity (VIEW page, not edit).
+     * Note: PrestaShop 9 doesn't have a hook on the customer EDIT page.
+     */
+    public function hookDisplayAdminCustomers(array $params): string
+    {
+        return $this->handleDisplayHook('customer', $params, 'id_customer');
+    }
+
+    /**
      * Generic display hook handler.
      *
      * @param string $entityType Entity type (e.g., 'product', 'order', 'customer')
@@ -233,6 +242,22 @@ class WeprestaAcf extends Module
     public function hookActionOrderStatusPostUpdate(array $params): void
     {
         $this->handleActionHook('order', $params, 'id_order');
+    }
+
+    /**
+     * Action hooks for Customer entity.
+     */
+    public function hookActionCustomerAccountUpdate(array $params): void
+    {
+        $this->handleActionHook('customer', $params, 'id_customer');
+    }
+
+    public function hookActionObjectCustomerUpdateAfter(array $params): void
+    {
+        $object = $params['object'] ?? null;
+        if ($object instanceof \Customer) {
+            $this->handleActionHook('customer', ['id_customer' => (int) $object->id], 'id_customer');
+        }
     }
 
     /**
