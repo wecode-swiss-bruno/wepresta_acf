@@ -1,15 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
 import FieldList from '@/components/FieldList.vue'
 import FieldConfigurator from '@/components/FieldConfigurator.vue'
 import GroupSettings from '@/components/GroupSettings.vue'
+import LocationRulesEditor from '@/components/LocationRulesEditor.vue'
 
 const store = useBuilderStore()
 const { t } = useTranslations()
 
 const activeTab = ref<'fields' | 'settings' | 'location'>('fields')
+
+// Location rules from current group
+const locationRules = computed({
+  get: () => store.currentGroup?.location_rules || [],
+  set: (value) => {
+    if (store.currentGroup) {
+      store.currentGroup.location_rules = value
+    }
+  }
+})
 </script>
 
 <template>
@@ -25,7 +36,7 @@ const activeTab = ref<'fields' | 'settings' | 'location'>('fields')
 
     <!-- Tabs -->
     <div class="acfps-builder-tabs">
-      <button 
+      <button
         class="tab-btn"
         :class="{ active: activeTab === 'fields' }"
         @click="activeTab = 'fields'"
@@ -33,7 +44,7 @@ const activeTab = ref<'fields' | 'settings' | 'location'>('fields')
         <span class="material-icons">list</span>
         {{ t('fields') }}
       </button>
-      <button 
+      <button
         class="tab-btn"
         :class="{ active: activeTab === 'settings' }"
         @click="activeTab = 'settings'"
@@ -41,7 +52,7 @@ const activeTab = ref<'fields' | 'settings' | 'location'>('fields')
         <span class="material-icons">settings</span>
         {{ t('general') }}
       </button>
-      <button 
+      <button
         class="tab-btn"
         :class="{ active: activeTab === 'location' }"
         @click="activeTab = 'location'"
@@ -72,14 +83,10 @@ const activeTab = ref<'fields' | 'settings' | 'location'>('fields')
 
       <!-- Location tab -->
       <template v-else-if="activeTab === 'location'">
-        <div class="acfps-form-section">
-          <h4>{{ t('location') }}</h4>
-          <p class="text-muted">{{ t('locationRulesHelp') }}</p>
-          <!-- TODO: Location rules editor will be added later -->
-          <div class="alert alert-info">
-            Location rules editor coming soon. For now, all field groups will appear on all products.
-          </div>
-        </div>
+        <LocationRulesEditor 
+          :rules="locationRules"
+          @update:rules="locationRules = $event"
+        />
       </template>
     </div>
   </div>

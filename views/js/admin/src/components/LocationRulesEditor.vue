@@ -138,10 +138,16 @@ function removeRule(index: number): void {
       </div>
     </div>
 
+    <!-- Debug: Show available locations count -->
+    <div v-if="locationGroups.length === 0" class="alert alert-warning mt-3">
+      <strong>Debug:</strong> No locations loaded from backend. Check window.acfConfig.locations
+    </div>
+
     <!-- Info -->
     <div class="alert alert-info mt-3">
       <strong>{{ t('info') || 'Info' }}</strong><br>
       {{ t('locationRulesInfo') || 'Select entity types where this field group should appear. If no rules are defined, the group will appear on all entities.' }}
+      <br><small class="text-muted">Available groups: {{ locationGroups.length }}</small>
     </div>
   </div>
 </template>
