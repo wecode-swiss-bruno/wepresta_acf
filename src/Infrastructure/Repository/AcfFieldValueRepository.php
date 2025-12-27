@@ -98,9 +98,9 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             ->where('fv.id_shop = ' . (int) $shopId)
             ->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)')
             ->where('fv.' . $this->getPrimaryKey() . ' = (
-                SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2 
-                WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . ' 
-                AND fv2.entity_type = fv.entity_type AND fv2.entity_id = fv.entity_id AND fv2.id_shop = fv.id_shop 
+                SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2
+                WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . '
+                AND fv2.entity_type = fv.entity_type AND fv2.entity_id = fv.entity_id AND fv2.id_shop = fv.id_shop
                 AND (fv2.id_lang = fv.id_lang OR (fv2.id_lang IS NULL AND fv.id_lang IS NULL))
             )');
 
@@ -138,9 +138,9 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             ->where('f.active = 1')
             ->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)')
             ->where('fv.' . $this->getPrimaryKey() . ' = (
-                SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2 
-                WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . ' 
-                AND fv2.entity_type = fv.entity_type AND fv2.entity_id = fv.entity_id AND fv2.id_shop = fv.id_shop 
+                SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2
+                WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . '
+                AND fv2.entity_type = fv.entity_type AND fv2.entity_id = fv.entity_id AND fv2.id_shop = fv.id_shop
                 AND (fv2.id_lang = fv.id_lang OR (fv2.id_lang IS NULL AND fv.id_lang IS NULL))
             )')
             ->orderBy('f.position ASC');
@@ -239,7 +239,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         $valueSql = $value !== null ? "'" . pSQL($value) . "'" : 'NULL';
         $valueIndexSql = $indexValue !== null ? "'" . pSQL($indexValue) . "'" : 'NULL';
 
-        $sql = 'INSERT INTO `' . $this->dbPrefix . $this->getTableName() . "` 
+        $sql = 'INSERT INTO `' . $this->dbPrefix . $this->getTableName() . "`
                 (`" . self::FIELD_FK . "`, `entity_type`, `entity_id`, `id_shop`, `id_lang`, `value`, `value_index`, `date_add`, `date_upd`)
                 VALUES (" . (int) $fieldId . ', "' . pSQL($entityType) . '", ' . (int) $entityId . ', ' . (int) $shopId . ', ' . (int) $effectiveLangId . ', ' . $valueSql . ', ' . $valueIndexSql . ", '" . $now . "', '" . $now . "')
                 ON DUPLICATE KEY UPDATE `value` = " . $valueSql . ', `value_index` = ' . $valueIndexSql . ", `date_upd` = '" . $now . "'";

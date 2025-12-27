@@ -8,7 +8,7 @@ ALTER TABLE `PREFIX_wepresta_acf_field_value`
 
 -- Step 2: Migrate existing product data
 UPDATE `PREFIX_wepresta_acf_field_value`
-SET 
+SET
     `entity_type` = 'product',
     `entity_id` = `id_product`
 WHERE `entity_type` IS NULL AND `entity_id` IS NULL;

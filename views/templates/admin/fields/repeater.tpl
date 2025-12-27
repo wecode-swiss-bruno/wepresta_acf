@@ -25,8 +25,8 @@
 {* Get subfields - they should be passed in field.children *}
 {assign var="subfields" value=$field.children|default:[]}
 
-<div class="acf-repeater-field acf-repeater-{$displayMode|escape:'htmlall':'UTF-8'}" 
-     data-type="repeater" 
+<div class="acf-repeater-field acf-repeater-{$displayMode|escape:'htmlall':'UTF-8'}"
+     data-type="repeater"
      data-slug="{$field.slug|escape:'htmlall':'UTF-8'}"
      data-min="{$repMin|intval}"
      data-max="{$repMax|intval}"
@@ -36,7 +36,7 @@
      data-display-mode="{$displayMode|escape:'htmlall':'UTF-8'}"
      data-subfields='{$subfields|json_encode|escape:'htmlall':'UTF-8'}'
      data-js-templates='{if isset($field.jsTemplates)}{$field.jsTemplates|json_encode|escape:'htmlall':'UTF-8'}{else}{ldelim}{rdelim}{/if}'>
-    
+
     {* JSON encode the value *}
     {if is_array($value) && $value|count > 0}
         {assign var="repeaterJsonValue" value=$value|json_encode}
@@ -45,8 +45,8 @@
     {else}
         {assign var="repeaterJsonValue" value='[]'}
     {/if}
-    <input type="hidden" 
-           name="{$inputName|escape:'htmlall':'UTF-8'}" 
+    <input type="hidden"
+           name="{$inputName|escape:'htmlall':'UTF-8'}"
            id="{$inputId|escape:'htmlall':'UTF-8'}_value"
            class="acf-repeater-value"
            value='{$repeaterJsonValue|escape:'htmlall':'UTF-8'}'>
@@ -107,7 +107,7 @@
             {if $repeaterRows && is_array($repeaterRows)}
                 {assign var="rowIndex" value=1}
                 {foreach $repeaterRows as $row}
-                    <div class="acf-repeater-row acf-repeater-card{if $row.collapsed|default:$repCollapsed} acf-collapsed{/if}" 
+                    <div class="acf-repeater-row acf-repeater-card{if $row.collapsed|default:$repCollapsed} acf-collapsed{/if}"
                          data-row-id="{$row.row_id|escape:'htmlall':'UTF-8'}">
                         <div class="acf-repeater-row-header">
                             <span class="acf-repeater-drag material-icons">drag_indicator</span>
@@ -148,12 +148,12 @@
             {/if}
         </div>
     {/if}
-    
+
     <button type="button" class="btn btn-outline-secondary btn-sm acf-repeater-add mt-2">
         <span class="material-icons">add</span>
         {$buttonLabel|escape:'htmlall':'UTF-8'}
     </button>
-    
+
     {if $repMin > 0 || $repMax > 0}
         <small class="form-text text-muted acf-repeater-limits">
             {if $repMin > 0 && $repMax > 0}

@@ -26,7 +26,7 @@ function setupExternalAlerts(): void {
 
 function renderAlerts(container: HTMLElement): void {
   container.innerHTML = ''
-  
+
   if (store.error) {
     const errorAlert = document.createElement('div')
     errorAlert.className = 'alert alert-danger alert-dismissible fade show'
@@ -42,7 +42,7 @@ function renderAlerts(container: HTMLElement): void {
     })
     container.appendChild(errorAlert)
   }
-  
+
   if (store.successMessage) {
     const successAlert = document.createElement('div')
     successAlert.className = 'alert alert-success alert-dismissible fade show'
@@ -57,7 +57,7 @@ function renderAlerts(container: HTMLElement): void {
       successAlert.remove()
     })
     container.appendChild(successAlert)
-    
+
     // Auto-dismiss success after 5s
     setTimeout(() => {
       store.clearSuccess()
@@ -73,17 +73,17 @@ function setupToolbarButtons(): void {
   const btnAddGroup = document.querySelector('[id*="add-group"]') as HTMLElement
   const btnBack = document.querySelector('[id*="go-back"]') as HTMLElement
   const btnSave = document.querySelector('[id*="save-group"]') as HTMLElement
-  
+
   // Also collect buttons by CSS class for visibility toggling
   const listBtns = document.querySelectorAll('.acf-toolbar-list-btn')
   const editBtns = document.querySelectorAll('.acf-toolbar-edit-btn')
 
-  console.debug('[ACF] Toolbar buttons found:', { 
-    addGroup: !!btnAddGroup, 
-    back: !!btnBack, 
+  console.debug('[ACF] Toolbar buttons found:', {
+    addGroup: !!btnAddGroup,
+    back: !!btnBack,
     save: !!btnSave,
     listBtns: listBtns.length,
-    editBtns: editBtns.length 
+    editBtns: editBtns.length
   })
 
   // Button click handlers
@@ -103,7 +103,7 @@ function setupToolbarButtons(): void {
   // Toggle toolbar visibility based on view mode
   watch(() => store.viewMode, (mode) => {
     console.debug('[ACF] View mode changed to:', mode)
-    
+
     // Show/hide list view buttons (Add Group)
     listBtns.forEach(btn => {
       btn.classList.toggle('d-none', mode !== 'list')
@@ -135,7 +135,7 @@ onMounted(() => {
     <template v-else>
       <!-- Group list view -->
       <GroupList v-if="store.viewMode === 'list'" />
-      
+
       <!-- Group edit/create view -->
       <GroupBuilder v-else-if="store.viewMode === 'edit'" />
     </template>

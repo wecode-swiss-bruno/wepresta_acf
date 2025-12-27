@@ -916,7 +916,7 @@ class WeprestaAcf extends Module
         // Replace controller path with Symfony route path
         $baseAdmin = preg_replace('/\/sell\/.*$/', '', $baseAdmin);
         $baseAdmin = preg_replace('/\/configure\/.*$/', '', $baseAdmin);
-        
+
         return rtrim($baseAdmin, '/') . '/modules/wepresta_acf/api';
     }
 
