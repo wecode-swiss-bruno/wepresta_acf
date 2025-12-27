@@ -144,6 +144,12 @@ wepresta_acf_api_slugify:
     defaults:
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::slugify'
 
+wepresta_acf_api_seed:
+    path: /modules/wepresta_acf/api/seed
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::seed'
+
 # =========================================================================
 # API - Sync
 # =========================================================================

@@ -129,7 +129,14 @@
                 allowMultiple: '{{ 'Allow Multiple'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 allowMultipleHelp: '{{ 'Allow selecting multiple values'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 selectDefaultHelp: '{{ 'Select the default option'|trans({}, 'Modules.Weprestaacf.Admin') }}',
-                none: '{{ 'None'|trans({}, 'Admin.Global') }}'
+                none: '{{ 'None'|trans({}, 'Admin.Global') }}',
+                // Seed translations
+                seedTestData: '{{ 'Seed Test Data'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                seeding: '{{ 'Seeding...'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                confirmSeed: '{{ 'Create a test group with all field types? This will help you explore ACF features.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                seedSuccess: '{{ 'Test data seeded successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                seedSkipped: '{{ 'Test group already exists. Delete it first if you want to re-seed.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                seedError: '{{ 'Seed error'|trans({}, 'Modules.Weprestaacf.Admin') }}'
             },
             fieldTypes: {{ fieldTypes|json_encode|raw }},
             productTabs: [
