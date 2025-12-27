@@ -12,12 +12,12 @@ const { t } = useTranslations()
 
 const activeTab = ref<'fields' | 'settings' | 'location'>('fields')
 
-// Location rules from current group
+// Location rules from current group (camelCase to match store)
 const locationRules = computed({
-  get: () => store.currentGroup?.location_rules || [],
+  get: () => store.currentGroup?.locationRules || [],
   set: (value) => {
     if (store.currentGroup) {
-      store.currentGroup.location_rules = value
+      store.currentGroup.locationRules = value
     }
   }
 })
@@ -83,7 +83,7 @@ const locationRules = computed({
 
       <!-- Location tab -->
       <template v-else-if="activeTab === 'location'">
-        <LocationRulesEditor 
+        <LocationRulesEditor
           :rules="locationRules"
           @update:rules="locationRules = $event"
         />
