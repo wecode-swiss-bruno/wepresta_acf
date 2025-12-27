@@ -132,33 +132,95 @@ final class LocationProviderRegistry
         return $grouped;
     }
 
-    /** @param array<array<string, mixed>> $rules @param array<string, mixed> $context */
+    /**
+     * Match location rules against context.
+     * Rules are stored in JsonLogic format: {"==": [{"var": "entity_type"}, "product"]}
+     *
+     * @param array<array<string, mixed>> $rules
+     * @param array<string, mixed> $context
+     */
     public function matchLocation(array $rules, array $context): bool
     {
-        if (empty($rules)) { return true; }
-        foreach ($rules as $ruleGroup) {
-            if ($this->matchRuleGroup($ruleGroup, $context)) { return true; }
+        // If no rules defined, match everything (backward compatibility)
+        if (empty($rules)) {
+            return true;
         }
+
+        // Any rule matching = group is shown (OR logic between rules)
+        foreach ($rules as $rule) {
+            if ($this->matchJsonLogicRule($rule, $context)) {
+                return true;
+            }
+        }
+
         return false;
     }
 
-    /** @param array<string, mixed>|array<array<string, mixed>> $ruleGroup @param array<string, mixed> $context */
-    private function matchRuleGroup(array $ruleGroup, array $context): bool
+    /**
+     * Match a single JsonLogic rule against context.
+     * Format: {"==": [{"var": "entity_type"}, "product"]}
+     *         {"!=": [{"var": "entity_type"}, "category"]}
+     *
+     * @param array<string, mixed> $rule
+     * @param array<string, mixed> $context
+     */
+    private function matchJsonLogicRule(array $rule, array $context): bool
     {
-        if (isset($ruleGroup['type'])) {
-            return $this->matchSingleRule($ruleGroup, $context);
+        // Handle "==" operator
+        if (isset($rule['==']) && is_array($rule['==']) && count($rule['==']) === 2) {
+            [$left, $right] = $rule['=='];
+            $leftValue = $this->resolveJsonLogicValue($left, $context);
+            $rightValue = $this->resolveJsonLogicValue($right, $context);
+            return $leftValue === $rightValue;
         }
-        foreach ($ruleGroup as $rule) {
-            if (!$this->matchSingleRule($rule, $context)) { return false; }
+
+        // Handle "!=" operator
+        if (isset($rule['!=']) && is_array($rule['!=']) && count($rule['!=']) === 2) {
+            [$left, $right] = $rule['!='];
+            $leftValue = $this->resolveJsonLogicValue($left, $context);
+            $rightValue = $this->resolveJsonLogicValue($right, $context);
+            return $leftValue !== $rightValue;
         }
-        return true;
+
+        // Legacy format support: {"type": "entity_type", "operator": "equals", "value": "product"}
+        if (isset($rule['type'])) {
+            return $this->matchLegacyRule($rule, $context);
+        }
+
+        return false;
     }
 
-    /** @param array<string, mixed> $rule @param array<string, mixed> $context */
-    private function matchSingleRule(array $rule, array $context): bool
+    /**
+     * Resolve a JsonLogic value (either a literal or a variable reference).
+     *
+     * @param mixed $value
+     * @param array<string, mixed> $context
+     * @return mixed
+     */
+    private function resolveJsonLogicValue(mixed $value, array $context): mixed
+    {
+        if (is_array($value) && isset($value['var'])) {
+            // Variable reference: {"var": "entity_type"}
+            $varName = $value['var'];
+            return $context[$varName] ?? null;
+        }
+
+        // Literal value
+        return $value;
+    }
+
+    /**
+     * Match legacy format rules (for backward compatibility).
+     *
+     * @param array<string, mixed> $rule
+     * @param array<string, mixed> $context
+     */
+    private function matchLegacyRule(array $rule, array $context): bool
     {
         foreach ($this->getAll() as $provider) {
-            if ($provider->matchLocation($rule, $context)) { return true; }
+            if ($provider->matchLocation($rule, $context)) {
+                return true;
+            }
         }
         return false;
     }

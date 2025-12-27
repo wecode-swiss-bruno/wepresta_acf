@@ -41,6 +41,22 @@ const rules = computed(() => {
   return Array.isArray(lr) ? lr : []
 })
 
+// Check if any rule targets "product" entity
+const hasProductRule = computed(() => {
+  return rules.value.some(rule => {
+    // Check JsonLogic format: {"==": [{"var": "entity_type"}, "product"]}
+    if (rule['=='] && Array.isArray(rule['=='])) {
+      return rule['=='][1] === 'product'
+    }
+    return false
+  })
+})
+
+// Show Tab options only when there are no rules (all entities) or product is explicitly selected
+const showTabOptions = computed(() => {
+  return rules.value.length === 0 || hasProductRule.value
+})
+
 function addRule(): void {
   if (!selectedEntityType.value || !store.currentGroup) return
 
@@ -153,7 +169,8 @@ function removeRule(index: number): void {
         <h5 class="mb-0">{{ t('presentation') || 'Presentation' }}</h5>
       </div>
       <div class="card-body">
-        <div class="form-group mb-3">
+        <!-- Tab selection - only for Product entities -->
+        <div v-if="showTabOptions" class="form-group mb-3">
           <label>{{ t('placementTab') || 'Tab' }}</label>
           <select v-model="group.placementTab" class="form-control">
             <option
@@ -167,6 +184,12 @@ function removeRule(index: number): void {
           <small class="form-text text-muted">
             Product page tab where this field group will appear.
           </small>
+        </div>
+
+        <div v-else class="alert alert-info mb-3">
+          <i class="material-icons" style="vertical-align: middle; font-size: 18px;">info</i>
+          Tab placement is only available for Product entities. 
+          For other entities, fields appear in the main edit form.
         </div>
 
         <div class="form-group mb-3">
