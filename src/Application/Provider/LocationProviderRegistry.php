@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Provider;
 
+use WeprestaAcf\Application\Config\EntityHooksConfig;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldProviderInterface;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
 
@@ -102,16 +103,70 @@ final class LocationProviderRegistry
             }
         }
 
-        // Add entity types from EntityFieldRegistry
+        // Add ALL entity types from EntityHooksConfig (comprehensive list)
+        $groupedEntities = EntityHooksConfig::getEntitiesGroupedByCategory();
+        foreach ($groupedEntities as $category => $entities) {
+            foreach ($entities as $entityType => $entityInfo) {
+                // Skip if already added from a provider
+                $alreadyExists = false;
+                foreach ($locations as $loc) {
+                    if (($loc['value'] ?? '') === $entityType) {
+                        $alreadyExists = true;
+                        break;
+                    }
+                }
+                if ($alreadyExists) {
+                    continue;
+                }
+
+                $icon = match ($category) {
+                    'Catalog' => 'inventory_2',
+                    'Customers' => 'people',
+                    'Orders' => 'shopping_cart',
+                    'CMS' => 'article',
+                    'Localization' => 'language',
+                    'Configuration' => 'settings',
+                    'Marketing' => 'campaign',
+                    'Advanced' => 'code',
+                    'Other' => 'more_horiz',
+                    default => 'category',
+                };
+
+                $locations[] = [
+                    'type' => 'entity_type',
+                    'value' => $entityType,
+                    'label' => $entityInfo['label'],
+                    'group' => $category,
+                    'icon' => $icon,
+                    'description' => sprintf('Display fields on %s edit pages', $entityInfo['label']),
+                    'provider' => 'entity_hooks_config',
+                    'integration_type' => $entityInfo['type'], // 'symfony' or 'legacy'
+                ];
+            }
+        }
+
+        // Also add entity types from EntityFieldRegistry (for CPT and other dynamic entities)
         if ($this->entityFieldRegistry !== null) {
             $langId = (int) (\Context::getContext()->language->id ?? 1);
             foreach ($this->entityFieldRegistry->getAllEntityTypes() as $entityType => $provider) {
+                // Skip if already exists
+                $alreadyExists = false;
+                foreach ($locations as $loc) {
+                    if (($loc['value'] ?? '') === $entityType) {
+                        $alreadyExists = true;
+                        break;
+                    }
+                }
+                if ($alreadyExists) {
+                    continue;
+                }
+
                 $locations[] = [
                     'type' => 'entity_type',
                     'value' => $entityType,
                     'label' => $provider->getEntityLabel($langId),
-                    'group' => 'PrestaShop Entities',
-                    'icon' => 'inventory_2',
+                    'group' => 'Custom Post Types',
+                    'icon' => 'extension',
                     'description' => sprintf('Display fields on %s edit pages', $provider->getEntityLabel($langId)),
                     'provider' => 'entity_field_registry',
                 ];

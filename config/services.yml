@@ -89,6 +89,17 @@ services:
     WeprestaAcf\Application\Service\AcfServiceContainer:
         public: true
 
+    WeprestaAcf\Application\Service\FormModifierService:
+        arguments:
+            $entityFieldRegistry: '@wedev.entity_field_registry'
+            $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
+            $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
+        public: true
+
     WeprestaAcf\Application\Service\EntityFieldService:
         arguments:
             $entityFieldRegistry: '@wedev.entity_field_registry'
@@ -360,5 +371,9 @@ services:
 
     WeprestaAcf\Application\Form\ConfigurationType:
         parent: 'form.type.translatable.aware'
+        public: true
+
+    WeprestaAcf\Application\Form\Type\AcfFieldsType:
+        tags: ['form.type']
         public: true
 

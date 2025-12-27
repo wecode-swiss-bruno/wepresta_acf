@@ -81,6 +81,41 @@ function removeRule(index: number): void {
   if (!store.currentGroup || !Array.isArray(store.currentGroup.locationRules)) return
   store.currentGroup.locationRules.splice(index, 1)
 }
+
+/**
+ * Get human-readable label for a rule
+ */
+function getRuleLabel(rule: JsonLogicRule): string {
+  // Parse JsonLogic format: {"==": [{"var": "entity_type"}, "product"]}
+  if (rule['=='] && Array.isArray(rule['=='])) {
+    const entityValue = rule['=='][1]
+    const location = findLocationByValue(entityValue)
+    if (location) {
+      return `Show on ${location.label}`
+    }
+    return `Entity = ${entityValue}`
+  }
+  if (rule['!='] && Array.isArray(rule['!='])) {
+    const entityValue = rule['!='][1]
+    const location = findLocationByValue(entityValue)
+    if (location) {
+      return `Exclude ${location.label}`
+    }
+    return `Entity ≠ ${entityValue}`
+  }
+  return JSON.stringify(rule)
+}
+
+/**
+ * Find location by value across all groups
+ */
+function findLocationByValue(value: string): LocationOption | undefined {
+  for (const group of locationGroups.value) {
+    const found = group.items.find(l => l.value === value)
+    if (found) return found
+  }
+  return undefined
+}
 </script>
 
 <template>
@@ -97,11 +132,13 @@ function removeRule(index: number): void {
           class="list-group-item d-flex justify-content-between align-items-center"
         >
           <span>
-            <code>{{ JSON.stringify(rule) }}</code>
+            <i class="material-icons text-primary" style="font-size: 18px; vertical-align: middle;">check_circle</i>
+            {{ getRuleLabel(rule) }}
           </span>
           <button
             class="btn btn-sm btn-outline-danger"
             @click="removeRule(index)"
+            :title="t('removeRule') || 'Remove rule'"
           >
             <i class="material-icons" style="font-size: 18px;">delete</i>
           </button>
@@ -133,7 +170,7 @@ function removeRule(index: number): void {
                 :value="location.value"
               >
                 {{ location.label }}
-                <span v-if="location.description" class="text-muted"> - {{ location.description }}</span>
+                {{ location.integration_type === 'legacy' ? ' (legacy)' : '' }}
               </option>
             </optgroup>
           </select>

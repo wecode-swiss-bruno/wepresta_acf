@@ -61,6 +61,7 @@ export interface LocationOption {
   icon?: string
   description?: string
   provider: string
+  integration_type?: 'symfony' | 'legacy'
 }
 
 export interface AcfConfig {

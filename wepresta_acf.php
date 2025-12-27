@@ -23,14 +23,16 @@ if (!defined('_PS_VERSION_')) {
 
 require_once __DIR__ . '/autoload.php';
 
+use WeprestaAcf\Application\Config\EntityHooksConfig;
 use WeprestaAcf\Application\Installer\ModuleInstaller;
 use WeprestaAcf\Application\Installer\ModuleUninstaller;
 use WeprestaAcf\Application\Service\AcfServiceContainer;
+use WeprestaAcf\Application\Service\FormModifierService;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 
 class WeprestaAcf extends Module
 {
-    public const VERSION = '1.1.0';
+    public const VERSION = '1.2.0';
 
     public const HOOKS = [
         // Product Admin
@@ -96,7 +98,10 @@ class WeprestaAcf extends Module
     }
 
     /**
-     * Gets all hooks to register (static + dynamic from EntityFieldRegistry).
+     * Gets all hooks to register (static + dynamic from EntityHooksConfig).
+     *
+     * Uses the centralized EntityHooksConfig to get all FormBuilderModifier,
+     * FormHandler, and ObjectModel hooks for all supported entities.
      *
      * @return array<string>
      */
@@ -109,23 +114,10 @@ class WeprestaAcf extends Module
             'displayProductAdditionalInfo', // Front-office product display
         ];
 
-        // Get hooks from EntityFieldRegistry
-        try {
-            $registry = $this->getService(\WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry::class);
-            if ($registry !== null) {
-                $dynamicHooks = $registry->getAllHooks();
-                return array_unique(array_merge($staticHooks, $dynamicHooks));
-            }
-        } catch (\Exception $e) {
-            $this->log('Error getting hooks from EntityFieldRegistry: ' . $e->getMessage(), 2);
-        }
+        // Get all hooks from centralized configuration
+        $dynamicHooks = EntityHooksConfig::getAllHooks();
 
-        // Fallback to static hooks + product hooks
-        return array_merge($staticHooks, [
-            'displayAdminProductsExtra',
-            'actionProductUpdate',
-            'actionProductAdd',
-        ]);
+        return array_unique(array_merge($staticHooks, $dynamicHooks));
     }
 
     public function uninstall(): bool
@@ -258,6 +250,237 @@ class WeprestaAcf extends Module
         if ($object instanceof \Customer) {
             $this->handleActionHook('customer', ['id_customer' => (int) $object->id], 'id_customer');
         }
+    }
+
+    // =========================================================================
+    // MAGIC HOOK HANDLER - Handles 139+ hooks dynamically
+    // =========================================================================
+
+    /**
+     * Magic method to handle all entity hooks dynamically.
+     *
+     * This method intercepts calls to hook methods that don't exist and routes
+     * them to the appropriate handler based on the hook name pattern:
+     *
+     * - hookAction{EntityName}FormBuilderModifier -> handleFormBuilderModifier()
+     * - hookActionAfter(Create|Update){EntityName}FormHandler -> handleFormHandler()
+     * - hookActionObject{ClassName}(Add|Update)After -> handleObjectModelHook()
+     * - hookDisplay{AdminXxx} -> handleDisplayHook()
+     *
+     * @param string $method Method name (e.g., 'hookActionCustomerFormBuilderModifier')
+     * @param array $args Method arguments
+     * @return mixed
+     */
+    public function __call(string $method, array $args): mixed
+    {
+        // Only handle hook* methods
+        if (!str_starts_with($method, 'hook')) {
+            return null;
+        }
+
+        $hookName = substr($method, 4); // Remove 'hook' prefix
+        $params = $args[0] ?? [];
+
+        // Pattern 1: action{EntityName}FormBuilderModifier
+        // Example: actionCustomerFormBuilderModifier -> customer
+        if (preg_match('/^action(\w+)FormBuilderModifier$/', $hookName, $matches)) {
+            $entityType = $this->entityTypeFromFormBuilderHook($hookName);
+            if ($entityType !== null) {
+                $this->handleFormBuilderModifierHook($entityType, $params);
+                return null;
+            }
+        }
+
+        // Pattern 2: actionAfter(Create|Update){EntityName}FormHandler
+        // Example: actionAfterUpdateCustomerFormHandler -> customer
+        if (preg_match('/^actionAfter(Create|Update)(\w+)FormHandler$/', $hookName, $matches)) {
+            $operation = strtolower($matches[1]); // 'create' or 'update'
+            $entityType = $this->entityTypeFromFormHandlerHook($hookName);
+            if ($entityType !== null) {
+                $this->handleFormHandlerHook($entityType, $operation, $params);
+                return null;
+            }
+        }
+
+        // Pattern 3: actionObject{ClassName}(Add|Update)After
+        // Example: actionObjectAddressAddAfter -> customer_address
+        if (preg_match('/^actionObject(\w+)(Add|Update)After$/', $hookName, $matches)) {
+            $entityType = $this->entityTypeFromObjectHook($hookName);
+            if ($entityType !== null) {
+                $this->handleObjectModelHook($entityType, $params);
+                return null;
+            }
+        }
+
+        // Pattern 4: displayAdmin{Xxx} - handled by explicit methods or here
+        if (preg_match('/^displayAdmin(\w+)$/', $hookName, $matches)) {
+            $entityType = $this->entityTypeFromDisplayHook($hookName);
+            if ($entityType !== null) {
+                return $this->handleGenericDisplayHook($entityType, $params);
+            }
+        }
+
+        // Not a hook we handle - return null
+        return null;
+    }
+
+    /**
+     * Handle FormBuilderModifier hook - adds ACF fields to Symfony forms.
+     *
+     * @param string $entityType Entity type
+     * @param array $params Hook parameters (form_builder, data, id, etc.)
+     */
+    private function handleFormBuilderModifierHook(string $entityType, array $params): void
+    {
+        if (!$this->isActive()) {
+            return;
+        }
+
+        try {
+            $formModifierService = $this->getService(FormModifierService::class);
+            if ($formModifierService === null) {
+                return;
+            }
+
+            $formBuilder = $params['form_builder'] ?? null;
+            if (!$formBuilder instanceof \Symfony\Component\Form\FormBuilderInterface) {
+                return;
+            }
+
+            $entityId = $formModifierService->getEntityIdFromParams($entityType, $params);
+            $data = &$params['data'];
+
+            $formModifierService->modifyForm($formBuilder, $entityType, $entityId, $data);
+        } catch (\Exception $e) {
+            $this->log("Error in FormBuilderModifier for {$entityType}: " . $e->getMessage(), 3);
+        }
+    }
+
+    /**
+     * Handle FormHandler hook - saves ACF field values after form submission.
+     *
+     * @param string $entityType Entity type
+     * @param string $operation 'create' or 'update'
+     * @param array $params Hook parameters (id, form_data, etc.)
+     */
+    private function handleFormHandlerHook(string $entityType, string $operation, array $params): void
+    {
+        if (!$this->isActive()) {
+            return;
+        }
+
+        try {
+            $formModifierService = $this->getService(FormModifierService::class);
+            if ($formModifierService === null) {
+                return;
+            }
+
+            $entityId = $formModifierService->getEntityIdFromParams($entityType, $params);
+            if ($entityId === null || $entityId <= 0) {
+                return;
+            }
+
+            $formData = $params['form_data'] ?? [];
+            $formModifierService->saveAcfData($entityType, $entityId, $formData);
+        } catch (\Exception $e) {
+            $this->log("Error in FormHandler for {$entityType} ({$operation}): " . $e->getMessage(), 3);
+        }
+    }
+
+    /**
+     * Handle ObjectModel hook - saves ACF field values for legacy entities.
+     *
+     * @param string $entityType Entity type
+     * @param array $params Hook parameters (object, etc.)
+     */
+    private function handleObjectModelHook(string $entityType, array $params): void
+    {
+        if (!$this->isActive()) {
+            return;
+        }
+
+        $object = $params['object'] ?? null;
+        if ($object === null || !method_exists($object, 'id')) {
+            return;
+        }
+
+        $entityId = (int) $object->id;
+        if ($entityId <= 0) {
+            return;
+        }
+
+        // Determine the correct ID key based on entity type
+        $idKey = 'id_' . $entityType;
+
+        $this->handleActionHook($entityType, [$idKey => $entityId], $idKey);
+    }
+
+    /**
+     * Handle generic display hook for entities without explicit hook methods.
+     *
+     * @param string $entityType Entity type
+     * @param array $params Hook parameters
+     * @return string HTML output
+     */
+    private function handleGenericDisplayHook(string $entityType, array $params): string
+    {
+        if (!$this->isActive()) {
+            return '';
+        }
+
+        // Try to find entity ID from various common parameter names
+        $idKey = 'id_' . $entityType;
+        $entityId = (int) ($params[$idKey] ?? $params['id'] ?? 0);
+
+        if ($entityId <= 0) {
+            return '';
+        }
+
+        return $this->handleDisplayHook($entityType, $params, $idKey);
+    }
+
+    /**
+     * Gets entity type from FormBuilderModifier hook name.
+     *
+     * @param string $hookName Hook name (e.g., 'actionCustomerFormBuilderModifier')
+     * @return string|null Entity type or null
+     */
+    private function entityTypeFromFormBuilderHook(string $hookName): ?string
+    {
+        return EntityHooksConfig::getEntityByHook($hookName);
+    }
+
+    /**
+     * Gets entity type from FormHandler hook name.
+     *
+     * @param string $hookName Hook name (e.g., 'actionAfterUpdateCustomerFormHandler')
+     * @return string|null Entity type or null
+     */
+    private function entityTypeFromFormHandlerHook(string $hookName): ?string
+    {
+        return EntityHooksConfig::getEntityByHook($hookName);
+    }
+
+    /**
+     * Gets entity type from ObjectModel hook name.
+     *
+     * @param string $hookName Hook name (e.g., 'actionObjectAddressAddAfter')
+     * @return string|null Entity type or null
+     */
+    private function entityTypeFromObjectHook(string $hookName): ?string
+    {
+        return EntityHooksConfig::getEntityByHook($hookName);
+    }
+
+    /**
+     * Gets entity type from display hook name.
+     *
+     * @param string $hookName Hook name (e.g., 'displayAdminCustomers')
+     * @return string|null Entity type or null
+     */
+    private function entityTypeFromDisplayHook(string $hookName): ?string
+    {
+        return EntityHooksConfig::getEntityByHook($hookName);
     }
 
     /**
