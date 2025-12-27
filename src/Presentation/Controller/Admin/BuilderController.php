@@ -7,6 +7,7 @@ namespace WeprestaAcf\Presentation\Controller\Admin;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\Response;
+use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Application\Service\FieldTypeRegistry;
 use WeprestaAcf\Application\Service\FieldTypeLoader;
 
@@ -17,7 +18,8 @@ final class BuilderController extends FrameworkBundleAdminController
 {
     public function __construct(
         private readonly FieldTypeRegistry $fieldTypeRegistry,
-        private readonly FieldTypeLoader $fieldTypeLoader
+        private readonly FieldTypeLoader $fieldTypeLoader,
+        private readonly LocationProviderRegistry $locationProviderRegistry
     ) {}
 
     #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
@@ -49,10 +51,14 @@ final class BuilderController extends FrameworkBundleAdminController
             ];
         }
 
+        // Get all available locations (entity types, product categories, etc.)
+        $locations = $this->locationProviderRegistry->getLocationsGrouped();
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/builder.html.twig', [
             'layoutTitle' => $this->trans('ACF Field Builder', 'Modules.Weprestaacf.Admin'),
             'enableSidebar' => true,
             'fieldTypes' => $fieldTypes,
+            'locations' => $locations,
             // Toolbar buttons are now handled dynamically via Vue.js and DOM manipulation
             // The buttons are injected via header_toolbar_btn block and controlled by Vue state
             'layoutHeaderToolbarBtn' => [],

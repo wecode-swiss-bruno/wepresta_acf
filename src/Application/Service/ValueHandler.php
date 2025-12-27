@@ -126,7 +126,12 @@ final class ValueHandler
         if (is_string($value)) { return $value; }
         if (is_bool($value)) { return $value ? '1' : '0'; }
         if (is_numeric($value)) { return (string) $value; }
-        if (is_array($value) || is_object($value)) { return json_encode($value, JSON_THROW_ON_ERROR); }
+        if (is_array($value) || is_object($value)) {
+            // Convert empty objects/arrays to null (they should have been normalized already)
+            if (is_array($value) && empty($value)) { return null; }
+            if (is_object($value) && (array) $value === []) { return null; }
+            return json_encode($value, JSON_THROW_ON_ERROR);
+        }
         return (string) $value;
     }
 }

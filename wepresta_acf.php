@@ -155,150 +155,114 @@ class WeprestaAcf extends Module
     }
 
     // =========================================================================
-    // ADMIN PRODUCT HOOKS
+    // GENERIC ENTITY HOOKS (Product, Order, Customer, CPT, etc.)
     // =========================================================================
 
+    /**
+     * Generic display hook handler for all entity types.
+     * Uses EntityFieldService to render fields for any entity.
+     */
     public function hookDisplayAdminProductsExtra(array $params): string
     {
-        if (!$this->isActive()) { return ''; }
+        return $this->handleDisplayHook('product', $params, 'id_product');
+    }
 
-        $productId = (int) ($params['id_product'] ?? 0);
-        if ($productId <= 0) { return ''; }
+    /**
+     * Display hook for Order entity.
+     */
+    public function hookDisplayAdminOrderMain(array $params): string
+    {
+        return $this->handleDisplayHook('order', $params, 'id_order');
+    }
+
+    /**
+     * Generic display hook handler.
+     *
+     * @param string $entityType Entity type (e.g., 'product', 'order', 'customer')
+     * @param array $params Hook parameters
+     * @param string $idKey Key in params array for entity ID (e.g., 'id_product', 'id_order')
+     * @return string HTML output
+     */
+    private function handleDisplayHook(string $entityType, array $params, string $idKey): string
+    {
+        if (!$this->isActive()) {
+            return '';
+        }
+
+        $entityId = (int) ($params[$idKey] ?? 0);
+        if ($entityId <= 0) {
+            return '';
+        }
 
         try {
-            // Load custom field types from theme/uploads before using the registry
-            AcfServiceContainer::loadCustomFieldTypes();
-
-            $groupRepository = AcfServiceContainer::getGroupRepository();
-            $fieldRepository = AcfServiceContainer::getFieldRepository();
-            $valueProvider = AcfServiceContainer::getValueProvider();
-            $fieldTypeRegistry = AcfServiceContainer::getFieldTypeRegistry();
-
-            $groups = $groupRepository->findActiveGroups((int) $this->context->shop->id);
-            if (empty($groups)) { return ''; }
-
-            $languages = Language::getLanguages(true);
-            $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
-            $currentLangId = (int) $this->context->language->id;
-
-            // Get values for current language (non-translatable fields)
-            $values = $valueProvider->getProductFieldValues($productId, null, $currentLangId);
-
-            // Get values for all languages (translatable fields)
-            $valuesPerLang = [];
-            foreach ($languages as $lang) {
-                $valuesPerLang[(int) $lang['id_lang']] = $valueProvider->getProductFieldValues($productId, null, (int) $lang['id_lang']);
+            $entityFieldService = $this->getService(\WeprestaAcf\Application\Service\EntityFieldService::class);
+            if ($entityFieldService === null) {
+                return '';
             }
 
-            $groupsData = [];
-            foreach ($groups as $group) {
-                $groupId = (int) $group['id_wepresta_acf_group'];
-                $fields = $fieldRepository->findByGroup($groupId);
-
-                $fieldsHtml = [];
-                foreach ($fields as $field) {
-                    $slug = $field['slug'];
-                    $type = $field['type'];
-                    $isTranslatable = (bool) $field['translatable'];
-                    $fieldType = $fieldTypeRegistry->getOrNull($type);
-
-                    if (!$fieldType) {
-                        continue;
-                    }
-
-                    $fieldData = [
-                        'slug' => $slug,
-                        'title' => $field['title'],
-                        'instructions' => $field['instructions'],
-                        'required' => (bool) (json_decode($field['validation'] ?? '{}', true)['required'] ?? false),
-                        'translatable' => $isTranslatable,
-                    ];
-
-                    // For repeater fields, load children and generate JS templates
-                    if ($type === 'repeater') {
-                        $fieldId = (int) $field['id_wepresta_acf_field'];
-                        $children = $fieldRepository->findByParent($fieldId);
-                        $field['children'] = $children;
-                        $field['jsTemplates'] = [];
-                        foreach ($children as $child) {
-                            $childType = $fieldTypeRegistry->getOrNull($child['type']);
-                            if ($childType) {
-                                $field['jsTemplates'][$child['slug']] = $childType->getJsTemplate($child);
-                            }
-                        }
-                    }
-
-                    if ($isTranslatable) {
-                        // Render field for each language
-                        $langInputs = [];
-                        foreach ($languages as $lang) {
-                            $langId = (int) $lang['id_lang'];
-                            $langValue = $valuesPerLang[$langId][$slug] ?? null;
-                            $langInputs[] = [
-                                'id_lang' => $langId,
-                                'iso_code' => $lang['iso_code'],
-                                'name' => $lang['name'],
-                                'is_default' => $langId === $defaultLangId,
-                                'html' => $fieldType->renderAdminInput($field, $langValue, [
-                                    'prefix' => 'acf_',
-                                    'suffix' => '_' . $langId,
-                                    'fieldRenderer' => $fieldTypeRegistry,
-                                ]),
-                            ];
-                        }
-                        $fieldData['lang_inputs'] = $langInputs;
-                        $fieldData['html'] = ''; // Will be built in template
-                    } else {
-                        $value = $values[$slug] ?? null;
-                        $fieldData['html'] = $fieldType->renderAdminInput($field, $value, [
-                            'prefix' => 'acf_',
-                            'fieldRenderer' => $fieldTypeRegistry,
-                        ]);
-                        $fieldData['lang_inputs'] = [];
-                    }
-
-                    $fieldsHtml[] = $fieldData;
-                }
-
-                $groupsData[] = [
-                    'id' => $groupId,
-                    'title' => $group['title'],
-                    'description' => $group['description'],
-                    'fields' => $fieldsHtml,
-                ];
-            }
-
-            // Build API base URL for relation search
-            $adminLink = $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]);
-            $apiBaseUrl = preg_replace('/\?.*$/', '', $adminLink);
-            $apiBaseUrl = str_replace('/index.php/configure/module', '', $apiBaseUrl);
-
-            $this->context->smarty->assign([
-                'acf_groups' => $groupsData,
-                'acf_product_id' => $productId,
-                'acf_languages' => $languages,
-                'acf_default_lang' => $defaultLangId,
-                'link' => $this->context->link,
-                'base_url' => $this->context->shop->getBaseURL(true),
-                'id_product' => $productId,
-                'acf_api_base_url' => $this->getAdminApiBaseUrl(),
-            ]);
-
-            return $this->fetch('module:wepresta_acf/views/templates/admin/product-fields.tpl');
+            return $entityFieldService->renderFieldsForEntity($entityType, $entityId, $this);
         } catch (\Exception $e) {
-            $this->log('Error in hookDisplayAdminProductsExtra: ' . $e->getMessage(), 3);
+            $this->log("Error in handleDisplayHook for {$entityType}: " . $e->getMessage(), 3);
             return '<div class="alert alert-danger">ACF Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
 
     public function hookActionProductUpdate(array $params): void
     {
-        $this->saveProductFields($params);
+        $this->handleActionHook('product', $params, 'id_product');
     }
 
     public function hookActionProductAdd(array $params): void
     {
-        $this->saveProductFields($params);
+        $this->handleActionHook('product', $params, 'id_product');
+    }
+
+    /**
+     * Action hooks for Order entity.
+     */
+    public function hookActionObjectOrderUpdateAfter(array $params): void
+    {
+        $this->handleActionHook('order', $params, 'id_order');
+    }
+
+    public function hookActionOrderStatusUpdate(array $params): void
+    {
+        $this->handleActionHook('order', $params, 'id_order');
+    }
+
+    public function hookActionOrderStatusPostUpdate(array $params): void
+    {
+        $this->handleActionHook('order', $params, 'id_order');
+    }
+
+    /**
+     * Generic action hook handler for saving field values.
+     *
+     * @param string $entityType Entity type (e.g., 'product', 'order', 'customer')
+     * @param array $params Hook parameters
+     * @param string $idKey Key in params array for entity ID
+     */
+    private function handleActionHook(string $entityType, array $params, string $idKey): void
+    {
+        if (!$this->isActive()) {
+            return;
+        }
+
+        $entityId = (int) ($params[$idKey] ?? $params['object']?->id ?? 0);
+        if ($entityId <= 0) {
+            return;
+        }
+
+        try {
+            $entityFieldService = $this->getService(\WeprestaAcf\Application\Service\EntityFieldService::class);
+            if ($entityFieldService === null) {
+                return;
+            }
+
+            $entityFieldService->saveFieldsForEntity($entityType, $entityId, $_POST, $_FILES, $this);
+        } catch (\Exception $e) {
+            $this->log("Error in handleActionHook for {$entityType}: " . $e->getMessage(), 3);
+        }
     }
 
     private function saveProductFields(array $params): void
@@ -390,7 +354,13 @@ class WeprestaAcf extends Module
                     if (in_array($langId, $langIds, true)) {
                         $field = $fieldRepository->findBySlug($slug);
                         if ($field && (bool) $field['translatable']) {
-                            $translatableValues[$slug][$langId] = $value;
+                            // For richtext translatable fields, get raw HTML from POST
+                            if ($field['type'] === 'richtext') {
+                                $rawValue = $_POST[$key] ?? $value;
+                                $translatableValues[$slug][$langId] = $rawValue;
+                            } else {
+                                $translatableValues[$slug][$langId] = $value;
+                            }
                             continue;
                         }
                     }
@@ -399,7 +369,15 @@ class WeprestaAcf extends Module
                 // Skip if already processed (gallery, files, image, video)
                 if (isset($processedSlugs[$keyWithoutPrefix])) { continue; }
 
-                $values[$keyWithoutPrefix] = $value;
+                // For richtext fields, preserve raw HTML - don't let PrestaShop clean it
+                $field = $fieldRepository->findBySlug($keyWithoutPrefix);
+                if ($field && $field['type'] === 'richtext') {
+                    // Get raw value from POST to avoid any PrestaShop cleaning
+                    $rawValue = $_POST[$key] ?? $value;
+                    $values[$keyWithoutPrefix] = $rawValue;
+                } else {
+                    $values[$keyWithoutPrefix] = $value;
+                }
             }
 
             // =========================================================================

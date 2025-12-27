@@ -227,6 +227,12 @@ services:
     WeprestaAcf\Application\Provider\EntityField\CurrencyEntityFieldProvider:
         public: true
 
+    WeprestaAcf\Application\Provider\EntityField\OrderEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CartEntityFieldProvider:
+        public: true
+
     # Service to register all entity field providers with the registry
     WeprestaAcf\Application\Service\EntityFieldRegistryInitializer:
         arguments:
@@ -246,6 +252,8 @@ services:
                 - '@WeprestaAcf\Application\Provider\EntityField\CountryEntityFieldProvider'
                 - '@WeprestaAcf\Application\Provider\EntityField\StateEntityFieldProvider'
                 - '@WeprestaAcf\Application\Provider\EntityField\CurrencyEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\OrderEntityFieldProvider'
+                - '@WeprestaAcf\Application\Provider\EntityField\CartEntityFieldProvider'
         tags: ['kernel.event_subscriber']
         public: true
 

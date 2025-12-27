@@ -68,19 +68,49 @@ final class RichTextField extends AbstractFieldType
 
         $html = (string) $value;
 
-        // SECURITY: Sanitize HTML but preserve allowed styling
-        // Tools::purifyHTML is too aggressive - it strips inline styles
+        // DEBUG: Log raw value to see what we receive
+        // PrestaShopLogger::addLog('ACF RichText normalizeValue RAW: ' . substr($html, 0, 200), 1);
+
+        // Remove slashes if PrestaShop added them (addslashes)
+        // PrestaShop may add slashes to POST data, so we remove them first
+        if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
+            $html = stripslashes($html);
+        } else {
+            // Even if magic quotes are off, PrestaShop might still add slashes
+            // Only remove if we detect escaped quotes (but not in HTML attributes)
+            if (preg_match('/\\\\["\']/', $html)) {
+                $html = stripslashes($html);
+            }
+        }
+
+        // Decode HTML entities if they were escaped by PrestaShop or browser
+        // This handles cases where < becomes &lt; etc.
+        // We decode first, then sanitize to ensure we work with actual HTML
+        // Only decode if we detect HTML entities (to avoid double-decoding)
+        if (preg_match('/&(?:lt|gt|amp|quot|#\d+);/', $html)) {
+            $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        // SECURITY: Sanitize HTML but preserve ALL formatting tags (ul, li, p, strong, em, etc.)
+        // Tools::purifyHTML is too aggressive - it strips inline styles and can transform HTML
         // We use a more permissive approach while still preventing XSS
 
-        // Remove potentially dangerous tags but keep formatting
+        // Remove ONLY potentially dangerous tags but keep ALL formatting
         $html = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html);
         $html = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $html);
         $html = preg_replace('/on\w+\s*=\s*"[^"]*"/i', '', $html);
         $html = preg_replace('/on\w+\s*=\s*\'[^\']*\'/i', '', $html);
         $html = preg_replace('/javascript:/i', '', $html);
 
+        // IMPORTANT: Do NOT use Tools::purifyHTML() - it transforms HTML structure
+        // Do NOT strip tags - preserve ul, li, p, strong, em, etc.
+        // The HTML is already sanitized above (scripts/styles/events removed)
+
         // Trim whitespace
         $html = trim($html);
+
+        // DEBUG: Log final value to see what we save
+        // PrestaShopLogger::addLog('ACF RichText normalizeValue FINAL: ' . substr($html, 0, 200), 1);
 
         return $html === '' ? null : $html;
     }

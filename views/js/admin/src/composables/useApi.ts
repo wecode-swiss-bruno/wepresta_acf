@@ -130,6 +130,13 @@ export function useApi() {
     return response.data?.slug || ''
   }
 
+  /**
+   * Generic fetchJson method for custom endpoints
+   */
+  async function fetchJson<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    return request<T>(endpoint, options)
+  }
+
   return {
     // Groups
     getGroups,
@@ -145,5 +152,6 @@ export function useApi() {
     reorderFields,
     // Utilities
     slugify,
+    fetchJson,
   }
 }

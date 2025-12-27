@@ -21,18 +21,16 @@
     <link rel="stylesheet" href="{{ asset('../modules/wepresta_acf/views/dist/admin.css') }}">
 {% endblock %}
 
-{# Add Save button to header toolbar #}
-{% block header_toolbar_btn %}
-    <div class="toolbar-icons">
-        <div class="wrapper">
-            <span class="badge badge-secondary mr-2" style="font-size: 11px; padding: 6px 10px;">v{{ moduleVersion }}</span>
-            <button type="submit" form="configuration-form" class="btn btn-primary">
-                <i class="material-icons">save</i>
-                {{ 'Save'|trans({}, 'Admin.Actions') }}
-            </button>
-        </div>
-    </div>
-{% endblock %}
+{# Define toolbar buttons - rendered by PrestaShop Toolbar component #}
+{% set layoutHeaderToolbarBtn = {
+    'save': {
+        'href': '#',
+        'desc': 'Save'|trans({}, 'Admin.Actions'),
+        'icon': 'save',
+        'class': 'btn-primary',
+        'js': 'return false;'
+    }
+} %}
 
 {% block content %}
 {# Include WEDEV UI Partials #}
@@ -454,6 +452,18 @@
     <script src="{{ asset('../modules/wepresta_acf/views/dist/admin.js') }}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Setup Save button in toolbar
+        const saveBtn = document.querySelector('[id*="save"]');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = document.getElementById('configuration-form');
+                if (form) {
+                    form.submit();
+                }
+            });
+        }
+
         // Tab persistence
         const hash = window.location.hash;
         if (hash) {

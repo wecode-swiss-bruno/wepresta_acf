@@ -53,6 +53,16 @@ export interface FieldTypesResponse {
 /**
  * Window configuration injected by PHP
  */
+export interface LocationOption {
+  type: string
+  value: string
+  label: string
+  group: string
+  icon?: string
+  description?: string
+  provider: string
+}
+
 export interface AcfConfig {
   apiUrl: string
   token: string
@@ -63,6 +73,7 @@ export interface AcfConfig {
     icon: string
     category: string
   }>
+  locations: Record<string, LocationOption[]>
   productTabs: Array<{
     value: string
     label: string

@@ -165,11 +165,11 @@ function getGroupSyncStatus(groupId: number): string {
       </div>
 
       <!-- Empty state -->
-      <div v-if="store.groups.length === 0 && themeOnlyGroups.length === 0" class="text-center py-5">
+      <div v-if="!store.loading && store.groups.length === 0 && themeOnlyGroups.length === 0" class="text-center py-5">
         <i class="material-icons text-muted mb-3" style="font-size: 64px;">widgets</i>
         <p class="text-muted mb-3">{{ t('noGroups') }}</p>
-        <div class="d-flex gap-2 justify-content-center">
-          <button class="btn btn-outline-primary" @click="store.createNewGroup">
+        <div class="d-flex justify-content-center">
+          <button class="btn btn-outline-primary mr-2" @click="store.createNewGroup">
             <i class="material-icons">add</i>
             {{ t('addGroup') }}
           </button>

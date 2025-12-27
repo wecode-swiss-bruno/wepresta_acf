@@ -11,7 +11,9 @@ use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Db;
+use Module;
 
 class UtilityApiController extends FrameworkBundleAdminController
 {
@@ -65,6 +67,61 @@ class UtilityApiController extends FrameworkBundleAdminController
             return $this->json(['success' => true, 'data' => ['slug' => $slug]]);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Force upgrade the module by resetting version and triggering upgrade.
+     */
+    #[AdminSecurity("is_granted('modify', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
+    public function forceUpgrade(): JsonResponse
+    {
+        try {
+            $module = Module::getInstanceByName('wepresta_acf');
+            if (!$module) {
+                return $this->json(['success' => false, 'error' => 'Module not found'], Response::HTTP_NOT_FOUND);
+            }
+
+            // Get current version from database
+            $currentVersion = $module->version ?? '1.0.0';
+            $targetVersion = $module::VERSION;
+
+            if ($currentVersion === $targetVersion) {
+                return $this->json([
+                    'success' => true,
+                    'skipped' => true,
+                    'message' => "Module is already at version {$targetVersion}",
+                    'current_version' => $currentVersion,
+                    'target_version' => $targetVersion,
+                ]);
+            }
+
+            // Force upgrade by resetting version in database
+            $db = Db::getInstance();
+            $db->execute('UPDATE `' . _DB_PREFIX_ . 'module` SET `version` = "1.0.0" WHERE `name` = "wepresta_acf"');
+
+            // Trigger upgrade
+            $result = $module->runUpgradeModule();
+
+            if ($result) {
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Upgrade completed successfully',
+                    'previous_version' => $currentVersion,
+                    'new_version' => $module->version ?? $targetVersion,
+                ]);
+            }
+
+            $errors = !empty($module->_errors) ? $module->_errors : ['Unknown upgrade error'];
+            return $this->json([
+                'success' => false,
+                'error' => implode(', ', $errors),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        } catch (\Exception $e) {
+            return $this->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 

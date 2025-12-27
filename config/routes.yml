@@ -150,6 +150,12 @@ wepresta_acf_api_seed:
     defaults:
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::seed'
 
+wepresta_acf_api_force_upgrade:
+    path: /modules/wepresta_acf/api/force-upgrade
+    methods: [POST]
+    defaults:
+        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::forceUpgrade'
+
 # =========================================================================
 # API - Sync
 # =========================================================================

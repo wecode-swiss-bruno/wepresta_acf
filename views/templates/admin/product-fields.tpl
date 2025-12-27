@@ -257,35 +257,47 @@
                 existing.remove();
             }
 
-            // Use PrestaShop's tinySetup if available
-            if (typeof tinySetup !== 'undefined') {
-                try {
-                    tinySetup({ editor_selector: textareaId });
-                    textarea.dataset.tinymceInit = '1';
-                } catch (e) {
-                    console.warn('[ACF] tinySetup failed:', e);
-                }
-            } else {
-                // Fallback: Initialize with default config
-                try {
-                    mce.init({
-                        selector: '#' + textareaId,
-                        height: 300,
-                        menubar: false,
-                        plugins: 'link image table lists paste code',
-                        toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image | code',
-                        relative_urls: false,
-                        convert_urls: false,
-                        setup: function(editor) {
-                            editor.on('change', function() {
-                                editor.save();
-                            });
-                        }
-                    });
-                    textarea.dataset.tinymceInit = '1';
-                } catch (e) {
-                    console.warn('[ACF] TinyMCE init failed:', e);
-                }
+            // CRITICAL: Don't use PrestaShop's tinySetup() - it transforms HTML
+            // Use direct TinyMCE init to preserve HTML structure
+            try {
+                mce.init({
+                    selector: '#' + textareaId,
+                    height: 300,
+                    menubar: false,
+                    plugins: 'link image table lists paste code',
+                    toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image | code',
+                    relative_urls: false,
+                    convert_urls: false,
+                    // CRITICAL: Preserve HTML structure - don't convert lists to paragraphs
+                    forced_root_block: false,
+                    force_br_newlines: false,
+                    force_p_newlines: false,
+                    remove_linebreaks: false,
+                    convert_newlines_to_brs: false,
+                    // Preserve all HTML tags (ul, li, p, strong, em, etc.)
+                    valid_elements: '*[*]',
+                    extended_valid_elements: '*[*]',
+                    // Don't clean/transform HTML
+                    cleanup: false,
+                    verify_html: false,
+                    // Don't auto-format HTML
+                    apply_source_formatting: false,
+                    // Preserve whitespace
+                    remove_trailing_brs: false,
+                    setup: function(editor) {
+                        editor.on('change', function() {
+                            editor.save();
+                        });
+                        // Ensure HTML is saved as-is
+                        editor.on('GetContent', function(e) {
+                            // Don't let TinyMCE transform the HTML
+                            e.content = editor.getBody().innerHTML;
+                        });
+                    }
+                });
+                textarea.dataset.tinymceInit = '1';
+            } catch (e) {
+                console.warn('[ACF] TinyMCE init failed:', e);
             }
         });
     }
@@ -787,7 +799,7 @@
                 var translatableContainer = fieldEl.querySelector('.translations.tabbable');
                 if (translatableContainer) {
                     // Translatable field - collect per language
-                    values[slug] = {ldelim}{rdelim};
+                    var langValues = {ldelim}{rdelim};
                     translatableContainer.querySelectorAll('.tab-pane').forEach(function(pane) {
                         var locale = pane.dataset.locale;
                         // Extract lang_id from class name
@@ -798,14 +810,27 @@
                         var input = pane.querySelector('input, textarea, select');
                         if (input) {
                             var val = getInputValue(input);
-                            values[slug][langId] = val;
+                            // Only add if value is not empty
+                            if (val !== null && val !== undefined && val !== '') {
+                                langValues[langId] = val;
+                            }
                         }
                     });
+                    // Only add translatable field if it has at least one language value
+                    if (Object.keys(langValues).length > 0) {
+                        values[slug] = langValues;
+                    }
                 } else {
                     // Non-translatable field
                     var val = collectFieldValue(fieldEl, slug);
+                    // Convert empty objects/arrays to empty string, undefined to skip
                     if (val !== undefined) {
-                        values[slug] = val;
+                        // Convert empty objects to empty string
+                        if (typeof val === 'object' && val !== null && !Array.isArray(val) && Object.keys(val).length === 0) {
+                            values[slug] = '';
+                        } else {
+                            values[slug] = val;
+                        }
                     }
                 }
             });
@@ -828,9 +853,14 @@
             var hiddenValue = fieldEl.querySelector('.acf-repeater-value, .acf-list-value, .acf-relation-value');
             if (hiddenValue) {
                 try {
-                    return JSON.parse(hiddenValue.value || '[]');
+                    var parsed = JSON.parse(hiddenValue.value || '[]');
+                    // Return empty array as-is (for relation/list), but empty object as empty string
+                    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && Object.keys(parsed).length === 0) {
+                        return '';
+                    }
+                    return parsed;
                 } catch (e) {
-                    return hiddenValue.value;
+                    return hiddenValue.value || '';
                 }
             }
 
@@ -838,9 +868,13 @@
             var psSwitch = fieldEl.querySelector('.ps-switch input:checked');
             if (psSwitch) return psSwitch.value;
 
-            // Regular input
+            // Regular input (text, textarea, select, etc.)
             var input = fieldEl.querySelector('input[name^="acf_' + slug + '"], textarea[name^="acf_' + slug + '"], select[name^="acf_' + slug + '"]');
-            if (input) return getInputValue(input);
+            if (input) {
+                var val = getInputValue(input);
+                // Convert empty string to empty string (not undefined)
+                return val !== null && val !== undefined ? val : '';
+            }
 
             // Checkbox group
             var checkboxes = fieldEl.querySelectorAll('input[type="checkbox"][name^="acf_' + slug + '"]:checked');
@@ -850,6 +884,7 @@
                 });
             }
 
+            // No value found - return undefined to skip (don't add empty objects)
             return undefined;
         }
 

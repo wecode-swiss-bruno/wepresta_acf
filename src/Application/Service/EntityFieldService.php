@@ -363,7 +363,13 @@ final class EntityFieldService
                 if (in_array($langId, $langIds, true)) {
                     $field = $this->fieldRepository->findBySlug($slug);
                     if ($field && (bool) $field['translatable']) {
-                        $translatableValues[$slug][$langId] = $value;
+                        // For richtext translatable fields, get raw HTML from POST
+                        if ($field['type'] === 'richtext') {
+                            $rawValue = $_POST[$key] ?? $value;
+                            $translatableValues[$slug][$langId] = $rawValue;
+                        } else {
+                            $translatableValues[$slug][$langId] = $value;
+                        }
                         continue;
                     }
                 }
@@ -373,7 +379,16 @@ final class EntityFieldService
                 continue;
             }
 
-            $values[$keyWithoutPrefix] = $value;
+            // For richtext fields, preserve raw HTML - don't let PrestaShop clean it
+            $field = $this->fieldRepository->findBySlug($keyWithoutPrefix);
+            if ($field && $field['type'] === 'richtext') {
+                // Get raw value from POST to avoid any PrestaShop cleaning
+                $rawValue = $_POST[$key] ?? $value;
+                // Ensure we have the actual HTML, not cleaned/transformed version
+                $values[$keyWithoutPrefix] = $rawValue;
+            } else {
+                $values[$keyWithoutPrefix] = $value;
+            }
         }
 
         // Save all values
