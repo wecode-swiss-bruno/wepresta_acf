@@ -604,7 +604,9 @@ final class EntityHooksConfig
             self::buildHookToEntityMap();
         }
 
-        return self::$hookToEntityMap[$hookName] ?? null;
+        // Case-insensitive lookup
+        $hookNameLower = strtolower($hookName);
+        return self::$hookToEntityMap[$hookNameLower] ?? null;
     }
 
     /**
@@ -695,25 +697,26 @@ final class EntityHooksConfig
     {
         self::$hookToEntityMap = [];
 
+        // Store all keys in lowercase for case-insensitive lookup
         foreach (self::SYMFONY_ENTITIES as $entityType => $config) {
-            self::$hookToEntityMap[$config['form_builder_hook']] = $entityType;
+            self::$hookToEntityMap[strtolower($config['form_builder_hook'])] = $entityType;
             foreach ($config['form_handler_hooks'] as $hook) {
-                self::$hookToEntityMap[$hook] = $entityType;
+                self::$hookToEntityMap[strtolower($hook)] = $entityType;
             }
             if (isset($config['display_hooks'])) {
                 foreach ($config['display_hooks'] as $hook) {
-                    self::$hookToEntityMap[$hook] = $entityType;
+                    self::$hookToEntityMap[strtolower($hook)] = $entityType;
                 }
             }
         }
 
         foreach (self::LEGACY_ENTITIES as $entityType => $config) {
             foreach ($config['action_hooks'] as $hook) {
-                self::$hookToEntityMap[$hook] = $entityType;
+                self::$hookToEntityMap[strtolower($hook)] = $entityType;
             }
             if (isset($config['display_hooks'])) {
                 foreach ($config['display_hooks'] as $hook) {
-                    self::$hookToEntityMap[$hook] = $entityType;
+                    self::$hookToEntityMap[strtolower($hook)] = $entityType;
                 }
             }
         }

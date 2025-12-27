@@ -78,6 +78,7 @@ final class FormModifierService
             // Get active groups
             $shopId = (int) Context::getContext()->shop->id;
             $groups = $this->groupRepository->findActiveGroups($shopId);
+
             if (empty($groups)) {
                 return;
             }

@@ -283,7 +283,8 @@ class WeprestaAcf extends Module
 
         // Pattern 1: action{EntityName}FormBuilderModifier
         // Example: actionCustomerFormBuilderModifier -> customer
-        if (preg_match('/^action(\w+)FormBuilderModifier$/', $hookName, $matches)) {
+        // Note: Using /i flag for case-insensitive matching (PrestaShop passes hooks with varying case)
+        if (preg_match('/^action(\w+)FormBuilderModifier$/i', $hookName, $matches)) {
             $entityType = $this->entityTypeFromFormBuilderHook($hookName);
             if ($entityType !== null) {
                 $this->handleFormBuilderModifierHook($entityType, $params);
@@ -293,7 +294,7 @@ class WeprestaAcf extends Module
 
         // Pattern 2: actionAfter(Create|Update){EntityName}FormHandler
         // Example: actionAfterUpdateCustomerFormHandler -> customer
-        if (preg_match('/^actionAfter(Create|Update)(\w+)FormHandler$/', $hookName, $matches)) {
+        if (preg_match('/^actionAfter(Create|Update)(\w+)FormHandler$/i', $hookName, $matches)) {
             $operation = strtolower($matches[1]); // 'create' or 'update'
             $entityType = $this->entityTypeFromFormHandlerHook($hookName);
             if ($entityType !== null) {
@@ -304,7 +305,7 @@ class WeprestaAcf extends Module
 
         // Pattern 3: actionObject{ClassName}(Add|Update)After
         // Example: actionObjectAddressAddAfter -> customer_address
-        if (preg_match('/^actionObject(\w+)(Add|Update)After$/', $hookName, $matches)) {
+        if (preg_match('/^actionObject(\w+)(Add|Update)After$/i', $hookName, $matches)) {
             $entityType = $this->entityTypeFromObjectHook($hookName);
             if ($entityType !== null) {
                 $this->handleObjectModelHook($entityType, $params);
@@ -313,7 +314,7 @@ class WeprestaAcf extends Module
         }
 
         // Pattern 4: displayAdmin{Xxx} - handled by explicit methods or here
-        if (preg_match('/^displayAdmin(\w+)$/', $hookName, $matches)) {
+        if (preg_match('/^displayAdmin(\w+)$/i', $hookName, $matches)) {
             $entityType = $this->entityTypeFromDisplayHook($hookName);
             if ($entityType !== null) {
                 return $this->handleGenericDisplayHook($entityType, $params);
