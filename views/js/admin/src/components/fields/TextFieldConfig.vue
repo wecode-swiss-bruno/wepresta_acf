@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import { useFieldConfig } from '@/composables/useFieldConfig'
 
 const props = defineProps<{
   config: FieldConfig
@@ -12,41 +12,12 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
+const { createLocalRef } = useFieldConfig(props, emit)
 
-function updateConfig(key: keyof FieldConfig, value: unknown): void {
-  emit('update:config', { ...props.config, [key]: value })
-}
-
-// Local reactive values for v-model binding
-const placeholder = ref(props.config?.placeholder || '')
-const prefix = ref(props.config?.prefix || '')
-const suffix = ref(props.config?.suffix || '')
-
-// Watch for prop changes to sync local values
-watch(() => props.config?.placeholder, (newVal) => {
-  placeholder.value = newVal || ''
-})
-
-watch(() => props.config?.prefix, (newVal) => {
-  prefix.value = newVal || ''
-})
-
-watch(() => props.config?.suffix, (newVal) => {
-  suffix.value = newVal || ''
-})
-
-// Watch local values to emit updates
-watch(placeholder, (newVal) => {
-  updateConfig('placeholder', newVal || undefined)
-})
-
-watch(prefix, (newVal) => {
-  updateConfig('prefix', newVal || undefined)
-})
-
-watch(suffix, (newVal) => {
-  updateConfig('suffix', newVal || undefined)
-})
+// Local reactive values using the composable
+const placeholder = createLocalRef('placeholder', '')
+const prefix = createLocalRef('prefix', '')
+const suffix = createLocalRef('suffix', '')
 </script>
 
 <template>

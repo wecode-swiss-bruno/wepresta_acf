@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import { useFieldConfig } from '@/composables/useFieldConfig'
 
 const props = defineProps<{
   config: FieldConfig
@@ -12,32 +12,11 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
+const { createLocalRef } = useFieldConfig(props, emit)
 
-function updateConfig(key: keyof FieldConfig, value: unknown): void {
-  emit('update:config', { ...props.config, [key]: value })
-}
-
-// Local reactive values for v-model binding
-const minDate = ref(props.config?.minDate || '')
-const maxDate = ref(props.config?.maxDate || '')
-
-// Watch for prop changes to sync local values
-watch(() => props.config?.minDate, (newVal) => {
-  minDate.value = newVal || ''
-})
-
-watch(() => props.config?.maxDate, (newVal) => {
-  maxDate.value = newVal || ''
-})
-
-// Watch local values to emit updates
-watch(minDate, (newVal) => {
-  updateConfig('minDate', newVal || undefined)
-})
-
-watch(maxDate, (newVal) => {
-  updateConfig('maxDate', newVal || undefined)
-})
+// Local reactive values using the composable
+const minDate = createLocalRef('minDate', '')
+const maxDate = createLocalRef('maxDate', '')
 </script>
 
 <template>

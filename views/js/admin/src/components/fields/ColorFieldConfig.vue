@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import { useFieldConfig } from '@/composables/useFieldConfig'
 
 const props = defineProps<{
   config: FieldConfig
@@ -12,23 +12,10 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
+const { createBooleanRef } = useFieldConfig(props, emit)
 
-function updateConfig(key: keyof FieldConfig, value: unknown): void {
-  emit('update:config', { ...props.config, [key]: value })
-}
-
-// Local reactive values for v-model binding
-const showHex = ref(props.config?.showHex !== false)
-
-// Watch for prop changes to sync local values
-watch(() => props.config?.showHex, (newVal) => {
-  showHex.value = newVal !== false
-})
-
-// Watch local values to emit updates
-watch(showHex, (newVal) => {
-  updateConfig('showHex', newVal)
-})
+// Local reactive values using the composable
+const showHex = createBooleanRef('showHex', true)
 </script>
 
 <template>

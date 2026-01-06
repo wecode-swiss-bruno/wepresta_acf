@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import { useFieldConfig } from '@/composables/useFieldConfig'
 
 const props = defineProps<{
   config: FieldConfig
@@ -12,32 +12,11 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
+const { createLocalRef } = useFieldConfig(props, emit)
 
-function updateConfig(key: keyof FieldConfig, value: unknown): void {
-  emit('update:config', { ...props.config, [key]: value })
-}
-
-// Local reactive values for v-model binding
-const format = ref(props.config?.format || '24h')
-const step = ref(props.config?.step || 1)
-
-// Watch for prop changes to sync local values
-watch(() => props.config?.format, (newVal) => {
-  format.value = newVal || '24h'
-})
-
-watch(() => props.config?.step, (newVal) => {
-  step.value = newVal || 1
-})
-
-// Watch local values to emit updates
-watch(format, (newVal) => {
-  updateConfig('format', newVal)
-})
-
-watch(step, (newVal) => {
-  updateConfig('step', newVal)
-})
+// Local reactive values using the composable
+const format = createLocalRef('format', '24h')
+const step = createLocalRef('step', 1)
 </script>
 
 <template>
