@@ -376,7 +376,7 @@ final class SyncService
             'conditions' => json_decode($field['conditions'] ?? '[]', true),
             'wrapper' => json_decode($field['wrapper'] ?? '{}', true),
             'fo_options' => json_decode($field['fo_options'] ?? '{}', true),
-            'translatable' => (bool) ($field['translatable'] ?? false),
+            'value_translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false),
             'active' => (bool) ($field['active'] ?? true),
         ];
     }

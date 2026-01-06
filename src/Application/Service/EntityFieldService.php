@@ -111,7 +111,7 @@ final class EntityFieldService
                 foreach ($fields as $field) {
                     $slug = $field['slug'];
                     $type = $field['type'];
-                    $isTranslatable = (bool) $field['translatable'];
+                    $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
                     $fieldType = $this->fieldTypeRegistry->getOrNull($type);
 
                     if (!$fieldType) {
@@ -165,6 +165,8 @@ final class EntityFieldService
                         $fieldData['html'] = $fieldType->renderAdminInput($field, $value, [
                             'prefix' => 'acf_',
                             'fieldRenderer' => $this->fieldTypeRegistry,
+                            'entity_id' => $entityId,
+                            'id_product' => $entityType === 'product' ? $entityId : 0,
                         ]);
                         $fieldData['lang_inputs'] = [];
                     }
@@ -190,7 +192,7 @@ final class EntityFieldService
             $apiBaseUrl = preg_replace('/\?.*$/', '', $adminLink);
             $apiBaseUrl = str_replace('/index.php/configure/module', '', $apiBaseUrl);
 
-            $contextObj->smarty->assign([
+            $assignData = [
                 'acf_groups' => $groupsData,
                 'acf_entity_type' => $entityType,
                 'acf_entity_id' => $entityId,
@@ -199,7 +201,14 @@ final class EntityFieldService
                 'link' => $contextObj->link,
                 'base_url' => $contextObj->shop->getBaseURL(),
                 'acf_api_base_url' => $this->getAdminApiBaseUrl($module),
-            ]);
+            ];
+
+            // Add entity-specific IDs for backward compatibility
+            if ($entityType === 'product') {
+                $assignData['acf_product_id'] = $entityId;
+            }
+
+            $contextObj->smarty->assign($assignData);
 
             // Use generic template (will be created)
             return $module->fetch('module:wepresta_acf/views/templates/admin/entity-fields.tpl');
@@ -362,7 +371,7 @@ final class EntityFieldService
 
                 if (in_array($langId, $langIds, true)) {
                     $field = $this->fieldRepository->findBySlug($slug);
-                    if ($field && (bool) $field['translatable']) {
+                    if ($field && (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false)) {
                         // For richtext translatable fields, get raw HTML from POST
                         if ($field['type'] === 'richtext') {
                             $rawValue = $_POST[$key] ?? $value;

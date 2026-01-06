@@ -225,7 +225,8 @@ class UtilityApiController extends FrameworkBundleAdminController
                     'validation' => '{"required":false}',
                     'position' => $position++,
                     'active' => 1,
-                    'translatable' => (int) $field['translatable'],
+                    'value_translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false),
+                    'translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false), // Legacy
                     'date_add' => $now,
                     'date_upd' => $now,
                 ];

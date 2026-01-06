@@ -167,7 +167,7 @@ final class FormModifierService
             foreach ($fields as $field) {
                 $slug = $field['slug'];
                 $type = $field['type'];
-                $isTranslatable = (bool) $field['translatable'];
+                $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
                 $fieldType = $this->fieldTypeRegistry->getOrNull($type);
 
                 if (!$fieldType) {
@@ -337,7 +337,7 @@ final class FormModifierService
                     $langId = (int) $matches[2];
 
                     $field = $this->fieldRepository->findBySlug($baseSlug);
-                    if ($field && (bool) $field['translatable']) {
+                    if ($field && (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false)) {
                         $translatableValues[$baseSlug][$langId] = $value;
                         unset($acfData[$slug]);
                         continue;

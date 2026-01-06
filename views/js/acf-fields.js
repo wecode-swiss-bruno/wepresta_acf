@@ -171,10 +171,83 @@
         // Initialize TinyMCE for richtext fields
         initRichtextFields(container);
 
+        // Initialize ps-switch (boolean fields) status badges
+        initPsSwitchStatus(container);
+
         // Sync TinyMCE content before form submission
         syncTinyMCEOnSubmit();
 
         console.debug('[ACF] Dynamic fields initialized for entity');
+    }
+
+    // =========================================================================
+    // PS-SWITCH STATUS BADGE UPDATES
+    // =========================================================================
+    function initPsSwitchStatus(container) {
+        container.querySelectorAll('.ps-switch').forEach(function(psSwitch) {
+            // Find status badge (support older browsers, no optional chaining)
+            var flexContainer = psSwitch.closest('.d-flex');
+            if (!flexContainer) return;
+            
+            var statusContainer = flexContainer.querySelector('.acf-boolean-status');
+            if (!statusContainer) return;
+            
+            var statusBadge = statusContainer.querySelector('.badge');
+            if (!statusBadge) return;
+
+            var radios = psSwitch.querySelectorAll('input[type="radio"]');
+            
+            // Get labels with fallback
+            var trueLabelEl = psSwitch.querySelector('input[value="1"] + label');
+            var falseLabelEl = psSwitch.querySelector('input[value="0"] + label');
+            var trueLabel = trueLabelEl ? trueLabelEl.textContent.trim() : 'Oui';
+            var falseLabel = falseLabelEl ? falseLabelEl.textContent.trim() : 'Non';
+
+            console.log('[ACF] Initializing ps-switch status. Labels:', { trueLabel: trueLabel, falseLabel: falseLabel });
+
+            // Check data-initial-value attribute for fallback
+            var initialValue = psSwitch.getAttribute('data-initial-value');
+            console.log('[ACF] Initial value from data attribute:', initialValue);
+
+            function updateStatus() {
+                var checked = psSwitch.querySelector('input[type="radio"]:checked');
+                console.log('[ACF] Updating ps-switch status. Checked:', checked ? checked.value : 'none');
+                
+                // If no radio is checked, use data-initial-value to set one
+                if (!checked && initialValue !== null) {
+                    var targetRadio = psSwitch.querySelector('input[type="radio"][value="' + initialValue + '"]');
+                    if (targetRadio) {
+                        targetRadio.checked = true;
+                        checked = targetRadio;
+                        console.log('[ACF] Set checked from data-initial-value:', initialValue);
+                    }
+                }
+                
+                // Still no checked? Default to OFF (value=0)
+                if (!checked) {
+                    var offRadio = psSwitch.querySelector('input[type="radio"][value="0"]');
+                    if (offRadio) {
+                        offRadio.checked = true;
+                        checked = offRadio;
+                        console.log('[ACF] Defaulted to OFF (0)');
+                    }
+                }
+
+                var isTrue = checked && checked.value === '1';
+                statusBadge.textContent = isTrue ? trueLabel : falseLabel;
+                statusBadge.className = 'badge badge-' + (isTrue ? 'success' : 'secondary');
+                
+                console.log('[ACF] Status updated:', { isTrue: isTrue, text: statusBadge.textContent, class: statusBadge.className });
+            }
+
+            // Initial update
+            updateStatus();
+
+            // Update on change
+            radios.forEach(function(radio) {
+                radio.addEventListener('change', updateStatus);
+            });
+        });
     }
 
     // =========================================================================
@@ -801,7 +874,11 @@
                     var val = collectFieldValue(fieldEl, slug);
                     if (val !== undefined) {
                         if (typeof val === 'object' && val !== null && !Array.isArray(val) && Object.keys(val).length === 0) {
+                            // Empty object -> empty string
                             values[slug] = '';
+                        } else if (Array.isArray(val) && val.length === 0) {
+                            // Empty array -> null (will be normalized to null by PHP)
+                            values[slug] = null;
                         } else {
                             values[slug] = val;
                         }
@@ -841,26 +918,39 @@
                     if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && Object.keys(parsed).length === 0) {
                         return '';
                     }
+                    // Convert empty arrays to null to avoid "Array to string conversion" errors
+                    if (Array.isArray(parsed) && parsed.length === 0) {
+                        return null;
+                    }
                     return parsed;
                 } catch (e) {
                     return hiddenValue.value || '';
                 }
             }
 
-            var psSwitch = fieldEl.querySelector('.ps-switch input:checked');
-            if (psSwitch) return psSwitch.value;
+            // Check for ps-switch (boolean toggle) - look for checked radio in ps-switch container
+            var psSwitchContainer = fieldEl.querySelector('.ps-switch');
+            if (psSwitchContainer) {
+                var psSwitchChecked = psSwitchContainer.querySelector('input[type="radio"]:checked');
+                if (psSwitchChecked) {
+                    console.log('[ACF] Ps-switch field "' + slug + '" found, value:', psSwitchChecked.value);
+                    return psSwitchChecked.value;
+                }
+            }
+
+            // CHECK FOR CHECKBOX FIELD FIRST (multiple inputs, need to collect all checked)
+            var checkboxes = fieldEl.querySelectorAll('input[type="checkbox"][name^="acf_' + slug + '"]:checked');
+            if (checkboxes.length > 0) {
+                console.log('[ACF] Checkbox field "' + slug + '" found, collected values:', checkboxes.length);
+                return Array.from(checkboxes).map(function(cb) {
+                    return cb.value;
+                });
+            }
 
             var input = fieldEl.querySelector('input[name^="acf_' + slug + '"], textarea[name^="acf_' + slug + '"], select[name^="acf_' + slug + '"]');
             if (input) {
                 var val = getInputValue(input);
                 return val !== null && val !== undefined ? val : '';
-            }
-
-            var checkboxes = fieldEl.querySelectorAll('input[type="checkbox"][name^="acf_' + slug + '"]:checked');
-            if (checkboxes.length > 0) {
-                return Array.from(checkboxes).map(function(cb) {
-                    return cb.value;
-                });
             }
 
             return undefined;

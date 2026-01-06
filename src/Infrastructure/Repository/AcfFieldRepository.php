@@ -167,7 +167,7 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
             'wrapper' => json_encode($data['wrapper'] ?? [], JSON_THROW_ON_ERROR),
             'fo_options' => json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR),
             'position' => (int) ($data['position'] ?? 0),
-            'translatable' => (int) ($data['translatable'] ?? 0),
+            'value_translatable' => (int) ($data['valueTranslatable'] ?? $data['value_translatable'] ?? $data['translatable'] ?? 0),
             'active' => (int) ($data['active'] ?? 1),
         ];
     }
@@ -204,9 +204,91 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
         $mapped['wrapper'] = json_encode($data['wrapper'] ?? [], JSON_THROW_ON_ERROR);
         $mapped['fo_options'] = json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR);
         $mapped['position'] = (int) ($data['position'] ?? 0);
-        $mapped['translatable'] = (int) ($data['translatable'] ?? 0);
+        $mapped['value_translatable'] = (int) ($data['valueTranslatable'] ?? $data['value_translatable'] ?? $data['translatable'] ?? 0);
         $mapped['active'] = (int) ($data['active'] ?? 1);
 
         return $mapped;
+    }
+
+    /**
+     * Save field translations (multilingual metadata: title, instructions, placeholder)
+     *
+     * @param int $fieldId
+     * @param array $translations Format: ['en' => ['title' => ..., 'instructions' => ..., 'placeholder' => ...], 'fr' => [...]]
+     *
+     * @return bool
+     */
+    public function saveFieldTranslations(int $fieldId, array $translations): bool
+    {
+        foreach ($translations as $langIdOrCode => $data) {
+            // Support both lang ID and lang code
+            $langId = is_numeric($langIdOrCode) ? (int) $langIdOrCode : $this->getLangIdByCode((string) $langIdOrCode);
+
+            if ($langId <= 0) {
+                continue;
+            }
+
+            $this->db->insert(
+                'wepresta_acf_field_lang',
+                [
+                    'id_wepresta_acf_field' => $fieldId,
+                    'id_lang' => $langId,
+                    'title' => pSQL($data['title'] ?? ''),
+                    'instructions' => pSQL($data['instructions'] ?? ''),
+                    'placeholder' => isset($data['placeholder']) ? pSQL($data['placeholder']) : null,
+                ],
+                false,
+                true,
+                \Db::REPLACE
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Get field translations for all languages
+     *
+     * @param int $fieldId
+     *
+     * @return array Format: ['en' => ['title' => ..., 'instructions' => ..., 'placeholder' => ...], 'fr' => [...]]
+     */
+    public function getFieldTranslations(int $fieldId): array
+    {
+        $sql = new DbQuery();
+        $sql->select('fl.*, l.iso_code')
+            ->from('wepresta_acf_field_lang', 'fl')
+            ->leftJoin('lang', 'l', 'l.id_lang = fl.id_lang')
+            ->where('fl.id_wepresta_acf_field = ' . (int) $fieldId);
+
+        $results = $this->db->executeS($sql);
+
+        if (!$results) {
+            return [];
+        }
+
+        $translations = [];
+        foreach ($results as $row) {
+            $translations[$row['iso_code']] = [
+                'title' => $row['title'],
+                'instructions' => $row['instructions'],
+                'placeholder' => $row['placeholder'],
+            ];
+        }
+
+        return $translations;
+    }
+
+    /**
+     * Helper: get lang ID by ISO code
+     */
+    private function getLangIdByCode(string $code): int
+    {
+        $sql = new DbQuery();
+        $sql->select('id_lang')
+            ->from('lang')
+            ->where("iso_code = '" . pSQL($code) . "'");
+
+        return (int) $this->db->getValue($sql);
     }
 }

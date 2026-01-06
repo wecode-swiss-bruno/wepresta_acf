@@ -204,6 +204,9 @@ class StarRatingField extends AbstractFieldType
 
         $html .= '</span>';
 
+        // Add CSS for frontend
+        $html .= $this->getInlineStyles();
+
         return $html;
     }
 

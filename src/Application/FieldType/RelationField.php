@@ -73,7 +73,8 @@ final class RelationField extends AbstractFieldType
      */
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
-        if ($value === null || $value === '' || $value === []) {
+        // Handle empty values - return null for empty arrays, strings, or null values
+        if ($value === null || $value === '' || (is_array($value) && empty($value))) {
             return null;
         }
 
@@ -83,15 +84,39 @@ final class RelationField extends AbstractFieldType
         if (is_string($value)) {
             $decoded = json_decode($value, true);
             if (json_last_error() === JSON_ERROR_NONE) {
+                // Handle empty arrays from JSON
+                if (is_array($decoded) && empty($decoded)) {
+                    return null;
+                }
+
                 if ($multiple) {
                     // Ensure array of integers
-                    $ids = array_map('intval', is_array($decoded) ? $decoded : [$decoded]);
+                    if (is_array($decoded)) {
+                        // If it's an array of objects with 'id' keys, extract IDs
+                        $ids = array_map(function ($item) {
+                            return is_array($item) && isset($item['id']) ? (int) $item['id'] : (int) $item;
+                        }, $decoded);
+                    } else {
+                        $ids = [(int) $decoded];
+                    }
 
-                    return json_encode(array_values(array_filter($ids)), JSON_THROW_ON_ERROR);
+                    $ids = array_filter($ids);
+
+                    // Return null if no valid IDs after filtering
+                    return !empty($ids) ? json_encode(array_values($ids), JSON_THROW_ON_ERROR) : null;
                 }
 
                 // Single value
-                return (string) (is_array($decoded) ? ($decoded[0] ?? 0) : $decoded);
+                if (is_array($decoded)) {
+                    // If it's an object with an 'id' key (from JS), extract the ID
+                    if (isset($decoded['id'])) {
+                        return (string) $decoded['id'];
+                    }
+                    // If it's a numeric array, take the first element
+                    return (string) ($decoded[0] ?? 0);
+                }
+
+                return (string) $decoded;
             }
 
             // Plain numeric string
@@ -100,17 +125,30 @@ final class RelationField extends AbstractFieldType
             }
         }
 
-        // Array of IDs
+        // Array of IDs or objects
         if (is_array($value)) {
-            $ids = array_map('intval', $value);
+            // Extract IDs from array of objects or plain IDs
+            $ids = array_map(function ($item) {
+                if (is_array($item) && isset($item['id'])) {
+                    return (int) $item['id'];
+                }
+
+                return (int) $item;
+            }, $value);
+
             $ids = array_filter($ids);
+
+            // Return null if no valid IDs
+            if (empty($ids)) {
+                return null;
+            }
 
             if ($multiple) {
                 return json_encode(array_values($ids), JSON_THROW_ON_ERROR);
             }
 
             // Single value from array
-            return count($ids) > 0 ? (string) $ids[0] : null;
+            return (string) reset($ids);
         }
 
         // Single numeric value
@@ -215,17 +253,15 @@ final class RelationField extends AbstractFieldType
             'link' => \Context::getContext()->link->getProductLink($product),
         ];
 
-        // Add image if needed
-        if ($displayFormat === 'thumbnail_name' || $displayFormat === 'full') {
-            $cover = \Image::getCover($product->id);
-            if ($cover) {
-                $imageLink = \Context::getContext()->link->getImageLink(
-                    $product->link_rewrite,
-                    (string) $cover['id_image'],
-                    'small_default'
-                );
-                $data['image'] = $imageLink;
-            }
+        // Always load image for frontend display
+        $cover = \Image::getCover($product->id);
+        if ($cover) {
+            $imageLink = \Context::getContext()->link->getImageLink(
+                $product->link_rewrite,
+                (string) $cover['id_image'],
+                'small_default'
+            );
+            $data['image'] = $imageLink;
         }
 
         // Add price if full format
@@ -272,7 +308,7 @@ final class RelationField extends AbstractFieldType
      */
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
-        if ($value === null || (is_array($value) && empty($value))) {
+        if ($value === null || $value === '' || (is_array($value) && empty($value))) {
             return '';
         }
 
@@ -292,18 +328,105 @@ final class RelationField extends AbstractFieldType
                 continue;
             }
 
-            $label = htmlspecialchars($entity['name'], ENT_QUOTES, 'UTF-8');
-
-            if ($displayFormat === 'name_reference' && !empty($entity['reference'])) {
-                $label .= ' (' . htmlspecialchars($entity['reference'], ENT_QUOTES, 'UTF-8') . ')';
-            }
-
-            $output[] = $label;
+            $output[] = $this->renderEntityCard($entity, $displayFormat);
         }
 
-        $separator = $renderOptions['separator'] ?? ', ';
+        if (empty($output)) {
+            return '';
+        }
 
-        return implode($separator, $output);
+        // Wrap in container with styles
+        $html = '<div class="acf-relation-items">' . implode('', $output) . '</div>';
+        $html .= $this->getFrontendStyles();
+
+        return $html;
+    }
+
+    /**
+     * Render a single entity card for frontend display.
+     *
+     * @param array<string, mixed> $entity
+     */
+    private function renderEntityCard(array $entity, string $displayFormat): string
+    {
+        $name = htmlspecialchars($entity['name'] ?? '', ENT_QUOTES, 'UTF-8');
+        $reference = htmlspecialchars($entity['reference'] ?? '', ENT_QUOTES, 'UTF-8');
+        $link = htmlspecialchars($entity['link'] ?? '#', ENT_QUOTES, 'UTF-8');
+        $image = $entity['image'] ?? '';
+
+        $html = '<a href="' . $link . '" class="acf-relation-card" target="_blank">';
+
+        // Image thumbnail
+        if ($image) {
+            $html .= '<img src="' . htmlspecialchars($image, ENT_QUOTES, 'UTF-8') . '" alt="' . $name . '" class="acf-relation-card__image">';
+        }
+
+        // Content
+        $html .= '<span class="acf-relation-card__content">';
+        $html .= '<span class="acf-relation-card__name">' . $name . '</span>';
+
+        if ($displayFormat === 'name_reference' && $reference) {
+            $html .= '<span class="acf-relation-card__reference">(' . $reference . ')</span>';
+        }
+
+        $html .= '</span>';
+        $html .= '</a>';
+
+        return $html;
+    }
+
+    /**
+     * Get CSS styles for frontend display.
+     */
+    private function getFrontendStyles(): string
+    {
+        return <<<'CSS'
+<style>
+.acf-relation-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.acf-relation-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+}
+.acf-relation-card:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.acf-relation-card__image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 3px;
+}
+.acf-relation-card__content {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+.acf-relation-card__name {
+    font-weight: 500;
+    color: #212529;
+    font-size: 0.9rem;
+}
+.acf-relation-card__reference {
+    font-size: 0.8em;
+    color: #6c757d;
+}
+</style>
+CSS;
     }
 
     /**
@@ -493,6 +616,14 @@ final class RelationField extends AbstractFieldType
         $entityType = $this->getConfigValue($config, 'entityType', 'product');
         $entities = !empty($rawIds) ? $this->loadEntities($rawIds, $entityType, $config) : [];
 
+        // Extract entity ID from context for relation filters
+        $entityId = 0;
+        if (isset($context['entity_id'])) {
+            $entityId = (int) $context['entity_id'];
+        } elseif (isset($context['id_product'])) {
+            $entityId = (int) $context['id_product'];
+        }
+
         return $this->renderPartial('relation.tpl', [
             'field' => $field,
             'fieldConfig' => $config,
@@ -500,6 +631,7 @@ final class RelationField extends AbstractFieldType
             'value' => $rawIds,
             'entities' => $entities,
             'context' => $context,
+            'id_product' => $entityId,
         ]);
     }
 
@@ -513,9 +645,11 @@ final class RelationField extends AbstractFieldType
      */
     private function getRawIds(mixed $value, array $config): array
     {
-        if ($value === null || $value === '' || $value === []) {
+        if ($value === null || $value === '') {
             return [];
         }
+
+        $multiple = $this->getConfigValue($config, 'multiple', false);
 
         // If already denormalized (array of entities)
         if (is_array($value) && isset($value[0]['id'])) {
@@ -532,19 +666,32 @@ final class RelationField extends AbstractFieldType
             $decoded = json_decode($value, true);
             if (json_last_error() === JSON_ERROR_NONE) {
                 if (is_array($decoded)) {
-                    return array_map('intval', $decoded);
+                    return array_map('intval', array_filter($decoded));
                 }
-
+                // Single value decoded from JSON
                 return [(int) $decoded];
             }
+            // Plain numeric string
             if (is_numeric($value)) {
                 return [(int) $value];
             }
         }
 
-        // If array of IDs
+        // If array of IDs (or array of numbers)
         if (is_array($value)) {
-            return array_map('intval', array_filter($value));
+            // Check if it's an array of numbers or array of arrays
+            if (isset($value[0]) && is_numeric($value[0])) {
+                return array_map('intval', array_filter($value));
+            }
+            // Empty array
+            if (empty($value)) {
+                return [];
+            }
+        }
+
+        // If it's a single integer/numeric value (from database)
+        if (is_numeric($value)) {
+            return [(int) $value];
         }
 
         return [];

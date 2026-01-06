@@ -111,9 +111,14 @@ class FieldApiController extends FrameworkBundleAdminController
                 'wrapper' => $jsonData['wrapper'],
                 'foOptions' => $jsonData['foOptions'],
                 'position' => $data['position'] ?? $field['position'],
-                'translatable' => (bool) ($data['translatable'] ?? $field['translatable']),
+                'valueTranslatable' => (bool) ($data['value_translatable'] ?? $data['valueTranslatable'] ?? $data['translatable'] ?? $field['value_translatable'] ?? $field['translatable'] ?? false),
                 'active' => $data['active'] ?? $field['active'],
             ]);
+
+            // Save field translations if provided
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                $this->fieldRepository->saveFieldTranslations($id, $data['translations']);
+            }
 
             return $this->json([
                 'success' => true,
@@ -253,8 +258,8 @@ class FieldApiController extends FrameworkBundleAdminController
      */
     private function handleTranslatableChange(array $field, array $data): void
     {
-        $wasTranslatable = (bool) ($field['translatable'] ?? false);
-        $newTranslatable = (bool) ($data['translatable'] ?? $field['translatable']);
+        $wasTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
+        $newTranslatable = (bool) ($data['value_translatable'] ?? $data['valueTranslatable'] ?? $data['translatable'] ?? $field['value_translatable'] ?? $field['translatable'] ?? false);
 
         if ($wasTranslatable && !$newTranslatable) {
             $this->valueRepository->deleteTranslatableValuesByField((int) $field['id_wepresta_acf_field']);
@@ -267,8 +272,13 @@ class FieldApiController extends FrameworkBundleAdminController
      */
     private function serializeField(array $field): array
     {
+        $fieldId = (int) $field['id_wepresta_acf_field'];
+        
+        // Get translations for this field
+        $translations = $this->fieldRepository->getFieldTranslations($fieldId);
+        
         return [
-            'id' => (int) $field['id_wepresta_acf_field'],
+            'id' => $fieldId,
             'uuid' => $field['uuid'],
             'groupId' => (int) $field['id_wepresta_acf_group'],
             'parentId' => isset($field['id_parent']) && $field['id_parent'] ? (int) $field['id_parent'] : null,
@@ -282,8 +292,10 @@ class FieldApiController extends FrameworkBundleAdminController
             'wrapper' => $this->decodeJson($field['wrapper'] ?? '[]'),
             'foOptions' => $this->decodeJson($field['fo_options'] ?? '[]'),
             'position' => (int) $field['position'],
-            'translatable' => (bool) $field['translatable'],
+            'value_translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false),
+            'translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false), // Legacy support
             'active' => (bool) $field['active'],
+            'translations' => $translations,
         ];
     }
 

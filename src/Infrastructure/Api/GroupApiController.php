@@ -61,6 +61,11 @@ class GroupApiController extends FrameworkBundleAdminController
             // Associate with all active shops
             $this->groupRepository->addAllShopAssociations($groupId);
 
+            // Save group translations if provided
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                $this->groupRepository->saveGroupTranslations($groupId, $data['translations']);
+            }
+
             return $this->json(['success' => true, 'data' => $this->serializeGroup($this->groupRepository->findById($groupId))], Response::HTTP_CREATED);
         } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
     }
@@ -86,6 +91,12 @@ class GroupApiController extends FrameworkBundleAdminController
                 'foOptions' => $data['foOptions'] ?? json_decode($group['fo_options'] ?? '{}', true),
                 'active' => $data['active'] ?? $group['active'],
             ]);
+
+            // Save group translations if provided
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                $this->groupRepository->saveGroupTranslations($id, $data['translations']);
+            }
+
             return $this->json(['success' => true, 'data' => $this->serializeGroup($this->groupRepository->findById($id), true)]);
         } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
     }
@@ -125,7 +136,7 @@ class GroupApiController extends FrameworkBundleAdminController
                     'instructions' => $field['instructions'], 'config' => json_decode($field['config'] ?? '[]', true),
                     'validation' => json_decode($field['validation'] ?? '[]', true), 'conditions' => json_decode($field['conditions'] ?? '[]', true),
                     'wrapper' => json_decode($field['wrapper'] ?? '[]', true), 'foOptions' => json_decode($field['fo_options'] ?? '{}', true),
-                    'position' => $field['position'], 'translatable' => $field['translatable'], 'active' => $field['active'],
+                    'position' => $field['position'], 'value_translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false), 'translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false), 'active' => $field['active'],
                 ]);
             }
             return $this->json(['success' => true, 'data' => $this->serializeGroup($this->groupRepository->findById($newGroupId), true)], Response::HTTP_CREATED);
@@ -154,19 +165,25 @@ class GroupApiController extends FrameworkBundleAdminController
     /** @param array<string, mixed> $field @return array<string, mixed> */
     private function serializeField(array $field): array
     {
+        $fieldId = (int) $field['id_wepresta_acf_field'];
+        
+        // Get translations for this field
+        $translations = $this->fieldRepository->getFieldTranslations($fieldId);
+        
         $result = [
-            'id' => (int) $field['id_wepresta_acf_field'], 'uuid' => $field['uuid'],
+            'id' => $fieldId, 'uuid' => $field['uuid'],
             'groupId' => (int) $field['id_wepresta_acf_group'],
             'parentId' => isset($field['id_parent']) && $field['id_parent'] ? (int) $field['id_parent'] : null,
             'type' => $field['type'], 'title' => $field['title'], 'slug' => $field['slug'],
             'instructions' => $field['instructions'] ?: null, 'config' => json_decode($field['config'] ?? '[]', true),
             'validation' => json_decode($field['validation'] ?? '[]', true), 'conditions' => json_decode($field['conditions'] ?? '[]', true),
             'wrapper' => json_decode($field['wrapper'] ?? '[]', true), 'foOptions' => json_decode($field['fo_options'] ?? '[]', true),
-            'position' => (int) $field['position'], 'translatable' => (bool) $field['translatable'], 'active' => (bool) $field['active'],
+            'position' => (int) $field['position'], 'value_translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false), 'translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false), 'active' => (bool) $field['active'],
             'dateAdd' => $field['date_add'], 'dateUpd' => $field['date_upd'],
+            'translations' => $translations,
         ];
         if ($field['type'] === 'repeater') {
-            $result['children'] = array_map(fn($c) => $this->serializeField($c), $this->fieldRepository->findByParent((int) $field['id_wepresta_acf_field']));
+            $result['children'] = array_map(fn($c) => $this->serializeField($c), $this->fieldRepository->findByParent($fieldId));
         }
         return $result;
     }

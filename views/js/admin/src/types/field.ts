@@ -9,20 +9,35 @@ export interface AcfField {
   id_wepresta_acf_group?: number
   parentId?: number | null  // For subfields in repeaters
   type: string
-  title: string
+  title: string  // Default title (fallback)
   slug: string
-  instructions?: string | null
+  instructions?: string | null  // Default instructions (fallback)
   config: FieldConfig
   validation: FieldValidation
   conditions: FieldConditions
   wrapper: FieldWrapper
   foOptions: FieldFrontendOptions
   position: number
-  translatable: boolean
+  value_translatable?: boolean  // Whether field VALUES are translatable (not metadata)
+  valueTranslatable?: boolean   // Alias for camelCase
+  translatable?: boolean        // Legacy support - maps to value_translatable
+  translations?: FieldTranslations  // Multilingual metadata (title, instructions, placeholder)
   active: boolean
   dateAdd?: string
   dateUpd?: string
   children?: AcfField[]  // Subfields for repeaters
+}
+
+/**
+ * Field translations for metadata (title, instructions, placeholder)
+ * Key: language ISO code (e.g., 'en', 'fr', 'es')
+ */
+export interface FieldTranslations {
+  [langCode: string]: {
+    title: string
+    instructions?: string
+    placeholder?: string
+  }
 }
 
 /**

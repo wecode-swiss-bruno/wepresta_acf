@@ -61,8 +61,21 @@ final class BooleanField extends AbstractFieldType
 
     public function denormalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
-        // Convert to boolean
-        return (bool) $value && $value !== '0';
+        // Convert to boolean - handle various formats
+        if ($value === null || $value === '' || $value === false) {
+            return false;
+        }
+        
+        if ($value === true || $value === '1' || $value === 1) {
+            return true;
+        }
+        
+        if ($value === '0' || $value === 0) {
+            return false;
+        }
+        
+        // Default: convert to boolean
+        return (bool) $value;
     }
 
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
@@ -150,12 +163,15 @@ final class BooleanField extends AbstractFieldType
     {
         $config = $this->getFieldConfig($field);
         $boolValue = $this->denormalizeValue($value, $config);
+        
+        // Pass as integer (1 or 0) for Smarty compatibility
+        $smartyValue = $boolValue ? 1 : 0;
 
         return $this->renderPartial('boolean.tpl', [
             'field' => $field,
             'fieldConfig' => $config,
             'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $boolValue,
+            'value' => $smartyValue,
             'context' => $context,
         ]);
     }

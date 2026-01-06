@@ -66,7 +66,9 @@ final class ListField extends AbstractFieldType
 
     public function supportsTranslation(): bool
     {
-        return true;
+        // List fields should not be value_translatable at the field level
+        // Translations should be handled within each item's JSON structure
+        return false;
     }
 
     /**

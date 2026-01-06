@@ -33,7 +33,7 @@
     
     {* JSON encode the value *}
     {if is_array($value)}
-        {assign var="listJsonValue" value=$value|json_encode}
+        {assign var="listJsonValue" value=$value|@json_encode}
     {elseif $value}
         {assign var="listJsonValue" value=$value}
     {else}
@@ -53,10 +53,10 @@
                 {assign var="itemText" value=$item.text|default:''}
                 {assign var="itemIcon" value=$item.icon|default:''}
                 {assign var="itemLink" value=$item.link|default:''}
-                <div class="acf-list-item" data-id="{$itemId|escape:'htmlall':'UTF-8'}">
-                    <span class="acf-list-drag material-icons">drag_indicator</span>
+                <div class="acf-list-item d-flex align-items-center gap-2 mb-2" data-id="{$itemId|escape:'htmlall':'UTF-8'}">
+                    <span class="acf-list-drag material-icons text-muted" style="cursor:grab;">drag_indicator</span>
                     <input type="text" 
-                           class="form-control acf-list-text" 
+                           class="form-control acf-list-text flex-grow-1" 
                            value="{$itemText|escape:'htmlall':'UTF-8'}"
                            placeholder="{$listPlaceholder|escape:'htmlall':'UTF-8'}">
                     {if $showIcon}
@@ -73,7 +73,7 @@
                                placeholder="{l s='URL' mod='wepresta_acf'}"
                                style="width: 150px;">
                     {/if}
-                    <button type="button" class="btn btn-link text-danger acf-list-remove" title="{l s='Remove' mod='wepresta_acf'}">
+                    <button type="button" class="btn btn-link text-danger acf-list-remove p-1" title="{l s='Remove' mod='wepresta_acf'}">
                         <span class="material-icons">close</span>
                     </button>
                 </div>

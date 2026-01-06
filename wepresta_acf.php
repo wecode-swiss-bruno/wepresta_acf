@@ -1045,52 +1045,26 @@ class WeprestaAcf extends Module
 
     public function hookDisplayProductAdditionalInfo(array $params): string
     {
-        if (!$this->isActive()) { return ''; }
+        if (!$this->isActive()) {
+            return '';
+        }
 
         $product = $params['product'] ?? null;
         $productId = (int) ($product['id_product'] ?? ($product->id ?? 0));
-        if ($productId <= 0) { return ''; }
+
+        if ($productId <= 0) {
+            return '';
+        }
 
         try {
-            // Load custom field types from theme/uploads
             AcfServiceContainer::loadCustomFieldTypes();
 
-            $valueProvider = AcfServiceContainer::getValueProvider();
-            $fieldTypeRegistry = AcfServiceContainer::getFieldTypeRegistry();
+            $displayFields = AcfServiceContainer::getFieldRenderService()
+                ->getProductFieldsForDisplay($productId);
 
-            $fields = $valueProvider->getProductFieldValuesWithMeta($productId);
-            if (empty($fields)) { return ''; }
-
-            // Filter fields with show_on_front enabled
-            $displayFields = [];
-            foreach ($fields as $field) {
-                $foOptions = $field['fo_options'] ?? [];
-                if (!($foOptions['show_on_front'] ?? true)) { continue; }
-                if ($field['value'] === null || $field['value'] === '') { continue; }
-
-                $fieldType = $fieldTypeRegistry->getOrNull($field['type']);
-                $fieldConfig = $field['config'] ?? [];
-                if (is_string($fieldConfig)) {
-                    $fieldConfig = json_decode($fieldConfig, true) ?: [];
-                }
-                $wrapper = $field['wrapper'] ?? [];
-                if (is_string($wrapper)) {
-                    $wrapper = json_decode($wrapper, true) ?: [];
-                }
-                $renderedValue = $fieldType ? $fieldType->renderValue($field['value'], $fieldConfig, $foOptions) : htmlspecialchars((string) $field['value']);
-
-                $displayFields[] = [
-                    'slug' => $field['slug'],
-                    'title' => $field['title'],
-                    'type' => $field['type'],
-                    'value' => $field['value'],
-                    'rendered' => $renderedValue,
-                    'fo_options' => $foOptions,
-                    'wrapper' => $wrapper,
-                ];
+            if (empty($displayFields)) {
+                return '';
             }
-
-            if (empty($displayFields)) { return ''; }
 
             $this->context->smarty->assign([
                 'acf_fields' => $displayFields,
@@ -1100,6 +1074,7 @@ class WeprestaAcf extends Module
             return $this->fetch('module:wepresta_acf/views/templates/hook/product-info.tpl');
         } catch (\Exception $e) {
             $this->log('Error in hookDisplayProductAdditionalInfo: ' . $e->getMessage(), 3);
+
             return '';
         }
     }

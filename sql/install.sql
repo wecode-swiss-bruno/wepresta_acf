@@ -2,9 +2,9 @@
 CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_group` (
     `id_wepresta_acf_group` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `uuid` CHAR(36) NOT NULL COMMENT 'Immutable UUID for external reference',
-    `title` VARCHAR(255) NOT NULL,
+    `title` VARCHAR(255) NOT NULL COMMENT 'Default title (fallback)',
     `slug` VARCHAR(255) NOT NULL COMMENT 'Editable slug for templates',
-    `description` TEXT,
+    `description` TEXT COMMENT 'Default description (fallback)',
     `location_rules` JSON COMMENT 'JSONLogic rules for when to display',
     `placement_tab` VARCHAR(100) NOT NULL DEFAULT 'description',
     `placement_position` VARCHAR(100) DEFAULT NULL COMMENT 'after:field_name or before:field_name',
@@ -18,6 +18,19 @@ CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_group` (
     UNIQUE KEY `slug` (`slug`),
     INDEX `idx_active` (`active`),
     INDEX `idx_priority` (`priority`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Group translations (multilang metadata)
+CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_group_lang` (
+    `id_wepresta_acf_group` INT UNSIGNED NOT NULL,
+    `id_lang` INT UNSIGNED NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `description` TEXT,
+    PRIMARY KEY (`id_wepresta_acf_group`, `id_lang`),
+    CONSTRAINT `fk_wepresta_acf_group_lang_group`
+        FOREIGN KEY (`id_wepresta_acf_group`)
+        REFERENCES `PREFIX_wepresta_acf_group`(`id_wepresta_acf_group`)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Group to Shop association (multi-shop support)
@@ -38,16 +51,16 @@ CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_field` (
     `id_wepresta_acf_group` INT UNSIGNED NOT NULL,
     `id_parent` INT UNSIGNED DEFAULT NULL COMMENT 'For repeaters and nested fields',
     `type` VARCHAR(50) NOT NULL,
-    `title` VARCHAR(255) NOT NULL,
+    `title` VARCHAR(255) NOT NULL COMMENT 'Default title (fallback)',
     `slug` VARCHAR(255) NOT NULL COMMENT 'Unique within group',
-    `instructions` TEXT,
+    `instructions` TEXT COMMENT 'Default instructions (fallback)',
     `config` JSON COMMENT 'Type-specific configuration',
     `validation` JSON COMMENT 'Validation rules',
     `conditions` JSON COMMENT 'Intra-group conditions (show/required/disabled)',
     `wrapper` JSON COMMENT 'HTML wrapper options (class, id, width)',
     `fo_options` JSON COMMENT 'Front-office rendering options',
     `position` INT NOT NULL DEFAULT 0,
-    `translatable` TINYINT(1) NOT NULL DEFAULT 0,
+    `value_translatable` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Whether field VALUES are translatable (not metadata)',
     `active` TINYINT(1) NOT NULL DEFAULT 1,
     `date_add` DATETIME NOT NULL,
     `date_upd` DATETIME NOT NULL,
@@ -63,6 +76,20 @@ CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_field` (
     CONSTRAINT `fk_wepresta_acf_field_parent` 
         FOREIGN KEY (`id_parent`) 
         REFERENCES `PREFIX_wepresta_acf_field`(`id_wepresta_acf_field`) 
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Field translations (multilang metadata: title, instructions, placeholder)
+CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_field_lang` (
+    `id_wepresta_acf_field` INT UNSIGNED NOT NULL,
+    `id_lang` INT UNSIGNED NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `instructions` TEXT,
+    `placeholder` VARCHAR(255) DEFAULT NULL COMMENT 'Translated placeholder for text fields',
+    PRIMARY KEY (`id_wepresta_acf_field`, `id_lang`),
+    CONSTRAINT `fk_wepresta_acf_field_lang_field`
+        FOREIGN KEY (`id_wepresta_acf_field`)
+        REFERENCES `PREFIX_wepresta_acf_field`(`id_wepresta_acf_field`)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

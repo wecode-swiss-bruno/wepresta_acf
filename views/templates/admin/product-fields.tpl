@@ -538,6 +538,46 @@
                     data.push(obj);
                 });
                 valueInput.value = JSON.stringify(data);
+                updateRemoveButtons();
+            }
+
+            function updateRemoveButtons() {
+                if (!itemsContainer) return;
+                
+                // Find all items, including those in hidden translation tabs
+                var items = itemsContainer.querySelectorAll('.acf-list-item');
+                var itemCount = items.length;
+                
+                // Can remove if: more than 1 item AND (no minItems OR itemCount > minItems)
+                var canRemove = itemCount > 1 && (minItems === 0 || itemCount > minItems);
+                
+                items.forEach(function(item) {
+                    // Find remove button - could be direct child or nested
+                    var removeBtn = item.querySelector('button.acf-list-remove');
+                    if (!removeBtn) {
+                        removeBtn = item.querySelector('.acf-list-remove');
+                    }
+                    
+                    if (removeBtn) {
+                        if (canRemove) {
+                            removeBtn.disabled = false;
+                            removeBtn.removeAttribute('disabled');
+                            removeBtn.classList.remove('disabled');
+                            removeBtn.style.opacity = '1';
+                            removeBtn.style.cursor = 'pointer';
+                            removeBtn.style.pointerEvents = 'auto';
+                            removeBtn.title = 'Remove';
+                        } else {
+                            removeBtn.disabled = true;
+                            removeBtn.setAttribute('disabled', 'disabled');
+                            removeBtn.classList.add('disabled');
+                            removeBtn.style.opacity = '0.5';
+                            removeBtn.style.cursor = 'not-allowed';
+                            removeBtn.style.pointerEvents = 'none';
+                            removeBtn.title = itemCount <= 1 ? 'At least one item is required' : 'Minimum ' + minItems + ' items required';
+                        }
+                    }
+                });
             }
 
             function createItemElement(itemData) {
@@ -584,8 +624,18 @@
             field.addEventListener('click', function(e) {
                 if (e.target.closest('.acf-list-remove')) {
                     e.preventDefault();
+                    var removeBtn = e.target.closest('.acf-list-remove');
+                    if (removeBtn && removeBtn.disabled) {
+                        return;
+                    }
                     var item = e.target.closest('.acf-list-item');
                     var currentCount = itemsContainer.querySelectorAll('.acf-list-item').length;
+                    
+                    // Prevent removal if only one item remains
+                    if (currentCount <= 1) {
+                        return;
+                    }
+                    
                     if (minItems > 0 && currentCount <= minItems) {
                         alert('Minimum ' + minItems + ' items required.');
                         return;
@@ -606,7 +656,21 @@
                 }
             });
 
-            console.debug('[ACF List] Initialized:', slug);
+            // Initialize remove buttons state immediately and after DOM is ready
+            updateRemoveButtons();
+            setTimeout(function() {
+                updateRemoveButtons();
+            }, 100);
+
+            // Also update on any DOM changes (MutationObserver for robustness)
+            var observer = new MutationObserver(function() {
+                updateRemoveButtons();
+            });
+            if (itemsContainer) {
+                observer.observe(itemsContainer, { childList: true, subtree: true });
+            }
+
+            console.debug('[ACF List] Initialized:', slug, 'Items:', itemsContainer.querySelectorAll('.acf-list-item').length);
         });
     }
 

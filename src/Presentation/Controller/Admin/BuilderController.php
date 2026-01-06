@@ -52,11 +52,30 @@ final class BuilderController extends FrameworkBundleAdminController
         // Get all available locations (entity types, product categories, etc.)
         $locations = $this->locationProviderRegistry->getLocationsGrouped();
 
+        // Get available languages for multilingual fields
+        $languages = [];
+        foreach (\Language::getLanguages(true) as $lang) {
+            // Extract language name without duplicate code in parentheses
+            // PrestaShop stores names like "English (English)", we want just "English"
+            $name = $lang['name'];
+            if (preg_match('/^(.+)\s*\([^)]+\)$/', $name, $matches)) {
+                $name = trim($matches[1]);
+            }
+
+            $languages[] = [
+                'id' => (int) $lang['id_lang'],
+                'code' => $lang['iso_code'],
+                'name' => $name,
+                'is_default' => (int) $lang['id_lang'] === (int) \Configuration::get('PS_LANG_DEFAULT'),
+            ];
+        }
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/builder.html.twig', [
             'layoutTitle' => $this->trans('ACF Field Builder', 'Modules.Weprestaacf.Admin'),
             'enableSidebar' => true,
             'fieldTypes' => $fieldTypes,
             'locations' => $locations,
+            'languages' => $languages,
             // Toolbar buttons are now handled dynamically via Vue.js and DOM manipulation
             // The buttons are injected via header_toolbar_btn block and controlled by Vue state
             'layoutHeaderToolbarBtn' => [],

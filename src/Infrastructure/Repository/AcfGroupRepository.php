@@ -160,4 +160,84 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
             'active' => (int) ($data['active'] ?? 1),
         ];
     }
+
+    /**
+     * Save group translations (multilingual metadata: title, description)
+     *
+     * @param int $groupId
+     * @param array $translations Format: ['en' => ['title' => ..., 'description' => ...], 'fr' => [...]]
+     *
+     * @return bool
+     */
+    public function saveGroupTranslations(int $groupId, array $translations): bool
+    {
+        foreach ($translations as $langIdOrCode => $data) {
+            // Support both lang ID and lang code
+            $langId = is_numeric($langIdOrCode) ? (int) $langIdOrCode : $this->getLangIdByCode((string) $langIdOrCode);
+
+            if ($langId <= 0) {
+                continue;
+            }
+
+            $this->db->insert(
+                'wepresta_acf_group_lang',
+                [
+                    'id_wepresta_acf_group' => $groupId,
+                    'id_lang' => $langId,
+                    'title' => pSQL($data['title'] ?? ''),
+                    'description' => pSQL($data['description'] ?? ''),
+                ],
+                false,
+                true,
+                \Db::REPLACE
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Get group translations for all languages
+     *
+     * @param int $groupId
+     *
+     * @return array Format: ['en' => ['title' => ..., 'description' => ...], 'fr' => [...]]
+     */
+    public function getGroupTranslations(int $groupId): array
+    {
+        $sql = new DbQuery();
+        $sql->select('gl.*, l.iso_code')
+            ->from('wepresta_acf_group_lang', 'gl')
+            ->leftJoin('lang', 'l', 'l.id_lang = gl.id_lang')
+            ->where('gl.id_wepresta_acf_group = ' . (int) $groupId);
+
+        $results = $this->db->executeS($sql);
+
+        if (!$results) {
+            return [];
+        }
+
+        $translations = [];
+        foreach ($results as $row) {
+            $translations[$row['iso_code']] = [
+                'title' => $row['title'],
+                'description' => $row['description'],
+            ];
+        }
+
+        return $translations;
+    }
+
+    /**
+     * Helper: get lang ID by ISO code
+     */
+    private function getLangIdByCode(string $code): int
+    {
+        $sql = new DbQuery();
+        $sql->select('id_lang')
+            ->from('lang')
+            ->where("iso_code = '" . pSQL($code) . "'");
+
+        return (int) $this->db->getValue($sql);
+    }
 }

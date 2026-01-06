@@ -19,5 +19,7 @@ interface AcfFieldRepositoryInterface
     public function slugExistsInGroup(string $slug, int $groupId, ?int $excludeId = null): bool;
     public function getNextPosition(int $groupId): int;
     public function countByGroup(int $groupId): int;
+    public function getFieldTranslations(int $fieldId): array;
+    public function saveFieldTranslations(int $fieldId, array $translations): bool;
 }
 

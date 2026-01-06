@@ -324,7 +324,10 @@ export const useBuilderStore = defineStore('builder', () => {
       wrapper: { width: '100' },
       foOptions: { visible: true },
       position: 0,
-      translatable: false,
+      value_translatable: false,
+      valueTranslatable: false,
+      translatable: false,  // Legacy support
+      translations: {},  // Initialize empty translations object
       active: true,
     }
 

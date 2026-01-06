@@ -64,10 +64,19 @@ export interface LocationOption {
   integration_type?: 'symfony' | 'legacy'
 }
 
+export interface Language {
+  id: number
+  code: string
+  name: string
+  is_default: boolean
+}
+
 export interface AcfConfig {
   apiUrl: string
   token: string
   translations: Record<string, string>
+  languages: Language[]
+  defaultLangId: string
   fieldTypes: Array<{
     type: string
     label: string

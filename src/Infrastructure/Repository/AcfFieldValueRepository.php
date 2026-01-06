@@ -95,22 +95,34 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         $shopId ??= (int) Context::getContext()->shop->id;
         $langId ??= (int) Context::getContext()->language->id;
 
+        // Get the latest value for each field without complex MAX subquery
+        // This handles NULL id_lang correctly
         $sql = new DbQuery();
-        $sql->select('fv.value, f.slug, f.' . self::FIELD_FK)
+        $sql->select('fv.value, f.slug, f.' . self::FIELD_FK . ', fv.' . $this->getPrimaryKey())
             ->from($this->getTableName(), 'fv')
             ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
             ->where('fv.entity_type = "' . pSQL($entityType) . '"')
             ->where('fv.entity_id = ' . (int) $entityId)
             ->where('fv.id_shop = ' . (int) $shopId)
             ->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)')
-            ->where('fv.' . $this->getPrimaryKey() . ' = (
-                SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2
-                WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . '
-                AND fv2.entity_type = fv.entity_type AND fv2.entity_id = fv.entity_id AND fv2.id_shop = fv.id_shop
-                AND (fv2.id_lang = fv.id_lang OR (fv2.id_lang IS NULL AND fv.id_lang IS NULL))
-            )');
-
-        $results = $this->db->executeS($sql);
+            ->orderBy('fv.' . $this->getPrimaryKey() . ' DESC');
+        
+        // Get all results and group by field, keeping only the latest
+        $allResults = $this->db->executeS($sql);
+        
+        // Group by field ID and keep only the latest value for each field
+        $results = [];
+        $seenFields = [];
+        if ($allResults) {
+            foreach ($allResults as $row) {
+                $fieldId = (int) $row[self::FIELD_FK];
+                if (!isset($seenFields[$fieldId])) {
+                    $seenFields[$fieldId] = true;
+                    $results[] = $row;
+                }
+            }
+        }
+        
         if (!$results) {
             return [];
         }
@@ -118,12 +130,26 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         $values = [];
         foreach ($results as $row) {
             $value = $row['value'];
+            $slug = $row['slug'];
+            
             if ($value === null) {
-                $values[$row['slug']] = null;
+                $values[$slug] = null;
                 continue;
             }
+            
             $decoded = json_decode($value, true);
-            $values[$row['slug']] = $decoded !== null ? $decoded : $value;
+            
+            // If JSON decode failed or returned null, use original value
+            // For relation fields, a single integer should be kept as-is (will be converted to array in getRawIds)
+            if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+                // Not valid JSON, use as-is
+                $finalValue = $value;
+            } else {
+                // Valid JSON or null
+                $finalValue = $decoded !== null ? $decoded : $value;
+            }
+            
+            $values[$slug] = $finalValue;
         }
 
         return $values;
@@ -161,6 +187,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             $value = $row['value'];
             $decodedValue = $value === null ? null : (json_decode($value, true) ?? $value);
             $fields[] = [
+                'id_wepresta_acf_field' => (int) $row[self::FIELD_FK],
                 'slug' => $row['slug'],
                 'title' => $row['title'],
                 'type' => $row['type'],
@@ -209,7 +236,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         if ($isTranslatable === null) {
             $fieldRepo = new AcfFieldRepository();
             $field = $fieldRepo->findById($fieldId);
-            $isTranslatable = $field && (bool) ($field['translatable'] ?? false);
+            $isTranslatable = $field && (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
         }
 
         $effectiveLangId = $isTranslatable ? ($langId ?? (int) Context::getContext()->language->id) : null;

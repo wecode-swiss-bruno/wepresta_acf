@@ -80,7 +80,7 @@ final class FieldGroupExporter
                 'type' => $field['type'],
                 'label' => $field['title'] ?? $field['slug'],
                 'position' => (int) ($field['position'] ?? 0),
-                'translatable' => (bool) ($field['translatable'] ?? false),
+                'value_translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false),
                 'config' => $this->decodeJson($field['config'] ?? '{}'),
                 'validation' => $this->decodeJson($field['validation'] ?? '{}'),
                 'lock_level' => $options['field_lock_level'] ?? 'extend',

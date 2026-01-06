@@ -65,7 +65,7 @@ final class ValueHandler
 
         $fieldId = (int) $field['id_wepresta_acf_field'];
         $fieldType = $field['type'];
-        $isTranslatable = (bool) ($field['translatable'] ?? false);
+        $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
         $config = $this->parseJsonConfig($field['config'] ?? '{}');
 
         // For translatable fields, value is an array of {langId: value}
@@ -142,7 +142,7 @@ final class ValueHandler
             $field = $this->fieldRepository->findBySlug($slug);
             if (!$field) { continue; }
             
-            $isTranslatable = (bool) ($field['translatable'] ?? false);
+            $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
             $config = $this->parseJsonConfig($field['config'] ?? '{}');
             $validation = $this->parseJsonConfig($field['validation'] ?? '{}');
             
