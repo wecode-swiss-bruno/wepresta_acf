@@ -83,8 +83,8 @@ final class EntityHooksConfig
             'displayProductAdditionalInfo',
         ],
         'category' => [
-            'displayCategoryTop',
-            'displayCategoryHeader',
+            'displayHeaderCategory',
+            'displayFooterCategory',
         ],
     ];
 

@@ -243,48 +243,20 @@ trait EntityFieldHooksTrait
     /**
      * Category Top
      */
-    public function hookDisplayCategoryTop(array $params): string
+    public function hookDisplayHeaderCategory(array $params): string
     {
         $categoryId = $this->extractCategoryIdFromParams($params);
-        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryTop');
+        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayHeaderCategory');
     }
 
     /**
      * Category Header
      */
-    public function hookDisplayCategoryHeader(array $params): string
+    public function hookDisplayFooterCategory(array $params): string
     {
         $categoryId = $this->extractCategoryIdFromParams($params);
-        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryHeader');
+        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayFooterCategory');
     }
-
-    /**
-     * Category Footer
-     */
-    public function hookDisplayCategoryFooter(array $params): string
-    {
-        $categoryId = $this->extractCategoryIdFromParams($params);
-        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryFooter');
-    }
-
-    /**
-     * Before Product List
-     */
-    public function hookDisplayCategoryProductListHeader(array $params): string
-    {
-        $categoryId = $this->extractCategoryIdFromParams($params);
-        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryProductListHeader');
-    }
-
-    /**
-     * After Product List
-     */
-    public function hookDisplayCategoryProductListFooter(array $params): string
-    {
-        $categoryId = $this->extractCategoryIdFromParams($params);
-        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryProductListFooter');
-    }
-
     // =========================================================================
     // MÉTHODES PRIVÉES - Logique commune
     // =========================================================================
@@ -375,7 +347,6 @@ trait EntityFieldHooksTrait
         if (!EntityHooksConfig::isEnabled($entity)) {
             return '';
         }
-
         try {
             // Utilise la méthode existante du module principal avec filtrage par hook
             if (method_exists($this, 'renderEntityFieldsForDisplayInHook')) {

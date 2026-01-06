@@ -103,33 +103,15 @@ final class FrontHooksRegistry
     {
         return [
             [
-                'value' => 'displayCategoryTop',
-                'label' => 'Category Top',
-                'description' => 'Category page - At the very top of the category page',
+                'value' => 'displayFooterCategory',
+                'label' => 'Category Footer',  
+                'description' => 'Category page - At the bottom of the category page', 
                 'ps_version' => 8,
             ],
             [
-                'value' => 'displayCategoryHeader',
+                'value' => 'displayHeaderCategory',
                 'label' => 'Category Header',
-                'description' => 'Category page - In the category header section (after title/description)',
-                'ps_version' => 8,
-            ],
-            [
-                'value' => 'displayCategoryFooter',
-                'label' => 'Category Footer',
-                'description' => 'Category page - At the bottom of the category page',
-                'ps_version' => 8,
-            ],
-            [
-                'value' => 'displayCategoryProductListHeader',
-                'label' => 'Before Product List',
-                'description' => 'Category page - Just before the product list starts',
-                'ps_version' => 8,
-            ],
-            [
-                'value' => 'displayCategoryProductListFooter',
-                'label' => 'After Product List',
-                'description' => 'Category page - Just after the product list ends',
+                'description' => 'Category page - At the top of the category page',  
                 'ps_version' => 8,
             ],
         ];
