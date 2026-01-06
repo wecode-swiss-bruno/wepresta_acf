@@ -24,27 +24,46 @@ class ValueApiController extends FrameworkBundleAdminController
             $data = $this->getJsonPayload($request);
 
             // Support both legacy (productId) and generic (entityType/entityId) formats
-            $entityId = $data['productId'] ?? $data['entityId'] ?? null;
             $entityType = $data['entityType'] ?? 'product';
+            $entityId = $data['productId'] ?? $data['entityId'] ?? null;
 
             if (empty($entityId) || !isset($data['values'])) {
-                return $this->jsonError('entityId (or productId) and values are required', Response::HTTP_BAD_REQUEST);
+                return $this->jsonError(
+                    'entityId (or productId) and values are required',
+                    Response::HTTP_BAD_REQUEST
+                );
             }
 
+            // Validate field values
             $errors = $this->valueHandler->validateProductFieldValues($data['values']);
             if (!empty($errors)) {
-                return $this->json(['success' => false, 'errors' => $errors], Response::HTTP_BAD_REQUEST);
+                return $this->json(
+                    [
+                        'success' => false,
+                        'errors' => $errors,
+                    ],
+                    Response::HTTP_BAD_REQUEST
+                );
             }
 
-            $this->valueHandler->saveProductFieldValues(
+            // Save using the generic entity method
+            $this->valueHandler->saveEntityFieldValues(
+                $entityType,
                 (int) $entityId,
                 $data['values'],
                 $data['shopId'] ?? null,
                 $data['langId'] ?? null
             );
 
-            return $this->json(['success' => true, 'message' => 'Values saved successfully']);
-        } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
+            return $this->json([
+                'success' => true,
+                'message' => 'Values saved successfully',
+                'entityType' => $entityType,
+                'entityId' => $entityId,
+            ]);
+        } catch (\Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
     }
 
     public function show(int $productId, Request $request): JsonResponse
