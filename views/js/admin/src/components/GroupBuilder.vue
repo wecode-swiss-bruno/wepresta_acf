@@ -67,19 +67,28 @@ function goToPreviousStep(): void {
 }
 
 // Watch for group changes to set initial active tab
-watch(() => store.currentGroup, (newGroup) => {
+// Only change tab when group is first loaded, not when it's updated during editing
+watch(() => store.currentGroup, (newGroup, oldGroup) => {
   if (newGroup) {
-    // Determine the appropriate starting tab based on group state
-    if (!newGroup.id) {
-      // New group - start with settings
-      activeTab.value = 'settings'
-    } else if (!hasEntityTypeDefined.value) {
-      // Existing group without location rules - start with settings
-      activeTab.value = 'settings'
-    } else {
-      // Existing group with location rules - start with fields
-      activeTab.value = 'fields'
+    // Only auto-change tab on initial load (when oldGroup is null/undefined)
+    // OR when switching to a different group (different ID)
+    // Don't change tab when group is updated during editing (e.g., when adding a rule)
+    const isNewGroup = !oldGroup || (oldGroup.id !== newGroup.id)
+    
+    if (isNewGroup) {
+      // Determine the appropriate starting tab based on group state
+      if (!newGroup.id) {
+        // New group - start with settings
+        activeTab.value = 'settings'
+      } else if (!hasEntityTypeDefined.value) {
+        // Existing group without location rules - start with settings
+        activeTab.value = 'settings'
+      } else {
+        // Existing group with location rules - start with fields
+        activeTab.value = 'fields'
+      }
     }
+    // If not a new group, keep the current tab (user is editing)
   }
 }, { immediate: true })
 

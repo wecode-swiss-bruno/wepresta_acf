@@ -119,7 +119,13 @@ watch(primaryEntityType, async (newEntityType) => {
   }
 }, { immediate: true })
 
-async function addRule(): Promise<void> {
+async function addRule(event?: Event): Promise<void> {
+  // Prevent any default behavior or event propagation
+  if (event) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+
   if (!selectedEntityType.value || !store.currentGroup) return
 
   const newRule: JsonLogicRule = {
@@ -162,12 +168,6 @@ async function addRule(): Promise<void> {
     alert(t('saveError') || 'Failed to save location rule. Please try again.')
   } finally {
     savingRule.value = false
-  }
-
-  // Auto-navigate to Fields step if hook was auto-selected and we can proceed
-  if (group.value?.foOptions?.displayHook && canProceedToFields.value) {
-    console.log('✅ Entity type + display hook ready, auto-navigating to Fields step')
-    emit('next-step')
   }
 }
 
@@ -327,6 +327,7 @@ async function handleDisplayHookChange(): Promise<void> {
         </div>
 
         <button
+          type="button"
           class="btn btn-primary btn-lg"
           :disabled="!selectedEntityType || savingRule"
           @click="addRule"
