@@ -16,6 +16,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 {
     private const FIELD_TABLE = 'wepresta_acf_field';
     private const FIELD_FK = 'id_wepresta_acf_field';
+    private const GROUP_TABLE = 'wepresta_acf_group';
 
     protected function getTableName(): string
     {
@@ -155,7 +156,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         return $values;
     }
 
-    public function findByEntityWithMeta(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
+    public function findByEntityWithMetaForHook(string $entityType, int $entityId, string $hookName, ?int $shopId = null, ?int $langId = null): array
     {
         $shopId ??= (int) Context::getContext()->shop->id;
         $langId ??= (int) Context::getContext()->language->id;
@@ -164,18 +165,26 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         $sql->select('fv.value, f.slug, f.title, f.type, f.instructions, f.config, f.fo_options, f.wrapper, f.position, f.' . self::FIELD_FK)
             ->from($this->getTableName(), 'fv')
             ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
+            ->innerJoin(self::GROUP_TABLE, 'g', 'f.id_wepresta_acf_group = g.id_wepresta_acf_group')
             ->where('fv.entity_type = "' . pSQL($entityType) . '"')
             ->where('fv.entity_id = ' . (int) $entityId)
             ->where('fv.id_shop = ' . (int) $shopId)
             ->where('f.active = 1')
+            ->where('g.active = 1')
             ->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)')
             ->where('fv.' . $this->getPrimaryKey() . ' = (
                 SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2
                 WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . '
                 AND fv2.entity_type = fv.entity_type AND fv2.entity_id = fv.entity_id AND fv2.id_shop = fv.id_shop
                 AND (fv2.id_lang = fv.id_lang OR (fv2.id_lang IS NULL AND fv.id_lang IS NULL))
-            )')
-            ->orderBy('f.position ASC');
+            )');
+
+        // Filter by display hook if specified
+        if (!empty($hookName)) {
+            $sql->where('JSON_EXTRACT(g.fo_options, "$.displayHook") = "' . pSQL($hookName) . '"');
+        }
+
+        $sql->orderBy('f.position ASC');
 
         $results = $this->db->executeS($sql);
         if (!$results) {
@@ -200,6 +209,12 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         }
 
         return $fields;
+    }
+
+    public function findByEntityWithMeta(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
+    {
+        // Fallback: get all fields without hook filtering
+        return $this->findByEntityWithMetaForHook($entityType, $entityId, '', $shopId, $langId);
     }
 
     public function findByFieldAndEntity(int $fieldId, string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): ?string

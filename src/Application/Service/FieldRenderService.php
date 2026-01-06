@@ -28,13 +28,14 @@ final class FieldRenderService
     }
 
     /**
-     * Get entity fields ready for frontend display.
+     * Get entity fields ready for frontend display WITH hook filtering.
+     * Only returns fields from groups configured to display in the specified hook.
      *
      * @return array<int, array{slug: string, title: string, type: string, value: mixed, rendered: string, fo_options: array, wrapper: array}>
      */
-    public function getEntityFieldsForDisplay(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
+    public function getEntityFieldsForDisplayInHook(string $entityType, int $entityId, string $hookName, ?int $shopId = null, ?int $langId = null): array
     {
-        $fields = $this->valueProvider->getEntityFieldValuesWithMeta($entityType, $entityId, $shopId, $langId);
+        $fields = $this->valueProvider->getEntityFieldValuesWithMetaForHook($entityType, $entityId, $hookName, $shopId, $langId);
 
         if (empty($fields)) {
             return [];
@@ -51,6 +52,17 @@ final class FieldRenderService
         }
 
         return $displayFields;
+    }
+
+    /**
+     * Get entity fields ready for frontend display (legacy - no hook filtering).
+     *
+     * @return array<int, array{slug: string, title: string, type: string, value: mixed, rendered: string, fo_options: array, wrapper: array}>
+     */
+    public function getEntityFieldsForDisplay(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
+    {
+        // Fallback: get all fields without hook filtering
+        return $this->getEntityFieldsForDisplayInHook($entityType, $entityId, '', $shopId, $langId);
     }
 
     /**

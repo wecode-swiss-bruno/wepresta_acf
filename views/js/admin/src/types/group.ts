@@ -38,6 +38,7 @@ export interface GroupFrontendOptions {
   visible?: boolean
   template?: string
   wrapperClass?: string
+  displayHook?: string  // Hook where the group will be displayed (e.g., 'displayProductAdditionalInfo')
 }
 
 /**
@@ -62,4 +63,14 @@ export interface LayoutOption {
 export interface LayoutOptions {
   widths: LayoutOption[]
   positions: LayoutOption[]
+}
+
+/**
+ * Front-office hook option (for presentation settings)
+ */
+export interface FrontHookOption {
+  value: string
+  label: string
+  description?: string
+  ps_version?: number
 }

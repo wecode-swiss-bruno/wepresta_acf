@@ -152,7 +152,88 @@ trait EntityFieldHooksTrait
     public function hookDisplayProductAdditionalInfo(array $params): string
     {
         $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
-        return $this->renderFrontFields('product', $productId);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayProductAdditionalInfo');
+    }
+
+    /**
+     * Product Extra Content (Tabs)
+     */
+    public function hookDisplayProductExtraContent(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayProductExtraContent');
+    }
+
+    /**
+     * Product Action Buttons
+     */
+    public function hookDisplayProductButtons(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayProductButtons');
+    }
+
+    /**
+     * Product Actions Area
+     */
+    public function hookDisplayProductActions(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayProductActions');
+    }
+
+    /**
+     * Product Price Block
+     */
+    public function hookDisplayProductPriceBlock(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayProductPriceBlock');
+    }
+
+    /**
+     * After Product Thumbnails
+     */
+    public function hookDisplayAfterProductThumbs(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayAfterProductThumbs');
+    }
+
+    /**
+     * Reassurance Block
+     */
+    public function hookDisplayReassurance(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayReassurance');
+    }
+
+    /**
+     * Product List Reviews
+     */
+    public function hookDisplayProductListReviews(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayProductListReviews');
+    }
+
+    /**
+     * Product List Functional Buttons
+     */
+    public function hookDisplayProductListFunctionalButtons(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayProductListFunctionalButtons');
+    }
+
+    /**
+     * Product Footer
+     */
+    public function hookDisplayFooterProduct(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFieldsForHook('product', $productId, 'displayFooterProduct');
     }
 
     // =========================================================================
@@ -160,21 +241,48 @@ trait EntityFieldHooksTrait
     // =========================================================================
 
     /**
-     * Affiche les champs ACF dans le header de la page catégorie (FO).
+     * Category Top
      */
-    public function hookDisplayHeaderCategory(array $params): string
+    public function hookDisplayCategoryTop(array $params): string
     {
         $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
-        return $this->renderFrontFields('category', $categoryId);
+        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryTop');
     }
 
     /**
-     * Affiche les champs ACF dans le footer de la page catégorie (FO).
+     * Category Header
      */
-    public function hookDisplayFooterCategory(array $params): string
+    public function hookDisplayCategoryHeader(array $params): string
     {
         $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
-        return $this->renderFrontFields('category', $categoryId);
+        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryHeader');
+    }
+
+    /**
+     * Category Footer
+     */
+    public function hookDisplayCategoryFooter(array $params): string
+    {
+        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryFooter');
+    }
+
+    /**
+     * Before Product List
+     */
+    public function hookDisplayCategoryProductListHeader(array $params): string
+    {
+        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryProductListHeader');
+    }
+
+    /**
+     * After Product List
+     */
+    public function hookDisplayCategoryProductListFooter(array $params): string
+    {
+        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryProductListFooter');
     }
 
     // =========================================================================
@@ -250,13 +358,15 @@ trait EntityFieldHooksTrait
     }
 
     /**
-     * Rendu des champs ACF pour le front-office.
+     * Rendu des champs ACF pour le front-office avec filtrage par hook.
+     * Affiche uniquement les groupes configurés pour ce hook spécifique.
      *
      * @param string $entity Type d'entité ('product', 'category')
      * @param int $entityId ID de l'entité
+     * @param string $hookName Nom du hook actuellement exécuté
      * @return string HTML généré
      */
-    private function renderFrontFields(string $entity, int $entityId): string
+    private function renderFrontFieldsForHook(string $entity, int $entityId, string $hookName): string
     {
         if (!$this->isActive() || $entityId <= 0) {
             return '';
@@ -267,16 +377,35 @@ trait EntityFieldHooksTrait
         }
 
         try {
-            // Utilise la méthode existante du module principal
+            // Utilise la méthode existante du module principal avec filtrage par hook
+            if (method_exists($this, 'renderEntityFieldsForDisplayInHook')) {
+                return $this->renderEntityFieldsForDisplayInHook($entity, $entityId, $hookName);
+            }
+
+            // Fallback: méthode sans filtrage (backward compatibility)
             if (method_exists($this, 'renderEntityFieldsForDisplay')) {
                 return $this->renderEntityFieldsForDisplay($entity, $entityId);
             }
 
             return '';
         } catch (\Exception $e) {
-            $this->log("Error rendering front fields for {$entity}: " . $e->getMessage(), 3);
+            $this->log("Error rendering front fields for {$entity} in hook {$hookName}: " . $e->getMessage(), 3);
             return '';
         }
+    }
+
+    /**
+     * Rendu des champs ACF pour le front-office (legacy - sans filtrage par hook).
+     * @deprecated Use renderFrontFieldsForHook instead
+     *
+     * @param string $entity Type d'entité ('product', 'category')
+     * @param int $entityId ID de l'entité
+     * @return string HTML généré
+     */
+    private function renderFrontFields(string $entity, int $entityId): string
+    {
+        // Fallback to generic rendering without hook filtering
+        return $this->renderFrontFieldsForHook($entity, $entityId, '');
     }
 
     /**

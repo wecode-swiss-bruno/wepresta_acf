@@ -100,7 +100,10 @@ export const useBuilderStore = defineStore('builder', () => {
       placementPosition: null,
       priority: 10,
       boOptions: {},
-      foOptions: {},
+      foOptions: {
+        visible: true,
+        displayHook: '', // Will be auto-populated when entity type is selected
+      },
       active: true,
       fields: [],
     }

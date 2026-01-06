@@ -177,6 +177,10 @@ services:
         tags: ['controller.service_arguments']
         public: true
 
+    WeprestaAcf\Infrastructure\Api\FrontHooksController:
+        tags: ['controller.service_arguments']
+        public: true
+
     # =========================================================================
     # Domain Event Dispatcher (from Wedev/Extension/Events)
     # =========================================================================

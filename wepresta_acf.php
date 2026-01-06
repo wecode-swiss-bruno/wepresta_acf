@@ -690,13 +690,15 @@ class WeprestaAcf extends Module
     }
 
     /**
-     * Generic method to render entity fields for front-office display.
+     * Generic method to render entity fields for front-office display WITH hook filtering.
+     * Only renders groups that are configured to display in the specified hook.
      *
      * @param string $entityType Entity type (product, category, customer, order)
      * @param int $entityId Entity ID
+     * @param string $hookName Current hook name (for filtering groups)
      * @return string HTML output
      */
-    private function renderEntityFieldsForDisplay(string $entityType, int $entityId): string
+    private function renderEntityFieldsForDisplayInHook(string $entityType, int $entityId, string $hookName): string
     {
         if (!$this->isActive() || $entityId <= 0) {
             return '';
@@ -706,7 +708,7 @@ class WeprestaAcf extends Module
             AcfServiceContainer::loadCustomFieldTypes();
 
             $displayFields = AcfServiceContainer::getFieldRenderService()
-                ->getEntityFieldsForDisplay($entityType, $entityId);
+                ->getEntityFieldsForDisplayInHook($entityType, $entityId, $hookName);
 
             if (empty($displayFields)) {
                 return '';
@@ -716,6 +718,7 @@ class WeprestaAcf extends Module
                 'acf_fields' => $displayFields,
                 'acf_entity_type' => $entityType,
                 'acf_entity_id' => $entityId,
+                'acf_hook_name' => $hookName,
                 // Backward compatibility for product template
                 'acf_product_id' => $entityType === 'product' ? $entityId : null,
             ]);
@@ -723,9 +726,23 @@ class WeprestaAcf extends Module
             // Use generic template for all entities
             return $this->fetch('module:wepresta_acf/views/templates/hook/entity-info.tpl');
         } catch (\Exception $e) {
-            $this->log("Error rendering {$entityType} fields: " . $e->getMessage(), 3);
+            $this->log("Error rendering {$entityType} fields in hook {$hookName}: " . $e->getMessage(), 3);
             return '';
         }
+    }
+
+    /**
+     * Generic method to render entity fields for front-office display (legacy - no hook filtering).
+     * @deprecated Use renderEntityFieldsForDisplayInHook instead
+     *
+     * @param string $entityType Entity type (product, category, customer, order)
+     * @param int $entityId Entity ID
+     * @return string HTML output
+     */
+    private function renderEntityFieldsForDisplay(string $entityType, int $entityId): string
+    {
+        // Fallback: render without hook filtering (shows in all hooks)
+        return $this->renderEntityFieldsForDisplayInHook($entityType, $entityId, '');
     }
 
     public function hookActionFrontControllerSetMedia(array $params): void

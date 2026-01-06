@@ -1,4 +1,4 @@
-import type { AcfGroup, AcfField, ApiResponse, GroupsListResponse, GroupResponse, FieldResponse, SlugifyResponse } from '@/types'
+import type { AcfGroup, AcfField, ApiResponse, GroupsListResponse, GroupResponse, FieldResponse, SlugifyResponse, FrontHookOption } from '@/types'
 
 /**
  * API composable for WePresta ACF REST endpoints
@@ -145,6 +145,17 @@ export function useApi() {
   }
 
   /**
+   * Get available front-office hooks for a specific entity type
+   */
+  async function getFrontHooksForEntity(entityType: string): Promise<{ hooks: FrontHookOption[], defaultHook: string }> {
+    const response = await request<{ success: boolean, data: FrontHookOption[], defaultHook: string }>(`/front-hooks/${entityType}`)
+    return {
+      hooks: response.data || [],
+      defaultHook: response.defaultHook || ''
+    }
+  }
+
+  /**
    * Generic fetchJson method for custom endpoints
    */
   async function fetchJson<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -166,6 +177,7 @@ export function useApi() {
     reorderFields,
     // Utilities
     slugify,
+    getFrontHooksForEntity,
     fetchJson,
   }
 }

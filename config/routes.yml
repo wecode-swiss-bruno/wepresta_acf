@@ -281,3 +281,28 @@ wepresta_acf_api_relation_search:
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\RelationApiController::search'
+
+# =========================================================================
+# API - Front Hooks (Presentation)
+# =========================================================================
+
+wepresta_acf_api_front_hooks_all:
+    path: /api/front-hooks
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\FrontHooksController::getAllHooks'
+
+wepresta_acf_api_front_hooks_entity:
+    path: /api/front-hooks/{entityType}
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\FrontHooksController::getHooksForEntity'
+
+wepresta_acf_api_front_hooks_validate:
+    path: /api/front-hooks/{entityType}/{hookName}/validate
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\FrontHooksController::validateHook'

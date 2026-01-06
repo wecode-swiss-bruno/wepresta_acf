@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
-import type { JsonLogicRule } from '@/types'
+import { useApi } from '@/composables/useApi'
+import type { JsonLogicRule, FrontHookOption } from '@/types'
 import type { LocationOption } from '@/types/api'
 
 const emit = defineEmits<{
@@ -12,12 +13,19 @@ const emit = defineEmits<{
 
 const store = useBuilderStore()
 const { t } = useTranslations()
+const api = useApi()
 
 // Access group for placement settings
 const group = computed(() => store.currentGroup)
 
 // Auto-save state for rule addition
 const savingRule = ref(false)
+
+// Front hooks state
+const availableFrontHooks = ref<FrontHookOption[]>([])
+const loadingHooks = ref(false)
+const selectedEntityType = ref<string>('')
+const selectedOperator = ref<string>('==')
 
 // Get locations from window config
 const locations = computed<Record<string, LocationOption[]>>(() => {
@@ -53,10 +61,6 @@ const operators = [
   { value: '!=', label: 'notEquals' },
 ]
 
-// Current rule being edited
-const selectedEntityType = ref<string>('')
-const selectedOperator = ref<string>('==')
-
 // Get rules directly from store (ensure it's always an array)
 const rules = computed(() => {
   const lr = store.currentGroup?.locationRules
@@ -67,6 +71,53 @@ const rules = computed(() => {
 
 // Check if at least one entity type is defined
 const hasEntityType = computed(() => rules.value.length > 0)
+
+// Get the primary entity type from rules (first "==" rule)
+const primaryEntityType = computed(() => {
+  for (const rule of rules.value) {
+    if (rule['=='] && Array.isArray(rule['=='])) {
+      return rule['=='][1] as string
+    }
+  }
+  return ''
+})
+
+// Check if display hook is selected
+const hasDisplayHook = computed(() => {
+  return !!(group.value?.foOptions?.displayHook)
+})
+
+// Validation: can proceed to next step only if entity type AND display hook are selected
+const canProceedToFields = computed(() => hasEntityType.value && hasDisplayHook.value)
+
+// Load available front hooks when entity type changes
+watch(primaryEntityType, async (newEntityType) => {
+  if (!newEntityType) {
+    availableFrontHooks.value = []
+    return
+  }
+
+  loadingHooks.value = true
+  try {
+    const { hooks, defaultHook } = await api.getFrontHooksForEntity(newEntityType)
+    availableFrontHooks.value = hooks
+
+    // Auto-select default hook if no hook is selected yet
+    if (!group.value?.foOptions?.displayHook && defaultHook && group.value) {
+      if (!group.value.foOptions) {
+        group.value.foOptions = {}
+      }
+      group.value.foOptions.displayHook = defaultHook
+      // Auto-save
+      await store.saveGroup()
+    }
+  } catch (error) {
+    console.error('Failed to load front hooks:', error)
+    availableFrontHooks.value = []
+  } finally {
+    loadingHooks.value = false
+  }
+}, { immediate: true })
 
 async function addRule(): Promise<void> {
   if (!selectedEntityType.value || !store.currentGroup) return
@@ -152,6 +203,21 @@ function findLocationByValue(value: string): LocationOption | undefined {
     if (found) return found
   }
   return undefined
+}
+
+/**
+ * Handle display hook change - auto-save
+ */
+async function handleDisplayHookChange(): Promise<void> {
+  if (!group.value) return
+  
+  try {
+    await store.saveGroup()
+    console.log('✅ Display hook saved:', group.value.foOptions?.displayHook)
+  } catch (error) {
+    console.error('❌ Failed to save display hook:', error)
+    alert('Failed to save display hook. Please try again.')
+  }
 }
 </script>
 
@@ -271,21 +337,69 @@ function findLocationByValue(value: string): LocationOption | undefined {
       </div>
     </div>
 
-    <!-- Placement Settings - DISABLED for v1 -->
-    <!-- TODO: Re-enable in v2 with advanced tab management -->
-    <div v-if="group" class="card mt-4 border-info">
+    <!-- Front-Office Display Hook Selection -->
+    <div v-if="group && primaryEntityType" class="card mt-4 border-primary">
       <div class="card-header bg-light">
-        <h4 class="mb-0 text-muted">
+        <h4 class="mb-0">
           <i class="material-icons mr-2" style="vertical-align: middle;">tune</i>
-          {{ t('presentation') || 'Display Settings' }}
-          <small class="text-info ml-2">(Coming in v2.0)</small>
+          {{ t('presentation') || 'Presentation Settings' }}
+          <span class="badge badge-primary ml-2">Required</span>
         </h4>
       </div>
       <div class="card-body">
-        <div class="alert alert-info mb-0">
-          <i class="material-icons mr-2" style="vertical-align: middle; font-size: 18px;">info</i>
-          <strong>Version 1.0</strong><br>
-          <small>All custom fields are automatically placed in the <strong>"EXTRA TAB (ACF)"</strong> for product pages. Advanced tab management and priority settings will be available in version 2.0.</small>
+        <p class="text-muted mb-3">
+          <i class="material-icons mr-1" style="vertical-align: middle; font-size: 16px;">visibility</i>
+          Choose where your custom fields will be displayed in the front-office.
+        </p>
+
+        <div class="form-group mb-0">
+          <label class="form-control-label">
+            <i class="material-icons mr-1" style="font-size: 16px; vertical-align: middle;">insert_link</i>
+            Display Hook
+            <span class="text-danger">*</span>
+          </label>
+          
+          <select
+            v-if="!loadingHooks"
+            v-model="group.foOptions!.displayHook"
+            class="form-control"
+            :class="{ 'is-invalid': !hasDisplayHook }"
+            @change="handleDisplayHookChange"
+          >
+            <option value="">{{ t('selectDisplayHook') || 'Choose display location...' }}</option>
+            <option
+              v-for="hook in availableFrontHooks"
+              :key="hook.value"
+              :value="hook.value"
+            >
+              {{ hook.label }}
+              <template v-if="hook.description"> - {{ hook.description }}</template>
+            </option>
+          </select>
+          
+          <div v-else class="form-control">
+            <i class="material-icons" style="font-size: 18px; vertical-align: middle;">sync</i>
+            Loading available hooks...
+          </div>
+          
+          <small class="form-text text-muted">
+            This determines where on the {{ primaryEntityType }} page your custom fields will appear.
+          </small>
+          
+          <div v-if="!hasDisplayHook" class="invalid-feedback d-block">
+            Please select a display hook to continue.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warning if no entity type selected -->
+    <div v-if="group && !primaryEntityType" class="card mt-4 border-warning">
+      <div class="card-body">
+        <div class="alert alert-warning mb-0">
+          <i class="material-icons mr-2" style="vertical-align: middle; font-size: 18px;">warning</i>
+          <strong>Content Type Required</strong><br>
+          <small>Please select a content type above before choosing a display hook.</small>
         </div>
       </div>
     </div>
@@ -324,9 +438,9 @@ function findLocationByValue(value: string): LocationOption | undefined {
       </button>
       <button 
         class="btn btn-primary"
-        :disabled="!hasEntityType"
+        :disabled="!canProceedToFields"
         @click="emit('next-step')"
-        :title="!hasEntityType ? t('defineEntityTypeFirst') : ''"
+        :title="!hasEntityType ? t('defineEntityTypeFirst') : !hasDisplayHook ? 'Please select a display hook' : ''"
       >
         Next: {{ t('fields') }}
         <span class="material-icons">arrow_forward</span>

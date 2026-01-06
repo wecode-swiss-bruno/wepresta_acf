@@ -72,6 +72,9 @@ final class EntityHooksConfig
     /**
      * Configuration des hooks FRONT (front-office).
      * Structure: entity => [hook1, hook2, ...]
+     * 
+     * Note: Cette liste contient les hooks ACTUELLEMENT UTILISÉS par défaut.
+     * Pour la liste COMPLÈTE des hooks disponibles, voir FrontHooksRegistry.
      *
      * @var array<string, string[]>
      */
@@ -106,6 +109,11 @@ final class EntityHooksConfig
 
     /**
      * Retourne tous les hooks à enregistrer dans le module.
+     * 
+     * Inclut:
+     * - Hooks système (media, header)
+     * - Hooks admin (display, save, Symfony)
+     * - TOUS les hooks front disponibles (FrontHooksRegistry)
      *
      * @return string[]
      */
@@ -125,10 +133,8 @@ final class EntityHooksConfig
             }
         }
 
-        // Front hooks
-        foreach (self::FRONT_HOOKS as $frontHooks) {
-            $hooks = array_merge($hooks, $frontHooks);
-        }
+        // Front hooks - TOUS les hooks disponibles (pas seulement ceux par défaut)
+        $hooks = array_merge($hooks, FrontHooksRegistry::getAllHookNames());
 
         return array_unique($hooks);
     }
