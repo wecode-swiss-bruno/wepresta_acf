@@ -22,8 +22,13 @@ class ValueApiController extends FrameworkBundleAdminController
     {
         try {
             $data = $this->getJsonPayload($request);
-            if (empty($data['productId']) || !isset($data['values'])) {
-                return $this->jsonError('productId and values are required', Response::HTTP_BAD_REQUEST);
+
+            // Support both legacy (productId) and generic (entityType/entityId) formats
+            $entityId = $data['productId'] ?? $data['entityId'] ?? null;
+            $entityType = $data['entityType'] ?? 'product';
+
+            if (empty($entityId) || !isset($data['values'])) {
+                return $this->jsonError('entityId (or productId) and values are required', Response::HTTP_BAD_REQUEST);
             }
 
             $errors = $this->valueHandler->validateProductFieldValues($data['values']);
@@ -32,7 +37,7 @@ class ValueApiController extends FrameworkBundleAdminController
             }
 
             $this->valueHandler->saveProductFieldValues(
-                (int) $data['productId'],
+                (int) $entityId,
                 $data['values'],
                 $data['shopId'] ?? null,
                 $data['langId'] ?? null
