@@ -152,18 +152,21 @@ trait EntityFieldHooksTrait
             return null;
         }
 
-        // Pattern 4: displayAdmin{Xxx}
-        if (preg_match('/^displayAdmin(\w+)$/i', $hookName)) {
+        // Pattern 4: All display hooks (admin + front-office)
+        // Admin hooks: displayAdmin{Xxx}
+        // Front-office hooks: display{Xxx} (not starting with displayAdmin)
+        if (preg_match('/^display/i', $hookName)) {
             $entityType = EntityHooksConfig::getEntityByHook($hookName);
             if ($entityType !== null && $this->isEntityEnabled($entityType)) {
-                return $this->handleGenericDisplayHook($entityType, $params);
+                // Check if it's an admin hook (displayAdminXxx) or front-office hook
+                if (preg_match('/^displayAdmin/i', $hookName)) {
+                    // Back-office display hook
+                    return $this->handleGenericDisplayHook($entityType, $params);
+                } else {
+                    // Front-office display hook
+                    return $this->handleFrontOfficeHook($entityType, $hookName, $params);
+                }
             }
-        }
-
-        // Pattern 5: Front-office hooks (displayProductAdditionalInfo, displayCategoryTop, etc.)
-        $entityType = EntityHooksConfig::getEntityByHook($hookName);
-        if ($entityType !== null && $this->isEntityEnabled($entityType)) {
-            return $this->handleFrontOfficeHook($entityType, $hookName, $params);
         }
 
         return null;

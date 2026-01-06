@@ -44,8 +44,7 @@ final class EntityHooksConfig
      *     form_builder_hook: string,
      *     form_handler_hooks: array<string>,
      *     id_param: string,
-     *     display_hooks?: array<string>,
-     *     front_office_hooks?: array<string>
+     *     display_hooks?: array<string>  // All display hooks (admin + front-office)
      * }>
      */
     public const SYMFONY_ENTITIES = [
@@ -61,8 +60,10 @@ final class EntityHooksConfig
                 'actionAfterUpdateProductFormHandler',
             ],
             'id_param' => 'id',
-            'display_hooks' => ['displayAdminProductsExtra'],
-            'front_office_hooks' => ['displayProductAdditionalInfo'],
+            'display_hooks' => [
+                'displayAdminProductsExtra',  // Back-office
+                'displayProductAdditionalInfo',  // Front-office
+            ],
         ],
         'category' => [
             'label' => 'Category',
@@ -73,8 +74,11 @@ final class EntityHooksConfig
                 'actionAfterUpdateCategoryFormHandler',
             ],
             'id_param' => 'id',
-            'display_hooks' => ['displayAdminCategoriesExtra'],
-            'front_office_hooks' => ['displayCategoryTop', 'displayCategoryHeader'],
+            'display_hooks' => [
+                'displayAdminCategoriesExtra',  // Back-office
+                'displayCategoryTop',  // Front-office
+                'displayCategoryHeader',  // Front-office
+            ],
         ],
         'root_category' => [
             'label' => 'Root Category',
@@ -139,8 +143,11 @@ final class EntityHooksConfig
                 'actionAfterUpdateCustomerFormHandler',
             ],
             'id_param' => 'id',
-            'display_hooks' => ['displayAdminCustomers'],
-            'front_office_hooks' => ['displayCustomerAccount', 'displayMyAccountBlock'],
+            'display_hooks' => [
+                'displayAdminCustomers',  // Back-office
+                'displayCustomerAccount',  // Front-office
+                'displayMyAccountBlock',  // Front-office
+            ],
         ],
 
         // ============================================
@@ -555,12 +562,16 @@ final class EntityHooksConfig
             'label' => 'Order',
             'category' => 'Orders',
             'object_class' => 'Order',
-            'display_hooks' => ['displayAdminOrderMain', 'displayAdminOrderSide'],
+            'display_hooks' => [
+                'displayAdminOrderMain',  // Back-office
+                'displayAdminOrderSide',  // Back-office
+                'displayOrderConfirmation',  // Front-office
+                'displayOrderDetail',  // Front-office
+            ],
             'action_hooks' => [
                 'actionObjectOrderAddAfter',
                 'actionObjectOrderUpdateAfter',
             ],
-            'front_office_hooks' => ['displayOrderConfirmation', 'displayOrderDetail'],
         ],
         'cart' => [
             'label' => 'Cart',
@@ -600,11 +611,6 @@ final class EntityHooksConfig
                     $hooks[] = $hook;
                 }
             }
-            if (isset($entity['front_office_hooks'])) {
-                foreach ($entity['front_office_hooks'] as $hook) {
-                    $hooks[] = $hook;
-                }
-            }
         }
 
         // Legacy entities
@@ -614,11 +620,6 @@ final class EntityHooksConfig
             }
             if (isset($entity['display_hooks'])) {
                 foreach ($entity['display_hooks'] as $hook) {
-                    $hooks[] = $hook;
-                }
-            }
-            if (isset($entity['front_office_hooks'])) {
-                foreach ($entity['front_office_hooks'] as $hook) {
                     $hooks[] = $hook;
                 }
             }
@@ -743,11 +744,6 @@ final class EntityHooksConfig
                     self::$hookToEntityMap[strtolower($hook)] = $entityType;
                 }
             }
-            if (isset($config['front_office_hooks'])) {
-                foreach ($config['front_office_hooks'] as $hook) {
-                    self::$hookToEntityMap[strtolower($hook)] = $entityType;
-                }
-            }
         }
 
         foreach (self::LEGACY_ENTITIES as $entityType => $config) {
@@ -756,11 +752,6 @@ final class EntityHooksConfig
             }
             if (isset($config['display_hooks'])) {
                 foreach ($config['display_hooks'] as $hook) {
-                    self::$hookToEntityMap[strtolower($hook)] = $entityType;
-                }
-            }
-            if (isset($config['front_office_hooks'])) {
-                foreach ($config['front_office_hooks'] as $hook) {
                     self::$hookToEntityMap[strtolower($hook)] = $entityType;
                 }
             }
