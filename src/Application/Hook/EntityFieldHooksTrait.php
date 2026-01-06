@@ -340,12 +340,23 @@ trait EntityFieldHooksTrait
             $entityId = $this->extractEntityIdFromFrontOfficeHook($entityType, $hookName, $params);
             
             if ($entityId <= 0) {
+                // Debug: log when entity ID is not found
+                if (method_exists($this, 'log') && defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+                    $this->log("ACF Front-office: No entity ID found for {$entityType} in hook {$hookName}. Params: " . json_encode(array_keys($params)), 1);
+                }
                 return '';
             }
 
             // Use the module's renderEntityFieldsForDisplay method
             if (method_exists($this, 'renderEntityFieldsForDisplay')) {
-                return $this->renderEntityFieldsForDisplay($entityType, $entityId);
+                $result = $this->renderEntityFieldsForDisplay($entityType, $entityId);
+                
+                // Debug: log when no fields are found
+                if (empty($result) && method_exists($this, 'log') && defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+                    $this->log("ACF Front-office: No fields found for {$entityType} #{$entityId} in hook {$hookName}", 1);
+                }
+                
+                return $result;
             }
 
             return '';
@@ -370,7 +381,32 @@ trait EntityFieldHooksTrait
 
         // Category hooks
         if ($entityType === 'category') {
-            return (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+            // Try multiple ways to get category ID
+            $categoryId = 0;
+            
+            // From params array
+            if (isset($params['category'])) {
+                if (is_array($params['category'])) {
+                    $categoryId = (int) ($params['category']['id_category'] ?? $params['category']['id'] ?? 0);
+                } elseif (is_object($params['category'])) {
+                    $categoryId = (int) ($params['category']->id ?? $params['category']->id_category ?? 0);
+                }
+            }
+            
+            // Fallback: from context controller
+            if ($categoryId <= 0 && isset($this->context->controller)) {
+                $controller = $this->context->controller;
+                if (isset($controller->category) && is_object($controller->category)) {
+                    $categoryId = (int) ($controller->category->id ?? 0);
+                }
+            }
+            
+            // Fallback: from Tools::getValue (URL parameter)
+            if ($categoryId <= 0) {
+                $categoryId = (int) \Tools::getValue('id_category', 0);
+            }
+            
+            return $categoryId;
         }
 
         // Customer hooks
