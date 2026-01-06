@@ -271,7 +271,9 @@ final class FormModifierService
             // Try to get the API URL from the router
             $router = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance()->get('router');
             if ($router) {
-                return $router->generate('wepresta_acf_api_groups_list');
+                // Use values route and strip /values to get base URL
+                $url = $router->generate('wepresta_acf_api_values_save');
+                return preg_replace('/\/values$/', '', $url);
             }
         } catch (\Exception $e) {
             // Fallback
