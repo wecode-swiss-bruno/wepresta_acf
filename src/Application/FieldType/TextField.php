@@ -64,13 +64,13 @@ final class TextField extends AbstractFieldType
             $options['attr']['maxlength'] = (int) $validation['maxLength'];
         }
 
-        // Add prepend/append if configured
-        if (!empty($fieldConfig['prepend'])) {
-            $options['attr']['data-prepend'] = $fieldConfig['prepend'];
+        // Add prefix/suffix if configured
+        if (!empty($fieldConfig['prefix'])) {
+            $options['attr']['data-prefix'] = $fieldConfig['prefix'];
         }
 
-        if (!empty($fieldConfig['append'])) {
-            $options['attr']['data-append'] = $fieldConfig['append'];
+        if (!empty($fieldConfig['suffix'])) {
+            $options['attr']['data-suffix'] = $fieldConfig['suffix'];
         }
 
         return $options;
@@ -107,16 +107,16 @@ final class TextField extends AbstractFieldType
 
         $output = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 
-        // Add prepend/append for display
-        $prepend = $fieldConfig['prepend'] ?? '';
-        $append = $fieldConfig['append'] ?? '';
+        // Add prefix/suffix for display
+        $prefix = $fieldConfig['prefix'] ?? '';
+        $suffix = $fieldConfig['suffix'] ?? '';
 
-        if ($prepend !== '') {
-            $output = htmlspecialchars($prepend, ENT_QUOTES, 'UTF-8') . $output;
+        if ($prefix !== '') {
+            $output = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $output;
         }
 
-        if ($append !== '') {
-            $output .= htmlspecialchars($append, ENT_QUOTES, 'UTF-8');
+        if ($suffix !== '') {
+            $output .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
         }
 
         return $output;

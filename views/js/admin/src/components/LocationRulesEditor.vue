@@ -5,12 +5,19 @@ import { useTranslations } from '@/composables/useTranslations'
 import type { JsonLogicRule } from '@/types'
 import type { LocationOption } from '@/types/api'
 
+const emit = defineEmits<{
+  'next-step': []
+  'prev-step': []
+}>()
+
 const store = useBuilderStore()
 const { t } = useTranslations()
 
 // Access group for placement settings
 const group = computed(() => store.currentGroup)
-const productTabs = computed(() => window.acfConfig?.productTabs || [])
+
+// Auto-save state for rule addition
+const savingRule = ref(false)
 
 // Get locations from window config
 const locations = computed<Record<string, LocationOption[]>>(() => {
@@ -41,23 +48,12 @@ const rules = computed(() => {
   return Array.isArray(lr) ? lr : []
 })
 
-// Check if any rule targets "product" entity
-const hasProductRule = computed(() => {
-  return rules.value.some(rule => {
-    // Check JsonLogic format: {"==": [{"var": "entity_type"}, "product"]}
-    if (rule['=='] && Array.isArray(rule['=='])) {
-      return rule['=='][1] === 'product'
-    }
-    return false
-  })
-})
 
-// Show Tab options only when there are no rules (all entities) or product is explicitly selected
-const showTabOptions = computed(() => {
-  return rules.value.length === 0 || hasProductRule.value
-})
 
-function addRule(): void {
+// Check if at least one entity type is defined
+const hasEntityType = computed(() => rules.value.length > 0)
+
+async function addRule(): Promise<void> {
   if (!selectedEntityType.value || !store.currentGroup) return
 
   const newRule: JsonLogicRule = {
@@ -71,10 +67,36 @@ function addRule(): void {
   if (!Array.isArray(store.currentGroup.locationRules)) {
     store.currentGroup.locationRules = []
   }
+
+  // Add rule locally first
   store.currentGroup.locationRules.push(newRule)
 
-  // Reset selection
+  // Reset selection immediately for better UX
+  const ruleType = selectedEntityType.value
+  const ruleOperator = selectedOperator.value
   selectedEntityType.value = ''
+
+  // Auto-save to database
+  savingRule.value = true
+  try {
+    await store.saveGroup()
+    // Success - rule is now saved in DB
+    console.log(`✅ Rule "${ruleOperator} ${ruleType}" saved automatically`)
+  } catch (error) {
+    console.error('❌ Failed to save location rule:', error)
+    // Remove the rule from local state if save failed
+    if (Array.isArray(store.currentGroup.locationRules)) {
+      store.currentGroup.locationRules.pop()
+    }
+    // Restore selection so user can try again
+    selectedEntityType.value = ruleType
+    selectedOperator.value = ruleOperator
+
+    // Show error feedback
+    alert(t('saveError') || 'Failed to save location rule. Please try again.')
+  } finally {
+    savingRule.value = false
+  }
 }
 
 function removeRule(index: number): void {
@@ -120,11 +142,21 @@ function findLocationByValue(value: string): LocationOption | undefined {
 
 <template>
   <div class="location-rules-editor">
-    <p class="text-muted mb-3">{{ t('locationRulesHelp') }}</p>
+    <!-- Introduction -->
+    <div class="mb-4">
+      <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.5;">
+        <i class="material-icons mr-1" style="vertical-align: middle; font-size: 16px; color: #6c757d;">location_on</i>
+        {{ t('locationRulesHelp') }}
+      </p>
+    </div>
 
     <!-- Current rules -->
-    <div v-if="rules.length > 0" class="mb-3">
-      <h5 class="mb-2">{{ t('currentRules') || 'Current Rules' }}</h5>
+    <div v-if="rules.length > 0" class="mb-4">
+      <h4 class="mb-3">
+        <i class="material-icons text-success mr-2" style="vertical-align: middle;">check_circle</i>
+        Active Display Rules
+      </h4>
+      <p class="text-muted mb-3">Your custom fields will appear on these content types:</p>
       <div class="list-group">
         <div
           v-for="(rule, index) in rules"
@@ -132,13 +164,13 @@ function findLocationByValue(value: string): LocationOption | undefined {
           class="list-group-item d-flex justify-content-between align-items-center"
         >
           <span>
-            <i class="material-icons text-primary" style="font-size: 18px; vertical-align: middle;">check_circle</i>
+            <i class="material-icons text-primary mr-2" style="vertical-align: middle;">location_on</i>
             {{ getRuleLabel(rule) }}
           </span>
           <button
             class="btn btn-sm btn-outline-danger"
             @click="removeRule(index)"
-            :title="t('removeRule') || 'Remove rule'"
+            title="Remove this rule"
           >
             <i class="material-icons" style="font-size: 18px;">delete</i>
           </button>
@@ -148,17 +180,24 @@ function findLocationByValue(value: string): LocationOption | undefined {
 
     <!-- Add new rule -->
     <div class="card">
-      <div class="card-header">
-        <h5 class="mb-0">{{ t('addLocationRule') || 'Add Location Rule' }}</h5>
+      <div class="card-header bg-light">
+        <h4 class="mb-0">
+          <i class="material-icons mr-2" style="vertical-align: middle;">add_location</i>
+          {{ t('addLocationRule') }}
+        </h4>
       </div>
       <div class="card-body">
         <div class="form-group mb-3">
-          <label>{{ t('entityType') || 'Entity Type' }}</label>
+          <label class="form-control-label">
+            <i class="material-icons mr-1" style="font-size: 16px; vertical-align: middle;">category</i>
+            {{ t('applyTo') }}
+            <span class="text-danger">*</span>
+          </label>
           <select
             v-model="selectedEntityType"
             class="form-control"
           >
-            <option value="">{{ t('selectEntityType') || 'Select an entity type...' }}</option>
+            <option value="">{{ t('selectEntityType') }}</option>
             <optgroup
               v-for="group in locationGroups"
               :key="group.name"
@@ -174,10 +213,16 @@ function findLocationByValue(value: string): LocationOption | undefined {
               </option>
             </optgroup>
           </select>
+          <small class="form-text text-muted">
+            {{ t('contentTypeDescription') }}
+          </small>
         </div>
 
         <div class="form-group mb-3">
-          <label>{{ t('operator') || 'Operator' }}</label>
+          <label class="form-control-label">
+            <i class="material-icons mr-1" style="font-size: 16px; vertical-align: middle;">filter_list</i>
+            {{ t('operator') || 'Condition' }}
+          </label>
           <select v-model="selectedOperator" class="form-control">
             <option
               v-for="op in operators"
@@ -187,68 +232,88 @@ function findLocationByValue(value: string): LocationOption | undefined {
               {{ t(op.label) || op.label }}
             </option>
           </select>
+          <small class="form-text text-muted">
+            {{ t('conditionDescription') }}
+          </small>
         </div>
 
         <button
-          class="btn btn-primary"
-          :disabled="!selectedEntityType"
+          class="btn btn-primary btn-lg"
+          :disabled="!selectedEntityType || savingRule"
           @click="addRule"
         >
-          <i class="material-icons" style="font-size: 18px; vertical-align: middle;">add</i>
-          {{ t('addRule') || 'Add Rule' }}
+          <span v-if="savingRule">
+            <i class="material-icons mr-1" style="font-size: 18px; vertical-align: middle;">sync</i>
+            {{ t('saving') || 'Saving...' }}
+          </span>
+          <span v-else>
+            <i class="material-icons mr-1" style="font-size: 18px; vertical-align: middle;">add</i>
+            {{ t('addRule') || 'Add Display Rule' }}
+          </span>
         </button>
       </div>
     </div>
 
-    <!-- Placement Settings -->
-    <div v-if="group" class="card mt-4">
-      <div class="card-header">
-        <h5 class="mb-0">{{ t('presentation') || 'Presentation' }}</h5>
+    <!-- Placement Settings - DISABLED for v1 -->
+    <!-- TODO: Re-enable in v2 with advanced tab management -->
+    <div v-if="group" class="card mt-4 border-info">
+      <div class="card-header bg-light">
+        <h4 class="mb-0 text-muted">
+          <i class="material-icons mr-2" style="vertical-align: middle;">tune</i>
+          {{ t('presentation') || 'Display Settings' }}
+          <small class="text-info ml-2">(Coming in v2.0)</small>
+        </h4>
       </div>
       <div class="card-body">
-        <!-- Tab selection - only for Product entities -->
-        <div v-if="showTabOptions" class="form-group mb-3">
-          <label>{{ t('placementTab') || 'Tab' }}</label>
-          <select v-model="group.placementTab" class="form-control">
-            <option
-              v-for="tab in productTabs"
-              :key="tab.value"
-              :value="tab.value"
-            >
-              {{ tab.label }}
-            </option>
-          </select>
-          <small class="form-text text-muted">
-            Product page tab where this field group will appear.
-          </small>
-        </div>
-
-        <div v-else class="alert alert-info mb-3">
-          <i class="material-icons" style="vertical-align: middle; font-size: 18px;">info</i>
-          Tab placement is only available for Product entities.
-          For other entities, fields appear in the main edit form.
-        </div>
-
-        <div class="form-group mb-3">
-          <label>{{ t('priority') || 'Priority' }}</label>
-          <input
-            v-model.number="group.priority"
-            type="number"
-            class="form-control"
-            min="0"
-            max="100"
-          >
-          <small class="form-text text-muted">
-            Lower numbers appear first. Default is 10.
-          </small>
+        <div class="alert alert-info mb-0">
+          <i class="material-icons mr-2" style="vertical-align: middle; font-size: 18px;">info</i>
+          <strong>Version 1.0</strong><br>
+          <small>All custom fields are automatically placed in the <strong>"EXTRA TAB (ACF)"</strong> for product pages. Advanced tab management and priority settings will be available in version 2.0.</small>
         </div>
       </div>
     </div>
 
-    <!-- Info -->
-    <div class="alert alert-info mt-3">
-      <strong>{{ t('info') || 'Info' }}</strong><br>
-      {{ t('locationRulesInfo') || 'Select entity types where this field group should appear. If no rules are defined, the group will appear on all entities.' }}
+    <!-- Help Section -->
+    <div class="mt-4 p-3 bg-light rounded">
+      <h5 class="mb-3 text-muted">
+        <i class="material-icons mr-2" style="vertical-align: middle;">help_outline</i>
+        How it works
+      </h5>
+      <div class="row">
+        <div class="col-md-6">
+          <ul class="mb-0 small text-muted">
+            <li>Select content types where your fields should appear</li>
+            <li>Add multiple rules to show fields on different content types</li>
+            <li>If no rules are added, fields appear on ALL content types</li>
+            <li>Use "Exclude" to hide fields from specific content types</li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <div class="small text-muted">
+            <strong>Examples:</strong><br>
+            • Products: Add custom fields to product pages<br>
+            • Categories: Add fields specific to category pages<br>
+            • Empty rules: Fields appear on all content types
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Navigation -->
+    <div class="acfps-step-navigation">
+      <button class="btn btn-outline-secondary" @click="emit('prev-step')">
+        <span class="material-icons">arrow_back</span>
+        {{ t('general') }}
+      </button>
+      <button 
+        class="btn btn-primary"
+        :disabled="!hasEntityType"
+        @click="emit('next-step')"
+        :title="!hasEntityType ? t('defineEntityTypeFirst') : ''"
+      >
+        Next: {{ t('fields') }}
+        <span class="material-icons">arrow_forward</span>
+      </button>
     </div>
   </div>
 </template>
@@ -258,16 +323,88 @@ function findLocationByValue(value: string): LocationOption | undefined {
   padding: 1.5rem;
 }
 
-.available-operators span {
-  margin-left: 0.5rem;
+
+.location-rules-editor .card {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
 }
 
-.available-operators span::after {
-  content: ',';
+.location-rules-editor .card-header {
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+  background-color: #f8f9fa;
 }
 
-.available-operators span:last-child::after {
-  content: '';
+.location-rules-editor .card-header.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.location-rules-editor .form-control-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.location-rules-editor .form-control-label .material-icons {
+  color: #6c757d;
+}
+
+.location-rules-editor .form-text {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.location-rules-editor .list-group-item {
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  margin-bottom: 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.location-rules-editor .btn-primary.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+}
+
+.location-rules-editor .alert-warning {
+  border-left: 3px solid #ffc107;
+  background-color: #fffbf0;
+  color: #856404;
+  border-radius: 0.25rem;
+}
+
+.acfps-step-navigation {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-top: 1px solid #dee2e6;
+  margin-top: 2rem;
+  background: #f8f9fa;
+}
+
+.acfps-step-navigation .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.acfps-step-navigation .btn .material-icons {
+  font-size: 18px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .location-rules-editor .row .col-md-6 {
+    margin-bottom: 1rem;
+  }
+
+  .acfps-step-navigation {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .acfps-step-navigation .btn {
+    justify-content: center;
+  }
 }
 </style>
 

@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace WeprestaAcf\Infrastructure\Api;
 
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use WeprestaAcf\Application\Service\SyncService;
@@ -25,7 +24,6 @@ class SyncApiController extends FrameworkBundleAdminController
     /**
      * Get sync status for all groups.
      */
-    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function status(Request $request): JsonResponse
     {
         try {
@@ -56,7 +54,6 @@ class SyncApiController extends FrameworkBundleAdminController
     /**
      * Get sync status for a single group.
      */
-    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function groupStatus(int $groupId, Request $request): JsonResponse
     {
         try {
@@ -77,7 +74,6 @@ class SyncApiController extends FrameworkBundleAdminController
     /**
      * Push a group to theme JSON.
      */
-    #[AdminSecurity("is_granted('update', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function push(int $groupId, Request $request): JsonResponse
     {
         try {
@@ -98,7 +94,6 @@ class SyncApiController extends FrameworkBundleAdminController
     /**
      * Pull a group from theme JSON.
      */
-    #[AdminSecurity("is_granted('update', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function pull(string $slug, Request $request): JsonResponse
     {
         try {
@@ -119,7 +114,6 @@ class SyncApiController extends FrameworkBundleAdminController
     /**
      * Push all groups to theme JSON.
      */
-    #[AdminSecurity("is_granted('update', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function pushAll(Request $request): JsonResponse
     {
         try {
@@ -140,7 +134,6 @@ class SyncApiController extends FrameworkBundleAdminController
     /**
      * Pull all groups from theme JSON.
      */
-    #[AdminSecurity("is_granted('update', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function pullAll(Request $request): JsonResponse
     {
         try {
@@ -161,7 +154,6 @@ class SyncApiController extends FrameworkBundleAdminController
     /**
      * Download a group as JSON file.
      */
-    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function export(int $groupId, Request $request): JsonResponse
     {
         try {

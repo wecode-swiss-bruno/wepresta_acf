@@ -99,12 +99,15 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
   <div class="acfps-field-list">
     <!-- Empty state -->
     <div v-if="fields.length === 0" class="acfps-empty-state">
-      <span class="material-icons">view_list</span>
-      <p>{{ t('noFields') }}</p>
-      <button class="btn btn-outline-primary btn-sm" @click="showTypeSelector = true">
-        <span class="material-icons">add</span>
-        {{ t('addField') }}
-      </button>
+      <div class="empty-state-content">
+        <span class="material-icons empty-icon">view_list</span>
+        <h5 class="empty-title">{{ t('noFields') }}</h5>
+        <p class="empty-description">Get started by adding your first custom field to this group.</p>
+        <button class="btn btn-primary btn-lg empty-action-btn" @click="showTypeSelector = true">
+          <span class="material-icons">add</span>
+          {{ t('addField') }}
+        </button>
+      </div>
     </div>
 
     <!-- Draggable field list -->
@@ -124,10 +127,18 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
       >
         <div
           class="acfps-field-item"
-          :class="{ active: store.selectedField?.uuid === field.uuid }"
+          :class="{ 
+            active: store.selectedField?.uuid === field.uuid,
+            'field-incomplete': !field.title?.trim()
+          }"
           @click="store.selectField(field)"
         >
           <span class="drag-handle material-icons">drag_indicator</span>
+          
+          <!-- ✅ Warning icon pour champs incomplets -->
+          <span v-if="!field.title?.trim()" class="material-icons text-warning incomplete-icon" title="Title required">
+            warning
+          </span>
           
           <!-- Expand toggle for repeaters -->
           <button 
@@ -142,7 +153,9 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
           
           <span class="field-icon material-icons">{{ getFieldIcon(field.type) }}</span>
           <div class="field-info">
-            <span class="field-title">{{ field.title || t('untitled') }}</span>
+            <span class="field-title" :class="{ 'text-muted': !field.title?.trim() }">
+              {{ field.title || t('untitled') }}
+            </span>
             <span class="field-type">{{ field.type }}</span>
             <span v-if="field.type === 'repeater' && getSubfields(field).length > 0" class="subfield-count">
               ({{ getSubfields(field).length }} subfields)
@@ -206,9 +219,9 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
       </div>
     </VueDraggable>
 
-    <!-- Add field button -->
-    <div class="field-list-footer">
-      <button 
+    <!-- Add field button (only when fields exist) -->
+    <div v-if="fields.length > 0" class="field-list-footer">
+      <button
         class="btn btn-outline-secondary btn-block"
         @click="showTypeSelector = true; addingSubfieldTo = null"
       >
@@ -216,6 +229,7 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
         {{ t('addField') }}
       </button>
     </div>
+
 
     <!-- Field type selector modal -->
     <FieldTypeSelector
@@ -238,6 +252,60 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
   overflow-y: auto;
 }
 
+
+/* Empty state styles */
+.acfps-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+}
+
+.empty-state-content {
+  text-align: center;
+  max-width: 300px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #dee2e6;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+.empty-title {
+  color: #6c757d;
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.empty-description {
+  color: #adb5bd;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.empty-action-btn {
+  border-radius: 8px;
+  padding: 0.75rem 2rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.empty-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.empty-action-btn .material-icons {
+  margin-right: 0.5rem;
+}
+
+/* Field list footer (only shown when fields exist) */
 .field-list-footer {
   padding: 1rem;
   border-top: 1px solid var(--border-color, #e9e9e9);
@@ -304,6 +372,27 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
   font-size: 16px;
   vertical-align: middle;
   margin-right: 0.25rem;
+}
+
+/* ✅ Styles pour champs incomplets */
+.field-incomplete {
+  border-left: 3px solid #ffc107 !important;
+  background: #fff8e1;
+}
+
+.field-incomplete:hover {
+  background: #fff3cd;
+}
+
+.incomplete-icon {
+  font-size: 18px;
+  margin-right: 0.25rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 </style>
 

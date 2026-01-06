@@ -1073,6 +1073,10 @@ class WeprestaAcf extends Module
                 if (is_string($fieldConfig)) {
                     $fieldConfig = json_decode($fieldConfig, true) ?: [];
                 }
+                $wrapper = $field['wrapper'] ?? [];
+                if (is_string($wrapper)) {
+                    $wrapper = json_decode($wrapper, true) ?: [];
+                }
                 $renderedValue = $fieldType ? $fieldType->renderValue($field['value'], $fieldConfig, $foOptions) : htmlspecialchars((string) $field['value']);
 
                 $displayFields[] = [
@@ -1082,6 +1086,7 @@ class WeprestaAcf extends Module
                     'value' => $field['value'],
                     'rendered' => $renderedValue,
                     'fo_options' => $foOptions,
+                    'wrapper' => $wrapper,
                 ];
             }
 

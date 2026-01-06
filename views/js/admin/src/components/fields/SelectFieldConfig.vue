@@ -69,7 +69,8 @@ watch(
 )
 
 watch(allowMultiple, (val) => {
-  emit('update:config', { ...props.config, allowMultiple: val })
+  const boolVal = !!val
+  emit('update:config', { ...props.config, allowMultiple: boolVal })
 })
 
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
@@ -92,7 +93,7 @@ function updateChoice(index: number, field: 'value' | 'label', value: string): v
 }
 
 function emitChoices(): void {
-  emit('update:config', { ...props.config, choices: [...choices.value] })
+  emit('update:config', { ...props.config, choices: choices.value as any })
 }
 </script>
 

@@ -125,14 +125,27 @@ final class DatetimeField extends AbstractFieldType
 
         // Use PrestaShop's date formatting + time
         if (function_exists('Tools::displayDate')) {
-            return \Tools::displayDate(date('Y-m-d H:i:s', $timestamp), null, true);
+            $formatted = \Tools::displayDate(date('Y-m-d H:i:s', $timestamp), null, true);
+        } else {
+            // Fallback format
+            $dateFormat = $this->getConfigValue($fieldConfig, 'dateFormat', 'd/m/Y');
+            $timeFormat = $this->getConfigValue($fieldConfig, 'timeFormat', 'H:i');
+            $formatted = date($dateFormat . ' ' . $timeFormat, $timestamp);
         }
 
-        // Fallback format
-        $dateFormat = $this->getConfigValue($fieldConfig, 'dateFormat', 'd/m/Y');
-        $timeFormat = $this->getConfigValue($fieldConfig, 'timeFormat', 'H:i');
+        // Add prefix/suffix for display
+        $prefix = $fieldConfig['prefix'] ?? '';
+        $suffix = $fieldConfig['suffix'] ?? '';
 
-        return date($dateFormat . ' ' . $timeFormat, $timestamp);
+        if ($prefix !== '') {
+            $formatted = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $formatted;
+        }
+
+        if ($suffix !== '') {
+            $formatted .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
+        }
+
+        return $formatted;
     }
 
     public function getIndexValue(mixed $value, array $fieldConfig = []): ?string

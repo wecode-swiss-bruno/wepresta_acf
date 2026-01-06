@@ -8,7 +8,6 @@ use WeprestaAcf\Application\Service\FieldTypeRegistry;
 use WeprestaAcf\Application\Service\SlugGenerator;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -73,7 +72,6 @@ class UtilityApiController extends FrameworkBundleAdminController
     /**
      * Force upgrade the module by resetting version and triggering upgrade.
      */
-    #[AdminSecurity("is_granted('modify', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
     public function forceUpgrade(): JsonResponse
     {
         try {
@@ -128,7 +126,6 @@ class UtilityApiController extends FrameworkBundleAdminController
     /**
      * Execute seed script to create test group with all field types.
      */
-    #[AdminSecurity("is_granted('create', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
     public function seed(Request $request): JsonResponse
     {
         try {

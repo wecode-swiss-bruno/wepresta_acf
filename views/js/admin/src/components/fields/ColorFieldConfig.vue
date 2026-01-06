@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
 
@@ -15,38 +16,30 @@ const { t } = useTranslations()
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
   emit('update:config', { ...props.config, [key]: value })
 }
+
+// Local reactive values for v-model binding
+const showHex = ref(props.config?.showHex !== false)
+
+// Watch for prop changes to sync local values
+watch(() => props.config?.showHex, (newVal) => {
+  showHex.value = newVal !== false
+})
+
+// Watch local values to emit updates
+watch(showHex, (newVal) => {
+  updateConfig('showHex', newVal)
+})
 </script>
 
 <template>
   <div class="color-field-config">
     <div class="form-group">
-      <label class="form-control-label">{{ t('defaultValue') }}</label>
-      <div class="acf-color-input-group">
-        <input 
-          type="color"
-          class="form-control acf-color-picker"
-          :value="config.defaultValue || '#000000'"
-          @input="updateConfig('defaultValue', ($event.target as HTMLInputElement).value)"
-        >
-        <input 
-          type="text"
-          class="form-control"
-          :value="config.defaultValue || '#000000'"
-          pattern="#[0-9A-Fa-f]{6}"
-          maxlength="7"
-          @input="updateConfig('defaultValue', ($event.target as HTMLInputElement).value)"
-        >
-      </div>
-    </div>
-
-    <div class="form-group">
       <div class="form-check">
-        <input 
+        <input
+          v-model="showHex"
           type="checkbox"
           class="form-check-input"
           id="showHex"
-          :checked="config.showHex !== false"
-          @change="updateConfig('showHex', ($event.target as HTMLInputElement).checked)"
         >
         <label class="form-check-label" for="showHex">
           Show Hex Value

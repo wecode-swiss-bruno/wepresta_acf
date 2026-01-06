@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WeprestaAcf\Presentation\Controller\Admin;
 
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\Response;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Application\Service\FieldTypeRegistry;
@@ -22,7 +21,6 @@ final class BuilderController extends FrameworkBundleAdminController
         private readonly LocationProviderRegistry $locationProviderRegistry
     ) {}
 
-    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
     public function index(): Response
     {
         // Load custom field types from theme/uploads

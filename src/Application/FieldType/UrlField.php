@@ -81,6 +81,18 @@ final class UrlField extends AbstractFieldType
         // Use custom link text or display URL
         $displayText = $linkText !== '' ? htmlspecialchars($linkText, ENT_QUOTES, 'UTF-8') : $url;
 
+        // Add prefix/suffix for display
+        $prefix = $fieldConfig['prefix'] ?? '';
+        $suffix = $fieldConfig['suffix'] ?? '';
+
+        if ($prefix !== '') {
+            $displayText = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $displayText;
+        }
+
+        if ($suffix !== '') {
+            $displayText .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
+        }
+
         // Render as clickable link
         return sprintf(
             '<a href="%s" target="%s" rel="noopener noreferrer">%s</a>',

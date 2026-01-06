@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace WeprestaAcf\Infrastructure\Api;
 
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
+use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use WeprestaAcf\Application\Service\FieldTypeLoader;
@@ -24,6 +25,7 @@ class FieldTypeApiController extends FrameworkBundleAdminController
     /**
      * List all registered field types.
      */
+    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function list(Request $request): JsonResponse
     {
         try {
@@ -52,6 +54,7 @@ class FieldTypeApiController extends FrameworkBundleAdminController
     /**
      * Get a single field type info.
      */
+    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function show(string $type, Request $request): JsonResponse
     {
         try {
@@ -86,6 +89,7 @@ class FieldTypeApiController extends FrameworkBundleAdminController
     /**
      * Upload a new field type.
      */
+    #[AdminSecurity("is_granted('create', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function upload(Request $request): JsonResponse
     {
         try {
@@ -125,6 +129,7 @@ class FieldTypeApiController extends FrameworkBundleAdminController
     /**
      * Delete a custom field type.
      */
+    #[AdminSecurity("is_granted('delete', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function remove(string $type, Request $request): JsonResponse
     {
         try {
@@ -145,6 +150,7 @@ class FieldTypeApiController extends FrameworkBundleAdminController
     /**
      * Get discovery paths info.
      */
+    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function paths(Request $request): JsonResponse
     {
         try {

@@ -81,9 +81,9 @@ final class NumberField extends AbstractFieldType
             $options['attr']['step'] = 1 / pow(10, $decimals);
         }
 
-        // Unit as suffix
-        if (!empty($fieldConfig['unit'])) {
-            $options['attr']['data-unit'] = $fieldConfig['unit'];
+        // Suffix
+        if (!empty($fieldConfig['suffix'])) {
+            $options['attr']['data-suffix'] = $fieldConfig['suffix'];
         }
 
         return $options;
@@ -139,10 +139,16 @@ final class NumberField extends AbstractFieldType
         $locale = $renderOptions['locale'] ?? 'en_US';
         $formatted = number_format($numericValue, (int) $decimals, '.', ' ');
 
-        // Add unit if configured
-        $unit = $this->getConfigValue($fieldConfig, 'unit', '');
-        if ($unit !== '') {
-            $formatted .= ' ' . htmlspecialchars($unit, ENT_QUOTES, 'UTF-8');
+        // Add prefix if configured
+        $prefix = $this->getConfigValue($fieldConfig, 'prefix', '');
+        if ($prefix !== '') {
+            $formatted = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $formatted;
+        }
+
+        // Add suffix if configured
+        $suffix = $this->getConfigValue($fieldConfig, 'suffix', '');
+        if ($suffix !== '') {
+            $formatted .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
         }
 
         return $formatted;
@@ -184,14 +190,16 @@ final class NumberField extends AbstractFieldType
             return $errors;
         }
 
-        // Min validation
-        if (isset($validation['min']) && $numericValue < (float) $validation['min']) {
-            $errors[] = sprintf('Value must be at least %s.', $validation['min']);
+        // Min validation - check both validation and config for backwards compatibility
+        $min = $fieldConfig['min'] ?? $validation['min'] ?? null;
+        if ($min !== null && $numericValue < (float) $min) {
+            $errors[] = sprintf('Value must be at least %s.', $min);
         }
 
-        // Max validation
-        if (isset($validation['max']) && $numericValue > (float) $validation['max']) {
-            $errors[] = sprintf('Value must not exceed %s.', $validation['max']);
+        // Max validation - check both validation and config for backwards compatibility
+        $max = $fieldConfig['max'] ?? $validation['max'] ?? null;
+        if ($max !== null && $numericValue > (float) $max) {
+            $errors[] = sprintf('Value must not exceed %s.', $max);
         }
 
         return $errors;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
 
@@ -15,27 +16,30 @@ const { t } = useTranslations()
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
   emit('update:config', { ...props.config, [key]: value })
 }
+
+// Local reactive values for v-model binding
+const placeholder = ref(props.config?.placeholder || '')
+
+// Watch for prop changes to sync local values
+watch(() => props.config?.placeholder, (newVal) => {
+  placeholder.value = newVal || ''
+})
+
+// Watch local values to emit updates
+watch(placeholder, (newVal) => {
+  updateConfig('placeholder', newVal || undefined)
+})
 </script>
 
 <template>
   <div class="email-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('placeholder') }}</label>
-      <input 
+      <input
+        v-model="placeholder"
         type="text"
         class="form-control"
-        :value="config.placeholder || 'email@example.com'"
-        @input="updateConfig('placeholder', ($event.target as HTMLInputElement).value)"
-      >
-    </div>
-
-    <div class="form-group">
-      <label class="form-control-label">{{ t('defaultValue') }}</label>
-      <input 
-        type="email"
-        class="form-control"
-        :value="config.defaultValue"
-        @input="updateConfig('defaultValue', ($event.target as HTMLInputElement).value)"
+        placeholder="email@example.com"
       >
     </div>
   </div>

@@ -8,6 +8,7 @@
 
 <select class="form-control{if isset($context.size) && $context.size === 'sm'} form-control-sm{/if}{if isset($context.dataSubfield) && $context.dataSubfield} acf-subfield-input{/if}"
         id="{$inputId|escape:'htmlall':'UTF-8'}"
+        {if isset($fieldConfig.allowMultiple) && $fieldConfig.allowMultiple}multiple{/if}
         {if isset($context.dataSubfield) && $context.dataSubfield}
             data-subfield="{$field.slug|escape:'htmlall':'UTF-8'}"
         {else}

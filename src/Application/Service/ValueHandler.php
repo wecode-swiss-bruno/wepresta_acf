@@ -68,6 +68,23 @@ final class ValueHandler
         $isTranslatable = (bool) ($field['translatable'] ?? false);
         $config = $this->parseJsonConfig($field['config'] ?? '{}');
 
+        // For translatable fields, value is an array of {langId: value}
+        if ($isTranslatable && is_array($value) && $this->isLangValueArray($value)) {
+            $allSuccess = true;
+            foreach ($value as $langId => $langValue) {
+                $normalizedValue = $this->fieldTypeRegistry->normalizeValue($fieldType, $langValue, $config);
+                $storableValue = $this->toStorableValue($normalizedValue);
+                $indexValue = $this->fieldTypeRegistry->getIndexValue($fieldType, $normalizedValue, $config);
+
+                $result = $this->valueRepository->saveEntity($fieldId, $entityType, $entityId, $storableValue, $shopId, (int) $langId, $isTranslatable, $indexValue);
+                if (!$result) {
+                    $allSuccess = false;
+                }
+            }
+            return $allSuccess;
+        }
+
+        // Non-translatable field: single value
         $normalizedValue = $this->fieldTypeRegistry->normalizeValue($fieldType, $value, $config);
         $storableValue = $this->toStorableValue($normalizedValue);
         $indexValue = $this->fieldTypeRegistry->getIndexValue($fieldType, $normalizedValue, $config);
@@ -83,6 +100,25 @@ final class ValueHandler
         ]);
 
         return $result;
+    }
+
+    /**
+     * Checks if an array is a language-value mapping (keys are numeric language IDs).
+     */
+    private function isLangValueArray(mixed $value): bool
+    {
+        if (!is_array($value) || empty($value)) {
+            return false;
+        }
+
+        // Check if all keys are numeric (language IDs)
+        foreach (array_keys($value) as $key) {
+            if (!is_numeric($key)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function deleteProductFieldValues(int $productId, ?int $shopId = null): bool
@@ -105,8 +141,30 @@ final class ValueHandler
         foreach ($values as $slug => $value) {
             $field = $this->fieldRepository->findBySlug($slug);
             if (!$field) { continue; }
-            $fieldErrors = $this->fieldTypeRegistry->validate($field['type'], $value, $this->parseJsonConfig($field['config'] ?? '{}'), $this->parseJsonConfig($field['validation'] ?? '{}'));
-            if (!empty($fieldErrors)) { $errors[$slug] = $fieldErrors; }
+            
+            $isTranslatable = (bool) ($field['translatable'] ?? false);
+            $config = $this->parseJsonConfig($field['config'] ?? '{}');
+            $validation = $this->parseJsonConfig($field['validation'] ?? '{}');
+            
+            // For translatable fields, validate each language value
+            if ($isTranslatable && is_array($value) && $this->isLangValueArray($value)) {
+                $fieldErrors = [];
+                foreach ($value as $langId => $langValue) {
+                    $langErrors = $this->fieldTypeRegistry->validate($field['type'], $langValue, $config, $validation);
+                    if (!empty($langErrors)) {
+                        $fieldErrors[$langId] = $langErrors;
+                    }
+                }
+                if (!empty($fieldErrors)) {
+                    $errors[$slug] = $fieldErrors;
+                }
+            } else {
+                // Non-translatable field: validate single value
+                $fieldErrors = $this->fieldTypeRegistry->validate($field['type'], $value, $config, $validation);
+                if (!empty($fieldErrors)) {
+                    $errors[$slug] = $fieldErrors;
+                }
+            }
         }
         return $errors;
     }

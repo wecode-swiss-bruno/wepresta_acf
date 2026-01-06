@@ -92,6 +92,18 @@ final class ColorField extends AbstractFieldType
             $html .= sprintf(' <span class="acf-color-hex">%s</span>', $color);
         }
 
+        // Add prefix/suffix for display
+        $prefix = $fieldConfig['prefix'] ?? '';
+        $suffix = $fieldConfig['suffix'] ?? '';
+
+        if ($prefix !== '') {
+            $html = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $html;
+        }
+
+        if ($suffix !== '') {
+            $html .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
+        }
+
         return $html;
     }
 

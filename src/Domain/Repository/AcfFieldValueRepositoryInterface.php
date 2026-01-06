@@ -56,6 +56,12 @@ interface AcfFieldValueRepositoryInterface
 
     public function deleteByField(int $fieldId): bool;
 
+    /**
+     * Deletes all translatable values (id_lang IS NOT NULL) for a given field.
+     * Used when a field is changed from translatable to non-translatable.
+     */
+    public function deleteTranslatableValuesByField(int $fieldId): bool;
+
     /** @return array<int> */
     public function findEntitiesByFieldValue(int $fieldId, string $value, string $entityType, ?int $shopId = null): array;
 }

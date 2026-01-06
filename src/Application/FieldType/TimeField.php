@@ -116,10 +116,24 @@ final class TimeField extends AbstractFieldType
             $ampm = $hour >= 12 ? 'PM' : 'AM';
             $hour12 = $hour % 12 ?: 12;
 
-            return sprintf('%d:%s %s', $hour12, $minute, $ampm);
+            $formatted = sprintf('%d:%s %s', $hour12, $minute, $ampm);
+        } else {
+            $formatted = htmlspecialchars($timeStr, ENT_QUOTES, 'UTF-8');
         }
 
-        return htmlspecialchars($timeStr, ENT_QUOTES, 'UTF-8');
+        // Add prefix/suffix for display
+        $prefix = $fieldConfig['prefix'] ?? '';
+        $suffix = $fieldConfig['suffix'] ?? '';
+
+        if ($prefix !== '') {
+            $formatted = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $formatted;
+        }
+
+        if ($suffix !== '') {
+            $formatted .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
+        }
+
+        return $formatted;
     }
 
     public function getDefaultConfig(): array

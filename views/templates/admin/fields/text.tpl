@@ -1,20 +1,20 @@
 {**
  * ACF Field Partial: Text, Email, URL
- * Uses Bootstrap input-group for prefix/suffix (prepend/append)
+ * Uses Bootstrap input-group for prefix/suffix
  * Variables: $field, $fieldConfig, $prefix, $value, $context
  *}
 {assign var="inputId" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
 {assign var="inputName" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
 {assign var="inputType" value=$context.inputType|default:'text'}
-{assign var="hasPrepend" value=isset($fieldConfig.prepend) && $fieldConfig.prepend !== ''}
-{assign var="hasAppend" value=isset($fieldConfig.append) && $fieldConfig.append !== ''}
-{assign var="hasInputGroup" value=$hasPrepend || $hasAppend}
+{assign var="hasPrefix" value=isset($fieldConfig.prefix) && $fieldConfig.prefix !== ''}
+{assign var="hasSuffix" value=isset($fieldConfig.suffix) && $fieldConfig.suffix !== ''}
+{assign var="hasInputGroup" value=$hasPrefix || $hasSuffix}
 
 {if $hasInputGroup}
 <div class="input-group{if isset($context.size) && $context.size === 'sm'} input-group-sm{/if}">
-    {if $hasPrepend}
+    {if $hasPrefix}
     <div class="input-group-prepend">
-        <span class="input-group-text">{$fieldConfig.prepend|escape:'htmlall':'UTF-8'}</span>
+        <span class="input-group-text">{$fieldConfig.prefix|escape:'htmlall':'UTF-8'}</span>
     </div>
     {/if}
 {/if}
@@ -32,10 +32,17 @@
        {if isset($fieldConfig.maxLength) && $fieldConfig.maxLength}maxlength="{$fieldConfig.maxLength|intval}"{/if}>
 
 {if $hasInputGroup}
-    {if $hasAppend}
+    {if $hasSuffix}
     <div class="input-group-append">
-        <span class="input-group-text">{$fieldConfig.append|escape:'htmlall':'UTF-8'}</span>
+        <span class="input-group-text">{$fieldConfig.suffix|escape:'htmlall':'UTF-8'}</span>
     </div>
     {/if}
+</div>
+{/if}
+
+{* Display maxLength constraint to user *}
+{if isset($fieldConfig.maxLength) && $fieldConfig.maxLength}
+<div class="form-text text-muted">
+    {l s='Maximum %length% characters' mod='wepresta_acf' sprintf=['%length%' => $fieldConfig.maxLength]}
 </div>
 {/if}

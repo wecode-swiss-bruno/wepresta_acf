@@ -125,13 +125,26 @@ final class DateField extends AbstractFieldType
 
         // Use PrestaShop's date formatting
         if (function_exists('Tools::displayDate')) {
-            return \Tools::displayDate(date('Y-m-d', $timestamp));
+            $formatted = \Tools::displayDate(date('Y-m-d', $timestamp));
+        } else {
+            // Fallback to standard format
+            $format = $this->getConfigValue($fieldConfig, 'displayFormat', 'd/m/Y');
+            $formatted = date($format, $timestamp);
         }
 
-        // Fallback to standard format
-        $format = $this->getConfigValue($fieldConfig, 'displayFormat', 'd/m/Y');
+        // Add prefix/suffix for display
+        $prefix = $fieldConfig['prefix'] ?? '';
+        $suffix = $fieldConfig['suffix'] ?? '';
 
-        return date($format, $timestamp);
+        if ($prefix !== '') {
+            $formatted = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $formatted;
+        }
+
+        if ($suffix !== '') {
+            $formatted .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
+        }
+
+        return $formatted;
     }
 
     public function getIndexValue(mixed $value, array $fieldConfig = []): ?string

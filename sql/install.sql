@@ -66,23 +66,28 @@ CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_field` (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Field Values (product data)
+-- Field Values (entity data - supports multiple entity types: product, category, customer, etc.)
 CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_field_value` (
     `id_wepresta_acf_field_value` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `id_wepresta_acf_field` INT UNSIGNED NOT NULL,
-    `id_product` INT UNSIGNED NOT NULL,
+    `entity_type` VARCHAR(100) NOT NULL COMMENT 'Entity type: product, category, customer, etc.',
+    `entity_id` INT UNSIGNED NOT NULL COMMENT 'Generic entity ID',
+    `id_product` INT UNSIGNED DEFAULT NULL COMMENT 'Legacy: kept for backward compatibility',
     `id_shop` INT UNSIGNED NOT NULL DEFAULT 1,
     `id_lang` INT UNSIGNED DEFAULT NULL COMMENT 'NULL = non-translatable field',
     `value` LONGTEXT COMMENT 'JSON or string depending on field type',
     `value_index` VARCHAR(255) DEFAULT NULL COMMENT 'Indexed value for search/sort',
     `date_add` DATETIME NOT NULL,
     `date_upd` DATETIME NOT NULL,
-    UNIQUE KEY `unique_value` (`id_wepresta_acf_field`, `id_product`, `id_shop`, `id_lang`),
+    UNIQUE KEY `unique_value` (`id_wepresta_acf_field`, `entity_type`, `entity_id`, `id_shop`, `id_lang`),
+    INDEX `idx_entity` (`entity_type`, `entity_id`),
+    INDEX `idx_entity_shop` (`entity_type`, `entity_id`, `id_shop`),
+    INDEX `idx_search` (`id_wepresta_acf_field`, `value_index`),
+    -- Legacy indexes (can be removed in future version)
     INDEX `idx_product` (`id_product`),
     INDEX `idx_product_shop` (`id_product`, `id_shop`),
-    INDEX `idx_search` (`id_wepresta_acf_field`, `value_index`),
-    CONSTRAINT `fk_wepresta_acf_value_field` 
-        FOREIGN KEY (`id_wepresta_acf_field`) 
-        REFERENCES `PREFIX_wepresta_acf_field`(`id_wepresta_acf_field`) 
+    CONSTRAINT `fk_wepresta_acf_value_field`
+        FOREIGN KEY (`id_wepresta_acf_field`)
+        REFERENCES `PREFIX_wepresta_acf_field`(`id_wepresta_acf_field`)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

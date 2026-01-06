@@ -75,6 +75,12 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         return $this->deleteBy([self::FIELD_FK => $fieldId]) >= 0;
     }
 
+    public function deleteTranslatableValuesByField(int $fieldId): bool
+    {
+        $where = self::FIELD_FK . ' = ' . (int) $fieldId . ' AND id_lang IS NOT NULL';
+        return $this->db->delete($this->getTableName(), $where);
+    }
+
     public function findProductsByFieldValue(int $fieldId, string $value, ?int $shopId = null): array
     {
         return $this->findEntitiesByFieldValue($fieldId, $value, 'product', $shopId);
@@ -129,7 +135,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         $langId ??= (int) Context::getContext()->language->id;
 
         $sql = new DbQuery();
-        $sql->select('fv.value, f.slug, f.title, f.type, f.instructions, f.config, f.fo_options, f.position, f.' . self::FIELD_FK)
+        $sql->select('fv.value, f.slug, f.title, f.type, f.instructions, f.config, f.fo_options, f.wrapper, f.position, f.' . self::FIELD_FK)
             ->from($this->getTableName(), 'fv')
             ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
             ->where('fv.entity_type = "' . pSQL($entityType) . '"')
@@ -162,6 +168,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
                 'instructions' => $row['instructions'] ?: null,
                 'config' => json_decode($row['config'] ?? '{}', true) ?? [],
                 'fo_options' => json_decode($row['fo_options'] ?? '{}', true) ?? [],
+                'wrapper' => json_decode($row['wrapper'] ?? '{}', true) ?? [],
             ];
         }
 

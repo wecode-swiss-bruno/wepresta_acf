@@ -1,19 +1,19 @@
 {**
  * ACF Field Partial: Number
- * Uses Bootstrap input-group for prefix/unit (prepend/append)
+ * Uses Bootstrap input-group for prefix/suffix
  * Variables: $field, $fieldConfig, $prefix, $value, $context
  *}
 {assign var="inputId" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
 {assign var="inputName" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
-{assign var="hasPrepend" value=isset($fieldConfig.prepend) && $fieldConfig.prepend !== ''}
-{assign var="hasUnit" value=isset($fieldConfig.unit) && $fieldConfig.unit !== ''}
-{assign var="hasInputGroup" value=$hasPrepend || $hasUnit}
+{assign var="hasPrefix" value=isset($fieldConfig.prefix) && $fieldConfig.prefix !== ''}
+{assign var="hasSuffix" value=isset($fieldConfig.suffix) && $fieldConfig.suffix !== ''}
+{assign var="hasInputGroup" value=$hasPrefix || $hasSuffix}
 
 {if $hasInputGroup}
 <div class="input-group{if isset($context.size) && $context.size === 'sm'} input-group-sm{/if}">
-    {if $hasPrepend}
+    {if $hasPrefix}
     <div class="input-group-prepend">
-        <span class="input-group-text">{$fieldConfig.prepend|escape:'htmlall':'UTF-8'}</span>
+        <span class="input-group-text">{$fieldConfig.prefix|escape:'htmlall':'UTF-8'}</span>
     </div>
     {/if}
 {/if}
@@ -33,10 +33,28 @@
        {if isset($fieldConfig.placeholder) && $fieldConfig.placeholder}placeholder="{$fieldConfig.placeholder|escape:'htmlall':'UTF-8'}"{/if}>
 
 {if $hasInputGroup}
-    {if $hasUnit}
+    {if $hasSuffix}
     <div class="input-group-append">
-        <span class="input-group-text">{$fieldConfig.unit|escape:'htmlall':'UTF-8'}</span>
+        <span class="input-group-text">{$fieldConfig.suffix|escape:'htmlall':'UTF-8'}</span>
     </div>
+    {/if}
+</div>
+{/if}
+
+{* Display constraints to user *}
+{if isset($fieldConfig.min) || isset($fieldConfig.max) || isset($fieldConfig.step)}
+<div class="form-text text-muted">
+    {if isset($fieldConfig.min) && isset($fieldConfig.max)}
+        {l s='Value must be between %min% and %max%' mod='wepresta_acf' sprintf=['%min%' => $fieldConfig.min, '%max%' => $fieldConfig.max]}
+        {if isset($fieldConfig.step)} {l s='(step: %step%)' mod='wepresta_acf' sprintf=['%step%' => $fieldConfig.step]}{/if}
+    {elseif isset($fieldConfig.min)}
+        {l s='Minimum value: %min%' mod='wepresta_acf' sprintf=['%min%' => $fieldConfig.min]}
+        {if isset($fieldConfig.step)} {l s='(step: %step%)' mod='wepresta_acf' sprintf=['%step%' => $fieldConfig.step]}{/if}
+    {elseif isset($fieldConfig.max)}
+        {l s='Maximum value: %max%' mod='wepresta_acf' sprintf=['%max%' => $fieldConfig.max]}
+        {if isset($fieldConfig.step)} {l s='(step: %step%)' mod='wepresta_acf' sprintf=['%step%' => $fieldConfig.step]}{/if}
+    {elseif isset($fieldConfig.step)}
+        {l s='Increment step: %step%' mod='wepresta_acf' sprintf=['%step%' => $fieldConfig.step]}
     {/if}
 </div>
 {/if}

@@ -764,19 +764,36 @@
                 var translatableContainer = fieldEl.querySelector('.translations.tabbable');
                 if (translatableContainer) {
                     var langValues = {};
-                    translatableContainer.querySelectorAll('.tab-pane').forEach(function(pane) {
-                        var langMatch = pane.className.match(/translationsFields-acf_[^_]+_(\d+)/);
-                        var langId = langMatch ? langMatch[1] : null;
+                    var panes = translatableContainer.querySelectorAll('.tab-pane');
+                    console.log('Translatable field found:', slug, 'Panes:', panes.length);
+                    panes.forEach(function(pane) {
+                        // Extract langId from class name like "translationsFields-acf_text_field_1"
+                        // Match pattern: translationsFields-acf_{any_slug}_{langId}
+                        var classNames = pane.className.split(' ');
+                        var langId = null;
+                        for (var i = 0; i < classNames.length; i++) {
+                            var className = classNames[i];
+                            var match = className.match(/^translationsFields-acf_.+_(\d+)$/);
+                            if (match && match[1]) {
+                                langId = match[1];
+                                break;
+                            }
+                        }
+                        console.log('Pane class:', pane.className, 'LangId:', langId);
                         if (!langId) return;
 
                         var input = pane.querySelector('input, textarea, select');
+                        console.log('Input found:', input ? input.name : 'none', 'Value:', input ? input.value : 'none');
                         if (input) {
                             var val = getInputValue(input);
-                            if (val !== null && val !== undefined && val !== '') {
+                            console.log('Collected value for lang', langId, ':', val);
+                            // Allow empty values for translatable fields (to support clearing)
+                            if (val !== null && val !== undefined) {
                                 langValues[langId] = val;
                             }
                         }
                     });
+                    console.log('Lang values collected for', slug, ':', langValues);
                     if (Object.keys(langValues).length > 0) {
                         values[slug] = langValues;
                     }
@@ -845,8 +862,23 @@
             setStatus('info', 'Collecting field values...');
 
             var values = collectAllValues();
+            
+            // Debug: log collected values
+            console.log('Collected values:', values);
 
             setStatus('info', 'Sending to server...');
+
+            // Prepare request data - API expects 'productId' for products, generic names for other entities
+            var requestData = {
+                values: values
+            };
+
+            if (entityType === 'product') {
+                requestData.productId = entityId;
+            } else {
+                requestData.entityType = entityType;
+                requestData.entityId = entityId;
+            }
 
             fetch(apiUrl + '/values', {
                 method: 'POST',
@@ -854,11 +886,7 @@
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    entityType: entityType,
-                    entityId: entityId,
-                    values: values
-                })
+                body: JSON.stringify(requestData)
             })
             .then(function(response) {
                 return response.json().then(function(data) {
@@ -877,7 +905,27 @@
                         setStatus('', '');
                     }, 3000);
                 } else {
-                    var errorMsg = result.data.error || (result.data.errors ? result.data.errors.join(', ') : 'Unknown error');
+                    var errorMsg = result.data.error;
+                    if (!errorMsg && result.data.errors) {
+                        // Handle validation errors object: { field_slug: [errors] }
+                        var errorParts = [];
+                        if (typeof result.data.errors === 'object') {
+                            for (var fieldSlug in result.data.errors) {
+                                if (result.data.errors.hasOwnProperty(fieldSlug)) {
+                                    var fieldErrors = result.data.errors[fieldSlug];
+                                    if (Array.isArray(fieldErrors)) {
+                                        errorParts.push(fieldSlug + ': ' + fieldErrors.join(', '));
+                                    } else if (typeof fieldErrors === 'string') {
+                                        errorParts.push(fieldSlug + ': ' + fieldErrors);
+                                    }
+                                }
+                            }
+                        } else if (Array.isArray(result.data.errors)) {
+                            errorParts = result.data.errors;
+                        }
+                        errorMsg = errorParts.length > 0 ? errorParts.join('; ') : 'Validation errors occurred';
+                    }
+                    errorMsg = errorMsg || 'Unknown error';
                     setStatus('error', 'Error: ' + errorMsg);
                 }
             })

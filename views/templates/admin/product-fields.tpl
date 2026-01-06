@@ -29,8 +29,38 @@
             </div>
             <div class="card-body">
                 {foreach $group.fields as $field}
-                    <div class="acf-field form-group row mb-4 pb-4" data-field-slug="{$field.slug|escape:'html':'UTF-8'}">
-                        <div class="col-md-3 col-lg-2 text-md-left">
+                    {* Skip field if not visible in front-office options *}
+                    {if isset($field.foOptions.visible) && !$field.foOptions.visible}
+                        {continue}
+                    {/if}
+                    {* Calculate wrapper classes based on width setting *}
+                    {$labelColClass = 'col-md-3 col-lg-2'}
+                    {$inputColClass = 'col-md-9 col-lg-10'}
+                    {if isset($field.wrapper.width)}
+                        {if $field.wrapper.width == '25'}
+                            {$labelColClass = 'col-md-3 col-lg-3'}
+                            {$inputColClass = 'col-md-9 col-lg-9'}
+                        {elseif $field.wrapper.width == '33'}
+                            {$labelColClass = 'col-md-3 col-lg-4'}
+                            {$inputColClass = 'col-md-9 col-lg-8'}
+                        {elseif $field.wrapper.width == '50'}
+                            {$labelColClass = 'col-md-3 col-lg-4'}
+                            {$inputColClass = 'col-md-9 col-lg-8'}
+                        {elseif $field.wrapper.width == '75'}
+                            {$labelColClass = 'col-md-3 col-lg-2'}
+                            {$inputColClass = 'col-md-9 col-lg-10'}
+                        {elseif $field.wrapper.width == '100'}
+                            {$labelColClass = 'col-12'}
+                            {$inputColClass = 'col-12'}
+                        {/if}
+                    {/if}
+                    {* Build field wrapper classes *}
+                    {$fieldClasses = 'acf-field form-group row mb-4 pb-4'}
+                    {if isset($field.wrapper.class) && $field.wrapper.class}
+                        {$fieldClasses = $fieldClasses|cat:' '|cat:$field.wrapper.class}
+                    {/if}
+                    <div class="{$fieldClasses}"{if isset($field.wrapper.id) && $field.wrapper.id} id="{$field.wrapper.id|escape:'html':'UTF-8'}"{/if} data-field-slug="{$field.slug|escape:'html':'UTF-8'}">
+                        <div class="{$labelColClass} text-md-left">
                             <label class="form-control-label{if $field.required} required{/if}">
                                 {$field.title|escape:'html':'UTF-8'}
                                 {if $field.required}<span class="text-danger">*</span>{/if}
@@ -40,7 +70,7 @@
                                 <small class="form-text text-muted d-block">{$field.instructions|escape:'html':'UTF-8'}</small>
                             {/if}
                         </div>
-                        <div class="col-md-9 col-lg-10 acf-field-input">
+                        <div class="{$inputColClass} acf-field-input">
                             {if $field.translatable && $field.lang_inputs|count > 0}
                                 {* Native PrestaShop translatable field structure *}
                                 <div class="translations tabbable" id="acf_{$field.slug}" tabindex="1">

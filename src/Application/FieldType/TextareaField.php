@@ -86,6 +86,18 @@ final class TextareaField extends AbstractFieldType
         $output = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
         $output = nl2br($output);
 
+        // Add prefix/suffix for display
+        $prefix = $fieldConfig['prefix'] ?? '';
+        $suffix = $fieldConfig['suffix'] ?? '';
+
+        if ($prefix !== '') {
+            $output = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $output;
+        }
+
+        if ($suffix !== '') {
+            $output .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
+        }
+
         return $output;
     }
 

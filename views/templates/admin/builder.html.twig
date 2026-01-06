@@ -56,35 +56,8 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {# #region agent log - Debug jQuery loading #}
     <script>
-        (function() {
-            var log = function(msg, data) {
-                fetch('http://127.0.0.1:7255/ingest/f2bffaed-a8e3-4b3c-ad3b-1dc62db7151d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'builder.html.twig:inline',message:msg,data:data,timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1-H3'})}).catch(function(){});
-            };
-            log('jQuery check at script start', {
-                jQueryDefined: typeof jQuery !== 'undefined',
-                dollarDefined: typeof $ !== 'undefined',
-                jQueryVersion: typeof jQuery !== 'undefined' ? jQuery.fn.jquery : null
-            });
-            document.addEventListener('DOMContentLoaded', function() {
-                log('jQuery check at DOMContentLoaded', {
-                    jQueryDefined: typeof jQuery !== 'undefined',
-                    dollarDefined: typeof $ !== 'undefined',
-                    jQueryVersion: typeof jQuery !== 'undefined' ? jQuery.fn.jquery : null
-                });
-            });
-            window.addEventListener('load', function() {
-                log('jQuery check at window.load', {
-                    jQueryDefined: typeof jQuery !== 'undefined',
-                    dollarDefined: typeof $ !== 'undefined',
-                    jQueryVersion: typeof jQuery !== 'undefined' ? jQuery.fn.jquery : null
-                });
-            });
-        })();
-    </script>
-    {# #endregion #}
-    <script>
+        // Force cache reload - {{ 'now'|date('Y-m-d H:i:s') }}
         window.acfConfig = {
             apiUrl: '{{ url('wepresta_acf_api_groups_list') | split('/groups')[0] }}',
             token: '{{ csrf_token('wepresta_acf') }}',
@@ -112,7 +85,13 @@
                 back: '{{ 'Back'|trans({}, 'Admin.Actions') }}',
                 general: '{{ 'General Settings'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 location: '{{ 'Location'|trans({}, 'Modules.Weprestaacf.Admin') }}',
-                locationRulesHelp: '{{ 'Define where this field group should appear.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationRulesHelp: '{{ 'Choose where your custom fields will appear in the admin interface. Select the type of content (products, categories, etc.) where these fields should be available.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                applyTo: '{{ 'Apply to'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                contentTypeDescription: '{{ 'Content Type determines where your custom fields will appear in the admin. Choose "Product" to add fields to product edit pages, "Category" for category management, "Customer" for customer profiles, or any other content type in your store. Your fields will only show on the selected content types.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                conditionDescription: '{{ 'Choose whether to show fields on this content type (equals) or exclude it (not equals).' |trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addLocationRule: '{{ 'Add Display Rule'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectEntityType: '{{ 'Choose content type...'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                operator: '{{ 'Condition'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 settings: '{{ 'Settings'|trans({}, 'Admin.Global') }}',
                 validation: '{{ 'Validation'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 presentation: '{{ 'Presentation'|trans({}, 'Modules.Weprestaacf.Admin') }}',
@@ -164,7 +143,18 @@
                 confirmSeed: '{{ 'Create a test group with all field types? This will help you explore ACF features.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 seedSuccess: '{{ 'Test data seeded successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
                 seedSkipped: '{{ 'Test group already exists. Delete it first if you want to re-seed.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
-                seedError: '{{ 'Seed error'|trans({}, 'Modules.Weprestaacf.Admin') }}'
+                seedError: '{{ 'Seed error'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                completeGeneralSettingsFirst: '{{ '⚠️ Save required: Click the Save button above to unlock Fields and Location tabs'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                defineEntityTypeFirst: '{{ '⚠️ Entity type required: Define at least one entity type in Location tab to access Fields'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Field Type Selector translations
+                searchFieldTypes: '{{ 'Search field types...'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                recentlyUsed: '{{ 'Recently Used'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noFieldTypesFound: '{{ 'No field types found'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                tryDifferentSearch: '{{ 'Try a different search term'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                clearSearch: '{{ 'Clear search'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                useArrowsToNavigate: '{{ 'Use ↑↓ arrows to navigate, Enter to select, Esc to close'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Location Rules Editor translations
+                saveError: '{{ 'Failed to save location rule. Please try again.'|trans({}, 'Modules.Weprestaacf.Admin') }}'
             },
             fieldTypes: {{ fieldTypes|json_encode|raw }},
             locations: {{ locations|json_encode|raw }},
@@ -191,6 +181,6 @@
             }
         };
     </script>
-    <script src="/modules/wepresta_acf/views/js/admin/dist/acf-admin.js" defer></script>
+    <script src="/modules/wepresta_acf/views/js/admin/dist/acf-admin.js?v={{ random(1000000) }}" defer></script>
 {% endblock %}
 

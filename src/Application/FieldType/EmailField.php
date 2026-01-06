@@ -68,9 +68,21 @@ final class EmailField extends AbstractFieldType
 
         $email = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 
+        // Add prefix/suffix for display
+        $prefix = $fieldConfig['prefix'] ?? '';
+        $suffix = $fieldConfig['suffix'] ?? '';
+
+        if ($prefix !== '') {
+            $email = htmlspecialchars($prefix, ENT_QUOTES, 'UTF-8') . ' ' . $email;
+        }
+
+        if ($suffix !== '') {
+            $email .= ' ' . htmlspecialchars($suffix, ENT_QUOTES, 'UTF-8');
+        }
+
         // Optionally render as clickable link
         if ($this->getConfigValue($renderOptions, 'linkify', true)) {
-            return sprintf('<a href="mailto:%s">%s</a>', $email, $email);
+            return sprintf('<a href="mailto:%s">%s</a>', htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'), $email);
         }
 
         return $email;

@@ -16,18 +16,29 @@ export function useApi() {
     // Ensure endpoint starts with / and apiUrl doesn't end with /
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
     const cleanApiUrl = config.apiUrl.endsWith('/') ? config.apiUrl.slice(0, -1) : config.apiUrl
-    const url = `${cleanApiUrl}${cleanEndpoint}`
-    
+    let url = `${cleanApiUrl}${cleanEndpoint}`
+
+    // For GET requests, add token to URL instead of header
+    const method = options.method || 'GET'
+    if (method === 'GET') {
+      const separator = url.includes('?') ? '&' : '?'
+      url = `${url}${separator}_token=${config.token}`
+    }
+
+    console.log('[ACF API] Making request to:', url, 'method:', method)
+
     const response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-Token': config.token,
         ...options.headers,
       },
     })
 
+    console.log('[ACF API] Response status:', response.status, response.ok)
+
     const data = await response.json()
+    console.log('[ACF API] Response data:', data)
 
     if (!response.ok || data.success === false) {
       throw new Error(data.error || data.message || 'API request failed')

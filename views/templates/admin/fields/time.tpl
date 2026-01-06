@@ -13,3 +13,10 @@
        value="{$value|escape:'htmlall':'UTF-8'}"
        {if isset($fieldConfig.step) && $fieldConfig.step > 1}step="{$fieldConfig.step * 60}"{/if}>
 
+{* Display step constraint to user *}
+{if isset($fieldConfig.step) && $fieldConfig.step > 1}
+<div class="form-text text-muted">
+    {l s='Time increment: %step% minutes' mod='wepresta_acf' sprintf=['%step%' => $fieldConfig.step]}
+</div>
+{/if}
+

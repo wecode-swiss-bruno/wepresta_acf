@@ -29,18 +29,47 @@
             </div>
             <div class="card-body">
                 {% for field in group.fields %}
-                    <div class="acf-field form-group row mb-4 pb-4" data-field-slug="{{ field.slug|e('html_attr') }}">
-                        <div class="col-md-3 col-lg-2 text-md-left">
-                            <label class="form-control-label{% if field.required %} required{% endif %}">
-                                {{ field.title|e }}
-                                {% if field.required %}<span class="text-danger">*</span>{% endif %}
-                                {% if field.translatable %}<span class="acf-translatable-badge" title="{{ 'Translatable field'|trans({}, 'Modules.Weprestaacf.Admin') }}">🌐</span>{% endif %}
-                            </label>
-                            {% if field.instructions %}
-                                <small class="form-text text-muted d-block">{{ field.instructions|e }}</small>
+                    {% set skipField = false %}
+                    {% if field.foOptions is defined and field.foOptions.visible is defined and not field.foOptions.visible %}
+                        {% set skipField = true %}
+                    {% endif %}
+                    {% if not skipField %}
+                        {% set labelColClass = 'col-md-3 col-lg-2' %}
+                        {% set inputColClass = 'col-md-9 col-lg-10' %}
+                        {% if field.wrapper is defined and field.wrapper.width is defined %}
+                            {% if field.wrapper.width == '25' %}
+                                {% set labelColClass = 'col-md-3 col-lg-3' %}
+                                {% set inputColClass = 'col-md-9 col-lg-9' %}
+                            {% elseif field.wrapper.width == '33' %}
+                                {% set labelColClass = 'col-md-3 col-lg-4' %}
+                                {% set inputColClass = 'col-md-9 col-lg-8' %}
+                            {% elseif field.wrapper.width == '50' %}
+                                {% set labelColClass = 'col-md-3 col-lg-4' %}
+                                {% set inputColClass = 'col-md-9 col-lg-8' %}
+                            {% elseif field.wrapper.width == '75' %}
+                                {% set labelColClass = 'col-md-3 col-lg-2' %}
+                                {% set inputColClass = 'col-md-9 col-lg-10' %}
+                            {% elseif field.wrapper.width == '100' %}
+                                {% set labelColClass = 'col-12' %}
+                                {% set inputColClass = 'col-12' %}
                             {% endif %}
-                        </div>
-                        <div class="col-md-9 col-lg-10 acf-field-input">
+                        {% endif %}
+                        {% set fieldClasses = 'acf-field form-group row mb-4 pb-4' %}
+                        {% if field.wrapper is defined and field.wrapper.class is defined and field.wrapper.class %}
+                            {% set fieldClasses = fieldClasses ~ ' ' ~ field.wrapper.class %}
+                        {% endif %}
+                        <div class="{{ fieldClasses }}"{% if field.wrapper is defined and field.wrapper.id is defined and field.wrapper.id %} id="{{ field.wrapper.id|e('html_attr') }}"{% endif %} data-field-slug="{{ field.slug|e('html_attr') }}">
+                            <div class="{{ labelColClass }} text-md-left">
+                                <label class="form-control-label{% if field.required %} required{% endif %}">
+                                    {{ field.title|e }}
+                                    {% if field.required %}<span class="text-danger">*</span>{% endif %}
+                                    {% if field.translatable %}<span class="acf-translatable-badge" title="{{ 'Translatable field'|trans({}, 'Modules.Weprestaacf.Admin') }}">🌐</span>{% endif %}
+                                </label>
+                                {% if field.instructions %}
+                                    <small class="form-text text-muted d-block">{{ field.instructions|e }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="{{ inputColClass }} acf-field-input">
                             {% if field.translatable and field.lang_inputs|length > 0 %}
                                 {# Native PrestaShop translatable field structure #}
                                 <div class="translations tabbable" id="acf_{{ field.slug }}" tabindex="1">
@@ -72,6 +101,7 @@
                             {% endif %}
                         </div>
                     </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>

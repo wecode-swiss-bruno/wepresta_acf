@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace WeprestaAcf\Presentation\Controller\Admin;
 
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WeprestaAcf\Application\Form\ConfigurationType;
@@ -25,7 +24,6 @@ class ConfigurationController extends FrameworkBundleAdminController
     ) {
     }
 
-    #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfConfiguration')", redirectRoute: 'admin_dashboard')]
     public function configuration(Request $request): Response
     {
         // Load custom field types

@@ -44,21 +44,34 @@ export const useBuilderStore = defineStore('builder', () => {
   )
 
   const hasUnsavedChanges = computed(() => {
-    // TODO: Implement dirty checking
-    return false
+    if (!currentGroup.value) return false
+    
+    // Nouveau groupe pas encore sauvegardé
+    if (!currentGroup.value.id && currentGroup.value.title) return true
+    
+    // Champs nouveaux non sauvegardés
+    const hasNewFields = (currentGroup.value.fields || []).some(f => !f.id && f.title.trim())
+    
+    return hasNewFields
   })
 
   // Actions
   async function loadGroups(): Promise<void> {
+    console.log('[ACF] Starting loadGroups...')
     loading.value = true
     error.value = null
     try {
+      console.log('[ACF] Calling api.getGroups()...')
       const loadedGroups = await api.getGroups()
+      console.log('[ACF] Got groups:', loadedGroups)
       groups.value = loadedGroups.map(normalizeGroup)
+      console.log('[ACF] Groups loaded successfully')
     } catch (e) {
+      console.error('[ACF] Error loading groups:', e)
       error.value = (e as Error).message
     } finally {
       loading.value = false
+      console.log('[ACF] loadGroups finished, loading =', loading.value)
     }
   }
 
@@ -83,7 +96,7 @@ export const useBuilderStore = defineStore('builder', () => {
       slug: '',
       description: null,
       locationRules: [],
-      placementTab: 'modules',
+      placementTab: 'extra',
       placementPosition: null,
       priority: 10,
       boOptions: {},
@@ -97,6 +110,25 @@ export const useBuilderStore = defineStore('builder', () => {
 
   async function saveGroup(): Promise<void> {
     if (!currentGroup.value) return
+
+    // ✅ VALIDATION: Vérifier le titre du groupe
+    if (!currentGroup.value.title?.trim()) {
+      error.value = '❌ Group title is required. Please fill the group title in the Settings tab.'
+      return
+    }
+
+    // ✅ VALIDATION: Vérifier les champs incomplets
+    const invalidFields = (currentGroup.value.fields || [])
+      .filter(f => !f.title?.trim())
+    
+    if (invalidFields.length > 0) {
+      error.value = `❌ ${invalidFields.length} field(s) missing title. Please fill all field titles before saving.`
+      // Sélectionner automatiquement le premier champ invalide
+      if (invalidFields[0]) {
+        selectedField.value = invalidFields[0]
+      }
+      return
+    }
 
     saving.value = true
     error.value = null
@@ -130,7 +162,8 @@ export const useBuilderStore = defineStore('builder', () => {
       // Now save all fields that need saving (including subfields)
       const fieldsToSave = currentGroup.value.fields || []
       for (const field of fieldsToSave) {
-        if (!field.title.trim()) continue // Skip fields without title
+        // Les champs ont déjà été validés ci-dessus
+        if (!field.title.trim()) continue
 
         let savedField: AcfField
 
@@ -233,6 +266,13 @@ export const useBuilderStore = defineStore('builder', () => {
   }
 
   function goToList(): void {
+    // ✅ Confirmation si changements non sauvegardés
+    if (hasUnsavedChanges.value) {
+      if (!confirm('⚠️ You have unsaved changes. Are you sure you want to leave without saving?')) {
+        return
+      }
+    }
+    
     currentGroup.value = null
     selectedField.value = null
     viewMode.value = 'list'
@@ -246,10 +286,36 @@ export const useBuilderStore = defineStore('builder', () => {
   function addField(type: string, parentField?: AcfField): void {
     if (!currentGroup.value) return
 
+    // ✅ Titres par défaut selon le type de champ
+    const defaultTitles: Record<string, string> = {
+      text: 'Text Field',
+      textarea: 'Textarea',
+      number: 'Number Field',
+      email: 'Email Field',
+      url: 'URL Field',
+      select: 'Select Field',
+      checkbox: 'Checkbox Field',
+      radio: 'Radio Field',
+      boolean: 'Toggle Field',
+      date: 'Date Field',
+      time: 'Time Field',
+      datetime: 'Datetime Field',
+      color: 'Color Picker',
+      richtext: 'Rich Text Editor',
+      file: 'File Upload',
+      files: 'Multiple Files',
+      image: 'Image Upload',
+      gallery: 'Image Gallery',
+      video: 'Video Field',
+      relation: 'Relation Field',
+      list: 'List Field',
+      repeater: 'Repeater Field',
+    }
+
     const newField: AcfField = {
       uuid: crypto.randomUUID(),
       type,
-      title: '',
+      title: defaultTitles[type] || 'New Field',
       slug: '',
       parentId: parentField?.id || null,
       config: {},
@@ -301,6 +367,7 @@ export const useBuilderStore = defineStore('builder', () => {
   function addSubfield(parentField: AcfField, type: string): void {
     addField(type, parentField)
   }
+
 
   // Remove subfield from a repeater
   async function removeSubfield(parentField: AcfField, subfield: AcfField): Promise<void> {
