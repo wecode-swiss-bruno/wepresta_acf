@@ -72,7 +72,7 @@ final class EntityHooksConfig
     /**
      * Configuration des hooks FRONT (front-office).
      * Structure: entity => [hook1, hook2, ...]
-     * 
+     *
      * Note: Cette liste contient les hooks ACTUELLEMENT UTILISÉS par défaut.
      * Pour la liste COMPLÈTE des hooks disponibles, voir FrontHooksRegistry.
      *

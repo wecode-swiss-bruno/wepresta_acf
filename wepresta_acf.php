@@ -31,51 +31,10 @@ use WeprestaAcf\Application\Service\AcfServiceContainer;
 use WeprestaAcf\Application\Service\FormModifierService;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 
-class WeprestaAcf extends Module
+class WeprestaAcf extends Module 
 {
     use EntityFieldHooksTrait;
     public const VERSION = '1.2.1';
-
-    /**
-     * Liste des hooks du module (V1: Product + Category uniquement).
-     * 
-     * Les hooks sont maintenant gérés de manière centralisée via EntityHooksConfig.
-     * Chaque hook est défini explicitement dans EntityFieldHooksTrait pour:
-     * - Meilleur debugging
-     * - Support IDE complet
-     * - Code maintenable
-     * 
-     * Note: Cette constante est à titre informatif. Les hooks réels sont récupérés
-     * via getAllHooks() qui utilise EntityHooksConfig::getAllHooks().
-     * 
-     * @see EntityHooksConfig Pour la configuration des hooks
-     * @see EntityFieldHooksTrait Pour l'implémentation des hooks
-     */
-    public const HOOKS = [
-        // System hooks (media, assets)
-        'actionAdminControllerSetMedia',
-        'actionFrontControllerSetMedia',
-        'displayHeader',
-        
-        // Product hooks (legacy admin + Symfony + front)
-        'displayAdminProductsExtra',
-        'actionProductUpdate',
-        'actionProductAdd',
-        'actionProductFormBuilderModifier',  // Symfony Form
-        'actionAfterCreateProductFormHandler',  // Symfony Form
-        'actionAfterUpdateProductFormHandler',  // Symfony Form
-        'displayProductAdditionalInfo',
-        
-        // Category hooks (legacy admin + Symfony + front)
-        'displayAdminCategoriesExtra',
-        'actionCategoryUpdate',
-        'actionCategoryAdd',
-        'actionCategoryFormBuilderModifier',  // Symfony Form (PrestaShop 8/9)
-        'actionAfterCreateCategoryFormHandler',  // Symfony Form
-        'actionAfterUpdateCategoryFormHandler',  // Symfony Form
-        'displayCategoryTop',
-        'displayCategoryHeader',
-    ];
 
     public const DEFAULT_CONFIG = [
         'WEPRESTA_ACF_ACTIVE' => true,
@@ -697,13 +656,13 @@ class WeprestaAcf extends Module
      * @param int $entityId Entity ID
      * @param string $hookName Current hook name (for filtering groups)
      * @return string HTML output
-     */
+     */ 
     private function renderEntityFieldsForDisplayInHook(string $entityType, int $entityId, string $hookName): string
     {
         if (!$this->isActive() || $entityId <= 0) {
             return '';
         }
-
+    
         try {
             AcfServiceContainer::loadCustomFieldTypes();
 
@@ -723,8 +682,13 @@ class WeprestaAcf extends Module
                 'acf_product_id' => $entityType === 'product' ? $entityId : null,
             ]);
 
-            // Use generic template for all entities
-            return $this->fetch('module:wepresta_acf/views/templates/hook/entity-info.tpl');
+            // Use product-info.tpl for products (backward compatibility)
+            // Use entity-info.tpl for other entities (generic)
+            $template = $entityType === 'product'
+                ? 'module:wepresta_acf/views/templates/hook/product-info.tpl'
+                : 'module:wepresta_acf/views/templates/hook/entity-info.tpl';
+
+            return $this->fetch($template);
         } catch (\Exception $e) {
             $this->log("Error rendering {$entityType} fields in hook {$hookName}: " . $e->getMessage(), 3);
             return '';
@@ -742,7 +706,7 @@ class WeprestaAcf extends Module
     private function renderEntityFieldsForDisplay(string $entityType, int $entityId): string
     {
         // Fallback: render without hook filtering (shows in all hooks)
-        return $this->renderEntityFieldsForDisplayInHook($entityType, $entityId, '');
+        return $this->renderEntityFieldsForDisplayInHook($entityType, $entityId, hookName: '');
     }
 
     public function hookActionFrontControllerSetMedia(array $params): void

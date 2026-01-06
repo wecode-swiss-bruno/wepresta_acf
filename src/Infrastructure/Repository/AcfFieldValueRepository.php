@@ -181,7 +181,9 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         // Filter by display hook if specified
         if (!empty($hookName)) {
-            $sql->where('JSON_EXTRACT(g.fo_options, "$.displayHook") = "' . pSQL($hookName) . '"');
+            // Extract and compare with proper NULL handling
+            // CAST to CHAR to ensure string comparison works
+            $sql->where('CAST(JSON_EXTRACT(g.fo_options, "$.displayHook") AS CHAR) = "' . pSQL($hookName) . '"');
         }
 
         $sql->orderBy('f.position ASC');
