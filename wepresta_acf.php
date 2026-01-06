@@ -55,14 +55,7 @@ class WeprestaAcf extends Module
         'actionObjectOrderUpdateAfter',
         'actionOrderStatusUpdate',
         'actionOrderStatusPostUpdate',
-        // Front-Office
-        'displayProductAdditionalInfo',
-        'displayCategoryTop',
-        'displayCategoryHeader',
-        'displayCustomerAccount',
-        'displayMyAccountBlock',
-        'displayOrderConfirmation',
-        'displayOrderDetail',
+        // Front-Office (managed dynamically via EntityHooksConfig)
         'actionFrontControllerSetMedia',
         'displayHeader',
         'actionAdminControllerSetMedia',
@@ -135,14 +128,6 @@ class WeprestaAcf extends Module
             'actionAdminControllerSetMedia',
             'actionFrontControllerSetMedia',
             'displayHeader',
-            // Front-office hooks for V1 entities
-            'displayProductAdditionalInfo',
-            'displayCategoryTop',
-            'displayCategoryHeader',
-            'displayCustomerAccount',
-            'displayMyAccountBlock',
-            'displayOrderConfirmation',
-            'displayOrderDetail',
             // Legacy hooks for V1 entities (not in EntityHooksConfig)
             'actionCategoryUpdate',
             'actionCategoryAdd',
@@ -748,59 +733,6 @@ class WeprestaAcf extends Module
         return $this->renderEntityFieldsForDisplay('product', $productId);
     }
 
-    /**
-     * Display ACF fields on category page (top).
-     */
-    public function hookDisplayCategoryTop(array $params): string
-    {
-        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
-        return $this->renderEntityFieldsForDisplay('category', $categoryId);
-    }
-
-    /**
-     * Display ACF fields on category page (header).
-     */
-    public function hookDisplayCategoryHeader(array $params): string
-    {
-        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
-        return $this->renderEntityFieldsForDisplay('category', $categoryId);
-    }
-
-    /**
-     * Display ACF fields on customer account page.
-     */
-    public function hookDisplayCustomerAccount(array $params): string
-    {
-        $customerId = (int) ($this->context->customer->id ?? 0);
-        return $this->renderEntityFieldsForDisplay('customer', $customerId);
-    }
-
-    /**
-     * Display ACF fields in "My Account" block.
-     */
-    public function hookDisplayMyAccountBlock(array $params): string
-    {
-        $customerId = (int) ($this->context->customer->id ?? 0);
-        return $this->renderEntityFieldsForDisplay('customer', $customerId);
-    }
-
-    /**
-     * Display ACF fields on order confirmation page.
-     */
-    public function hookDisplayOrderConfirmation(array $params): string
-    {
-        $orderId = (int) ($params['order']['id_order'] ?? $params['order']->id ?? 0);
-        return $this->renderEntityFieldsForDisplay('order', $orderId);
-    }
-
-    /**
-     * Display ACF fields on order detail page.
-     */
-    public function hookDisplayOrderDetail(array $params): string
-    {
-        $orderId = (int) ($params['order']['id_order'] ?? $params['order']->id ?? 0);
-        return $this->renderEntityFieldsForDisplay('order', $orderId);
-    }
 
     public function hookActionFrontControllerSetMedia(array $params): void
     {

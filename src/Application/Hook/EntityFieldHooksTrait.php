@@ -160,6 +160,12 @@ trait EntityFieldHooksTrait
             }
         }
 
+        // Pattern 5: Front-office hooks (displayProductAdditionalInfo, displayCategoryTop, etc.)
+        $entityType = EntityHooksConfig::getEntityByHook($hookName);
+        if ($entityType !== null && $this->isEntityEnabled($entityType)) {
+            return $this->handleFrontOfficeHook($entityType, $hookName, $params);
+        }
+
         return null;
     }
 
@@ -315,6 +321,71 @@ trait EntityFieldHooksTrait
         }
 
         return $this->handleDisplayHook($entityType, $params, $idKey);
+    }
+
+    /**
+     * Handle front-office display hooks for entities.
+     */
+    private function handleFrontOfficeHook(string $entityType, string $hookName, array $params): string
+    {
+        if (!$this->isActive()) {
+            return '';
+        }
+
+        try {
+            // Extract entity ID based on entity type and hook context
+            $entityId = $this->extractEntityIdFromFrontOfficeHook($entityType, $hookName, $params);
+            
+            if ($entityId <= 0) {
+                return '';
+            }
+
+            // Use the module's renderEntityFieldsForDisplay method
+            if (method_exists($this, 'renderEntityFieldsForDisplay')) {
+                return $this->renderEntityFieldsForDisplay($entityType, $entityId);
+            }
+
+            return '';
+        } catch (\Exception $e) {
+            if (method_exists($this, 'log')) {
+                $this->log("Error in front-office hook {$hookName}: " . $e->getMessage(), 3);
+            }
+            return '';
+        }
+    }
+
+    /**
+     * Extract entity ID from front-office hook parameters.
+     */
+    private function extractEntityIdFromFrontOfficeHook(string $entityType, string $hookName, array $params): int
+    {
+        // Product hooks
+        if ($entityType === 'product') {
+            $product = $params['product'] ?? null;
+            return (int) ($product['id_product'] ?? ($product->id ?? 0));
+        }
+
+        // Category hooks
+        if ($entityType === 'category') {
+            return (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        }
+
+        // Customer hooks
+        if ($entityType === 'customer') {
+            if (isset($this->context->customer)) {
+                return (int) ($this->context->customer->id ?? 0);
+            }
+            return 0;
+        }
+
+        // Order hooks
+        if ($entityType === 'order') {
+            return (int) ($params['order']['id_order'] ?? $params['order']->id ?? 0);
+        }
+
+        // Generic fallback
+        $idKey = 'id_' . $entityType;
+        return (int) ($params[$idKey] ?? $params['id'] ?? 0);
     }
 
     // =========================================================================
