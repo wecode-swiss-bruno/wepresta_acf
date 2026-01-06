@@ -34,7 +34,7 @@ use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 class WeprestaAcf extends Module
 {
     use EntityFieldHooksTrait;
-    public const VERSION = '1.2.0';
+    public const VERSION = '1.2.1';
 
     public const HOOKS = [
         // V1 Core Entities - Explicitly defined hooks
@@ -57,6 +57,12 @@ class WeprestaAcf extends Module
         'actionOrderStatusPostUpdate',
         // Front-Office
         'displayProductAdditionalInfo',
+        'displayCategoryTop',
+        'displayCategoryHeader',
+        'displayCustomerAccount',
+        'displayMyAccountBlock',
+        'displayOrderConfirmation',
+        'displayOrderDetail',
         'actionFrontControllerSetMedia',
         'displayHeader',
         'actionAdminControllerSetMedia',
@@ -129,7 +135,19 @@ class WeprestaAcf extends Module
             'actionAdminControllerSetMedia',
             'actionFrontControllerSetMedia',
             'displayHeader',
-            'displayProductAdditionalInfo', // Front-office product display
+            // Front-office hooks for V1 entities
+            'displayProductAdditionalInfo',
+            'displayCategoryTop',
+            'displayCategoryHeader',
+            'displayCustomerAccount',
+            'displayMyAccountBlock',
+            'displayOrderConfirmation',
+            'displayOrderDetail',
+            // Legacy hooks for V1 entities (not in EntityHooksConfig)
+            'actionCategoryUpdate',
+            'actionCategoryAdd',
+            'actionProductUpdate',
+            'actionProductAdd',
         ];
 
         // Get all hooks from centralized configuration
@@ -684,16 +702,16 @@ class WeprestaAcf extends Module
         return '';
     }
 
-    public function hookDisplayProductAdditionalInfo(array $params): string
+    /**
+     * Generic method to render entity fields for front-office display.
+     *
+     * @param string $entityType Entity type (product, category, customer, order)
+     * @param int $entityId Entity ID
+     * @return string HTML output
+     */
+    private function renderEntityFieldsForDisplay(string $entityType, int $entityId): string
     {
-        if (!$this->isActive()) {
-            return '';
-        }
-
-        $product = $params['product'] ?? null;
-        $productId = (int) ($product['id_product'] ?? ($product->id ?? 0));
-
-        if ($productId <= 0) {
+        if (!$this->isActive() || $entityId <= 0) {
             return '';
         }
 
@@ -701,7 +719,7 @@ class WeprestaAcf extends Module
             AcfServiceContainer::loadCustomFieldTypes();
 
             $displayFields = AcfServiceContainer::getFieldRenderService()
-                ->getProductFieldsForDisplay($productId);
+                ->getEntityFieldsForDisplay($entityType, $entityId);
 
             if (empty($displayFields)) {
                 return '';
@@ -709,15 +727,79 @@ class WeprestaAcf extends Module
 
             $this->context->smarty->assign([
                 'acf_fields' => $displayFields,
-                'acf_product_id' => $productId,
+                'acf_entity_type' => $entityType,
+                'acf_entity_id' => $entityId,
+                // Backward compatibility for product template
+                'acf_product_id' => $entityType === 'product' ? $entityId : null,
             ]);
 
-            return $this->fetch('module:wepresta_acf/views/templates/hook/product-info.tpl');
+            // Use generic template for all entities
+            return $this->fetch('module:wepresta_acf/views/templates/hook/entity-info.tpl');
         } catch (\Exception $e) {
-            $this->log('Error in hookDisplayProductAdditionalInfo: ' . $e->getMessage(), 3);
-
+            $this->log("Error rendering {$entityType} fields: " . $e->getMessage(), 3);
             return '';
         }
+    }
+
+    public function hookDisplayProductAdditionalInfo(array $params): string
+    {
+        $product = $params['product'] ?? null;
+        $productId = (int) ($product['id_product'] ?? ($product->id ?? 0));
+        return $this->renderEntityFieldsForDisplay('product', $productId);
+    }
+
+    /**
+     * Display ACF fields on category page (top).
+     */
+    public function hookDisplayCategoryTop(array $params): string
+    {
+        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        return $this->renderEntityFieldsForDisplay('category', $categoryId);
+    }
+
+    /**
+     * Display ACF fields on category page (header).
+     */
+    public function hookDisplayCategoryHeader(array $params): string
+    {
+        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        return $this->renderEntityFieldsForDisplay('category', $categoryId);
+    }
+
+    /**
+     * Display ACF fields on customer account page.
+     */
+    public function hookDisplayCustomerAccount(array $params): string
+    {
+        $customerId = (int) ($this->context->customer->id ?? 0);
+        return $this->renderEntityFieldsForDisplay('customer', $customerId);
+    }
+
+    /**
+     * Display ACF fields in "My Account" block.
+     */
+    public function hookDisplayMyAccountBlock(array $params): string
+    {
+        $customerId = (int) ($this->context->customer->id ?? 0);
+        return $this->renderEntityFieldsForDisplay('customer', $customerId);
+    }
+
+    /**
+     * Display ACF fields on order confirmation page.
+     */
+    public function hookDisplayOrderConfirmation(array $params): string
+    {
+        $orderId = (int) ($params['order']['id_order'] ?? $params['order']->id ?? 0);
+        return $this->renderEntityFieldsForDisplay('order', $orderId);
+    }
+
+    /**
+     * Display ACF fields on order detail page.
+     */
+    public function hookDisplayOrderDetail(array $params): string
+    {
+        $orderId = (int) ($params['order']['id_order'] ?? $params['order']->id ?? 0);
+        return $this->renderEntityFieldsForDisplay('order', $orderId);
     }
 
     public function hookActionFrontControllerSetMedia(array $params): void
@@ -725,7 +807,9 @@ class WeprestaAcf extends Module
         if (!$this->isActive()) { return; }
 
         $controller = Tools::getValue('controller');
-        if ($controller === 'product') {
+        // Register JS for all V1 entity pages
+        $v1Controllers = ['product', 'category', 'order'];
+        if (in_array($controller, $v1Controllers, true)) {
             $this->context->controller->registerJavascript('wepresta_acf-front', 'modules/' . $this->name . '/views/js/front.js', ['position' => 'bottom', 'priority' => 150]);
         }
 
