@@ -151,7 +151,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductAdditionalInfo(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductAdditionalInfo');
     }
 
@@ -160,7 +160,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductExtraContent(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductExtraContent');
     }
 
@@ -169,7 +169,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductButtons(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductButtons');
     }
 
@@ -178,7 +178,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductActions(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductActions');
     }
 
@@ -187,7 +187,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductPriceBlock(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductPriceBlock');
     }
 
@@ -196,7 +196,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayAfterProductThumbs(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayAfterProductThumbs');
     }
 
@@ -205,7 +205,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayReassurance(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayReassurance');
     }
 
@@ -214,7 +214,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductListReviews(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductListReviews');
     }
 
@@ -223,7 +223,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductListFunctionalButtons(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductListFunctionalButtons');
     }
 
@@ -232,7 +232,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayFooterProduct(array $params): string
     {
-        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayFooterProduct');
     }
 
@@ -245,7 +245,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayCategoryTop(array $params): string
     {
-        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        $categoryId = $this->extractCategoryIdFromParams($params);
         return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryTop');
     }
 
@@ -254,7 +254,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayCategoryHeader(array $params): string
     {
-        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        $categoryId = $this->extractCategoryIdFromParams($params);
         return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryHeader');
     }
 
@@ -263,7 +263,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayCategoryFooter(array $params): string
     {
-        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        $categoryId = $this->extractCategoryIdFromParams($params);
         return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryFooter');
     }
 
@@ -272,7 +272,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayCategoryProductListHeader(array $params): string
     {
-        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        $categoryId = $this->extractCategoryIdFromParams($params);
         return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryProductListHeader');
     }
 
@@ -281,7 +281,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayCategoryProductListFooter(array $params): string
     {
-        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        $categoryId = $this->extractCategoryIdFromParams($params);
         return $this->renderFrontFieldsForHook('category', $categoryId, 'displayCategoryProductListFooter');
     }
 
@@ -572,5 +572,61 @@ trait EntityFieldHooksTrait
         }
 
         return null;
+    }
+
+    /**
+     * Extrait l'ID produit de manière sécurisée depuis les paramètres du hook.
+     * Gère les cas où $params['product'] peut être un array ou un objet Product.
+     *
+     * @param array $params Paramètres du hook
+     * @return int ID du produit ou 0 si non trouvé
+     */
+    private function extractProductIdFromParams(array $params): int
+    {
+        $product = $params['product'] ?? null;
+
+        if ($product === null) {
+            return 0;
+        }
+
+        // Si c'est un objet Product, accéder à la propriété id
+        if (is_object($product) && property_exists($product, 'id')) {
+            return (int) $product->id;
+        }
+
+        // Si c'est un array, accéder à l'index id_product
+        if (is_array($product) && isset($product['id_product'])) {
+            return (int) $product['id_product'];
+        }
+
+        return 0;
+    }
+
+    /**
+     * Extrait l'ID catégorie de manière sécurisée depuis les paramètres du hook.
+     * Gère les cas où $params['category'] peut être un array ou un objet Category.
+     *
+     * @param array $params Paramètres du hook
+     * @return int ID de la catégorie ou 0 si non trouvé
+     */
+    private function extractCategoryIdFromParams(array $params): int
+    {
+        $category = $params['category'] ?? null;
+
+        if ($category === null) {
+            return 0;
+        }
+
+        // Si c'est un objet Category, accéder à la propriété id
+        if (is_object($category) && property_exists($category, 'id')) {
+            return (int) $category->id;
+        }
+
+        // Si c'est un array, accéder à l'index id_category
+        if (is_array($category) && isset($category['id_category'])) {
+            return (int) $category['id_category'];
+        }
+
+        return 0;
     }
 }

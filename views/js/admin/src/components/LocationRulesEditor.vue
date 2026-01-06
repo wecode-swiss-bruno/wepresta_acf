@@ -163,6 +163,12 @@ async function addRule(): Promise<void> {
   } finally {
     savingRule.value = false
   }
+
+  // Auto-navigate to Fields step if hook was auto-selected and we can proceed
+  if (group.value?.foOptions?.displayHook && canProceedToFields.value) {
+    console.log('✅ Entity type + display hook ready, auto-navigating to Fields step')
+    emit('next-step')
+  }
 }
 
 function removeRule(index: number): void {
