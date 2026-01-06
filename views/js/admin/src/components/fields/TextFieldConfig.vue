@@ -12,19 +12,19 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const { createLocalRef } = useFieldConfig(props, emit)
+const { createStringRef } = useFieldConfig(props, emit)
 
 // Local reactive values using the composable
-const placeholder = createLocalRef('placeholder', '')
-const prefix = createLocalRef('prefix', '')
-const suffix = createLocalRef('suffix', '')
+const placeholder = createStringRef('placeholder')
+const prefix = createStringRef('prefix')
+const suffix = createStringRef('suffix')
 </script>
 
 <template>
   <div class="text-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('placeholder') }}</label>
-      <input
+      <input 
         v-model="placeholder"
         type="text"
         class="form-control"
@@ -33,7 +33,7 @@ const suffix = createLocalRef('suffix', '')
 
     <div class="form-group">
       <label class="form-control-label">{{ t('prefix') }}</label>
-      <input
+      <input 
         v-model="prefix"
         type="text"
         class="form-control"
@@ -45,7 +45,7 @@ const suffix = createLocalRef('suffix', '')
 
     <div class="form-group">
       <label class="form-control-label">{{ t('suffix') }}</label>
-      <input
+      <input 
         v-model="suffix"
         type="text"
         class="form-control"

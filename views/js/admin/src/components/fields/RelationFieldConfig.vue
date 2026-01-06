@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import { useFieldConfig } from '@/composables/useFieldConfig'
 import PsSwitch from '@/components/ui/PsSwitch.vue'
 
 const props = defineProps<{
@@ -13,32 +14,33 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
+const { updateConfig, createBooleanRef } = useFieldConfig(props, emit)
 
-const multiple = computed({
-  get: () => props.config.multiple === true,
-  set: (value: boolean) => emit('update:config', { ...props.config, multiple: value })
+// Boolean switches with auto-conversion
+const multiple = createBooleanRef('multiple')
+
+// Filter booleans (nested in filters object) - need manual handling
+const filterActive = ref(props.config.filters?.active !== false)
+const filterInStock = ref(props.config.filters?.in_stock === true)
+const filterExcludeCurrent = ref(props.config.filters?.exclude_current !== false)
+
+// Sync filter refs with props
+watch(() => props.config.filters?.active, (val) => {
+  filterActive.value = val !== false
+})
+watch(() => props.config.filters?.in_stock, (val) => {
+  filterInStock.value = val === true
+})
+watch(() => props.config.filters?.exclude_current, (val) => {
+  filterExcludeCurrent.value = val !== false
 })
 
-const filterActive = computed({
-  get: () => props.config.filters?.active !== false,
-  set: (value: boolean) => updateFilter('active', value)
-})
+// Update filters on change with boolean conversion
+watch(filterActive, (val) => updateFilter('active', !!val))
+watch(filterInStock, (val) => updateFilter('in_stock', !!val))
+watch(filterExcludeCurrent, (val) => updateFilter('exclude_current', !!val))
 
-const filterInStock = computed({
-  get: () => props.config.filters?.in_stock === true,
-  set: (value: boolean) => updateFilter('in_stock', value)
-})
-
-const filterExcludeCurrent = computed({
-  get: () => props.config.filters?.exclude_current !== false,
-  set: (value: boolean) => updateFilter('exclude_current', value)
-})
-
-function updateConfig(key: keyof FieldConfig, value: unknown): void {
-  emit('update:config', { ...props.config, [key]: value })
-}
-
-function updateFilter(key: string, value: unknown): void {
+function updateFilter(key: string, value: boolean): void {
   const filters = { ...(props.config.filters || {}), [key]: value }
   emit('update:config', { ...props.config, filters })
 }

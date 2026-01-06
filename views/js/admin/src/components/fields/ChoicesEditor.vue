@@ -1,107 +1,96 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useTranslations } from '@/composables/useTranslations'
 
 export interface Choice {
   value: string
   label: string
 }
 
-const props = defineProps<{
+interface Props {
   modelValue: Choice[]
-  label?: string
-  helpText?: string
-}>()
+  emptyMessage?: string
+  addButtonLabel?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  emptyMessage: 'No options defined yet.',
+  addButtonLabel: 'Add Option'
+})
 
 const emit = defineEmits<{
   'update:modelValue': [choices: Choice[]]
 }>()
 
-const { t } = useTranslations()
+// Local choices state
+const choices = ref<Choice[]>([...props.modelValue])
 
-const localChoices = ref<Choice[]>([...props.modelValue])
-
-// Sync props -> local
-watch(
-  () => props.modelValue,
-  (newVal) => {
-    localChoices.value = [...newVal]
-  },
-  { deep: true }
-)
-
-// Sync local -> props
-watch(
-  localChoices,
-  (newVal) => {
-    emit('update:modelValue', newVal)
-  },
-  { deep: true }
-)
+// Sync from props
+watch(() => props.modelValue, (newVal) => {
+  choices.value = [...newVal]
+})
 
 function addChoice(): void {
-  localChoices.value.push({ value: '', label: '' })
+  choices.value.push({ value: '', label: '' })
+  emitChoices()
 }
 
 function removeChoice(index: number): void {
-  localChoices.value.splice(index, 1)
+  choices.value.splice(index, 1)
+  emitChoices()
 }
 
 function updateChoice(index: number, field: 'value' | 'label', value: string): void {
-  localChoices.value[index][field] = value
+  choices.value[index][field] = value
+  emitChoices()
+}
+
+function emitChoices(): void {
+  emit('update:modelValue', [...choices.value])
 }
 </script>
 
 <template>
-  <div class="acf-choices-editor">
-    <div class="form-group">
-      <label v-if="label" class="form-control-label">{{ label }}</label>
-      
-      <div 
-        v-for="(choice, index) in localChoices" 
-        :key="index"
-        class="choice-row"
+  <div class="choices-editor">
+    <div 
+      v-for="(choice, index) in choices" 
+      :key="index"
+      class="choice-row"
+    >
+      <input 
+        type="text"
+        class="form-control"
+        placeholder="Value"
+        :value="choice.value"
+        @input="updateChoice(index, 'value', ($event.target as HTMLInputElement).value)"
       >
-        <input 
-          type="text"
-          class="form-control"
-          placeholder="Value"
-          :value="choice.value"
-          @input="updateChoice(index, 'value', ($event.target as HTMLInputElement).value)"
-        >
-        <input 
-          type="text"
-          class="form-control"
-          placeholder="Label"
-          :value="choice.label"
-          @input="updateChoice(index, 'label', ($event.target as HTMLInputElement).value)"
-        >
-        <button 
-          type="button" 
-          class="btn btn-link text-danger"
-          @click="removeChoice(index)"
-        >
-          <span class="material-icons">delete</span>
-        </button>
-      </div>
-      
-      <div v-if="localChoices.length === 0" class="text-muted mb-2">
-        {{ t('noChoices') || 'No options defined yet.' }}
-      </div>
-      
+      <input 
+        type="text"
+        class="form-control"
+        placeholder="Label"
+        :value="choice.label"
+        @input="updateChoice(index, 'label', ($event.target as HTMLInputElement).value)"
+      >
       <button 
         type="button" 
-        class="btn btn-sm btn-outline-secondary mt-2"
-        @click="addChoice"
+        class="btn btn-link text-danger"
+        @click="removeChoice(index)"
       >
-        <span class="material-icons">add</span>
-        {{ t('addOption') }}
+        <span class="material-icons">delete</span>
       </button>
-      
-      <small v-if="helpText" class="form-text text-muted d-block mt-2">
-        {{ helpText }}
-      </small>
     </div>
+    
+    <div v-if="choices.length === 0" class="text-muted mb-2">
+      {{ props.emptyMessage }}
+    </div>
+    
+    <button 
+      type="button" 
+      class="btn btn-sm btn-outline-secondary mt-2"
+      @click="addChoice"
+    >
+      <span class="material-icons">add</span>
+      {{ props.addButtonLabel }}
+    </button>
   </div>
 </template>
 
@@ -121,4 +110,3 @@ function updateChoice(index: number, field: 'value' | 'label', value: string): v
   padding: 0.25rem;
 }
 </style>
-

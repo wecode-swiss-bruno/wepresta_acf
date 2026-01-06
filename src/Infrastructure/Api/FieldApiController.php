@@ -40,7 +40,7 @@ class FieldApiController extends FrameworkBundleAdminController
 
             $slug = $this->resolveSlug($data['slug'] ?? '', $data['title'], $groupId);
             if ($slug === null) {
-                return $this->jsonError('Slug already exists in group', Response::HTTP_BAD_REQUEST);
+                    return $this->jsonError('Slug already exists in group', Response::HTTP_BAD_REQUEST);
             }
 
             $fieldId = $this->fieldRepository->create([
@@ -92,8 +92,8 @@ class FieldApiController extends FrameworkBundleAdminController
                 $field['slug']
             );
             if ($newSlug === null) {
-                return $this->jsonError('Slug already exists in group', Response::HTTP_BAD_REQUEST);
-            }
+                    return $this->jsonError('Slug already exists in group', Response::HTTP_BAD_REQUEST);
+                }
 
             // Parse and merge JSON fields
             $jsonData = $this->mergeJsonFields($field, $data);

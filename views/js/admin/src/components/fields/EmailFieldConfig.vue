@@ -22,7 +22,7 @@ const placeholder = createLocalRef('placeholder', '')
   <div class="email-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('placeholder') }}</label>
-      <input
+      <input 
         v-model="placeholder"
         type="text"
         class="form-control"

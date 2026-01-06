@@ -2,114 +2,93 @@ import { ref, watch, type Ref } from 'vue'
 import type { FieldConfig } from '@/types'
 
 /**
- * Composable pour gérer la synchronisation bidirectionnelle des propriétés de configuration
- * Évite la duplication de code dans les composants FieldConfig
+ * Composable for managing field configuration with reactive local state.
+ * Handles bidirectional sync between props and local refs.
  */
 export function useFieldConfig(
   props: { config: FieldConfig },
   emit: (event: 'update:config', config: FieldConfig) => void
 ) {
   /**
-   * Met à jour une propriété de configuration
+   * Update a specific config key and emit the full config.
    */
   function updateConfig(key: keyof FieldConfig, value: unknown): void {
     emit('update:config', { ...props.config, [key]: value })
   }
 
   /**
-   * Crée un ref local avec synchronisation bidirectionnelle
-   * - Prop -> Ref : quand la prop change, le ref est mis à jour
-   * - Ref -> Prop : quand le ref change, on émet une mise à jour
-   *
-   * @param key Clé de la config à synchroniser
-   * @param defaultValue Valeur par défaut si undefined
-   * @param transform Fonction de transformation avant émission (ex: String -> Number)
-   * @returns Ref synchronisé
+   * Create a local ref for a string config value with automatic sync.
+   * @param key Config key to sync
+   * @param defaultValue Default value if config key is empty
    */
-  function createLocalRef<K extends keyof FieldConfig>(
-    key: K,
-    defaultValue: FieldConfig[K] = undefined,
-    transform?: (value: any) => any
-  ): Ref<any> {
-    const localRef = ref(props.config[key] ?? defaultValue)
+  function createStringRef(key: keyof FieldConfig, defaultValue = ''): Ref<string> {
+    const local = ref((props.config[key] as string) || defaultValue)
 
-    // Sync prop -> ref
-    watch(
-      () => props.config[key],
-      (newVal) => {
-        localRef.value = newVal ?? defaultValue
-      }
-    )
-
-    // Sync ref -> prop (avec transformation optionnelle)
-    watch(localRef, (newVal) => {
-      const finalValue = transform ? transform(newVal) : (newVal || undefined)
-      updateConfig(key, finalValue)
+    // Sync from props to local
+    watch(() => props.config[key], (newVal) => {
+      local.value = (newVal as string) || defaultValue
     })
 
-    return localRef
+    // Sync from local to props
+    watch(local, (newVal) => {
+      updateConfig(key, newVal || undefined)
+    })
+
+    return local
   }
 
   /**
-   * Crée un ref local pour un boolean (gère conversion PsSwitch "0"/"1" -> boolean)
+   * Create a local ref for a number config value with automatic sync.
+   * @param key Config key to sync
    */
-  function createBooleanRef<K extends keyof FieldConfig>(
-    key: K,
-    defaultValue: boolean = false
-  ): Ref<boolean> {
-    const localRef = ref<boolean>((props.config[key] as any) === true || (props.config[key] as any) === '1' || (props.config[key] as any) === 1 || defaultValue)
-
-    // Sync prop -> ref (avec conversion en boolean)
-    watch(
-      () => props.config[key],
-      (newVal) => {
-        localRef.value = newVal === true || newVal === '1' || newVal === 1 || defaultValue
-      }
-    )
-
-    // Sync ref -> prop (force conversion en boolean)
-    watch(localRef, (newVal) => {
-      updateConfig(key, !!newVal)
-    })
-
-    return localRef
-  }
-
-  /**
-   * Crée un ref local pour un nombre (gère conversion string <-> number)
-   */
-  function createNumberRef<K extends keyof FieldConfig>(
-    key: K,
-    defaultValue: number | '' = ''
-  ): Ref<string | number> {
-    const localRef = ref<string | number>(
-      props.config[key] !== null && props.config[key] !== undefined
+  function createNumberRef(key: keyof FieldConfig): Ref<string> {
+    const local = ref(
+      (props.config[key] !== null && props.config[key] !== undefined)
         ? String(props.config[key])
-        : defaultValue
+        : ''
     )
 
-    // Sync prop -> ref
-    watch(
-      () => props.config[key],
-      (newVal) => {
-        localRef.value = newVal !== null && newVal !== undefined ? String(newVal) : defaultValue
-      }
-    )
+    // Sync from props to local
+    watch(() => props.config[key], (newVal) => {
+      local.value = (newVal !== null && newVal !== undefined) ? String(newVal) : ''
+    })
 
-    // Sync ref -> prop (convertit en number ou undefined)
-    watch(localRef, (newVal) => {
-      const numVal = newVal === '' || newVal === null ? undefined : Number(newVal)
+    // Sync from local to props
+    watch(local, (newVal) => {
+      const numVal = newVal === '' ? undefined : Number(newVal)
       updateConfig(key, numVal)
     })
 
-    return localRef
+    return local
+  }
+
+  /**
+   * Create a local ref for a boolean config value with automatic sync.
+   * Handles PsSwitch values (strings "0"/"1" or booleans).
+   * @param key Config key to sync
+   * @param defaultValue Default boolean value
+   */
+  function createBooleanRef(key: keyof FieldConfig, defaultValue = false): Ref<boolean> {
+    const local = ref(props.config[key] === true || props.config[key] === '1')
+
+    // Sync from props to local
+    watch(() => props.config[key], (newVal) => {
+      local.value = newVal === true || newVal === '1'
+    })
+
+    // Sync from local to props (ensure boolean conversion)
+    watch(local, (newVal) => {
+      const boolVal = !!newVal
+      updateConfig(key, boolVal)
+    })
+
+    return local
   }
 
   return {
     updateConfig,
-    createLocalRef,
-    createBooleanRef,
+    createStringRef,
     createNumberRef,
+    createBooleanRef,
   }
 }
-

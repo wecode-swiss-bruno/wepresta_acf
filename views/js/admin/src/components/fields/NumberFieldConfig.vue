@@ -13,15 +13,15 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const { createLocalRef, createNumberRef } = useFieldConfig(props, emit)
+const { createStringRef, createNumberRef } = useFieldConfig(props, emit)
 
 // Local reactive values using the composable
-const placeholder = createLocalRef('placeholder', '')
-const min = createNumberRef('min', '')
-const max = createNumberRef('max', '')
-const step = createNumberRef('step', '')
-const prefix = createLocalRef('prefix', '')
-const suffix = createLocalRef('suffix', '')
+const placeholder = createStringRef('placeholder')
+const min = createNumberRef('min')
+const max = createNumberRef('max')
+const step = createNumberRef('step')
+const prefix = createStringRef('prefix')
+const suffix = createStringRef('suffix')
 
 // Validate min/max consistency
 watch([min, max], ([newMin, newMax]) => {
@@ -30,7 +30,7 @@ watch([min, max], ([newMin, newMax]) => {
 
   if (minVal !== undefined && maxVal !== undefined && minVal >= maxVal) {
     console.warn('[NumberFieldConfig] Warning: min value is greater than or equal to max value')
-  }
+}
 })
 </script>
 
@@ -38,7 +38,7 @@ watch([min, max], ([newMin, newMax]) => {
   <div class="number-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('placeholder') }}</label>
-      <input
+      <input 
         v-model="placeholder"
         type="text"
         class="form-control"
@@ -48,7 +48,7 @@ watch([min, max], ([newMin, newMax]) => {
     <div class="form-row">
       <div class="form-group col-4">
         <label class="form-control-label">{{ t('minValue') }}</label>
-        <input
+        <input 
           v-model.number="min"
           type="number"
           class="form-control"
@@ -60,7 +60,7 @@ watch([min, max], ([newMin, newMax]) => {
       </div>
       <div class="form-group col-4">
         <label class="form-control-label">{{ t('maxValue') }}</label>
-        <input
+        <input 
           v-model.number="max"
           type="number"
           class="form-control"
@@ -72,7 +72,7 @@ watch([min, max], ([newMin, newMax]) => {
       </div>
       <div class="form-group col-4">
         <label class="form-control-label">{{ t('step') }}</label>
-        <input
+        <input 
           v-model.number="step"
           type="number"
           class="form-control"
@@ -88,7 +88,7 @@ watch([min, max], ([newMin, newMax]) => {
     <div class="form-row">
       <div class="form-group col-6">
         <label class="form-control-label">{{ t('prefix') }}</label>
-        <input
+        <input 
           v-model="prefix"
           type="text"
           class="form-control"
@@ -97,7 +97,7 @@ watch([min, max], ([newMin, newMax]) => {
       </div>
       <div class="form-group col-6">
         <label class="form-control-label">{{ t('suffix') }}</label>
-        <input
+        <input 
           v-model="suffix"
           type="text"
           class="form-control"

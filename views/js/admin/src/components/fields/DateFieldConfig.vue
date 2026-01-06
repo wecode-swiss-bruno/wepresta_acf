@@ -23,7 +23,7 @@ const maxDate = createLocalRef('maxDate', '')
   <div class="date-field-config">
     <div class="form-group">
       <label class="form-control-label">Minimum Date</label>
-      <input
+      <input 
         v-model="minDate"
         type="date"
         class="form-control"
@@ -35,7 +35,7 @@ const maxDate = createLocalRef('maxDate', '')
 
     <div class="form-group">
       <label class="form-control-label">Maximum Date</label>
-      <input
+      <input 
         v-model="maxDate"
         type="date"
         class="form-control"

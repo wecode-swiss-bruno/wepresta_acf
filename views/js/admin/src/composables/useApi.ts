@@ -17,7 +17,7 @@ export function useApi() {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
     const cleanApiUrl = config.apiUrl.endsWith('/') ? config.apiUrl.slice(0, -1) : config.apiUrl
     let url = `${cleanApiUrl}${cleanEndpoint}`
-
+    
     // For GET requests, add token to URL instead of header
     const method = options.method || 'GET'
     if (method === 'GET') {
@@ -26,7 +26,7 @@ export function useApi() {
     }
 
     console.log('[ACF API] Making request to:', url, 'method:', method)
-
+    
     const response = await fetch(url, {
       ...options,
       headers: {

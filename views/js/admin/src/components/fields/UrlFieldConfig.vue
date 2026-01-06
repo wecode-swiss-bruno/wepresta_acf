@@ -53,7 +53,7 @@ watch(linkText, (newVal) => {
   <div class="url-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('placeholder') }}</label>
-      <input
+      <input 
         v-model="placeholder"
         type="text"
         class="form-control"
@@ -74,7 +74,7 @@ watch(linkText, (newVal) => {
 
     <div class="form-group">
       <label class="form-control-label">Link Text</label>
-      <input
+      <input 
         v-model="linkText"
         type="text"
         class="form-control"

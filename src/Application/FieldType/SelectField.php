@@ -25,7 +25,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
  * Select field type
  *
  * Dropdown/select field with static or dynamic choices.
- * Supports single and multiple selection.
+ * Supports single and allowMultiple selection.
  */
 final class SelectField extends AbstractFieldType
 {
@@ -64,8 +64,8 @@ final class SelectField extends AbstractFieldType
         $options['choices'] = $this->buildChoices($fieldConfig);
 
         // Multiple selection
-        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
-        $options['multiple'] = (bool) $multiple;
+        $allowMultiple = $this->getConfigValue($fieldConfig, 'allowMultiple', false);
+        $options['allowMultiple'] = (bool) $allowMultiple;
 
         // Allow empty selection
         $options['placeholder'] = $this->getConfigValue($fieldConfig, 'placeholder', 'Choose an option...');
@@ -119,10 +119,10 @@ final class SelectField extends AbstractFieldType
             return null;
         }
 
-        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+        $allowMultiple = $this->getConfigValue($fieldConfig, 'allowMultiple', false);
 
-        if ($multiple) {
-            // Store multiple values as JSON array
+        if ($allowMultiple) {
+            // Store allowMultiple values as JSON array
             if (is_array($value)) {
                 return json_encode(array_values($value), JSON_THROW_ON_ERROR);
             }
@@ -143,9 +143,9 @@ final class SelectField extends AbstractFieldType
             return null;
         }
 
-        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+        $allowMultiple = $this->getConfigValue($fieldConfig, 'allowMultiple', false);
 
-        if ($multiple) {
+        if ($allowMultiple) {
             // Decode JSON array
             if (is_string($value)) {
                 $decoded = json_decode($value, true);
@@ -170,10 +170,10 @@ final class SelectField extends AbstractFieldType
 
         // Get the choices map for label lookup
         $choicesMap = $this->buildValueToLabelMap($fieldConfig);
-        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+        $allowMultiple = $this->getConfigValue($fieldConfig, 'allowMultiple', false);
 
-        if ($multiple) {
-            // Handle multiple values
+        if ($allowMultiple) {
+            // Handle allowMultiple values
             $values = is_array($value) ? $value : json_decode((string) $value, true) ?? [];
             $labels = [];
 
@@ -228,9 +228,9 @@ final class SelectField extends AbstractFieldType
             return null;
         }
 
-        $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+        $allowMultiple = $this->getConfigValue($fieldConfig, 'allowMultiple', false);
 
-        if ($multiple) {
+        if ($allowMultiple) {
             $values = is_array($value) ? $value : json_decode((string) $value, true) ?? [];
 
             return implode(',', array_slice($values, 0, 5)); // First 5 values for index
@@ -254,9 +254,9 @@ final class SelectField extends AbstractFieldType
         // Validate against allowed choices (unless allowCustom is enabled)
         if (!$this->getConfigValue($fieldConfig, 'allowCustom', false)) {
             $validValues = array_values($this->buildChoices($fieldConfig));
-            $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
+            $allowMultiple = $this->getConfigValue($fieldConfig, 'allowMultiple', false);
 
-            if ($multiple) {
+            if ($allowMultiple) {
                 $values = is_array($value) ? $value : [$value];
                 foreach ($values as $val) {
                     if (!in_array($val, $validValues, true)) {
@@ -280,7 +280,7 @@ final class SelectField extends AbstractFieldType
     {
         return [
             'choices' => [],
-            'multiple' => false,
+            'allowMultiple' => false,
             'expanded' => false,
             'allowCustom' => false,
             'placeholder' => 'Choose an option...',
@@ -303,16 +303,16 @@ final class SelectField extends AbstractFieldType
                 ],
                 'default' => [],
             ],
-            'multiple' => [
+            'allowMultiple' => [
                 'type' => 'checkbox',
                 'label' => 'Allow Multiple',
-                'help' => 'Allow selecting multiple options',
+                'help' => 'Allow selecting allowMultiple options',
                 'default' => false,
             ],
             'expanded' => [
                 'type' => 'checkbox',
                 'label' => 'Expanded',
-                'help' => 'Show as radio buttons (single) or checkboxes (multiple)',
+                'help' => 'Show as radio buttons (single) or checkboxes (allowMultiple)',
                 'default' => false,
             ],
             'allowCustom' => [

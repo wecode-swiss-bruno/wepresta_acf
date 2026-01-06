@@ -23,7 +23,7 @@ const rows = createLocalRef('rows', 4)
   <div class="textarea-field-config">
     <div class="form-group">
       <label class="form-control-label">{{ t('placeholder') }}</label>
-      <input
+      <input 
         v-model="placeholder"
         type="text"
         class="form-control"
@@ -32,7 +32,7 @@ const rows = createLocalRef('rows', 4)
 
     <div class="form-group">
       <label class="form-control-label">Rows</label>
-      <input
+      <input 
         v-model.number="rows"
         type="number"
         class="form-control"

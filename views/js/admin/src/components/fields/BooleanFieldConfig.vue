@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
+import { useFieldConfig } from '@/composables/useFieldConfig'
 import PsSwitch from '@/components/ui/PsSwitch.vue'
 
 const props = defineProps<{
@@ -13,15 +13,14 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
+const { updateConfig, createBooleanRef, createStringRef } = useFieldConfig(props, emit)
 
-const defaultValue = computed({
-  get: () => props.config.defaultValue === true,
-  set: (value: boolean) => emit('update:config', { ...props.config, defaultValue: value })
-})
+// Boolean with auto-conversion
+const defaultValue = createBooleanRef('defaultValue')
 
-function updateConfig(key: keyof FieldConfig, value: unknown): void {
-  emit('update:config', { ...props.config, [key]: value })
-}
+// String refs for labels
+const trueLabel = createStringRef('trueLabel')
+const falseLabel = createStringRef('falseLabel')
 </script>
 
 <template>
@@ -36,28 +35,28 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">True Label</label>
+      <label class="form-control-label">{{ t('trueLabel') || 'True Label' }}</label>
       <input
+        v-model="trueLabel"
         type="text"
         class="form-control"
-        :value="config.trueLabel || 'Yes'"
-        @input="updateConfig('trueLabel', ($event.target as HTMLInputElement).value)"
+        :placeholder="t('yes') || 'Yes'"
       >
       <small class="form-text text-muted">
-        Text to display when value is true/checked.
+        {{ t('trueLabelHelp') || 'Text to display when value is true/checked.' }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">False Label</label>
+      <label class="form-control-label">{{ t('falseLabel') || 'False Label' }}</label>
       <input
+        v-model="falseLabel"
         type="text"
         class="form-control"
-        :value="config.falseLabel || 'No'"
-        @input="updateConfig('falseLabel', ($event.target as HTMLInputElement).value)"
+        :placeholder="t('no') || 'No'"
       >
       <small class="form-text text-muted">
-        Text to display when value is false/unchecked.
+        {{ t('falseLabelHelp') || 'Text to display when value is false/unchecked.' }}
       </small>
     </div>
   </div>

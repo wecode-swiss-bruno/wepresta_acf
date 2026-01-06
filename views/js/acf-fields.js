@@ -819,6 +819,17 @@
                 var checked = input.closest('form, .acf-field').querySelector('input[name="' + input.name + '"]:checked');
                 return checked ? checked.value : '';
             }
+            
+            // Handle select multiple - must collect all selected options
+            if (input.tagName === 'SELECT' && input.multiple) {
+                var selected = Array.from(input.selectedOptions).map(function(opt) {
+                    return opt.value;
+                }).filter(function(val) {
+                    return val !== ''; // Exclude empty "-- Select --" option
+                });
+                return selected.length > 0 ? selected : '';
+            }
+            
             return input.value || '';
         }
 

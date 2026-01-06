@@ -22,7 +22,7 @@ const showHex = createBooleanRef('showHex', true)
   <div class="color-field-config">
     <div class="form-group">
       <div class="form-check">
-        <input
+        <input 
           v-model="showHex"
           type="checkbox"
           class="form-check-input"
