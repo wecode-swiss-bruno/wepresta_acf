@@ -16,6 +16,25 @@ namespace WeprestaAcf\Application\Config;
 final class EntityHooksConfig
 {
     /**
+     * V1 Supported entities - Only these are fully functional.
+     * Extend this list for future versions.
+     */
+    public const V1_ENABLED_ENTITIES = [
+        'product',
+        'category',
+        'customer',
+        'order',
+    ];
+
+    /**
+     * Check if an entity type is enabled in current version.
+     */
+    public static function isEntityEnabled(string $entityType): bool
+    {
+        return in_array($entityType, self::V1_ENABLED_ENTITIES, true);
+    }
+
+    /**
      * Entities using Symfony Form (FormBuilderModifier pattern).
      * 41 entities total.
      *

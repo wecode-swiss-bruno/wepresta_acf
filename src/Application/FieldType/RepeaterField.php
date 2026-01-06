@@ -161,8 +161,15 @@ final class RepeaterField extends AbstractFieldType
             return '';
         }
 
-        // Subfields need to be passed in renderOptions for proper rendering
+        // Subfields and registry for proper rendering
         $subfields = $renderOptions['subfields'] ?? [];
+        $registry = $renderOptions['fieldTypeRegistry'] ?? null;
+
+        // Index subfields by slug for easy lookup
+        $subfieldsBySlug = [];
+        foreach ($subfields as $subfield) {
+            $subfieldsBySlug[$subfield['slug']] = $subfield;
+        }
 
         $html = '<div class="acf-repeater">';
 
@@ -172,8 +179,25 @@ final class RepeaterField extends AbstractFieldType
             if (!empty($row['values']) && is_array($row['values'])) {
                 foreach ($row['values'] as $slug => $subfieldValue) {
                     $html .= '<div class="acf-repeater-field" data-field="' . htmlspecialchars($slug, ENT_QUOTES, 'UTF-8') . '">';
-                    // Note: Actual subfield rendering is done by the template, not here
-                    $html .= htmlspecialchars(is_string($subfieldValue) ? $subfieldValue : json_encode($subfieldValue), ENT_QUOTES, 'UTF-8');
+
+                    // Try to render using the appropriate field type
+                    $rendered = false;
+                    if ($registry !== null && isset($subfieldsBySlug[$slug])) {
+                        $subfield = $subfieldsBySlug[$slug];
+                        $subfieldType = $registry->getOrNull($subfield['type'] ?? '');
+                        if ($subfieldType !== null) {
+                            $subfieldConfig = json_decode($subfield['config'] ?? '{}', true) ?: [];
+                            $denormalizedValue = $subfieldType->denormalizeValue($subfieldValue, $subfieldConfig);
+                            $html .= $subfieldType->renderValue($denormalizedValue, $subfieldConfig, $renderOptions);
+                            $rendered = true;
+                        }
+                    }
+
+                    // Fallback to simple rendering
+                    if (!$rendered) {
+                        $html .= htmlspecialchars(is_string($subfieldValue) ? $subfieldValue : json_encode($subfieldValue), ENT_QUOTES, 'UTF-8');
+                    }
+
                     $html .= '</div>';
                 }
             }

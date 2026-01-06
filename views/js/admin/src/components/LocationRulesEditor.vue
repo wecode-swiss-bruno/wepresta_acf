@@ -206,10 +206,12 @@ function findLocationByValue(value: string): LocationOption | undefined {
               <option
                 v-for="location in group.items"
                 :key="location.value"
-                :value="location.value"
+                :value="location.enabled ? location.value : ''"
+                :disabled="!location.enabled"
               >
                 {{ location.label }}
-                {{ location.integration_type === 'legacy' ? ' (legacy)' : '' }}
+                {{ !location.enabled ? ' (coming soon...)' : '' }}
+                {{ location.enabled && location.integration_type === 'legacy' ? ' (legacy)' : '' }}
               </option>
             </optgroup>
           </select>

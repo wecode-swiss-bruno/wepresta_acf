@@ -24,6 +24,7 @@ if (!defined('_PS_VERSION_')) {
 require_once __DIR__ . '/autoload.php';
 
 use WeprestaAcf\Application\Config\EntityHooksConfig;
+use WeprestaAcf\Application\Hook\EntityFieldHooksTrait;
 use WeprestaAcf\Application\Installer\ModuleInstaller;
 use WeprestaAcf\Application\Installer\ModuleUninstaller;
 use WeprestaAcf\Application\Service\AcfServiceContainer;
@@ -32,18 +33,35 @@ use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 
 class WeprestaAcf extends Module
 {
+    use EntityFieldHooksTrait;
     public const VERSION = '1.2.0';
 
     public const HOOKS = [
-        // Product Admin
+        // V1 Core Entities - Explicitly defined hooks
+        // Product
         'displayAdminProductsExtra',
         'actionProductUpdate',
         'actionProductAdd',
-        'actionAdminControllerSetMedia',
+        // Category
+        'displayAdminCategoriesExtra',
+        'actionCategoryUpdate',
+        'actionCategoryAdd',
+        // Customer
+        'displayAdminCustomers',
+        'actionCustomerAccountUpdate',
+        'actionObjectCustomerUpdateAfter',
+        // Order
+        'displayAdminOrderMain',
+        'actionObjectOrderUpdateAfter',
+        'actionOrderStatusUpdate',
+        'actionOrderStatusPostUpdate',
         // Front-Office
         'displayProductAdditionalInfo',
         'actionFrontControllerSetMedia',
         'displayHeader',
+        'actionAdminControllerSetMedia',
+        // Note: 40+ additional entity hooks are handled dynamically via __call
+        // See: EntityHooksConfig::getAllHooks() and EntityFieldHooksTrait
     ];
 
     public const DEFAULT_CONFIG = [
@@ -147,390 +165,13 @@ class WeprestaAcf extends Module
     }
 
     // =========================================================================
-    // GENERIC ENTITY HOOKS (Product, Order, Customer, CPT, etc.)
+    // ENTITY HOOKS - Managed by EntityFieldHooksTrait
     // =========================================================================
 
-    /**
-     * Generic display hook handler for all entity types.
-     * Uses EntityFieldService to render fields for any entity.
-     */
-    public function hookDisplayAdminProductsExtra(array $params): string
-    {
-        return $this->handleDisplayHook('product', $params, 'id_product');
-    }
-
-    /**
-     * Display hook for Order entity.
-     */
-    public function hookDisplayAdminOrderMain(array $params): string
-    {
-        return $this->handleDisplayHook('order', $params, 'id_order');
-    }
-
-    /**
-     * Display hook for Customer entity (VIEW page, not edit).
-     * Note: PrestaShop 9 doesn't have a hook on the customer EDIT page.
-     */
-    public function hookDisplayAdminCustomers(array $params): string
-    {
-        return $this->handleDisplayHook('customer', $params, 'id_customer');
-    }
-
-    /**
-     * Generic display hook handler.
-     *
-     * @param string $entityType Entity type (e.g., 'product', 'order', 'customer')
-     * @param array $params Hook parameters
-     * @param string $idKey Key in params array for entity ID (e.g., 'id_product', 'id_order')
-     * @return string HTML output
-     */
-    private function handleDisplayHook(string $entityType, array $params, string $idKey): string
-    {
-        if (!$this->isActive()) {
-            return '';
-        }
-
-        $entityId = (int) ($params[$idKey] ?? 0);
-        if ($entityId <= 0) {
-            return '';
-        }
-
-        try {
-            $entityFieldService = $this->getService(\WeprestaAcf\Application\Service\EntityFieldService::class);
-            if ($entityFieldService === null) {
-                return '';
-            }
-
-            return $entityFieldService->renderFieldsForEntity($entityType, $entityId, $this);
-        } catch (\Exception $e) {
-            $this->log("Error in handleDisplayHook for {$entityType}: " . $e->getMessage(), 3);
-            return '<div class="alert alert-danger">ACF Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
-        }
-    }
-
-    public function hookActionProductUpdate(array $params): void
-    {
-        $this->handleActionHook('product', $params, 'id_product');
-    }
-
-    public function hookActionProductAdd(array $params): void
-    {
-        $this->handleActionHook('product', $params, 'id_product');
-    }
-
-    /**
-     * Action hooks for Order entity.
-     */
-    public function hookActionObjectOrderUpdateAfter(array $params): void
-    {
-        $this->handleActionHook('order', $params, 'id_order');
-    }
-
-    public function hookActionOrderStatusUpdate(array $params): void
-    {
-        $this->handleActionHook('order', $params, 'id_order');
-    }
-
-    public function hookActionOrderStatusPostUpdate(array $params): void
-    {
-        $this->handleActionHook('order', $params, 'id_order');
-    }
-
-    /**
-     * Action hooks for Customer entity.
-     */
-    public function hookActionCustomerAccountUpdate(array $params): void
-    {
-        $this->handleActionHook('customer', $params, 'id_customer');
-    }
-
-    public function hookActionObjectCustomerUpdateAfter(array $params): void
-    {
-        $object = $params['object'] ?? null;
-        if ($object instanceof \Customer) {
-            $this->handleActionHook('customer', ['id_customer' => (int) $object->id], 'id_customer');
-        }
-    }
-
-    // =========================================================================
-    // MAGIC HOOK HANDLER - Handles 139+ hooks dynamically
-    // =========================================================================
-
-    /**
-     * Magic method to handle all entity hooks dynamically.
-     *
-     * This method intercepts calls to hook methods that don't exist and routes
-     * them to the appropriate handler based on the hook name pattern:
-     *
-     * - hookAction{EntityName}FormBuilderModifier -> handleFormBuilderModifier()
-     * - hookActionAfter(Create|Update){EntityName}FormHandler -> handleFormHandler()
-     * - hookActionObject{ClassName}(Add|Update)After -> handleObjectModelHook()
-     * - hookDisplay{AdminXxx} -> handleDisplayHook()
-     *
-     * @param string $method Method name (e.g., 'hookActionCustomerFormBuilderModifier')
-     * @param array $args Method arguments
-     * @return mixed
-     */
-    public function __call(string $method, array $args): mixed
-    {
-        // Log every __call invocation for debugging
-        \PrestaShopLogger::addLog('[ACF __call] Method: ' . $method, 1);
-        
-        // Only handle hook* methods
-        if (!str_starts_with($method, 'hook')) {
-            return null;
-        }
-
-        $hookName = substr($method, 4); // Remove 'hook' prefix
-        $params = $args[0] ?? [];
-        
-        \PrestaShopLogger::addLog('[ACF __call] hookName: ' . $hookName, 1);
-
-        // Pattern 1: action{EntityName}FormBuilderModifier
-        // Example: actionCustomerFormBuilderModifier -> customer
-        // Note: Using /i flag for case-insensitive matching (PrestaShop passes hooks with varying case)
-        if (preg_match('/^action(\w+)FormBuilderModifier$/i', $hookName, $matches)) {
-            \PrestaShopLogger::addLog('[ACF __call] Matched FormBuilderModifier pattern', 1);
-            $entityType = $this->entityTypeFromFormBuilderHook($hookName);
-            \PrestaShopLogger::addLog('[ACF __call] entityType: ' . ($entityType ?? 'NULL'), 1);
-            if ($entityType !== null) {
-                \PrestaShopLogger::addLog('[ACF __call] Calling handleFormBuilderModifierHook', 1);
-                $this->handleFormBuilderModifierHook($entityType, $params);
-                return null;
-            }
-        }
-
-        // Pattern 2: actionAfter(Create|Update){EntityName}FormHandler
-        // Example: actionAfterUpdateCustomerFormHandler -> customer
-        if (preg_match('/^actionAfter(Create|Update)(\w+)FormHandler$/i', $hookName, $matches)) {
-            $operation = strtolower($matches[1]); // 'create' or 'update'
-            $entityType = $this->entityTypeFromFormHandlerHook($hookName);
-            if ($entityType !== null) {
-                $this->handleFormHandlerHook($entityType, $operation, $params);
-                return null;
-            }
-        }
-
-        // Pattern 3: actionObject{ClassName}(Add|Update)After
-        // Example: actionObjectAddressAddAfter -> customer_address
-        if (preg_match('/^actionObject(\w+)(Add|Update)After$/i', $hookName, $matches)) {
-            $entityType = $this->entityTypeFromObjectHook($hookName);
-            if ($entityType !== null) {
-                $this->handleObjectModelHook($entityType, $params);
-                return null;
-            }
-        }
-
-        // Pattern 4: displayAdmin{Xxx} - handled by explicit methods or here
-        if (preg_match('/^displayAdmin(\w+)$/i', $hookName, $matches)) {
-            $entityType = $this->entityTypeFromDisplayHook($hookName);
-            if ($entityType !== null) {
-                return $this->handleGenericDisplayHook($entityType, $params);
-            }
-        }
-
-        // Not a hook we handle - return null
-        return null;
-    }
-
-    /**
-     * Handle FormBuilderModifier hook - adds ACF fields to Symfony forms.
-     *
-     * @param string $entityType Entity type
-     * @param array $params Hook parameters (form_builder, data, id, etc.)
-     */
-    private function handleFormBuilderModifierHook(string $entityType, array $params): void
-    {
-        \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] START for: ' . $entityType, 1);
-        
-        if (!$this->isActive()) {
-            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Module not active', 1);
-            return;
-        }
-
-        try {
-            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Getting service', 1);
-            $formModifierService = $this->getService(FormModifierService::class);
-            if ($formModifierService === null) {
-                \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Service is NULL', 3);
-                return;
-            }
-
-            $formBuilder = $params['form_builder'] ?? null;
-            if (!$formBuilder instanceof \Symfony\Component\Form\FormBuilderInterface) {
-                \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] No form_builder in params', 3);
-                return;
-            }
-
-            $entityId = $formModifierService->getEntityIdFromParams($entityType, $params);
-            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Entity ID: ' . ($entityId ?? 'NULL'), 1);
-            $data = &$params['data'];
-
-            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] Calling modifyForm', 1);
-            $formModifierService->modifyForm($formBuilder, $entityType, $entityId, $data);
-            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] modifyForm completed', 1);
-        } catch (\Exception $e) {
-            \PrestaShopLogger::addLog('[ACF handleFormBuilderModifierHook] ERROR: ' . $e->getMessage(), 3);
-            $this->log("Error in FormBuilderModifier for {$entityType}: " . $e->getMessage(), 3);
-        }
-    }
-
-    /**
-     * Handle FormHandler hook - saves ACF field values after form submission.
-     *
-     * @param string $entityType Entity type
-     * @param string $operation 'create' or 'update'
-     * @param array $params Hook parameters (id, form_data, etc.)
-     */
-    private function handleFormHandlerHook(string $entityType, string $operation, array $params): void
-    {
-        if (!$this->isActive()) {
-            return;
-        }
-
-        try {
-            $formModifierService = $this->getService(FormModifierService::class);
-            if ($formModifierService === null) {
-                return;
-            }
-
-            $entityId = $formModifierService->getEntityIdFromParams($entityType, $params);
-            if ($entityId === null || $entityId <= 0) {
-                return;
-            }
-
-            $formData = $params['form_data'] ?? [];
-            $formModifierService->saveAcfData($entityType, $entityId, $formData);
-        } catch (\Exception $e) {
-            $this->log("Error in FormHandler for {$entityType} ({$operation}): " . $e->getMessage(), 3);
-        }
-    }
-
-    /**
-     * Handle ObjectModel hook - saves ACF field values for legacy entities.
-     *
-     * @param string $entityType Entity type
-     * @param array $params Hook parameters (object, etc.)
-     */
-    private function handleObjectModelHook(string $entityType, array $params): void
-    {
-        if (!$this->isActive()) {
-            return;
-        }
-
-        $object = $params['object'] ?? null;
-        if ($object === null || !method_exists($object, 'id')) {
-            return;
-        }
-
-        $entityId = (int) $object->id;
-        if ($entityId <= 0) {
-            return;
-        }
-
-        // Determine the correct ID key based on entity type
-        $idKey = 'id_' . $entityType;
-
-        $this->handleActionHook($entityType, [$idKey => $entityId], $idKey);
-    }
-
-    /**
-     * Handle generic display hook for entities without explicit hook methods.
-     *
-     * @param string $entityType Entity type
-     * @param array $params Hook parameters
-     * @return string HTML output
-     */
-    private function handleGenericDisplayHook(string $entityType, array $params): string
-    {
-        if (!$this->isActive()) {
-            return '';
-        }
-
-        // Try to find entity ID from various common parameter names
-        $idKey = 'id_' . $entityType;
-        $entityId = (int) ($params[$idKey] ?? $params['id'] ?? 0);
-
-        if ($entityId <= 0) {
-            return '';
-        }
-
-        return $this->handleDisplayHook($entityType, $params, $idKey);
-    }
-
-    /**
-     * Gets entity type from FormBuilderModifier hook name.
-     *
-     * @param string $hookName Hook name (e.g., 'actionCustomerFormBuilderModifier')
-     * @return string|null Entity type or null
-     */
-    private function entityTypeFromFormBuilderHook(string $hookName): ?string
-    {
-        return EntityHooksConfig::getEntityByHook($hookName);
-    }
-
-    /**
-     * Gets entity type from FormHandler hook name.
-     *
-     * @param string $hookName Hook name (e.g., 'actionAfterUpdateCustomerFormHandler')
-     * @return string|null Entity type or null
-     */
-    private function entityTypeFromFormHandlerHook(string $hookName): ?string
-    {
-        return EntityHooksConfig::getEntityByHook($hookName);
-    }
-
-    /**
-     * Gets entity type from ObjectModel hook name.
-     *
-     * @param string $hookName Hook name (e.g., 'actionObjectAddressAddAfter')
-     * @return string|null Entity type or null
-     */
-    private function entityTypeFromObjectHook(string $hookName): ?string
-    {
-        return EntityHooksConfig::getEntityByHook($hookName);
-    }
-
-    /**
-     * Gets entity type from display hook name.
-     *
-     * @param string $hookName Hook name (e.g., 'displayAdminCustomers')
-     * @return string|null Entity type or null
-     */
-    private function entityTypeFromDisplayHook(string $hookName): ?string
-    {
-        return EntityHooksConfig::getEntityByHook($hookName);
-    }
-
-    /**
-     * Generic action hook handler for saving field values.
-     *
-     * @param string $entityType Entity type (e.g., 'product', 'order', 'customer')
-     * @param array $params Hook parameters
-     * @param string $idKey Key in params array for entity ID
-     */
-    private function handleActionHook(string $entityType, array $params, string $idKey): void
-    {
-        if (!$this->isActive()) {
-            return;
-        }
-
-        $entityId = (int) ($params[$idKey] ?? $params['object']?->id ?? 0);
-        if ($entityId <= 0) {
-            return;
-        }
-
-        try {
-            $entityFieldService = $this->getService(\WeprestaAcf\Application\Service\EntityFieldService::class);
-            if ($entityFieldService === null) {
-                return;
-            }
-
-            $entityFieldService->saveFieldsForEntity($entityType, $entityId, $_POST, $_FILES, $this);
-        } catch (\Exception $e) {
-            $this->log("Error in handleActionHook for {$entityType}: " . $e->getMessage(), 3);
-        }
-    }
+    // All entity hooks (display, action, formBuilder, formHandler) are handled by the trait.
+    // See: src/Application/Hook/EntityFieldHooksTrait.php
+    // V1 Entities: product, category, customer, order
+    // Future versions: Add more entities to $v1Entities in trait
 
     private function saveProductFields(array $params): void
     {

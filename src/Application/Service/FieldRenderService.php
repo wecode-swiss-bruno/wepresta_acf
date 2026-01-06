@@ -87,8 +87,17 @@ final class FieldRenderService
             ? $translatedMetadata['title'] 
             : ($field['title'] ?? '');
 
+        // Build render options
+        $renderOptions = $foOptions;
+        $renderOptions['fieldTypeRegistry'] = $this->fieldTypeRegistry;
+
+        // For repeater fields, load subfields
+        if ($field['type'] === 'repeater' && $fieldId > 0) {
+            $renderOptions['subfields'] = $this->fieldRepository->findByParent($fieldId);
+        }
+
         // Render the value
-        $renderedValue = $this->renderFieldValue($field['type'], $field['value'], $fieldConfig, $foOptions);
+        $renderedValue = $this->renderFieldValue($field['type'], $field['value'], $fieldConfig, $renderOptions);
 
         return [
             'slug' => $field['slug'],

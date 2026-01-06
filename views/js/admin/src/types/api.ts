@@ -62,6 +62,7 @@ export interface LocationOption {
   description?: string
   provider: string
   integration_type?: 'symfony' | 'legacy'
+  enabled?: boolean
 }
 
 export interface Language {

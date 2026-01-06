@@ -85,7 +85,7 @@ final class LocationProviderRegistry
         return $providers;
     }
 
-    /** @return array<array{type: string, value: string, label: string, group: string, icon?: string, description?: string, provider: string}> */
+    /** @return array<array{type: string, value: string, label: string, group: string, icon?: string, description?: string, provider: string, enabled: bool}> */
     public function getAllLocations(): array
     {
         if ($this->locationsCache !== null) {
@@ -99,6 +99,7 @@ final class LocationProviderRegistry
         foreach ($this->getAll() as $provider) {
             foreach ($provider->getLocations() as $location) {
                 $location['provider'] = $provider->getIdentifier();
+                $location['enabled'] = EntityHooksConfig::isEntityEnabled($location['value'] ?? '');
                 $locations[] = $location;
             }
         }
@@ -141,6 +142,7 @@ final class LocationProviderRegistry
                     'description' => sprintf('Display fields on %s edit pages', $entityInfo['label']),
                     'provider' => 'entity_hooks_config',
                     'integration_type' => $entityInfo['type'], // 'symfony' or 'legacy'
+                    'enabled' => EntityHooksConfig::isEntityEnabled($entityType),
                 ];
             }
         }
@@ -169,6 +171,7 @@ final class LocationProviderRegistry
                     'icon' => 'extension',
                     'description' => sprintf('Display fields on %s edit pages', $provider->getEntityLabel($langId)),
                     'provider' => 'entity_field_registry',
+                    'enabled' => true, // CPT are always enabled
                 ];
             }
         }

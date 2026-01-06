@@ -460,6 +460,11 @@
                     }
                     var newRow = createRow();
                     rowsContainer.appendChild(newRow);
+                    
+                    // Re-initialize field types that need event listeners
+                    initRelationFields(newRow);
+                    initListFields(newRow);
+                    
                     updateValue();
                 });
             }
@@ -547,6 +552,9 @@
                     data.push(obj);
                 });
                 valueInput.value = JSON.stringify(data);
+                
+                // Dispatch change event so parent containers (repeater) can update their value
+                valueInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
             function createItemElement(itemData) {
@@ -634,13 +642,16 @@
             var entityType = field.dataset.entityType || 'product';
             var isMultiple = field.dataset.multiple === '1';
             var displayFormat = field.dataset.displayFormat || 'name';
-            var excludeId = field.dataset.entityId || container.dataset.entityId || 0;
             var filterActive = field.dataset.filterActive !== '0';
             var filterStock = field.dataset.filterStock === '1';
             var filterCategories = field.dataset.filterCategories || '';
 
+            // Find the main ACF container for API URL and entity ID
+            var mainContainer = field.closest('#acf-entity-fields') || field.closest('#acf-product-fields') || field.closest('.acf-product-fields') || container;
+            var excludeId = field.dataset.entityId || field.dataset.productId || mainContainer.dataset.entityId || mainContainer.dataset.productId || 0;
+            
             var searchTimeout = null;
-            var apiUrl = container.dataset.apiUrl + '/relation/search';
+            var apiUrl = (mainContainer.dataset.apiUrl || container.dataset.apiUrl || '') + '/relation/search';
 
             function getSelectedIds() {
                 var items = selectedContainer.querySelectorAll('.acf-relation-item');
@@ -663,6 +674,9 @@
                     data.push(obj);
                 });
                 valueInput.value = isMultiple ? JSON.stringify(data) : (data.length > 0 ? JSON.stringify(data[0]) : '');
+                
+                // Dispatch change event so parent containers (repeater) can update their value
+                valueInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
             function addItem(item) {

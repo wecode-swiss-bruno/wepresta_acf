@@ -40,9 +40,9 @@
         {assign var="listJsonValue" value='[]'}
     {/if}
     <input type="hidden" 
-           name="{$inputName|escape:'htmlall':'UTF-8'}" 
+           {if isset($context.dataSubfield) && $context.dataSubfield}data-subfield="{$field.slug|escape:'htmlall':'UTF-8'}"{else}name="{$inputName|escape:'htmlall':'UTF-8'}"{/if}
            id="{$inputId|escape:'htmlall':'UTF-8'}_value"
-           class="acf-list-value"
+           class="{if isset($context.dataSubfield) && $context.dataSubfield}acf-subfield-input {/if}acf-list-value"
            value="{$listJsonValue|escape:'htmlall':'UTF-8'}">
     
     <div class="acf-list-items" id="{$inputId|escape:'htmlall':'UTF-8'}_items">

@@ -24,9 +24,9 @@
     
     {* Hidden input to store selected IDs *}
     <input type="hidden" 
-           name="{$inputName|escape:'htmlall':'UTF-8'}"
+           {if isset($context.dataSubfield) && $context.dataSubfield}data-subfield="{$field.slug|escape:'htmlall':'UTF-8'}"{else}name="{$inputName|escape:'htmlall':'UTF-8'}"{/if}
            id="{$inputId|escape:'htmlall':'UTF-8'}_value"
-           class="acf-relation-value"
+           class="{if isset($context.dataSubfield) && $context.dataSubfield}acf-subfield-input {/if}acf-relation-value"
            value="{if $value}{if is_array($value)}{$value|@json_encode|escape:'htmlall':'UTF-8'}{else}{$value|escape:'htmlall':'UTF-8'}{/if}{/if}">
     
     {* Selected items display - use $entities which contains loaded entity data *}

@@ -172,14 +172,41 @@ final class RelationField extends AbstractFieldType
         $entityType = $this->getConfigValue($fieldConfig, 'entityType', 'product');
 
         // Decode JSON if string
-        $ids = $value;
+        $decoded = $value;
         if (is_string($value)) {
             $decoded = json_decode($value, true);
-            $ids = json_last_error() === JSON_ERROR_NONE ? $decoded : [(int) $value];
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                // Plain numeric string
+                $decoded = is_numeric($value) ? [(int) $value] : null;
+            }
         }
 
-        if (!is_array($ids)) {
-            $ids = [(int) $ids];
+        if ($decoded === null) {
+            return null;
+        }
+
+        // Handle array of objects with 'id' key (from repeater/frontend)
+        // Example: [{"id":14,"name":"..."},{"id":11,"name":"..."}]
+        if (is_array($decoded) && !empty($decoded)) {
+            $firstItem = reset($decoded);
+            if (is_array($firstItem) && isset($firstItem['id'])) {
+                // Already denormalized - extract IDs and reload with fresh data
+                $ids = array_map(fn($item) => (int) ($item['id'] ?? 0), $decoded);
+                $ids = array_filter($ids);
+            } elseif (is_numeric($firstItem)) {
+                // Array of IDs
+                $ids = array_map('intval', $decoded);
+            } else {
+                $ids = [];
+            }
+        } elseif (is_numeric($decoded)) {
+            $ids = [(int) $decoded];
+        } else {
+            $ids = [];
+        }
+
+        if (empty($ids)) {
+            return $multiple ? [] : null;
         }
 
         // Load entity data for display
@@ -734,9 +761,9 @@ CSS;
         $config = $this->getFieldConfig($field);
         $entityType = $this->getConfigValue($config, 'entityType', 'product');
         $multiple = (bool) $this->getConfigValue($config, 'multiple', false);
-        $placeholder = addslashes($config['placeholder'] ?? 'Search...');
+        $placeholder = $entityType === 'category' ? 'Search categories...' : 'Search products...';
 
-        // Compact template for repeater table mode
+        // Compact template for repeater table mode - matching full template structure
         $html = sprintf(
             '<div class="acf-relation-field acf-relation-compact" data-slug="%s" data-entity-type="%s" data-multiple="%s">',
             $this->escapeAttr($slug),
@@ -750,10 +777,18 @@ CSS;
         );
 
         $html .= '<div class="acf-relation-selected"></div>';
+        
+        // Use same structure as relation.tpl for consistent behavior
+        $html .= '<div class="acf-relation-search position-relative">';
+        $html .= '<div class="input-group">';
+        $html .= '<span class="input-group-text"><span class="material-icons" style="font-size:18px;">search</span></span>';
         $html .= sprintf(
-            '<div class="acf-relation-search"><input type="text" class="form-control form-control-sm acf-relation-search-input" placeholder="%s"><div class="acf-relation-dropdown"></div></div>',
-            $placeholder
+            '<input type="text" class="form-control acf-relation-search-input" placeholder="%s" autocomplete="off">',
+            $this->escapeAttr($placeholder)
         );
+        $html .= '</div>';
+        $html .= '<div class="acf-relation-dropdown list-group position-absolute w-100 shadow d-none" style="z-index:1050;max-height:200px;overflow-y:auto;"></div>';
+        $html .= '</div>';
         $html .= '</div>';
 
         return $html;

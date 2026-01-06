@@ -448,6 +448,11 @@
                     }
                     var newRow = createRow();
                     rowsContainer.appendChild(newRow);
+                    
+                    // Re-initialize field types that need event listeners
+                    initRelationFields(newRow);
+                    initListFields(newRow);
+                    
                     updateValue();
                 });
             }
@@ -539,6 +544,9 @@
                 });
                 valueInput.value = JSON.stringify(data);
                 updateRemoveButtons();
+                
+                // Dispatch change event so parent containers (repeater) can update their value
+                valueInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
             function updateRemoveButtons() {
@@ -719,6 +727,9 @@
                     data.push(obj);
                 });
                 valueInput.value = isMultiple ? JSON.stringify(data) : (data.length > 0 ? JSON.stringify(data[0]) : '');
+                
+                // Dispatch change event so parent containers (repeater) can update their value
+                valueInput.dispatchEvent(new Event('change', { bubbles: true }));
             }
 
             function addItem(item) {
