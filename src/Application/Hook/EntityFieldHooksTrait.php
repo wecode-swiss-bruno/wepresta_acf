@@ -340,9 +340,15 @@ trait EntityFieldHooksTrait
             $entityId = $this->extractEntityIdFromFrontOfficeHook($entityType, $hookName, $params);
             
             if ($entityId <= 0) {
-                // Debug: log when entity ID is not found
-                if (method_exists($this, 'log') && defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
-                    $this->log("ACF Front-office: No entity ID found for {$entityType} in hook {$hookName}. Params: " . json_encode(array_keys($params)), 1);
+                // Debug: var_dump when entity ID is not found
+                if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+                    var_dump([
+                        'ACF Front-office Debug' => "No entity ID found for {$entityType} in hook {$hookName}",
+                        'params_keys' => array_keys($params),
+                        'params' => $params,
+                        'hookName' => $hookName,
+                        'entityType' => $entityType,
+                    ]);
                 }
                 return '';
             }
@@ -351,9 +357,14 @@ trait EntityFieldHooksTrait
             if (method_exists($this, 'renderEntityFieldsForDisplay')) {
                 $result = $this->renderEntityFieldsForDisplay($entityType, $entityId);
                 
-                // Debug: log when no fields are found
-                if (empty($result) && method_exists($this, 'log') && defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
-                    $this->log("ACF Front-office: No fields found for {$entityType} #{$entityId} in hook {$hookName}", 1);
+                // Debug: var_dump when no fields are found
+                if (empty($result) && defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+                    var_dump([
+                        'ACF Front-office Debug' => "No fields found for {$entityType} #{$entityId} in hook {$hookName}",
+                        'entityType' => $entityType,
+                        'entityId' => $entityId,
+                        'hookName' => $hookName,
+                    ]);
                 }
                 
                 return $result;
@@ -361,8 +372,12 @@ trait EntityFieldHooksTrait
 
             return '';
         } catch (\Exception $e) {
-            if (method_exists($this, 'log')) {
-                $this->log("Error in front-office hook {$hookName}: " . $e->getMessage(), 3);
+            if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+                var_dump([
+                    'ACF Front-office Error' => "Error in front-office hook {$hookName}",
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
             }
             return '';
         }
