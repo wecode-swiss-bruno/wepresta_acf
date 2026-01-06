@@ -151,6 +151,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductAdditionalInfo(array $params): string
     {
+        var_dump("ACF DEBUG: hookDisplayProductAdditionalInfo called for product ID: " . ($params['product']['id_product'] ?? 'unknown'));
         $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductAdditionalInfo');
     }
@@ -187,6 +188,7 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductPriceBlock(array $params): string
     {
+        var_dump("ACF DEBUG: hookDisplayProductPriceBlock called for product ID: " . ($params['product']['id_product'] ?? 'unknown'));
         $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductPriceBlock');
     }
