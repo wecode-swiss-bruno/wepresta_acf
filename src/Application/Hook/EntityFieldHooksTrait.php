@@ -151,7 +151,6 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductAdditionalInfo(array $params): string
     {
-        var_dump("ACF DEBUG: hookDisplayProductAdditionalInfo called for product ID: " . ($params['product']['id_product'] ?? 'unknown'));
         $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductAdditionalInfo');
     }
@@ -188,7 +187,6 @@ trait EntityFieldHooksTrait
      */
     public function hookDisplayProductPriceBlock(array $params): string
     {
-        var_dump("ACF DEBUG: hookDisplayProductPriceBlock called for product ID: " . ($params['product']['id_product'] ?? 'unknown'));
         $productId = $this->extractProductIdFromParams($params);
         return $this->renderFrontFieldsForHook('product', $productId, 'displayProductPriceBlock');
     }
@@ -562,9 +560,18 @@ trait EntityFieldHooksTrait
             return 0;
         }
 
-        // Si c'est un objet Product, accéder à la propriété id
-        if (is_object($product) && property_exists($product, 'id')) {
-            return (int) $product->id;
+        // Si c'est un objet Product, accéder à la propriété id ou id_product
+        if (is_object($product)) {
+            if (property_exists($product, 'id')) {
+                return (int) $product->id;
+            }
+            if (property_exists($product, 'id_product')) {
+                return (int) $product->id_product;
+            }
+            // Essayer d'autres propriétés communes via isset (pour les propriétés dynamiques)
+            if (isset($product->id_product)) {
+                return (int) $product->id_product;
+            }
         }
 
         // Si c'est un array, accéder à l'index id_product

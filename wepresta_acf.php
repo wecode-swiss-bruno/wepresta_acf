@@ -662,7 +662,7 @@ class WeprestaAcf extends Module
         if (!$this->isActive() || $entityId <= 0) {
             return '';
         }
-    
+
         try {
             AcfServiceContainer::loadCustomFieldTypes();
 
@@ -682,8 +682,13 @@ class WeprestaAcf extends Module
                 'acf_product_id' => $entityType === 'product' ? $entityId : null,
             ]);
 
-            // Use generic template for all entities
-            return $this->fetch('module:wepresta_acf/views/templates/hook/entity-info.tpl');
+            // Use product-info.tpl for products (backward compatibility)
+            // Use entity-info.tpl for other entities (generic)
+            $template = $entityType === 'product'
+                ? 'module:wepresta_acf/views/templates/hook/product-info.tpl'
+                : 'module:wepresta_acf/views/templates/hook/entity-info.tpl';
+
+            return $this->fetch($template);
         } catch (\Exception $e) {
             $this->log("Error rendering {$entityType} fields in hook {$hookName}: " . $e->getMessage(), 3);
             return '';
