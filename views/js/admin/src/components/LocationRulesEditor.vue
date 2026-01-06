@@ -24,12 +24,27 @@ const locations = computed<Record<string, LocationOption[]>>(() => {
   return window.acfConfig?.locations || {}
 })
 
-// Grouped locations for display
+// Grouped locations for display - enabled items first
 const locationGroups = computed(() => {
-  return Object.entries(locations.value).map(([groupName, items]) => ({
-    name: groupName,
-    items: items as LocationOption[]
-  }))
+  return Object.entries(locations.value).map(([groupName, items]) => {
+    // Sort items: enabled first, then disabled
+    const sortedItems = [...(items as LocationOption[])].sort((a, b) => {
+      const aEnabled = a.enabled !== false // true if enabled or undefined
+      const bEnabled = b.enabled !== false
+      
+      if (aEnabled === bEnabled) {
+        // If same status, sort alphabetically by label
+        return (a.label || '').localeCompare(b.label || '')
+      }
+      // Enabled items come first
+      return aEnabled ? -1 : 1
+    })
+    
+    return {
+      name: groupName,
+      items: sortedItems
+    }
+  })
 })
 
 // Location rule operators

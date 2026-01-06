@@ -187,6 +187,23 @@ final class LocationProviderRegistry
         foreach ($this->getAllLocations() as $location) {
             $grouped[$location['group'] ?? 'Other'][] = $location;
         }
+
+        // Sort locations within each group: enabled first, then disabled
+        foreach ($grouped as $groupName => &$locations) {
+            usort($locations, function ($a, $b) {
+                $aEnabled = $a['enabled'] ?? true; // Default to enabled if not set
+                $bEnabled = $b['enabled'] ?? true;
+
+                if ($aEnabled === $bEnabled) {
+                    // If same status, sort alphabetically by label
+                    return strcmp($a['label'] ?? '', $b['label'] ?? '');
+                }
+                // Enabled items come first
+                return $aEnabled ? -1 : 1;
+            });
+        }
+        unset($locations); // Break reference
+
         return $grouped;
     }
 

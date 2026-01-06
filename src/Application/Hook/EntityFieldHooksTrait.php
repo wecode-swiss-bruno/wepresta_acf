@@ -4,458 +4,444 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Hook;
 
+use Symfony\Component\Form\FormBuilderInterface;
 use WeprestaAcf\Application\Config\EntityHooksConfig;
 use WeprestaAcf\Application\Service\EntityFieldService;
 use WeprestaAcf\Application\Service\FormModifierService;
 
 /**
- * Trait for handling entity field hooks.
- * Centralized hook management to keep main module file clean.
+ * Trait pour la gestion des hooks ACF - Version V1 (Product + Category).
+ *
+ * Architecture:
+ * - Méthodes explicites pour chaque hook (meilleur debugging + support IDE)
+ * - Délégation vers EntityFieldService pour la logique métier
+ * - Séparation claire ADMIN vs FRONT hooks
+ *
+ * Chaque entité dispose de:
+ * - hookDisplay{Entity}AdminXxx() : Affichage des champs en BO
+ * - hookAction{Entity}Xxx() : Sauvegarde des valeurs en BO
+ * - hookDisplay{Entity}Xxx() : Affichage des champs en FO
  */
 trait EntityFieldHooksTrait
 {
     // =========================================================================
-    // V1 PRIORITY HOOKS - Explicitly defined for core entities
+    // PRODUCT HOOKS - ADMIN (Back-Office)
     // =========================================================================
 
     /**
-     * Display hook for Product entity.
+     * Affiche les champs ACF dans l'édition produit (BO).
      */
     public function hookDisplayAdminProductsExtra(array $params): string
     {
-        return $this->handleDisplayHook('product', $params, 'id_product');
-    }
-
-    public function hookActionProductUpdate(array $params): void
-    {
-        $this->handleActionHook('product', $params, 'id_product');
-    }
-
-    public function hookActionProductAdd(array $params): void
-    {
-        $this->handleActionHook('product', $params, 'id_product');
+        return $this->renderAdminFields('product', $params);
     }
 
     /**
-     * Display hook for Category entity.
+     * Sauvegarde les champs ACF lors de la mise à jour produit.
+     */
+    public function hookActionProductUpdate(array $params): void
+    {
+        $this->saveEntityFields('product', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF lors de la création produit.
+     */
+    public function hookActionProductAdd(array $params): void
+    {
+        $this->saveEntityFields('product', $params);
+    }
+
+    // =========================================================================
+    // CATEGORY HOOKS - ADMIN (Back-Office)
+    // =========================================================================
+
+    /**
+     * Affiche les champs ACF dans l'édition catégorie (BO).
      */
     public function hookDisplayAdminCategoriesExtra(array $params): string
     {
-        return $this->handleDisplayHook('category', $params, 'id_category');
+        return $this->renderAdminFields('category', $params);
     }
 
+    /**
+     * Sauvegarde les champs ACF lors de la mise à jour catégorie.
+     */
     public function hookActionCategoryUpdate(array $params): void
     {
-        $this->handleActionHook('category', $params, 'id_category');
+        $this->saveEntityFields('category', $params);
     }
 
+    /**
+     * Sauvegarde les champs ACF lors de la création catégorie.
+     */
     public function hookActionCategoryAdd(array $params): void
     {
-        $this->handleActionHook('category', $params, 'id_category');
-    }
-
-    /**
-     * Display hook for Customer entity.
-     */
-    public function hookDisplayAdminCustomers(array $params): string
-    {
-        return $this->handleDisplayHook('customer', $params, 'id_customer');
-    }
-
-    public function hookActionCustomerAccountUpdate(array $params): void
-    {
-        $this->handleActionHook('customer', $params, 'id_customer');
-    }
-
-    public function hookActionObjectCustomerUpdateAfter(array $params): void
-    {
-        $object = $params['object'] ?? null;
-        if ($object instanceof \Customer) {
-            $this->handleActionHook('customer', ['id_customer' => (int) $object->id], 'id_customer');
-        }
-    }
-
-    /**
-     * Display hook for Order entity.
-     */
-    public function hookDisplayAdminOrderMain(array $params): string
-    {
-        return $this->handleDisplayHook('order', $params, 'id_order');
-    }
-
-    public function hookActionObjectOrderUpdateAfter(array $params): void
-    {
-        $this->handleActionHook('order', $params, 'id_order');
-    }
-
-    public function hookActionOrderStatusUpdate(array $params): void
-    {
-        $this->handleActionHook('order', $params, 'id_order');
-    }
-
-    public function hookActionOrderStatusPostUpdate(array $params): void
-    {
-        $this->handleActionHook('order', $params, 'id_order');
+        $this->saveEntityFields('category', $params);
     }
 
     // =========================================================================
-    // MAGIC HOOK HANDLER - Handles all other entities dynamically
+    // SYMFONY FORM HOOKS - Product
     // =========================================================================
 
     /**
-     * Magic method to handle all entity hooks dynamically.
+     * Injecte les champs ACF dans le formulaire Symfony Product (BO).
+     * Hook: actionProductFormBuilderModifier
+     */
+    public function hookActionProductFormBuilderModifier(array $params): void
+    {
+        $this->handleSymfonyFormBuilder('product', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF après création Product (Symfony).
+     * Hook: actionAfterCreateProductFormHandler
+     */
+    public function hookActionAfterCreateProductFormHandler(array $params): void
+    {
+        $this->handleSymfonyFormHandler('product', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF après mise à jour Product (Symfony).
+     * Hook: actionAfterUpdateProductFormHandler
+     */
+    public function hookActionAfterUpdateProductFormHandler(array $params): void
+    {
+        $this->handleSymfonyFormHandler('product', $params);
+    }
+
+    // =========================================================================
+    // SYMFONY FORM HOOKS - Category
+    // =========================================================================
+
+    /**
+     * Injecte les champs ACF dans le formulaire Symfony Category (BO).
+     * Hook: actionCategoryFormBuilderModifier
+     */
+    public function hookActionCategoryFormBuilderModifier(array $params): void
+    {
+        $this->handleSymfonyFormBuilder('category', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF après création Category (Symfony).
+     * Hook: actionAfterCreateCategoryFormHandler
+     */
+    public function hookActionAfterCreateCategoryFormHandler(array $params): void
+    {
+        $this->handleSymfonyFormHandler('category', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF après mise à jour Category (Symfony).
+     * Hook: actionAfterUpdateCategoryFormHandler
+     */
+    public function hookActionAfterUpdateCategoryFormHandler(array $params): void
+    {
+        $this->handleSymfonyFormHandler('category', $params);
+    }
+
+    // =========================================================================
+    // PRODUCT HOOKS - FRONT (Front-Office)
+    // =========================================================================
+
+    /**
+     * Affiche les champs ACF sur la page produit (FO).
+     */
+    public function hookDisplayProductAdditionalInfo(array $params): string
+    {
+        $productId = (int) ($params['product']['id_product'] ?? $params['product']->id ?? 0);
+        return $this->renderFrontFields('product', $productId);
+    }
+
+    // =========================================================================
+    // CATEGORY HOOKS - FRONT (Front-Office)
+    // =========================================================================
+
+    /**
+     * Affiche les champs ACF dans le header de la page catégorie (FO).
+     */
+    public function hookDisplayHeaderCategory(array $params): string
+    {
+        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        return $this->renderFrontFields('category', $categoryId);
+    }
+
+    /**
+     * Affiche les champs ACF dans le footer de la page catégorie (FO).
+     */
+    public function hookDisplayFooterCategory(array $params): string
+    {
+        $categoryId = (int) ($params['category']['id_category'] ?? $params['category']->id ?? 0);
+        return $this->renderFrontFields('category', $categoryId);
+    }
+
+    // =========================================================================
+    // MÉTHODES PRIVÉES - Logique commune
+    // =========================================================================
+
+    /**
+     * Rendu des champs ACF pour le back-office.
      *
-     * Intercepts hook calls for non-V1 entities and routes them appropriately.
-     * Supports 40+ additional entity types via EntityHooksConfig.
-     *
-     * @param string $method Method name (e.g., 'hookActionCmsFormBuilderModifier')
-     * @param array $args Method arguments
-     *
-     * @return mixed
+     * @param string $entity Type d'entité ('product', 'category')
+     * @param array $params Paramètres du hook
+     * @return string HTML généré
      */
-    public function __call(string $method, array $args): mixed
-    {
-        if (!str_starts_with($method, 'hook')) {
-            return null;
-        }
-
-        $hookName = substr($method, 4);
-        $params = $args[0] ?? [];
-
-        // Pattern 1: action{EntityName}FormBuilderModifier
-        if (preg_match('/^action(\w+)FormBuilderModifier$/i', $hookName)) {
-            $entityType = EntityHooksConfig::getEntityByHook($hookName);
-            if ($entityType !== null && $this->isEntityEnabled($entityType)) {
-                $this->handleFormBuilderModifierHook($entityType, $params);
-            }
-
-            return null;
-        }
-
-        // Pattern 2: actionAfter(Create|Update){EntityName}FormHandler
-        if (preg_match('/^actionAfter(Create|Update)(\w+)FormHandler$/i', $hookName, $matches)) {
-            $entityType = EntityHooksConfig::getEntityByHook($hookName);
-            if ($entityType !== null && $this->isEntityEnabled($entityType)) {
-                $this->handleFormHandlerHook($entityType, strtolower($matches[1]), $params);
-            }
-
-            return null;
-        }
-
-        // Pattern 3: actionObject{ClassName}(Add|Update)After
-        if (preg_match('/^actionObject(\w+)(Add|Update)After$/i', $hookName)) {
-            $entityType = EntityHooksConfig::getEntityByHook($hookName);
-            if ($entityType !== null && $this->isEntityEnabled($entityType)) {
-                $this->handleObjectModelHook($entityType, $params);
-            }
-
-            return null;
-        }
-
-        // Pattern 4: All display hooks (admin + front-office)
-        // Admin hooks: displayAdmin{Xxx}
-        // Front-office hooks: display{Xxx} (not starting with displayAdmin)
-        if (preg_match('/^display/i', $hookName)) {
-            $entityType = EntityHooksConfig::getEntityByHook($hookName);
-            if ($entityType !== null && $this->isEntityEnabled($entityType)) {
-                // Check if it's an admin hook (displayAdminXxx) or front-office hook
-                if (preg_match('/^displayAdmin/i', $hookName)) {
-                    // Back-office display hook
-                    return $this->handleGenericDisplayHook($entityType, $params);
-                } else {
-                    // Front-office display hook
-                    return $this->handleFrontOfficeHook($entityType, $hookName, $params);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    // =========================================================================
-    // PRIVATE HOOK HANDLERS
-    // =========================================================================
-
-    /**
-     * Handle display hook - injects ACF fields HTML.
-     */
-    private function handleDisplayHook(string $entityType, array $params, string $idKey): string
+    private function renderAdminFields(string $entity, array $params): string
     {
         if (!$this->isActive()) {
             return '';
         }
 
-        try {
-            $entityId = (int) ($params[$idKey] ?? $params['id'] ?? 0);
-            if ($entityId <= 0) {
-                return '';
-            }
+        if (!EntityHooksConfig::isEnabled($entity)) {
+            return '';
+        }
 
+        $entityId = $this->extractEntityId($entity, $params);
+        if ($entityId <= 0) {
+            return '';
+        }
+
+        try {
             $service = $this->getService(EntityFieldService::class);
             if ($service === null) {
                 return '';
             }
 
-            return $service->renderFieldsForEntity($this, $entityType, $entityId);
+            return $service->renderFieldsForEntity($entity, $entityId, $this);
         } catch (\Exception $e) {
+            $this->log("Error rendering admin fields for {$entity}: " . $e->getMessage(), 3);
             return '<div class="alert alert-danger">ACF Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
 
     /**
-     * Handle action hook - saves ACF field values.
+     * Sauvegarde des champs ACF pour le back-office.
+     *
+     * @param string $entity Type d'entité ('product', 'category')
+     * @param array $params Paramètres du hook
      */
-    private function handleActionHook(string $entityType, array $params, string $idKey): void
+    private function saveEntityFields(string $entity, array $params): void
     {
         if (!$this->isActive()) {
             return;
         }
 
-        try {
-            $entityId = (int) ($params[$idKey] ?? $params['id'] ?? 0);
-            if ($entityId <= 0) {
-                return;
-            }
+        if (!EntityHooksConfig::isEnabled($entity)) {
+            return;
+        }
 
+        $entityId = $this->extractEntityId($entity, $params);
+        if ($entityId <= 0) {
+            return;
+        }
+
+        try {
             $service = $this->getService(EntityFieldService::class);
             if ($service === null) {
                 return;
             }
 
-            $service->saveFieldsFromRequest($this, $entityType, $entityId);
+            $service->saveFieldsForEntity($entity, $entityId, $_POST, $_FILES, $this);
         } catch (\Exception $e) {
-            $this->log("Error saving ACF fields for {$entityType}: " . $e->getMessage(), 3);
+            $this->log("Error saving fields for {$entity}: " . $e->getMessage(), 3);
         }
     }
 
     /**
-     * Handle FormBuilderModifier hook - adds ACF fields to Symfony forms.
+     * Rendu des champs ACF pour le front-office.
+     *
+     * @param string $entity Type d'entité ('product', 'category')
+     * @param int $entityId ID de l'entité
+     * @return string HTML généré
      */
-    private function handleFormBuilderModifierHook(string $entityType, array $params): void
+    private function renderFrontFields(string $entity, int $entityId): string
     {
-        if (!$this->isActive()) {
-            return;
-        }
-
-        try {
-            $formModifierService = $this->getService(FormModifierService::class);
-            if ($formModifierService === null) {
-                return;
-            }
-
-            $formBuilder = $params['form_builder'] ?? null;
-            if (!$formBuilder instanceof \Symfony\Component\Form\FormBuilderInterface) {
-                return;
-            }
-
-            $entityId = $formModifierService->getEntityIdFromParams($entityType, $params);
-            $data = &$params['data'];
-
-            $formModifierService->modifyForm($formBuilder, $entityType, $entityId, $data);
-        } catch (\Exception $e) {
-            $this->log("Error in FormBuilderModifier for {$entityType}: " . $e->getMessage(), 3);
-        }
-    }
-
-    /**
-     * Handle FormHandler hook - saves ACF field values after form submission.
-     */
-    private function handleFormHandlerHook(string $entityType, string $operation, array $params): void
-    {
-        if (!$this->isActive()) {
-            return;
-        }
-
-        try {
-            $formModifierService = $this->getService(FormModifierService::class);
-            if ($formModifierService === null) {
-                return;
-            }
-
-            $entityId = $formModifierService->getEntityIdFromParams($entityType, $params);
-            if ($entityId === null || $entityId <= 0) {
-                return;
-            }
-
-            $formData = $params['form_data'] ?? [];
-            $formModifierService->saveAcfData($entityType, $entityId, $formData);
-        } catch (\Exception $e) {
-            $this->log("Error in FormHandler for {$entityType}: " . $e->getMessage(), 3);
-        }
-    }
-
-    /**
-     * Handle ObjectModel hook - saves ACF field values for legacy entities.
-     */
-    private function handleObjectModelHook(string $entityType, array $params): void
-    {
-        if (!$this->isActive()) {
-            return;
-        }
-
-        $object = $params['object'] ?? null;
-        if ($object === null || !method_exists($object, 'id')) {
-            return;
-        }
-
-        $entityId = (int) $object->id;
-        if ($entityId <= 0) {
-            return;
-        }
-
-        $idKey = 'id_' . $entityType;
-        $this->handleActionHook($entityType, [$idKey => $entityId], $idKey);
-    }
-
-    /**
-     * Handle generic display hook for entities without explicit hook methods.
-     */
-    private function handleGenericDisplayHook(string $entityType, array $params): string
-    {
-        if (!$this->isActive()) {
+        if (!$this->isActive() || $entityId <= 0) {
             return '';
         }
 
-        $idKey = 'id_' . $entityType;
-        $entityId = (int) ($params[$idKey] ?? $params['id'] ?? 0);
-
-        if ($entityId <= 0) {
-            return '';
-        }
-
-        return $this->handleDisplayHook($entityType, $params, $idKey);
-    }
-
-    /**
-     * Handle front-office display hooks for entities.
-     */
-    private function handleFrontOfficeHook(string $entityType, string $hookName, array $params): string
-    {
-        if (!$this->isActive()) {
+        if (!EntityHooksConfig::isEnabled($entity)) {
             return '';
         }
 
         try {
-            // Extract entity ID based on entity type and hook context
-            $entityId = $this->extractEntityIdFromFrontOfficeHook($entityType, $hookName, $params);
-            
-            if ($entityId <= 0) {
-                // Debug: var_dump when entity ID is not found
-                if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
-                    var_dump([
-                        'ACF Front-office Debug' => "No entity ID found for {$entityType} in hook {$hookName}",
-                        'params_keys' => array_keys($params),
-                        'params' => $params,
-                        'hookName' => $hookName,
-                        'entityType' => $entityType,
-                    ]);
-                }
-                return '';
-            }
-
-            // Use the module's renderEntityFieldsForDisplay method
+            // Utilise la méthode existante du module principal
             if (method_exists($this, 'renderEntityFieldsForDisplay')) {
-                $result = $this->renderEntityFieldsForDisplay($entityType, $entityId);
-                
-                // Debug: var_dump when no fields are found
-                if (empty($result) && defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
-                    var_dump([
-                        'ACF Front-office Debug' => "No fields found for {$entityType} #{$entityId} in hook {$hookName}",
-                        'entityType' => $entityType,
-                        'entityId' => $entityId,
-                        'hookName' => $hookName,
-                    ]);
-                }
-                
-                return $result;
+                return $this->renderEntityFieldsForDisplay($entity, $entityId);
             }
 
             return '';
         } catch (\Exception $e) {
-            if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
-                var_dump([
-                    'ACF Front-office Error' => "Error in front-office hook {$hookName}",
-                    'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-            }
+            $this->log("Error rendering front fields for {$entity}: " . $e->getMessage(), 3);
             return '';
         }
     }
 
     /**
-     * Extract entity ID from front-office hook parameters.
+     * Extrait l'ID de l'entité à partir des paramètres du hook.
+     *
+     * @param string $entity Type d'entité
+     * @param array $params Paramètres du hook
+     * @return int ID de l'entité ou 0 si non trouvé
      */
-    private function extractEntityIdFromFrontOfficeHook(string $entityType, string $hookName, array $params): int
+    private function extractEntityId(string $entity, array $params): int
     {
-        // Product hooks
-        if ($entityType === 'product') {
-            $product = $params['product'] ?? null;
-            return (int) ($product['id_product'] ?? ($product->id ?? 0));
+        $idKey = EntityHooksConfig::getIdParam($entity);
+
+        // Essayer différentes sources
+        $entityId = $params[$idKey] ?? null;
+        if ($entityId !== null) {
+            return (int) $entityId;
         }
 
-        // Category hooks
-        if ($entityType === 'category') {
-            // Try multiple ways to get category ID
-            $categoryId = 0;
-            
-            // From params array
-            if (isset($params['category'])) {
-                if (is_array($params['category'])) {
-                    $categoryId = (int) ($params['category']['id_category'] ?? $params['category']['id'] ?? 0);
-                } elseif (is_object($params['category'])) {
-                    $categoryId = (int) ($params['category']->id ?? $params['category']->id_category ?? 0);
-                }
-            }
-            
-            // Fallback: from context controller
-            if ($categoryId <= 0 && isset($this->context->controller)) {
-                $controller = $this->context->controller;
-                if (isset($controller->category) && is_object($controller->category)) {
-                    $categoryId = (int) ($controller->category->id ?? 0);
-                }
-            }
-            
-            // Fallback: from Tools::getValue (URL parameter)
-            if ($categoryId <= 0) {
-                $categoryId = (int) \Tools::getValue('id_category', 0);
-            }
-            
-            return $categoryId;
+        // Essayer 'id' générique
+        $entityId = $params['id'] ?? null;
+        if ($entityId !== null) {
+            return (int) $entityId;
         }
 
-        // Customer hooks
-        if ($entityType === 'customer') {
-            if (isset($this->context->customer)) {
-                return (int) ($this->context->customer->id ?? 0);
-            }
-            return 0;
+        // Essayer depuis l'objet
+        $object = $params['object'] ?? null;
+        if ($object !== null && property_exists($object, 'id')) {
+            return (int) $object->id;
         }
 
-        // Order hooks
-        if ($entityType === 'order') {
-            return (int) ($params['order']['id_order'] ?? $params['order']->id ?? 0);
-        }
-
-        // Generic fallback
-        $idKey = 'id_' . $entityType;
-        return (int) ($params[$idKey] ?? $params['id'] ?? 0);
+        return 0;
     }
 
-    // =========================================================================
-    // ENTITY FILTER CONFIGURATION
-    // =========================================================================
+    /**
+     * Gère les hooks Symfony FormBuilderModifier.
+     * Injecte les champs ACF dans le formulaire Symfony.
+     *
+     * @param string $entity Type d'entité
+     * @param array $params Paramètres du hook (doit contenir 'form_builder' et 'data')
+     */
+    private function handleSymfonyFormBuilder(string $entity, array $params): void
+    {
+        if (!$this->isActive()) {
+            return;
+        }
+
+        if (!EntityHooksConfig::isEnabled($entity)) {
+            return;
+        }
+
+        if (!isset($params['form_builder']) || !($params['form_builder'] instanceof FormBuilderInterface)) {
+            return;
+        }
+
+        try {
+            $formBuilder = $params['form_builder'];
+            $data = &$params['data'] ?? [];
+            $entityId = $this->extractEntityIdFromSymfonyParams($entity, $params);
+
+            $service = $this->getService(FormModifierService::class);
+            if ($service === null) {
+                return;
+            }
+
+            $service->modifyForm($formBuilder, $entity, $entityId, $data);
+        } catch (\Exception $e) {
+            $this->log("Error in Symfony FormBuilder for {$entity}: " . $e->getMessage(), 3);
+        }
+    }
 
     /**
-     * Check if an entity type is enabled in current version.
-     * 
-     * V1: Core entities (product, category, customer, order)
-     * Future: Add more entities progressively
+     * Gère les hooks Symfony FormHandler (après création/mise à jour).
+     * Sauvegarde les valeurs des champs ACF.
+     *
+     * @param string $entity Type d'entité
+     * @param array $params Paramètres du hook (doit contenir 'id' et 'form_data')
      */
-    private function isEntityEnabled(string $entityType): bool
+    private function handleSymfonyFormHandler(string $entity, array $params): void
     {
-        return EntityHooksConfig::isEntityEnabled($entityType);
+        if (!$this->isActive()) {
+            return;
+        }
+
+        if (!EntityHooksConfig::isEnabled($entity)) {
+            return;
+        }
+
+        $entityId = $this->extractEntityIdFromSymfonyParams($entity, $params);
+        if ($entityId <= 0) {
+            return;
+        }
+
+        try {
+            $formData = $params['form_data'] ?? $params['data'] ?? [];
+            
+            // Utiliser EntityFieldService pour gérer POST + FILES
+            // (FormModifierService ne gère que les données POST simples)
+            $entityService = $this->getService(EntityFieldService::class);
+            if ($entityService !== null) {
+                $files = $_FILES ?? [];
+                $entityService->saveFieldsForEntity($entity, $entityId, $formData, $files, $this);
+                return;
+            }
+
+            // Fallback: utiliser FormModifierService pour les données POST simples
+            if (empty($formData)) {
+                return;
+            }
+
+            $service = $this->getService(FormModifierService::class);
+            if ($service === null) {
+                return;
+            }
+
+            $service->saveAcfData($entity, $entityId, $formData);
+        } catch (\Exception $e) {
+            $this->log("Error in Symfony FormHandler for {$entity}: " . $e->getMessage(), 3);
+        }
+    }
+
+    /**
+     * Extrait l'ID de l'entité depuis les paramètres d'un hook Symfony.
+     *
+     * @param string $entity Type d'entité
+     * @param array $params Paramètres du hook
+     * @return int|null ID de l'entité ou null si non trouvé
+     */
+    private function extractEntityIdFromSymfonyParams(string $entity, array $params): ?int
+    {
+        // Essayer 'id' directement
+        if (isset($params['id']) && (int) $params['id'] > 0) {
+            return (int) $params['id'];
+        }
+
+        // Essayer depuis form_data
+        if (isset($params['form_data']['id']) && (int) $params['form_data']['id'] > 0) {
+            return (int) $params['form_data']['id'];
+        }
+
+        // Essayer depuis data
+        if (isset($params['data']['id']) && (int) $params['data']['id'] > 0) {
+            return (int) $params['data']['id'];
+        }
+
+        // Essayer avec la clé spécifique à l'entité
+        $idKey = EntityHooksConfig::getIdParam($entity);
+        if (isset($params[$idKey]) && (int) $params[$idKey] > 0) {
+            return (int) $params[$idKey];
+        }
+
+        // Essayer depuis form_data avec la clé spécifique
+        if (isset($params['form_data'][$idKey]) && (int) $params['form_data'][$idKey] > 0) {
+            return (int) $params['form_data'][$idKey];
+        }
+
+        // Utiliser FormModifierService si disponible
+        $service = $this->getService(FormModifierService::class);
+        if ($service !== null) {
+            $entityId = $service->getEntityIdFromParams($entity, $params);
+            if ($entityId !== null) {
+                return $entityId;
+            }
+        }
+
+        return null;
     }
 }
-
-

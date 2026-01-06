@@ -36,45 +36,31 @@ class WeprestaAcf extends Module
     use EntityFieldHooksTrait;
     public const VERSION = '1.2.1';
 
-    /**
-     * Liste des hooks du module (V1: Product + Category uniquement).
-     * 
-     * Les hooks sont maintenant gérés de manière centralisée via EntityHooksConfig.
-     * Chaque hook est défini explicitement dans EntityFieldHooksTrait pour:
-     * - Meilleur debugging
-     * - Support IDE complet
-     * - Code maintenable
-     * 
-     * Note: Cette constante est à titre informatif. Les hooks réels sont récupérés
-     * via getAllHooks() qui utilise EntityHooksConfig::getAllHooks().
-     * 
-     * @see EntityHooksConfig Pour la configuration des hooks
-     * @see EntityFieldHooksTrait Pour l'implémentation des hooks
-     */
     public const HOOKS = [
-        // System hooks (media, assets)
-        'actionAdminControllerSetMedia',
-        'actionFrontControllerSetMedia',
-        'displayHeader',
-        
-        // Product hooks (legacy admin + Symfony + front)
+        // V1 Core Entities - Explicitly defined hooks
+        // Product
         'displayAdminProductsExtra',
         'actionProductUpdate',
         'actionProductAdd',
-        'actionProductFormBuilderModifier',  // Symfony Form
-        'actionAfterCreateProductFormHandler',  // Symfony Form
-        'actionAfterUpdateProductFormHandler',  // Symfony Form
-        'displayProductAdditionalInfo',
-        
-        // Category hooks (legacy admin + Symfony + front)
+        // Category
         'displayAdminCategoriesExtra',
         'actionCategoryUpdate',
         'actionCategoryAdd',
-        'actionCategoryFormBuilderModifier',  // Symfony Form (PrestaShop 8/9)
-        'actionAfterCreateCategoryFormHandler',  // Symfony Form
-        'actionAfterUpdateCategoryFormHandler',  // Symfony Form
-        'displayCategoryTop',
-        'displayCategoryHeader',
+        // Customer
+        'displayAdminCustomers',
+        'actionCustomerAccountUpdate',
+        'actionObjectCustomerUpdateAfter',
+        // Order
+        'displayAdminOrderMain',
+        'actionObjectOrderUpdateAfter',
+        'actionOrderStatusUpdate',
+        'actionOrderStatusPostUpdate',
+        // Front-Office (managed dynamically via EntityHooksConfig)
+        'actionFrontControllerSetMedia',
+        'displayHeader',
+        'actionAdminControllerSetMedia',
+        // Note: 40+ additional entity hooks are handled dynamically via __call
+        // See: EntityHooksConfig::getAllHooks() and EntityFieldHooksTrait
     ];
 
     public const DEFAULT_CONFIG = [
@@ -129,18 +115,30 @@ class WeprestaAcf extends Module
     }
 
     /**
-     * Gets all hooks to register.
+     * Gets all hooks to register (static + dynamic from EntityHooksConfig).
      *
-     * Uses the centralized EntityHooksConfig to get all hooks for enabled entities.
-     * V1: Product + Category only.
+     * Uses the centralized EntityHooksConfig to get all FormBuilderModifier,
+     * FormHandler, and ObjectModel hooks for all supported entities.
      *
      * @return array<string>
      */
     private function getAllHooks(): array
     {
+        $staticHooks = [
+            'actionAdminControllerSetMedia',
+            'actionFrontControllerSetMedia',
+            'displayHeader',
+            // Legacy hooks for V1 entities (not in EntityHooksConfig)
+            'actionCategoryUpdate',
+            'actionCategoryAdd',
+            'actionProductUpdate',
+            'actionProductAdd',
+        ];
+
         // Get all hooks from centralized configuration
-        // This includes: SYSTEM_HOOKS + ADMIN_HOOKS + FRONT_HOOKS
-        return EntityHooksConfig::getAllHooks();
+        $dynamicHooks = EntityHooksConfig::getAllHooks();
+
+        return array_unique(array_merge($staticHooks, $dynamicHooks));
     }
 
     public function uninstall(): bool
@@ -728,13 +726,21 @@ class WeprestaAcf extends Module
         }
     }
 
+    public function hookDisplayProductAdditionalInfo(array $params): string
+    {
+        $product = $params['product'] ?? null;
+        $productId = (int) ($product['id_product'] ?? ($product->id ?? 0));
+        return $this->renderEntityFieldsForDisplay('product', $productId);
+    }
+
+
     public function hookActionFrontControllerSetMedia(array $params): void
     {
         if (!$this->isActive()) { return; }
 
         $controller = Tools::getValue('controller');
-        // Register JS for V1 entity pages (product, category)
-        $v1Controllers = ['product', 'category'];
+        // Register JS for all V1 entity pages
+        $v1Controllers = ['product', 'category', 'order'];
         if (in_array($controller, $v1Controllers, true)) {
             $this->context->controller->registerJavascript('wepresta_acf-front', 'modules/' . $this->name . '/views/js/front.js', ['position' => 'bottom', 'priority' => 150]);
         }
