@@ -38,7 +38,7 @@ export interface GroupFrontendOptions {
   visible?: boolean
   template?: string
   wrapperClass?: string
-  displayHook?: string  // Hook where the group will be displayed (e.g., 'displayProductAdditionalInfo')
+  displayHooks?: Record<string, string>  // Map of entity_type => hook_name (e.g., {product: 'displayProductAdditionalInfo', category: 'displayCategoryHeader'})
 }
 
 /**

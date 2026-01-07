@@ -21,13 +21,8 @@ final class CoreLocationProvider implements LocationProviderInterface
 
     public function getLocations(): array
     {
-        // Legacy locations for backward compatibility
-        // Entity types are now provided by EntityFieldRegistry via LocationProviderRegistry
-        return [
-            // Keep product_category and product_type rules
-            ['type' => 'product_category', 'value' => '', 'label' => 'Product Category', 'group' => 'PrestaShop', 'icon' => 'folder', 'description' => 'Filter by product category'],
-            ['type' => 'product_type', 'value' => '', 'label' => 'Product Type', 'group' => 'PrestaShop', 'icon' => 'category', 'description' => 'Filter by product type'],
-        ];
+        // No additional locations - only entity types from EntityHooksConfig
+        return [];
     }
 
     public function matchLocation(array $rule, array $context): bool

@@ -24,8 +24,6 @@ export function useApi() {
       const separator = url.includes('?') ? '&' : '?'
       url = `${url}${separator}_token=${config.token}`
     }
-
-    console.log('[ACF API] Making request to:', url, 'method:', method)
     
     const response = await fetch(url, {
       ...options,
@@ -35,10 +33,7 @@ export function useApi() {
       },
     })
 
-    console.log('[ACF API] Response status:', response.status, response.ok)
-
     const data = await response.json()
-    console.log('[ACF API] Response data:', data)
 
     if (!response.ok || data.success === false) {
       throw new Error(data.error || data.message || 'API request failed')

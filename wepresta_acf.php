@@ -666,8 +666,8 @@ class WeprestaAcf extends Module
         try {
             AcfServiceContainer::loadCustomFieldTypes();
 
-            $displayFields = AcfServiceContainer::getFieldRenderService()
-                ->getEntityFieldsForDisplayInHook($entityType, $entityId, $hookName);
+            $fieldRenderService = AcfServiceContainer::getFieldRenderService();
+            $displayFields = $fieldRenderService->getEntityFieldsForDisplayInHook($entityType, $entityId, $hookName);
 
             if (empty($displayFields)) {
                 return '';

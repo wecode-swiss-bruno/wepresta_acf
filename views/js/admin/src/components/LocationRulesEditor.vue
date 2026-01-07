@@ -21,9 +21,9 @@ const group = computed(() => store.currentGroup)
 // Auto-save state for rule addition
 const savingRule = ref(false)
 
-// Front hooks state
-const availableFrontHooks = ref<FrontHookOption[]>([])
-const loadingHooks = ref(false)
+// Front hooks state - now per entity type
+const availableFrontHooks = ref<Record<string, FrontHookOption[]>>({})
+const loadingHooks = ref<Record<string, boolean>>({})
 const selectedEntityType = ref<string>('')
 const selectedOperator = ref<string>('==')
 
@@ -37,14 +37,12 @@ const locationGroups = computed(() => {
   return Object.entries(locations.value).map(([groupName, items]) => {
     // Sort items: enabled first, then disabled
     const sortedItems = [...(items as LocationOption[])].sort((a, b) => {
-      const aEnabled = a.enabled !== false // true if enabled or undefined
+      const aEnabled = a.enabled !== false
       const bEnabled = b.enabled !== false
       
       if (aEnabled === bEnabled) {
-        // If same status, sort alphabetically by label
         return (a.label || '').localeCompare(b.label || '')
       }
-      // Enabled items come first
       return aEnabled ? -1 : 1
     })
     
@@ -67,60 +65,93 @@ const rules = computed(() => {
   return Array.isArray(lr) ? lr : []
 })
 
-
-
 // Check if at least one entity type is defined
 const hasEntityType = computed(() => rules.value.length > 0)
 
-// Get the primary entity type from rules (first "==" rule)
-const primaryEntityType = computed(() => {
+// Get ALL entity types from rules (not just the first one!)
+const activeEntityTypes = computed(() => {
+  const types: string[] = []
   for (const rule of rules.value) {
     if (rule['=='] && Array.isArray(rule['=='])) {
-      return rule['=='][1] as string
+      const entityType = rule['=='][1] as string
+      if (entityType && !types.includes(entityType)) {
+        types.push(entityType)
+      }
     }
   }
-  return ''
+  return types
 })
 
-// Check if display hook is selected
-const hasDisplayHook = computed(() => {
-  return !!(group.value?.foOptions?.displayHook)
-})
-
-// Validation: can proceed to next step only if entity type AND display hook are selected
-const canProceedToFields = computed(() => hasEntityType.value && hasDisplayHook.value)
-
-// Load available front hooks when entity type changes
-watch(primaryEntityType, async (newEntityType) => {
-  if (!newEntityType) {
-    availableFrontHooks.value = []
-    return
+// Check if ALL entity types have a display hook selected
+const hasAllDisplayHooks = computed(() => {
+  if (activeEntityTypes.value.length === 0) return false
+  
+  const displayHooks = group.value?.foOptions?.displayHooks || {}
+  
+  for (const entityType of activeEntityTypes.value) {
+    if (!displayHooks[entityType]) {
+      return false
+    }
   }
+  
+  return true
+})
 
-  loadingHooks.value = true
+// Validation: can proceed to next step only if entity types AND all display hooks are selected
+const canProceedToFields = computed(() => hasEntityType.value && hasAllDisplayHooks.value)
+
+// Load available front hooks for a specific entity type
+async function loadHooksForEntityType(entityType: string): Promise<void> {
+  if (!entityType || loadingHooks.value[entityType]) return
+  
+  loadingHooks.value[entityType] = true
+  
   try {
-    const { hooks, defaultHook } = await api.getFrontHooksForEntity(newEntityType)
-    availableFrontHooks.value = hooks
-
-    // Auto-select default hook if no hook is selected yet
-    if (!group.value?.foOptions?.displayHook && defaultHook && group.value) {
-      if (!group.value.foOptions) {
-        group.value.foOptions = {}
-      }
-      group.value.foOptions.displayHook = defaultHook
+    const { hooks, defaultHook } = await api.getFrontHooksForEntity(entityType)
+    availableFrontHooks.value[entityType] = hooks
+    
+    // Initialize displayHooks object if not exists
+    if (group.value && !group.value.foOptions) {
+      group.value.foOptions = {}
+    }
+    if (group.value && !group.value.foOptions!.displayHooks) {
+      group.value.foOptions!.displayHooks = {}
+    }
+    
+    // Auto-select default hook if no hook is selected yet for this entity
+    if (group.value && !group.value.foOptions!.displayHooks![entityType] && defaultHook) {
+      group.value.foOptions!.displayHooks![entityType] = defaultHook
       // Auto-save
       await store.saveGroup()
     }
   } catch (error) {
-    console.error('Failed to load front hooks:', error)
-    availableFrontHooks.value = []
+    console.error(`Failed to load front hooks for ${entityType}:`, error)
+    availableFrontHooks.value[entityType] = []
   } finally {
-    loadingHooks.value = false
+    loadingHooks.value[entityType] = false
   }
-}, { immediate: true })
+}
+
+// Watch active entity types and load hooks for each
+watch(activeEntityTypes, async (newTypes, oldTypes) => {
+  // Load hooks for new entity types
+  for (const entityType of newTypes) {
+    if (!oldTypes?.includes(entityType)) {
+      await loadHooksForEntityType(entityType)
+    }
+  }
+  
+  // Clean up hooks for removed entity types
+  if (group.value?.foOptions?.displayHooks) {
+    for (const entityType of Object.keys(group.value.foOptions.displayHooks)) {
+      if (!newTypes.includes(entityType)) {
+        delete group.value.foOptions.displayHooks[entityType]
+      }
+    }
+  }
+}, { immediate: true, deep: true })
 
 async function addRule(event?: Event): Promise<void> {
-  // Prevent any default behavior or event propagation
   if (event) {
     event.preventDefault()
     event.stopPropagation()
@@ -135,7 +166,7 @@ async function addRule(event?: Event): Promise<void> {
     ]
   }
 
-  // Ensure locationRules is an array (might be {} or undefined)
+  // Ensure locationRules is an array
   if (!Array.isArray(store.currentGroup.locationRules)) {
     store.currentGroup.locationRules = []
   }
@@ -152,7 +183,6 @@ async function addRule(event?: Event): Promise<void> {
   savingRule.value = true
   try {
     await store.saveGroup()
-    // Success - rule is now saved in DB
     console.log(`✅ Rule "${ruleOperator} ${ruleType}" saved automatically`)
   } catch (error) {
     console.error('❌ Failed to save location rule:', error)
@@ -164,23 +194,30 @@ async function addRule(event?: Event): Promise<void> {
     selectedEntityType.value = ruleType
     selectedOperator.value = ruleOperator
 
-    // Show error feedback
     alert(t('saveError') || 'Failed to save location rule. Please try again.')
   } finally {
     savingRule.value = false
   }
 }
 
-function removeRule(index: number): void {
+async function removeRule(index: number): Promise<void> {
   if (!store.currentGroup || !Array.isArray(store.currentGroup.locationRules)) return
+  
   store.currentGroup.locationRules.splice(index, 1)
+  
+  // Auto-save after removal
+  try {
+    await store.saveGroup()
+    console.log('✅ Rule removed and saved')
+  } catch (error) {
+    console.error('❌ Failed to save after rule removal:', error)
+  }
 }
 
 /**
  * Get human-readable label for a rule
  */
 function getRuleLabel(rule: JsonLogicRule): string {
-  // Parse JsonLogic format: {"==": [{"var": "entity_type"}, "product"]}
   if (rule['=='] && Array.isArray(rule['=='])) {
     const entityValue = rule['=='][1]
     const location = findLocationByValue(entityValue)
@@ -212,18 +249,26 @@ function findLocationByValue(value: string): LocationOption | undefined {
 }
 
 /**
- * Handle display hook change - auto-save
+ * Handle display hook change for a specific entity type - auto-save
  */
-async function handleDisplayHookChange(): Promise<void> {
+async function handleDisplayHookChange(entityType: string): Promise<void> {
   if (!group.value) return
   
   try {
     await store.saveGroup()
-    console.log('✅ Display hook saved:', group.value.foOptions?.displayHook)
+    console.log(`✅ Display hook for ${entityType} saved:`, group.value.foOptions?.displayHooks?.[entityType])
   } catch (error) {
-    console.error('❌ Failed to save display hook:', error)
-    alert('Failed to save display hook. Please try again.')
+    console.error(`❌ Failed to save display hook for ${entityType}:`, error)
+    alert(`Failed to save display hook for ${entityType}. Please try again.`)
   }
+}
+
+/**
+ * Get label for entity type
+ */
+function getEntityTypeLabel(entityType: string): string {
+  const location = findLocationByValue(entityType)
+  return location?.label || entityType
 }
 </script>
 
@@ -344,8 +389,8 @@ async function handleDisplayHookChange(): Promise<void> {
       </div>
     </div>
 
-    <!-- Front-Office Display Hook Selection -->
-    <div v-if="group && primaryEntityType" class="card mt-4 border-primary">
+    <!-- Front-Office Display Hook Selection - One per entity type -->
+    <div v-if="group && activeEntityTypes.length > 0" class="card mt-4 border-primary">
       <div class="card-header bg-light">
         <h4 class="mb-0">
           <i class="material-icons mr-2" style="vertical-align: middle;">tune</i>
@@ -356,26 +401,31 @@ async function handleDisplayHookChange(): Promise<void> {
       <div class="card-body">
         <p class="text-muted mb-3">
           <i class="material-icons mr-1" style="vertical-align: middle; font-size: 16px;">visibility</i>
-          Choose where your custom fields will be displayed in the front-office.
+          Choose where your custom fields will be displayed for each content type.
         </p>
 
-        <div class="form-group mb-0">
+        <!-- Display hook selector for EACH entity type -->
+        <div
+          v-for="entityType in activeEntityTypes"
+          :key="entityType"
+          class="form-group mb-3"
+        >
           <label class="form-control-label">
             <i class="material-icons mr-1" style="font-size: 16px; vertical-align: middle;">insert_link</i>
-            Display Hook
+            Display Hook for <strong>{{ getEntityTypeLabel(entityType) }}</strong>
             <span class="text-danger">*</span>
           </label>
           
           <select
-            v-if="!loadingHooks"
-            v-model="group.foOptions!.displayHook"
+            v-if="!loadingHooks[entityType]"
+            v-model="group.foOptions!.displayHooks![entityType]"
             class="form-control"
-            :class="{ 'is-invalid': !hasDisplayHook }"
-            @change="handleDisplayHookChange"
+            :class="{ 'is-invalid': !group.foOptions?.displayHooks?.[entityType] }"
+            @change="handleDisplayHookChange(entityType)"
           >
             <option value="">{{ t('selectDisplayHook') || 'Choose display location...' }}</option>
             <option
-              v-for="hook in availableFrontHooks"
+              v-for="hook in availableFrontHooks[entityType] || []"
               :key="hook.value"
               :value="hook.value"
             >
@@ -386,22 +436,22 @@ async function handleDisplayHookChange(): Promise<void> {
           
           <div v-else class="form-control">
             <i class="material-icons" style="font-size: 18px; vertical-align: middle;">sync</i>
-            Loading available hooks...
+            Loading hooks for {{ entityType }}...
           </div>
           
           <small class="form-text text-muted">
-            This determines where on the {{ primaryEntityType }} page your custom fields will appear.
+            Where fields will appear on {{ getEntityTypeLabel(entityType) }} pages.
           </small>
           
-          <div v-if="!hasDisplayHook" class="invalid-feedback d-block">
-            Please select a display hook to continue.
+          <div v-if="!group.foOptions?.displayHooks?.[entityType]" class="invalid-feedback d-block">
+            Please select a display hook for {{ getEntityTypeLabel(entityType) }}.
           </div>
         </div>
       </div>
     </div>
 
     <!-- Warning if no entity type selected -->
-    <div v-if="group && !primaryEntityType" class="card mt-4 border-warning">
+    <div v-if="group && activeEntityTypes.length === 0" class="card mt-4 border-warning">
       <div class="card-body">
         <div class="alert alert-warning mb-0">
           <i class="material-icons mr-2" style="vertical-align: middle; font-size: 18px;">warning</i>
@@ -422,7 +472,7 @@ async function handleDisplayHookChange(): Promise<void> {
           <ul class="mb-0 small text-muted">
             <li>Select content types where your fields should appear</li>
             <li>Add multiple rules to show fields on different content types</li>
-            <li>If no rules are added, fields appear on ALL content types</li>
+            <li>Each content type can have its own display hook</li>
             <li>Use "Exclude" to hide fields from specific content types</li>
           </ul>
         </div>
@@ -431,7 +481,7 @@ async function handleDisplayHookChange(): Promise<void> {
             <strong>Examples:</strong><br>
             • Products: Add custom fields to product pages<br>
             • Categories: Add fields specific to category pages<br>
-            • Empty rules: Fields appear on all content types
+            • Multiple types: Each with its own display location
           </div>
         </div>
       </div>
@@ -447,7 +497,7 @@ async function handleDisplayHookChange(): Promise<void> {
         class="btn btn-primary"
         :disabled="!canProceedToFields"
         @click="emit('next-step')"
-        :title="!hasEntityType ? t('defineEntityTypeFirst') : !hasDisplayHook ? 'Please select a display hook' : ''"
+        :title="!hasEntityType ? t('defineEntityTypeFirst') : !hasAllDisplayHooks ? 'Please select display hooks for all content types' : ''"
       >
         Next: {{ t('fields') }}
         <span class="material-icons">arrow_forward</span>
@@ -460,7 +510,6 @@ async function handleDisplayHookChange(): Promise<void> {
 .location-rules-editor {
   padding: 1.5rem;
 }
-
 
 .location-rules-editor .card {
   border: 1px solid #dee2e6;
@@ -545,4 +594,3 @@ async function handleDisplayHookChange(): Promise<void> {
   }
 }
 </style>
-

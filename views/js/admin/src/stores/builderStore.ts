@@ -10,10 +10,19 @@ export type ViewMode = 'list' | 'edit'
  * This handles legacy data that might have been stored as arrays.
  */
 function normalizeGroup(group: AcfGroup): AcfGroup {
+  const foOptions = Array.isArray(group.foOptions) ? {} : (group.foOptions || {})
+
+  // Ensure displayHooks is always an object with entityType keys, never an array
+  if (Array.isArray(foOptions.displayHooks)) {
+    foOptions.displayHooks = {}
+  } else if (!foOptions.displayHooks) {
+    foOptions.displayHooks = {}
+  }
+
   return {
     ...group,
     boOptions: Array.isArray(group.boOptions) ? {} : (group.boOptions || {}),
-    foOptions: Array.isArray(group.foOptions) ? {} : (group.foOptions || {}),
+    foOptions,
   }
 }
 
@@ -57,21 +66,15 @@ export const useBuilderStore = defineStore('builder', () => {
 
   // Actions
   async function loadGroups(): Promise<void> {
-    console.log('[ACF] Starting loadGroups...')
     loading.value = true
     error.value = null
     try {
-      console.log('[ACF] Calling api.getGroups()...')
       const loadedGroups = await api.getGroups()
-      console.log('[ACF] Got groups:', loadedGroups)
       groups.value = loadedGroups.map(normalizeGroup)
-      console.log('[ACF] Groups loaded successfully')
     } catch (e) {
-      console.error('[ACF] Error loading groups:', e)
       error.value = (e as Error).message
     } finally {
       loading.value = false
-      console.log('[ACF] loadGroups finished, loading =', loading.value)
     }
   }
 
@@ -102,7 +105,6 @@ export const useBuilderStore = defineStore('builder', () => {
       boOptions: {},
       foOptions: {
         visible: true,
-        displayHook: '', // Will be auto-populated when entity type is selected
       },
       active: true,
       fields: [],

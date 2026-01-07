@@ -96,7 +96,7 @@ final class FrontHooksRegistry
 
     /**
      * All available front hooks for Category entity.
-     * 
+     *
      * @return array<array{value: string, label: string, description: string, ps_version: int}>
      */
     public static function getCategoryHooks(): array
@@ -104,14 +104,55 @@ final class FrontHooksRegistry
         return [
             [
                 'value' => 'displayFooterCategory',
-                'label' => 'Category Footer',  
-                'description' => 'Category page - At the bottom of the category page', 
+                'label' => 'Category Footer',
+                'description' => 'Category page - At the bottom of the category page',
                 'ps_version' => 8,
             ],
             [
                 'value' => 'displayHeaderCategory',
                 'label' => 'Category Header',
-                'description' => 'Category page - At the top of the category page',  
+                'description' => 'Category page - At the top of the category page',
+                'ps_version' => 8,
+            ],
+        ];
+    }
+
+    /**
+     * All available front hooks for Customer entity.
+     *
+     * @return array<array{value: string, label: string, description: string, ps_version: int}>
+     */
+    public static function getCustomerHooks(): array
+    {
+        return [
+            [
+                'value' => 'displayCustomerAccount',
+                'label' => 'Customer Account Page',
+                'description' => 'My Account page - Main content area where customer info is displayed',
+                'ps_version' => 8,
+            ],
+            [
+                'value' => 'displayCustomerAccountForm',
+                'label' => 'Customer Account Form',
+                'description' => 'Account edit page - After the customer information form',
+                'ps_version' => 8,
+            ],
+            [
+                'value' => 'displayCustomerAccountFormTop',
+                'label' => 'Customer Account Form Top',
+                'description' => 'Account edit page - Before the customer information form',
+                'ps_version' => 8,
+            ],
+            [
+                'value' => 'displayCustomerAccountTop',
+                'label' => 'Customer Account Top',
+                'description' => 'Account edit page - At the top of the customer information form',
+                'ps_version' => 8,
+            ],
+            [
+                'value' => 'displayCustomerLoginFormAfter',
+                'label' => 'Customer Login Form After',
+                'description' => 'Login page - After the customer login form',
                 'ps_version' => 8,
             ],
         ];
@@ -128,6 +169,7 @@ final class FrontHooksRegistry
         return match (strtolower($entityType)) {
             'product' => self::getProductHooks(),
             'category' => self::getCategoryHooks(),
+            'customer' => self::getCustomerHooks(),
             default => [],
         };
     }
@@ -143,7 +185,8 @@ final class FrontHooksRegistry
     {
         return match (strtolower($entityType)) {
             'product' => 'displayProductAdditionalInfo',
-            'category' => 'displayCategoryHeader',
+            'category' => 'displayHeaderCategory',
+            'customer' => 'displayCustomerAccount',
             default => '',
         };
     }
@@ -156,15 +199,19 @@ final class FrontHooksRegistry
     public static function getAllHookNames(): array
     {
         $hooks = [];
-        
+
         foreach (self::getProductHooks() as $hook) {
             $hooks[] = $hook['value'];
         }
-        
+
         foreach (self::getCategoryHooks() as $hook) {
             $hooks[] = $hook['value'];
         }
-        
+
+        foreach (self::getCustomerHooks() as $hook) {
+            $hooks[] = $hook['value'];
+        }
+
         return array_unique($hooks);
     }
 

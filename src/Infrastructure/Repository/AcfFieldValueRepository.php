@@ -181,15 +181,15 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         // Filter by display hook if specified
         if (!empty($hookName)) {
-            // Check if fo_options is not NULL and contains the displayHook key with the correct value
-            $sql->where('g.fo_options IS NOT NULL')
-                ->where('JSON_UNQUOTE(JSON_EXTRACT(g.fo_options, "$.displayHook")) = "' . pSQL($hookName) . '"');
+            // Check displayHooks.{entityType} = hookName
+            $sql->where('g.fo_options IS NOT NULL');
+            $sql->where('JSON_UNQUOTE(JSON_EXTRACT(g.fo_options, "$.displayHooks.' . pSQL($entityType) . '")) = "' . pSQL($hookName) . '"');
         }
-
 
         $sql->orderBy('f.position ASC');
 
         $results = $this->db->executeS($sql);
+        
         if (!$results) {
             return [];
         }

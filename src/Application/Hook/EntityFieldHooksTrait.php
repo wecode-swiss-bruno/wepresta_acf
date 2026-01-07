@@ -250,13 +250,125 @@ trait EntityFieldHooksTrait
     }
 
     /**
-     * Category Header
+     * Category Footer
      */
     public function hookDisplayFooterCategory(array $params): string
     {
         $categoryId = $this->extractCategoryIdFromParams($params);
         return $this->renderFrontFieldsForHook('category', $categoryId, 'displayFooterCategory');
     }
+
+    // =========================================================================
+    // CUSTOMER HOOKS - ADMIN (Back-Office)
+    // =========================================================================
+
+    /**
+     * Affiche les champs ACF dans l'édition client (BO).
+     */
+    public function hookDisplayAdminCustomers(array $params): string
+    {
+        return $this->renderAdminFields('customer', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF lors de la mise à jour client.
+     */
+    public function hookActionObjectCustomerUpdateAfter(array $params): void
+    {
+        $this->saveEntityFields('customer', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF lors de la création client.
+     */
+    public function hookActionObjectCustomerAddAfter(array $params): void
+    {
+        $this->saveEntityFields('customer', $params);
+    }
+
+    // =========================================================================
+    // SYMFONY FORM HOOKS - Customer
+    // =========================================================================
+
+    /**
+     * Injecte les champs ACF dans le formulaire Symfony Customer (BO).
+     * Hook: actionCustomerFormBuilderModifier
+     */
+    public function hookActionCustomerFormBuilderModifier(array $params): void
+    {
+        $this->handleSymfonyFormBuilder('customer', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF après création Customer (Symfony).
+     * Hook: actionAfterCreateCustomerFormHandler
+     */
+    public function hookActionAfterCreateCustomerFormHandler(array $params): void
+    {
+        $this->handleSymfonyFormHandler('customer', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF après mise à jour Customer (Symfony).
+     * Hook: actionAfterUpdateCustomerFormHandler
+     */
+    public function hookActionAfterUpdateCustomerFormHandler(array $params): void
+    {
+        $this->handleSymfonyFormHandler('customer', $params);
+    }
+
+    // =========================================================================
+    // CUSTOMER HOOKS - FRONT (Front-Office)
+    // =========================================================================
+
+    /**
+     * Customer Account Page - Main content area where customer info is displayed
+     */
+    public function hookDisplayCustomerAccount(array $params): string
+    {
+        $customerId = $this->extractCustomerIdFromParams($params);
+        return $this->renderFrontFieldsForHook('customer', $customerId, 'displayCustomerAccount');
+    }
+
+    /**
+     * Customer Account Form - After the customer information form
+     */
+    public function hookDisplayCustomerAccountForm(array $params): string
+    {
+        $customerId = $this->extractCustomerIdFromParams($params);
+        return $this->renderFrontFieldsForHook('customer', $customerId, 'displayCustomerAccountForm');
+    }
+
+    /**
+     * Customer Account Form Top - Before the customer information form
+     */
+    public function hookDisplayCustomerAccountFormTop(array $params): string
+    {
+        $customerId = $this->extractCustomerIdFromParams($params);
+        return $this->renderFrontFieldsForHook('customer', $customerId, 'displayCustomerAccountFormTop');
+    }
+
+    /**
+     * Customer Account Top - At the top of the customer information form
+    */
+    public function hookDisplayCustomerAccountTop(array $params): string
+    {
+        $customerId = $this->extractCustomerIdFromParams($params);
+        return $this->renderFrontFieldsForHook('customer', $customerId, 'displayCustomerAccountTop');
+    }
+
+    /**
+     * Customer Login Form After - After the customer login form
+    */
+    public function hookDisplayCustomerLoginFormAfter(array $params): string
+    {
+        $customerId = $this->extractCustomerIdFromParams($params);
+        return $this->renderFrontFieldsForHook('customer', $customerId, 'displayCustomerLoginFormAfter');
+    }
+
+
+
+
     // =========================================================================
     // MÉTHODES PRIVÉES - Logique commune
     // =========================================================================
@@ -585,6 +697,7 @@ trait EntityFieldHooksTrait
     /**
      * Extrait l'ID catégorie de manière sécurisée depuis les paramètres du hook.
      * Gère les cas où $params['category'] peut être un array ou un objet Category.
+     * En front-office, cherche aussi dans le contexte PrestaShop.
      *
      * @param array $params Paramètres du hook
      * @return int ID de la catégorie ou 0 si non trouvé
@@ -593,18 +706,152 @@ trait EntityFieldHooksTrait
     {
         $category = $params['category'] ?? null;
 
-        if ($category === null) {
-            return 0;
+        // 1. Essayer depuis $params['category']
+        if ($category !== null) {
+            // Si c'est un objet Category, accéder à la propriété id
+            if (is_object($category)) {
+                if (property_exists($category, 'id')) {
+                    return (int) $category->id;
+                }
+                if (property_exists($category, 'id_category')) {
+                    return (int) $category->id_category;
+                }
+                if (isset($category->id)) {
+                    return (int) $category->id;
+                }
+            }
+
+            // Si c'est un array, accéder à l'index id_category
+            if (is_array($category)) {
+                if (isset($category['id_category'])) {
+                    return (int) $category['id_category'];
+                }
+                if (isset($category['id'])) {
+                    return (int) $category['id'];
+                }
+            }
         }
 
-        // Si c'est un objet Category, accéder à la propriété id
-        if (is_object($category) && property_exists($category, 'id')) {
-            return (int) $category->id;
+        // 2. Essayer depuis $params directement
+        if (isset($params['id_category'])) {
+            return (int) $params['id_category'];
+        }
+        if (isset($params['id'])) {
+            return (int) $params['id'];
         }
 
-        // Si c'est un array, accéder à l'index id_category
-        if (is_array($category) && isset($category['id_category'])) {
-            return (int) $category['id_category'];
+        // 3. Essayer depuis le contexte PrestaShop (front-office)
+        $context = \Context::getContext();
+        
+        // Depuis Tools::getValue (URL parameter)
+        $idFromUrl = \Tools::getValue('id_category');
+        if ($idFromUrl && (int) $idFromUrl > 0) {
+            return (int) $idFromUrl;
+        }
+
+        // Depuis le controller
+        if ($context->controller !== null) {
+            // Essayer controller->category (objet Category)
+            if (isset($context->controller->category)) {
+                $controllerCategory = $context->controller->category;
+                if (is_object($controllerCategory)) {
+                    if (property_exists($controllerCategory, 'id') || isset($controllerCategory->id)) {
+                        return (int) $controllerCategory->id;
+                    }
+                }
+                if (is_array($controllerCategory) && isset($controllerCategory['id_category'])) {
+                    return (int) $controllerCategory['id_category'];
+                }
+            }
+            
+            // Essayer controller->id_category (propriété directe)
+            if (isset($context->controller->id_category) && (int) $context->controller->id_category > 0) {
+                return (int) $context->controller->id_category;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Extrait l'ID client de manière sécurisée depuis les paramètres du hook.
+     * Gère les cas où $params['customer'] peut être un array ou un objet Customer.
+     * En front-office, utilise le contexte PrestaShop pour récupérer l'ID du client connecté.
+     *
+     * @param array $params Paramètres du hook
+     * @return int ID du client ou 0 si non trouvé
+     */
+    private function extractCustomerIdFromParams(array $params): int
+    {
+        $customer = $params['customer'] ?? null;
+
+        // 1. Essayer depuis $params['customer']
+        if ($customer !== null) {
+            // Si c'est un objet Customer, accéder à la propriété id
+            if (is_object($customer)) {
+                if (property_exists($customer, 'id')) {
+                    return (int) $customer->id;
+                }
+                if (property_exists($customer, 'id_customer')) {
+                    return (int) $customer->id_customer;
+                }
+                if (isset($customer->id)) {
+                    return (int) $customer->id;
+                }
+            }
+
+            // Si c'est un array, accéder à l'index id_customer
+            if (is_array($customer)) {
+                if (isset($customer['id_customer'])) {
+                    return (int) $customer['id_customer'];
+                }
+                if (isset($customer['id'])) {
+                    return (int) $customer['id'];
+                }
+            }
+        }
+
+        // 2. Essayer depuis $params directement
+        if (isset($params['id_customer'])) {
+            return (int) $params['id_customer'];
+        }
+        if (isset($params['id'])) {
+            return (int) $params['id'];
+        }
+
+        // 3. Essayer depuis le contexte PrestaShop (front-office)
+        $context = \Context::getContext();
+
+        // Depuis le contexte client connecté
+        if ($context->customer && $context->customer->id) {
+            return (int) $context->customer->id;
+        }
+
+        // Depuis Tools::getValue (URL parameter)
+        $idFromUrl = \Tools::getValue('id_customer');
+        if ($idFromUrl && (int) $idFromUrl > 0) {
+            return (int) $idFromUrl;
+        }
+
+        // Depuis le controller
+        if ($context->controller !== null) {
+            // Essayer controller->customer (objet Customer)
+            if (isset($context->controller->customer)) {
+                $controllerCustomer = $context->controller->customer;
+                if (is_object($controllerCustomer)) {
+                    if (property_exists($controllerCustomer, 'id') || isset($controllerCustomer->id)) {
+                        return (int) $controllerCustomer->id;
+                    }
+                }
+                if (is_array($controllerCustomer) && isset($controllerCustomer['id_customer'])) {
+                    return (int) $controllerCustomer['id_customer'];
+                }
+            }
+
+            // Essayer controller->id_customer (propriété directe)
+            if (isset($context->controller->id_customer) && (int) $context->controller->id_customer > 0) {
+                return (int) $context->controller->id_customer;
+            }
         }
 
         return 0;

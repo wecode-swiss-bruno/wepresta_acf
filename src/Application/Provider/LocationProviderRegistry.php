@@ -147,34 +147,7 @@ final class LocationProviderRegistry
             }
         }
 
-        // Also add entity types from EntityFieldRegistry (for CPT and other dynamic entities)
-        if ($this->entityFieldRegistry !== null) {
-            $langId = (int) (\Context::getContext()->language->id ?? 1);
-            foreach ($this->entityFieldRegistry->getAllEntityTypes() as $entityType => $provider) {
-                // Skip if already exists
-                $alreadyExists = false;
-                foreach ($locations as $loc) {
-                    if (($loc['value'] ?? '') === $entityType) {
-                        $alreadyExists = true;
-                        break;
-                    }
-                }
-                if ($alreadyExists) {
-                    continue;
-                }
 
-                $locations[] = [
-                    'type' => 'entity_type',
-                    'value' => $entityType,
-                    'label' => $provider->getEntityLabel($langId),
-                    'group' => 'Custom Post Types',
-                    'icon' => 'extension',
-                    'description' => sprintf('Display fields on %s edit pages', $provider->getEntityLabel($langId)),
-                    'provider' => 'entity_field_registry',
-                    'enabled' => true, // CPT are always enabled
-                ];
-            }
-        }
 
         $this->locationsCache = $locations;
         return $locations;

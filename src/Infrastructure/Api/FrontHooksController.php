@@ -60,6 +60,7 @@ class FrontHooksController extends FrameworkBundleAdminController
             $data = [
                 'product' => FrontHooksRegistry::getProductHooks(),
                 'category' => FrontHooksRegistry::getCategoryHooks(),
+                'customer' => FrontHooksRegistry::getCustomerHooks(),
             ];
 
             return new JsonResponse([

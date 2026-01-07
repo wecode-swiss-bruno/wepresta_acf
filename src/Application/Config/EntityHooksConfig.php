@@ -19,13 +19,14 @@ final class EntityHooksConfig
 {
     /**
      * Entités activées dans la version actuelle.
-     * V1: Product et Category uniquement.
+     * V1: Product, Category et Customer.
      *
      * @var string[]
      */
     public const ENABLED_ENTITIES = [
         'product',
         'category',
+        'customer',
     ];
 
     /**
@@ -67,6 +68,20 @@ final class EntityHooksConfig
                 ],
             ],
         ],
+        'customer' => [
+            'display' => 'displayAdminCustomers', // Legacy hook
+            'save' => [
+                'actionObjectCustomerUpdateAfter',
+                'actionObjectCustomerAddAfter',
+            ],
+            'symfony' => [
+                'form_builder' => 'actionCustomerFormBuilderModifier',
+                'form_handlers' => [
+                    'actionAfterCreateCustomerFormHandler',
+                    'actionAfterUpdateCustomerFormHandler',
+                ],
+            ],
+        ],
     ];
 
     /**
@@ -81,10 +96,26 @@ final class EntityHooksConfig
     public const FRONT_HOOKS = [
         'product' => [
             'displayProductAdditionalInfo',
+            'displayProductExtraContent',
+            'displayProductButtons',
+            'displayProductActions',
+            'displayProductPriceBlock',
+            'displayAfterProductThumbs',
+            'displayReassurance',
+            'displayProductListReviews',
+            'displayProductListFunctionalButtons',
+            'displayFooterProduct',
         ],
         'category' => [
             'displayHeaderCategory',
             'displayFooterCategory',
+        ],
+        'customer' => [
+            'displayCustomerAccount',
+            'displayCustomerAccountForm',
+            'displayCustomerAccountFormTop',
+            'displayCustomerAccountTop',
+            'displayCustomerLoginFormAfter',
         ],
     ];
 
@@ -206,6 +237,7 @@ final class EntityHooksConfig
             'Catalog' => [
                 'product' => ['label' => 'Product', 'type' => 'active'],
                 'category' => ['label' => 'Category', 'type' => 'active'],
+                'customer' => ['label' => 'Customer', 'type' => 'active'],
             ],
         ];
     }
@@ -231,7 +263,7 @@ final class EntityHooksConfig
 
         return [
             'label' => ucfirst($entityType),
-            'category' => 'Catalog',
+            'category' => $entityType === 'customer' ? 'Customers' : 'Catalog',
             'form_builder_hook' => null,
             'form_handler_hooks' => [],
             'id_param' => self::getIdParam($entityType),
