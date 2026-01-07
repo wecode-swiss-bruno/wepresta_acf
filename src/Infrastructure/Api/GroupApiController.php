@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace WeprestaAcf\Infrastructure\Api;
 
 use WeprestaAcf\Application\Service\SlugGenerator;
+use WeprestaAcf\Application\Service\ValueProvider;
+use WeprestaAcf\Application\Service\ValueHandler;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Context;
 
 class GroupApiController extends FrameworkBundleAdminController
 {
@@ -18,6 +21,8 @@ class GroupApiController extends FrameworkBundleAdminController
         private readonly AcfGroupRepositoryInterface $groupRepository,
         private readonly AcfFieldRepositoryInterface $fieldRepository,
         private readonly SlugGenerator $slugGenerator,
+        private readonly ValueProvider $valueProvider,
+        private readonly ValueHandler $valueHandler,
     ) {}
 
     public function list(): JsonResponse
@@ -201,6 +206,88 @@ class GroupApiController extends FrameworkBundleAdminController
     private function jsonError(string $message, int $status = Response::HTTP_INTERNAL_SERVER_ERROR): JsonResponse
     {
         return $this->json(['success' => false, 'error' => $message], $status);
+    }
+
+    /**
+     * Get global values for a group (entity_id = 0).
+     * Returns ALL languages for translatable fields.
+     */
+    public function getGlobalValues(int $id): JsonResponse
+    {
+        try {
+            $group = $this->groupRepository->findById($id);
+            if (!$group) {
+                return $this->jsonError('Group not found', Response::HTTP_NOT_FOUND);
+            }
+
+            // Get entity_type from location_rules (first rule)
+            $locationRules = json_decode($group['location_rules'] ?? '[]', true);
+            if (empty($locationRules) || !isset($locationRules[0]['=='][1])) {
+                return $this->jsonError('No entity type defined for this group', Response::HTTP_BAD_REQUEST);
+            }
+
+            $entityType = $locationRules[0]['=='][1];
+            $shopId = (int) Context::getContext()->shop->id;
+
+            // Get values with entity_id = 0 (global) - including ALL languages for translatable fields
+            $values = $this->valueProvider->getEntityFieldValuesAllLanguages($entityType, 0, $shopId);
+
+            // Ensure values is always an object in JSON, not an array
+            // Use stdClass for empty to force {} instead of []
+            $jsonValues = empty($values) ? new \stdClass() : $values;
+
+            return $this->json([
+                'success' => true,
+                'data' => [
+                    'entityType' => $entityType,
+                    'values' => $jsonValues,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
+    }
+
+    /**
+     * Save global values for a group (entity_id = 0).
+     */
+    public function saveGlobalValues(int $id, Request $request): JsonResponse
+    {
+        try {
+            $group = $this->groupRepository->findById($id);
+            if (!$group) {
+                return $this->jsonError('Group not found', Response::HTTP_NOT_FOUND);
+            }
+
+            // Check if group is configured for global scope
+            $foOptions = json_decode($group['fo_options'] ?? '{}', true);
+            if (($foOptions['valueScope'] ?? 'entity') !== 'global') {
+                return $this->jsonError('This group is not configured for global values', Response::HTTP_BAD_REQUEST);
+            }
+
+            // Get entity_type from location_rules (first rule)
+            $locationRules = json_decode($group['location_rules'] ?? '[]', true);
+            if (empty($locationRules) || !isset($locationRules[0]['=='][1])) {
+                return $this->jsonError('No entity type defined for this group', Response::HTTP_BAD_REQUEST);
+            }
+
+            $entityType = $locationRules[0]['=='][1];
+            $shopId = (int) Context::getContext()->shop->id;
+
+            // Get values from request
+            $data = $this->getJsonPayload($request);
+            $values = $data['values'] ?? [];
+
+            // Save with entity_id = 0 (global)
+            $this->valueHandler->saveEntityFieldValues($entityType, 0, $values, $shopId);
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Global values saved successfully',
+            ]);
+        } catch (\Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
     }
 
     private function generateUuid(): string

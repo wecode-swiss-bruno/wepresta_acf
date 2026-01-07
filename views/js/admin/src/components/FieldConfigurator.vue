@@ -62,8 +62,9 @@ watch(() => store.selectedField, (newField) => {
     copy.validation = copy.validation && typeof copy.validation === 'object' && !Array.isArray(copy.validation) ? copy.validation : {}
     copy.config = copy.config || {}
     
-    // Initialize translations if not present
-    if (!copy.translations || typeof copy.translations !== 'object') {
+    // Initialize translations if not present or if it's an array (PHP returns [] for empty)
+    // IMPORTANT: Array.isArray([]) is true, so we must convert to object
+    if (!copy.translations || Array.isArray(copy.translations) || typeof copy.translations !== 'object') {
       copy.translations = {}
     }
     

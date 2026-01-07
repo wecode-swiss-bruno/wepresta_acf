@@ -35,6 +35,14 @@ interface AcfFieldValueRepositoryInterface
     /** @return array<string, mixed> */
     public function findByEntity(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array;
 
+    /**
+     * Find all field values for an entity, including ALL languages for translatable fields.
+     * Returns: [slug => value] for non-translatable, [slug => [langId => value]] for translatable
+     *
+     * @return array<string, mixed>
+     */
+    public function findByEntityAllLanguages(string $entityType, int $entityId, ?int $shopId = null): array;
+
     /** @return array<int, array{slug: string, title: string, type: string, value: mixed, instructions: string|null, config: array<string, mixed>, fo_options: array<string, mixed>}> */
     public function findByEntityWithMeta(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array;
 

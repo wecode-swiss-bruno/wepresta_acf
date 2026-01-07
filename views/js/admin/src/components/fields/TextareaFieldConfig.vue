@@ -12,11 +12,12 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const { createLocalRef } = useFieldConfig(props, emit)
+const { createStringRef, createNumberRef } = useFieldConfig(props, emit)
 
 // Local reactive values using the composable
-const placeholder = createLocalRef('placeholder', '')
-const rows = createLocalRef('rows', 4)
+const placeholder = createStringRef('placeholder')
+const rows = createNumberRef('rows')
+const defaultValue = createStringRef('defaultValue')
 </script>
 
 <template>
@@ -41,6 +42,19 @@ const rows = createLocalRef('rows', 4)
       >
       <small class="form-text text-muted">
         Number of visible text lines (2-20).
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label class="form-control-label">{{ t('defaultValue') }}</label>
+      <textarea 
+        v-model="defaultValue"
+        class="form-control"
+        rows="3"
+        :placeholder="t('defaultValuePlaceholder') || 'Default value for all entities'"
+      ></textarea>
+      <small class="form-text text-muted">
+        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
       </small>
     </div>
   </div>

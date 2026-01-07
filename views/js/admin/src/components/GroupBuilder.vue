@@ -6,11 +6,12 @@ import FieldList from '@/components/FieldList.vue'
 import FieldConfigurator from '@/components/FieldConfigurator.vue'
 import GroupSettings from '@/components/GroupSettings.vue'
 import LocationRulesEditor from '@/components/LocationRulesEditor.vue'
+import GlobalValuesEditor from '@/components/GlobalValuesEditor.vue'
 
 const store = useBuilderStore()
 const { t } = useTranslations()
 
-const activeTab = ref<'settings' | 'location' | 'fields'>('settings')
+const activeTab = ref<'settings' | 'location' | 'fields' | 'values'>('settings')
 
 // Check if group has been saved to database (has an ID)
 const isGeneralSettingsComplete = computed(() => {
@@ -31,6 +32,16 @@ const canAccessLocation = computed(() => isGeneralSettingsComplete.value)
 // Check if fields tab can be accessed (requires completed general settings AND entity type)
 const canAccessFields = computed(() => isGeneralSettingsComplete.value && hasEntityTypeDefined.value)
 
+// Check if group is configured for global value scope
+const isGlobalValueScope = computed(() => {
+  const group = store.currentGroup
+  const foOptions = group?.foOptions
+  return foOptions?.valueScope === 'global'
+})
+
+// Check if values tab should be shown (only if global scope)
+const shouldShowValuesStep = computed(() => isGlobalValueScope.value && canAccessFields.value)
+
 // Step status for wizard
 const stepStatus = computed(() => ({
   settings: {
@@ -46,20 +57,42 @@ const stepStatus = computed(() => ({
     completed: false,
     current: activeTab.value === 'fields',
     locked: !canAccessFields.value
+  },
+  values: {
+    completed: false,
+    current: activeTab.value === 'values',
+    locked: !shouldShowValuesStep.value,
+    visible: shouldShowValuesStep.value
   }
 }))
 
 // Navigation functions
-function goToNextStep(): void {
+async function goToNextStep(): Promise<void> {
+  // Always save before navigating to next step
+  if (store.currentGroup) {
+    await store.saveGroup()
+    
+    // If there was an error saving, don't proceed
+    if (store.error) {
+      console.warn('Cannot proceed to next step - save failed:', store.error)
+      return
+    }
+  }
+  
   if (activeTab.value === 'settings' && canAccessLocation.value) {
     activeTab.value = 'location'
   } else if (activeTab.value === 'location' && canAccessFields.value) {
     activeTab.value = 'fields'
+  } else if (activeTab.value === 'fields' && shouldShowValuesStep.value) {
+    activeTab.value = 'values'
   }
+  // Values step est final en mode global - pas de next-step après
 }
 
 function goToPreviousStep(): void {
-  if (activeTab.value === 'fields') {
+  if (activeTab.value === 'values') {
+    activeTab.value = 'fields'
+  } else if (activeTab.value === 'fields') {
     activeTab.value = 'location'
   } else if (activeTab.value === 'location') {
     activeTab.value = 'settings'
@@ -170,6 +203,23 @@ watch(activeTab, (newTab) => {
         <div class="step-number">3</div>
         <div class="step-label">{{ t('fields') }}</div>
       </div>
+
+      <!-- Values step (conditional - only for global scope) -->
+      <template v-if="stepStatus.values.visible">
+        <div class="wizard-connector"></div>
+        
+        <div 
+          class="wizard-step" 
+          :class="{ 
+            active: stepStatus.values.current, 
+            locked: stepStatus.values.locked 
+          }"
+          @click="shouldShowValuesStep && (activeTab = 'values')"
+        >
+          <div class="step-number">4</div>
+          <div class="step-label">{{ t('values') || 'Values' }}</div>
+        </div>
+      </template>
     </div>
 
     <!-- Content -->
@@ -191,7 +241,19 @@ watch(activeTab, (newTab) => {
             <span class="material-icons">arrow_back</span>
             {{ t('location') }}
           </button>
-          <div></div> <!-- Spacer -->
+          <!-- Bouton vers Values step (si global) ou Spacer -->
+          <button 
+            v-if="shouldShowValuesStep"
+            class="btn btn-primary" 
+            :disabled="store.saving"
+            @click="goToNextStep"
+          >
+            <span v-if="store.saving" class="spinner-border spinner-border-sm mr-1"></span>
+            <span v-else class="material-icons mr-1">save</span>
+            {{ store.saving ? 'Saving...' : 'Save & Next: ' + (t('values') || 'Values') }}
+            <span v-if="!store.saving" class="material-icons">arrow_forward</span>
+          </button>
+          <div v-else></div> <!-- Spacer (mode entity) -->
         </div>
       </template>
 
@@ -203,6 +265,11 @@ watch(activeTab, (newTab) => {
       <!-- Location tab -->
       <template v-else-if="activeTab === 'location'">
         <LocationRulesEditor @next-step="goToNextStep" @prev-step="goToPreviousStep" />
+      </template>
+
+      <!-- Values tab (global values editor) -->
+      <template v-else-if="activeTab === 'values'">
+        <GlobalValuesEditor @next-step="goToNextStep" @prev-step="goToPreviousStep" />
       </template>
     </div>
   </div>

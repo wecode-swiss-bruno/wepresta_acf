@@ -12,11 +12,12 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const { createLocalRef } = useFieldConfig(props, emit)
+const { createStringRef } = useFieldConfig(props, emit)
 
 // Local reactive values using the composable
-const minDate = createLocalRef('minDate', '')
-const maxDate = createLocalRef('maxDate', '')
+const minDate = createStringRef('minDate')
+const maxDate = createStringRef('maxDate')
+const defaultValue = createStringRef('defaultValue')
 </script>
 
 <template>
@@ -42,6 +43,18 @@ const maxDate = createLocalRef('maxDate', '')
       >
       <small class="form-text text-muted">
         Latest selectable date (optional).
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label class="form-control-label">{{ t('defaultValue') }}</label>
+      <input 
+        v-model="defaultValue"
+        type="date"
+        class="form-control"
+      >
+      <small class="form-text text-muted">
+        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
       </small>
     </div>
   </div>

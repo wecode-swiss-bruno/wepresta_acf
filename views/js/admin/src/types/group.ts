@@ -39,6 +39,7 @@ export interface GroupFrontendOptions {
   template?: string
   wrapperClass?: string
   displayHooks?: Record<string, string>  // Map of entity_type => hook_name (e.g., {product: 'displayProductAdditionalInfo', category: 'displayCategoryHeader'})
+  valueScope?: 'global' | 'entity'  // global: shared values (entity_id=0), entity: per-entity values (default)
 }
 
 /**

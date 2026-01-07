@@ -100,6 +100,28 @@ const hasAllDisplayHooks = computed(() => {
 // Validation: can proceed to next step only if entity types AND all display hooks are selected
 const canProceedToFields = computed(() => hasEntityType.value && hasAllDisplayHooks.value)
 
+// Value scope management
+const valueScope = computed({
+  get: () => group.value?.foOptions?.valueScope || 'entity',
+  set: (value: 'global' | 'entity') => {
+    if (group.value && group.value.foOptions) {
+      group.value.foOptions.valueScope = value
+    }
+  }
+})
+
+async function handleValueScopeChange(): Promise<void> {
+  if (!group.value) return
+  
+  try {
+    await store.saveGroup()
+    console.log('✅ Value scope saved:', valueScope.value)
+  } catch (error) {
+    console.error('❌ Failed to save value scope:', error)
+    alert('Failed to save value scope. Please try again.')
+  }
+}
+
 // Load available front hooks for a specific entity type
 async function loadHooksForEntityType(entityType: string): Promise<void> {
   if (!entityType || loadingHooks.value[entityType]) return
@@ -386,6 +408,58 @@ function getEntityTypeLabel(entityType: string): string {
             {{ t('addRule') || 'Add Display Rule' }}
           </span>
         </button>
+      </div>
+    </div>
+
+    <!-- Value Scope Selection -->
+    <div v-if="group && activeEntityTypes.length > 0" class="card mt-4 border-info">
+      <div class="card-header bg-light">
+        <h4 class="mb-0">
+          <i class="material-icons mr-2" style="vertical-align: middle;">storage</i>
+          {{ t('valueScope') || 'Value Storage Scope' }}
+        </h4>
+      </div>
+      <div class="card-body">
+        <p class="text-muted mb-3">
+          <i class="material-icons mr-1" style="vertical-align: middle; font-size: 16px;">info</i>
+          Choose how field values will be stored and managed.
+        </p>
+
+        <div class="form-check mb-3">
+          <input
+            type="radio"
+            class="form-check-input"
+            id="scope-entity"
+            :value="'entity'"
+            v-model="valueScope"
+            @change="handleValueScopeChange"
+          >
+          <label class="form-check-label" for="scope-entity">
+            <strong>Per Entity (Default)</strong>
+            <br>
+            <small class="text-muted">
+              Each entity has its own field values. Values are editable on each entity's edit page.
+            </small>
+          </label>
+        </div>
+
+        <div class="form-check">
+          <input
+            type="radio"
+            class="form-check-input"
+            id="scope-global"
+            :value="'global'"
+            v-model="valueScope"
+            @change="handleValueScopeChange"
+          >
+          <label class="form-check-label" for="scope-global">
+            <strong>Global (Shared)</strong>
+            <br>
+            <small class="text-muted">
+              All entities share the same field values. Values are editable in the next step (Values tab).
+            </small>
+          </label>
+        </div>
       </div>
     </div>
 

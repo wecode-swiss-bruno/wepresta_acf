@@ -12,11 +12,12 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const { createLocalRef } = useFieldConfig(props, emit)
+const { createStringRef, createNumberRef } = useFieldConfig(props, emit)
 
 // Local reactive values using the composable
-const format = createLocalRef('format', '24h')
-const step = createLocalRef('step', 1)
+const format = createStringRef('format')
+const step = createNumberRef('step')
+const defaultValue = createStringRef('defaultValue')
 </script>
 
 <template>
@@ -43,6 +44,18 @@ const step = createLocalRef('step', 1)
         <option value="15">15 minutes</option>
         <option value="30">30 minutes</option>
       </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-control-label">{{ t('defaultValue') }}</label>
+      <input 
+        v-model="defaultValue"
+        type="time"
+        class="form-control"
+      >
+      <small class="form-text text-muted">
+        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
+      </small>
     </div>
   </div>
 </template>

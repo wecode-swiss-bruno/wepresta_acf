@@ -12,10 +12,11 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const { createBooleanRef } = useFieldConfig(props, emit)
+const { createBooleanRef, createStringRef } = useFieldConfig(props, emit)
 
 // Local reactive values using the composable
 const showHex = createBooleanRef('showHex', true)
+const defaultValue = createStringRef('defaultValue')
 </script>
 
 <template>
@@ -34,6 +35,27 @@ const showHex = createBooleanRef('showHex', true)
       </div>
       <small class="form-text text-muted">
         Display the hex code alongside the color swatch on the frontend.
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label class="form-control-label">{{ t('defaultValue') }}</label>
+      <div class="acf-color-input-group">
+        <input 
+          v-model="defaultValue"
+          type="color"
+          class="form-control acf-color-picker"
+        >
+        <input 
+          v-model="defaultValue"
+          type="text"
+          class="form-control"
+          placeholder="#000000"
+          style="flex: 1;"
+        >
+      </div>
+      <small class="form-text text-muted">
+        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
       </small>
     </div>
   </div>

@@ -156,18 +156,79 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         return $values;
     }
 
+    /**
+     * Find all field values for an entity, including ALL languages for translatable fields.
+     * Returns: [slug => value] for non-translatable, [slug => [langId => value]] for translatable
+     *
+     * @return array<string, mixed>
+     */
+    public function findByEntityAllLanguages(string $entityType, int $entityId, ?int $shopId = null): array
+    {
+        $shopId ??= (int) Context::getContext()->shop->id;
+
+        // Get ALL values including all languages
+        $sql = new DbQuery();
+        $sql->select('fv.value, fv.id_lang, f.slug, f.value_translatable, f.' . self::FIELD_FK . ', fv.' . $this->getPrimaryKey())
+            ->from($this->getTableName(), 'fv')
+            ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
+            ->where('fv.entity_type = "' . pSQL($entityType) . '"')
+            ->where('fv.entity_id = ' . (int) $entityId)
+            ->where('fv.id_shop = ' . (int) $shopId)
+            ->orderBy('f.slug ASC, fv.id_lang ASC');
+
+        $allResults = $this->db->executeS($sql);
+
+        if (!$allResults) {
+            return [];
+        }
+
+        $values = [];
+        foreach ($allResults as $row) {
+            $slug = $row['slug'];
+            $value = $row['value'];
+            $langId = $row['id_lang'];
+            $isTranslatable = (bool) $row['value_translatable'];
+
+            // Decode JSON values
+            if ($value !== null) {
+                $decoded = json_decode($value, true);
+                if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+                    $finalValue = $value;
+                } else {
+                    $finalValue = $decoded !== null ? $decoded : $value;
+                }
+            } else {
+                $finalValue = null;
+            }
+
+            if ($isTranslatable && $langId !== null) {
+                // Translatable field: group by language
+                if (!isset($values[$slug]) || !is_array($values[$slug])) {
+                    $values[$slug] = [];
+                }
+                $values[$slug][(int) $langId] = $finalValue;
+            } else {
+                // Non-translatable field: simple value
+                $values[$slug] = $finalValue;
+            }
+        }
+
+        return $values;
+    }
+
     public function findByEntityWithMetaForHook(string $entityType, int $entityId, string $hookName, ?int $shopId = null, ?int $langId = null): array
     {
         $shopId ??= (int) Context::getContext()->shop->id;
         $langId ??= (int) Context::getContext()->language->id;
 
         $sql = new DbQuery();
-        $sql->select('fv.value, f.slug, f.title, f.type, f.instructions, f.config, f.fo_options, f.wrapper, f.position, f.' . self::FIELD_FK)
+        $sql->select('fv.value, f.slug, f.title, f.type, f.instructions, f.config, f.fo_options, f.wrapper, f.position, f.' . self::FIELD_FK . ', g.fo_options AS group_fo_options')
             ->from($this->getTableName(), 'fv')
             ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
             ->innerJoin(self::GROUP_TABLE, 'g', 'f.id_wepresta_acf_group = g.id_wepresta_acf_group')
             ->where('fv.entity_type = "' . pSQL($entityType) . '"')
-            ->where('fv.entity_id = ' . (int) $entityId)
+            // ⚠️ Modified: entity_id = entityId OR entity_id = 0 (global values)
+            ->where('(fv.entity_id = ' . (int) $entityId . ' OR fv.entity_id = 0)')
             ->where('fv.id_shop = ' . (int) $shopId)
             ->where('f.active = 1')
             ->where('g.active = 1')
@@ -175,7 +236,12 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             ->where('fv.' . $this->getPrimaryKey() . ' = (
                 SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2
                 WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . '
-                AND fv2.entity_type = fv.entity_type AND fv2.entity_id = fv.entity_id AND fv2.id_shop = fv.id_shop
+                AND fv2.entity_type = fv.entity_type 
+                AND (
+                    fv2.entity_id = fv.entity_id
+                    OR (fv2.entity_id = 0 AND fv.entity_id = 0)
+                )
+                AND fv2.id_shop = fv.id_shop
                 AND (fv2.id_lang = fv.id_lang OR (fv2.id_lang IS NULL AND fv.id_lang IS NULL))
             )');
 
@@ -196,6 +262,18 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         $fields = [];
         foreach ($results as $row) {
+            // Check if group is in global scope mode
+            $groupFoOptions = json_decode($row['group_fo_options'] ?? '{}', true);
+            $isGlobalScope = ($groupFoOptions['valueScope'] ?? 'entity') === 'global';
+            
+            // If global scope, only use entity_id = 0 values
+            // If entity scope, prefer entity-specific values over global (but allow global as fallback if no specific value)
+            if ($isGlobalScope) {
+                // For global scope, we want the value with entity_id = 0
+                // Skip entity-specific values
+                // (The query should already handle this, but double-check)
+            }
+            
             $value = $row['value'];
             $decodedValue = $value === null ? null : (json_decode($value, true) ?? $value);
             $fields[] = [

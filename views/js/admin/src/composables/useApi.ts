@@ -151,6 +151,24 @@ export function useApi() {
   }
 
   /**
+   * Get global values for a group (entity_id = 0)
+   */
+  async function getGlobalValues(groupId: number): Promise<{ entityType: string, values: Record<string, any> }> {
+    const response = await request<{ success: boolean, data: { entityType: string, values: Record<string, any> } }>(`/groups/${groupId}/global-values`)
+    return response.data
+  }
+
+  /**
+   * Save global values for a group (entity_id = 0)
+   */
+  async function saveGlobalValues(groupId: number, values: Record<string, any>): Promise<void> {
+    await request(`/groups/${groupId}/global-values`, {
+      method: 'POST',
+      body: JSON.stringify({ values }),
+    })
+  }
+
+  /**
    * Generic fetchJson method for custom endpoints
    */
   async function fetchJson<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -165,6 +183,8 @@ export function useApi() {
     updateGroup,
     deleteGroup,
     duplicateGroup,
+    getGlobalValues,
+    saveGlobalValues,
     // Fields
     createField,
     updateField,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
 import { useFieldConfig } from '@/composables/useFieldConfig'
@@ -26,6 +26,30 @@ watch(() => props.config.choices, (newChoices) => {
 watch(choices, (newChoices) => {
   updateConfig('choices', newChoices)
 }, { deep: true })
+
+// Default values (array of selected choice values)
+const defaultValues = computed<string[]>({
+  get: () => {
+    const val = props.config.defaultValue
+    if (Array.isArray(val)) return val as string[]
+    if (typeof val === 'string' && val) return [val]
+    return []
+  },
+  set: (val: string[]) => {
+    updateConfig('defaultValue', val.length > 0 ? val : undefined)
+  }
+})
+
+function toggleDefault(value: string) {
+  const current = [...defaultValues.value]
+  const idx = current.indexOf(value)
+  if (idx >= 0) {
+    current.splice(idx, 1)
+  } else {
+    current.push(value)
+  }
+  defaultValues.value = current
+}
 </script>
 
 <template>
@@ -41,5 +65,40 @@ watch(choices, (newChoices) => {
         {{ t('checkboxHelp') || 'Users can select multiple options.' }}
       </small>
     </div>
+
+    <div class="form-group" v-if="choices.length > 0">
+      <label class="form-control-label">{{ t('defaultValue') }}</label>
+      <div class="default-choices">
+        <div 
+          v-for="choice in choices" 
+          :key="choice.value" 
+          class="form-check"
+        >
+          <input 
+            type="checkbox"
+            class="form-check-input"
+            :id="'default-' + choice.value"
+            :checked="defaultValues.includes(choice.value)"
+            @change="toggleDefault(choice.value)"
+          >
+          <label class="form-check-label" :for="'default-' + choice.value">
+            {{ choice.label || choice.value }}
+          </label>
+        </div>
+      </div>
+      <small class="form-text text-muted">
+        {{ t('defaultValueHelp') || 'Select default checked options for new entities.' }}
+      </small>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.default-choices {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+</style>

@@ -86,13 +86,25 @@ final class FormModifierService
                 return;
             }
 
-            // Filter groups by location rules
+            // Filter groups by location rules AND exclude global scope groups
             $matchingGroups = [];
             foreach ($groups as $group) {
                 $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
-                if ($this->locationProviderRegistry->matchLocation($locationRules, $context)) {
-                    $matchingGroups[] = $group;
+                
+                // Check if group matches location rules
+                if (!$this->locationProviderRegistry->matchLocation($locationRules, $context)) {
+                    continue;
                 }
+                
+                // ⚠️ Exclude groups with global value scope (entity_id = 0)
+                // Global values are managed in the builder, not in entity forms
+                $foOptions = json_decode($group['fo_options'] ?? '{}', true);
+                if (($foOptions['valueScope'] ?? 'entity') === 'global') {
+                    \PrestaShopLogger::addLog('[ACF modifyForm] Skipping group "' . $group['title'] . '" (global scope)', 1);
+                    continue;
+                }
+                
+                $matchingGroups[] = $group;
             }
 
             if (empty($matchingGroups)) {

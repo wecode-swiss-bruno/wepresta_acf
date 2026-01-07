@@ -22,6 +22,7 @@ const max = createNumberRef('max')
 const step = createNumberRef('step')
 const prefix = createStringRef('prefix')
 const suffix = createStringRef('suffix')
+const defaultValue = createNumberRef('defaultValue')
 
 // Validate min/max consistency
 watch([min, max], ([newMin, newMax]) => {
@@ -104,6 +105,19 @@ watch([min, max], ([newMin, newMax]) => {
           placeholder="kg"
         >
       </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-control-label">{{ t('defaultValue') }}</label>
+      <input 
+        v-model="defaultValue"
+        type="number"
+        class="form-control"
+        :placeholder="t('defaultValuePlaceholder') || 'Default value for all entities'"
+      >
+      <small class="form-text text-muted">
+        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
+      </small>
     </div>
   </div>
 </template>

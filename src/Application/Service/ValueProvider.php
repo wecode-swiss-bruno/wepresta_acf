@@ -35,6 +35,17 @@ final class ValueProvider
     }
 
     /**
+     * Gets field values for any entity type, including ALL languages for translatable fields.
+     * Returns: [slug => value] for non-translatable, [slug => [langId => value]] for translatable
+     *
+     * @return array<string, mixed>
+     */
+    public function getEntityFieldValuesAllLanguages(string $entityType, int $entityId, ?int $shopId = null): array
+    {
+        return $this->valueRepository->findByEntityAllLanguages($entityType, $entityId, $shopId);
+    }
+
+    /**
      * Gets field values with metadata for any entity type WITH hook filtering.
      * Only returns fields from groups configured to display in the specified hook.
      *

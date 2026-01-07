@@ -74,6 +74,24 @@ wepresta_acf_api_groups_duplicate:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::duplicate'
 
+wepresta_acf_api_groups_global_values_get:
+    path: /api/groups/{id}/global-values
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::getGlobalValues'
+
+wepresta_acf_api_groups_global_values_save:
+    path: /api/groups/{id}/global-values
+    methods: [POST, PUT]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::saveGlobalValues'
+
 # =========================================================================
 # API - Fields
 # =========================================================================
@@ -172,6 +190,13 @@ wepresta_acf_api_force_upgrade:
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::forceUpgrade'
+
+wepresta_acf_api_upload_file:
+    path: /api/upload-file
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::uploadFile'
 
 # =========================================================================
 # API - Sync

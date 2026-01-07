@@ -18,6 +18,7 @@ const { createStringRef } = useFieldConfig(props, emit)
 const placeholder = createStringRef('placeholder')
 const prefix = createStringRef('prefix')
 const suffix = createStringRef('suffix')
+const defaultValue = createStringRef('defaultValue')
 </script>
 
 <template>
@@ -52,6 +53,19 @@ const suffix = createStringRef('suffix')
       >
       <small class="form-text text-muted">
         Text to display after the field value.
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label class="form-control-label">{{ t('defaultValue') }}</label>
+      <input 
+        v-model="defaultValue"
+        type="text"
+        class="form-control"
+        :placeholder="t('defaultValuePlaceholder') || 'Default value for all entities'"
+      >
+      <small class="form-text text-muted">
+        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
       </small>
     </div>
   </div>
