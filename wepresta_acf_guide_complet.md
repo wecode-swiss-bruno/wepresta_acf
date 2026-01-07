@@ -3,7 +3,7 @@
 ## 🎯 **IDENTITÉ DU MODULE**
 
 **Nom** : `wepresta_acf`  
-**Version** : `1.2.1`  
+**Version** : `1.3.1`  
 **Type** : Module PrestaShop 8.x/9.x  
 **Description** : Système Advanced Custom Fields (ACF) complet avec builder visuel Vue.js  
 **Auteur** : Bruno Studer (WeCode)  
@@ -111,7 +111,7 @@ abstract class AbstractFieldType implements FieldTypeInterface {
 
 ---
 
-## 🌐 **API REST COMPLÈTE (40+ ENDPOINTS)**
+## 🌐 **API REST COMPLÈTE (45+ ENDPOINTS)**
 
 ### **Endpoints CRUD Groups**
 ```
@@ -151,7 +151,8 @@ GET    /api/sync/export/{id}     # Export JSON
 ```
 GET    /api/field-types          # Types disponibles
 POST   /api/slugify              # Générer slug
-GET    /api/front-hooks          # Hooks front-office
+GET    /api/front-hooks          # Hooks front-office (toutes entités)
+GET    /api/front-hooks/{entity} # Hooks front-office par entité (product, category, customer)
 ```
 
 ---
@@ -166,6 +167,19 @@ GET    /api/front-hooks          # Hooks front-office
 ### **Configuration Module**
 - **Route** : `/modules/wepresta_acf/configuration`
 - **Features** : Sync templates, debug, paramètres généraux
+
+### **URLs d'administration par entité**
+
+| Entité | URL d'édition | Hook ACF principal |
+|--------|---------------|-------------------|
+| **📦 Produit** | `/sell/catalog/products/{id}/edit#tab-product_extra_modules-tab` | `displayAdminProductsExtra` |
+| **📁 Catégorie** | `/sell/catalog/categories/{id}/edit` | `displayAdminCategoriesExtra` |
+| **👤 Client** | `/sell/customers/{id}/edit` | `displayAdminCustomers` |
+
+### **URLs de navigation**
+- **Liste clients** : `/sell/customers/`
+- **Créer client** : `/sell/customers/new`
+- **Éditer client** : `/sell/customers/{id}/edit`
 
 ### **Injection Back-Office**
 - **Hook** : `actionAdminControllerSetMedia`
@@ -206,12 +220,12 @@ GET    /api/front-hooks          # Hooks front-office
 
 ---
 
-## 🌍 **ENTITÉS SUPPORTÉES (17+ TYPES)**
+## 🌍 **ENTITÉS SUPPORTÉES (18+ TYPES)**
 
 ### **Core Entities (v1)**
-- `product` - Produits
-- `category` - Catégories
-- `customer` - Clients
+- `product` - Produits (`/sell/catalog/products/{id}/edit#tab-product_extra_modules-tab`)
+- `category` - Catégories (`/sell/catalog/categories/{id}/edit`)
+- `customer` - Clients (`/sell/customers/{id}/edit`)
 - `customer_address` - Adresses clients
 
 ### **Extended Entities (Providers)**
@@ -247,18 +261,52 @@ interface EntityFieldProviderInterface {
 'hookActionValidateOrder'
 
 // Dynamic hooks (via EntityHooksConfig)
-'displayProductAdditionalInfo'    // Produits
+// Admin hooks
+'displayAdminProductsExtra'      // Produits (BO)
+'displayAdminCategoriesExtra'    // Catégories (BO)
+'displayAdminCustomers'          // Clients (BO)
 'actionProductUpdate'            // Produits
-'displayCategoryHeader'          // Catégories
-// ... selon entités activées
+'actionProductAdd'               // Produits
+'actionCategoryUpdate'           // Catégories
+'actionCategoryAdd'              // Catégories
+'actionObjectCustomerUpdateAfter' // Clients
+'actionObjectCustomerAddAfter'   // Clients
+// Symfony Form hooks (PS8/9)
+'actionProductFormBuilderModifier'
+'actionAfterCreateProductFormHandler'
+'actionAfterUpdateProductFormHandler'
+'actionCategoryFormBuilderModifier'
+'actionAfterCreateCategoryFormHandler'
+'actionAfterUpdateCategoryFormHandler'
+'actionCustomerFormBuilderModifier'
+'actionAfterCreateCustomerFormHandler'
+'actionAfterUpdateCustomerFormHandler'
+// Front hooks
+'displayProductAdditionalInfo'   // Produits
+'displayProductExtraContent'     // Produits
+'displayProductButtons'          // Produits
+'displayProductActions'          // Produits
+'displayProductPriceBlock'       // Produits
+'displayAfterProductThumbs'      // Produits
+'displayReassurance'             // Produits
+'displayProductListReviews'      // Produits
+'displayProductListFunctionalButtons' // Produits
+'displayFooterProduct'           // Produits
+'displayHeaderCategory'          // Catégories
+'displayFooterCategory'          // Catégories
+'displayCustomerAccount'         // Clients
+'displayMyAccountBlock'          // Clients
+'displayMyAccountBlockfooter'    // Clients
+'displayCustomerAccountForm'     // Clients
+'displayCustomerAccountFormTop'  // Clients
 ```
 
 ### **EntityHooksConfig - Configuration Centralisée**
 ```php
 EntityHooksConfig::getAllHooks(); // Retourne tous hooks selon entités
-EntityHooksConfig::getAdminHooks(); // Hooks back-office
-EntityHooksConfig::getFrontHooks(); // Hooks front-office
-EntityHooksConfig::getSystemHooks(); // Hooks système
+EntityHooksConfig::getAdminHooks(); // Hooks back-office (display + save + symfony)
+EntityHooksConfig::getFrontHooks(); // Hooks front-office par entité
+EntityHooksConfig::getSystemHooks(); // Hooks système (media, header)
 ```
 
 ---
@@ -278,6 +326,31 @@ private function renderEntityFieldsForDisplayInHook(
 - `product-info.tpl` - Produits (legacy)
 - `entity-info.tpl` - Toutes entités (générique)
 - Styles CSS intégrés
+
+### **Hooks Front-Office par entité**
+
+#### **🏷️ Produits (10 hooks)**
+- `displayProductAdditionalInfo` - Informations supplémentaires produit
+- `displayProductExtraContent` - Contenu supplémentaire (onglets)
+- `displayProductButtons` - Boutons d'action produit
+- `displayProductActions` - Zone actions produit
+- `displayProductPriceBlock` - Bloc prix produit
+- `displayAfterProductThumbs` - Après miniatures produit
+- `displayReassurance` - Bloc confiance/produits similaires
+- `displayProductListReviews` - Avis dans liste produits
+- `displayProductListFunctionalButtons` - Boutons fonctionnels liste
+- `displayFooterProduct` - Pied de page produit
+
+#### **📁 Catégories (2 hooks)**
+- `displayHeaderCategory` - En-tête catégorie
+- `displayFooterCategory` - Pied de page catégorie
+
+#### **👤 Clients (5 hooks)**
+- `displayCustomerAccount` - Page Mon Compte (principale)
+- `displayMyAccountBlock` - Bloc latéral Mon Compte (liens)
+- `displayMyAccountBlockfooter` - Pied du bloc Mon Compte
+- `displayCustomerAccountForm` - Formulaire édition compte (après)
+- `displayCustomerAccountFormTop` - Formulaire édition compte (avant)
 
 ### **Filtrage Intelligent**
 - **Par hook** : Un groupe peut s'afficher dans `displayHome` mais pas `displayFooter`
@@ -306,8 +379,14 @@ $valueProvider->getFieldValue($productId, $slug, $shopId, $langId);
 ```
 
 ### **FormModifierService - Modification formulaires**
-- Injection champs ACF dans formulaires admin
+- Injection champs ACF dans formulaires admin (legacy + Symfony)
 - Gestion validation et soumission
+- Support complet Customer entity (Symfony forms PS8/9)
+
+### **EntityFieldHooksTrait - Gestion hooks**
+- **12 méthodes Customer** ajoutées (admin + front + symfony)
+- **extractCustomerIdFromParams()** - Extraction ID client sécurisée
+- Support context PrestaShop + paramètres URL + objets Customer
 
 ---
 
@@ -428,9 +507,32 @@ $valueHandler = AcfServiceContainer::getValueHandler();
 // Pas directement $this->get() car peut être indisponible
 ```
 
+### **Display Hooks - Bug corrigé (v1.3.1)**
+
+**❌ Problème** : Les Display Hooks n'étaient pas sauvegardés dans le builder Vue.js
+- Cause : `foOptions.displayHooks` était un array au lieu d'un objet
+- Symptôme : Sélecteur vide après sauvegarde/rechargement
+
+**✅ Solution** :
+```typescript
+// Dans builderStore.ts - normalizeGroup()
+foOptions.displayHooks = Array.isArray(foOptions.displayHooks)
+  ? {} // Convertir array en objet
+  : (foOptions.displayHooks || {});
+```
+
+**Impact** : Les Display Hooks sont maintenant correctement sauvegardés et persistent après rechargement de la page.
+
 ---
 
 ## 🔮 **ÉVOLUTION & ROADMAP**
+
+### **✅ v1.3.1 - Customer Entity Support**
+- **Support complet Customer entity** (admin + front)
+- **5 hooks front-office** pour pages compte client
+- **Hooks Symfony PS8/9** pour formulaires clients
+- **Correction bug Display Hooks** (sauvegarde Vue.js)
+- **URLs admin documentées** pour toutes entités
 
 ### **Features Planifiées**
 - **Templates marketplace** (partage groupes entre boutiques)
