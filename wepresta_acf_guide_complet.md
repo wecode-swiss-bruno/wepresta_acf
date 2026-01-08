@@ -3,7 +3,7 @@
 ## 🎯 **IDENTITÉ DU MODULE**
 
 **Nom** : `wepresta_acf`  
-**Version** : `1.3.1`  
+**Version** : `1.4.0`  
 **Type** : Module PrestaShop 8.x/9.x  
 **Description** : Système Advanced Custom Fields (ACF) complet avec builder visuel Vue.js  
 **Auteur** : Bruno Studer (WeCode)  
@@ -135,6 +135,9 @@ POST   /api/groups/{id}/fields/reorder # Réordonner
 ```
 POST   /api/values              # Sauvegarder valeurs
 GET    /api/values/{productId}  # Récupérer valeurs produit
+GET    /api/groups/{id}/global-values    # Récupérer valeurs globales
+POST   /api/groups/{id}/global-values    # Sauvegarder valeurs globales
+POST   /api/upload-file                  # Upload fichiers (global scope)
 ```
 
 ### **Endpoints Sync (Template ↔ Boutique)**
@@ -163,6 +166,10 @@ GET    /api/front-hooks/{entity} # Hooks front-office par entité (product, cate
 - **Route** : `/modules/wepresta_acf/builder`
 - **Techno** : Vue.js 3 + Composition API
 - **Features** : Drag & drop, aperçu temps réel, validation
+- **Nouveaux composants** :
+  - `GlobalValuesEditor.vue` - Éditeur valeurs globales avec validation
+  - `FileUploadField.vue` - Upload fichiers réutilisable
+  - Support translatable fields avec onglets langues
 
 ### **Configuration Module**
 - **Route** : `/modules/wepresta_acf/configuration`
@@ -376,12 +383,14 @@ $renderService->getEntityFieldsForDisplayInHook($entityType, $entityId, $hookNam
 ```php
 $valueProvider->getProductFieldValues($productId, $shopId);
 $valueProvider->getFieldValue($productId, $slug, $shopId, $langId);
+$valueProvider->getEntityFieldValuesAllLanguages($entityType, $entityId, $shopId); // NOUVEAU
 ```
 
 ### **FormModifierService - Modification formulaires**
 - Injection champs ACF dans formulaires admin (legacy + Symfony)
 - Gestion validation et soumission
 - Support complet Customer entity (Symfony forms PS8/9)
+- **Filtrage groupes globaux** : Exclusion automatique des groupes `valueScope: 'global'`
 
 ### **EntityFieldHooksTrait - Gestion hooks**
 - **12 méthodes Customer** ajoutées (admin + front + symfony)
@@ -431,8 +440,9 @@ composer phpunit    # Tests unitaires
 
 ### **Tests Types**
 - **Unit** : Classes isolées (FieldType, Services)
-- **Integration** : Repository, API controllers
+- **Integration** : Repository, API controllers, valeurs globales
 - **Functional** : Workflows complets (création → sauvegarde → affichage)
+- **Global Values Testing** : Tests prioritaires (spécifique → global → vide)
 
 ---
 
@@ -469,6 +479,14 @@ composer phpunit    # Tests unitaires
 2. Implémenter `EntityFieldProviderInterface`
 3. Enregistrer dans `config/services.yml`
 4. Hooks dans `EntityHooksConfig::V1_ENTITIES`
+
+### **Création Groupe avec Valeurs Globales**
+1. Créer groupe dans builder
+2. Sélectionner `EntityType` (Customer, Product, etc.)
+3. Choisir `Value Scope = Global` dans Location Rules
+4. Ajouter champs dans onglet "Fields"
+5. Définir valeurs globales dans onglet "Values"
+6. Sauvegarder - valeurs disponibles pour toutes entités du type
 
 ### **Sync Template**
 1. Créer groupe dans admin
@@ -525,7 +543,148 @@ foOptions.displayHooks = Array.isArray(foOptions.displayHooks)
 
 ---
 
+## 🌍 **VALEURS GLOBALES (v1.4.0 - NOUVELLES FONCTIONNALITÉS)**
+
+### **Principe des Valeurs Globales**
+
+Les **valeurs globales** permettent de définir des valeurs par défaut communes à toutes les entités d'un même type, plutôt que des valeurs spécifiques à chaque entité.
+
+**Logique de priorité :**
+1. **Valeur spécifique** (entity_id = X) si définie
+2. **Valeur globale** (entity_id = 0) comme fallback
+3. **Vide** sinon
+
+### **Architecture Technique**
+
+#### **Value Scope dans GroupFrontendOptions**
+```typescript
+export interface GroupFrontendOptions {
+  visible?: boolean
+  template?: string
+  wrapperClass?: string
+  displayHooks?: Record<string, string>
+  valueScope?: 'global' | 'entity' // ← NOUVEL ATTRIBUT
+}
+```
+
+#### **Stockage en Base**
+```sql
+-- Valeurs spécifiques (par entité)
+INSERT INTO wepresta_acf_field_value
+  (field_id, entity_type, entity_id, value, shop_id, lang_id)
+VALUES
+  (1, 'customer', 123, 'John Doe', 1, 1);
+
+-- Valeurs globales (entity_id = 0)
+INSERT INTO wepresta_acf_field_value
+  (field_id, entity_type, entity_id, value, shop_id, lang_id)
+VALUES
+  (1, 'customer', 0, 'Default Name', 1, 1);
+```
+
+### **Interface Utilisateur**
+
+#### **Configuration du Scope**
+- **Emplacement** : Étape "Location Rules" du builder
+- **Choix** : Radio buttons "Global" / "Per Entity"
+- **Visibilité** : Après sélection du type d'entité
+
+#### **Édition des Valeurs Globales**
+- **Nouvel onglet** : "Values" dans le wizard builder
+- **Conditionnel** : Visible seulement si `valueScope = 'global'`
+- **Support complet** :
+  - Champs translatables (onglets par langue)
+  - Validation client-side (required, minLength, pattern, etc.)
+  - Upload de fichiers (image, video, file, gallery, files)
+  - Aperçu temps réel
+  - Sauvegarde automatique
+
+### **API REST - Nouveaux Endpoints**
+
+#### **Gestion des Valeurs Globales**
+```
+GET    /api/groups/{id}/global-values    # Récupérer valeurs globales
+POST   /api/groups/{id}/global-values    # Sauvegarder valeurs globales
+POST   /api/upload-file                  # Upload fichiers (global scope)
+```
+
+#### **Repository Methods**
+```php
+// Nouvelle méthode dans AcfFieldValueRepository
+findByEntityAllLanguages(string $entityType, int $entityId, ?int $shopId): array
+
+// Nouvelle méthode dans ValueProvider
+getEntityFieldValuesAllLanguages(string $entityType, int $entityId, ?int $shopId): array
+```
+
+### **Services Modifiés**
+
+#### **FormModifierService**
+```php
+// Exclusion groupes globaux des formulaires admin
+if (($foOptions['valueScope'] ?? 'entity') === 'global') {
+    continue; // Skip global groups
+}
+```
+
+#### **EntityFieldService**
+```php
+// Même logique pour hooks displayAdmin*
+if (($foOptions['valueScope'] ?? 'entity') === 'global') {
+    continue; // Skip global groups
+}
+```
+
+### **Composants Vue.js Ajoutés**
+
+#### **GlobalValuesEditor.vue**
+- Éditeur complet pour valeurs globales
+- Support champs translatables avec onglets langues
+- Validation intégrée (HTML5 + custom)
+- Gestion erreurs et aperçu
+
+#### **FileUploadField.vue**
+- Composant réutilisable pour uploads
+- Support single/multi fichiers
+- Aperçu, progression, remplacement
+- Intégration API upload
+
+### **Types de Champs Supportés**
+- ✅ **Tous les types natifs** : text, textarea, number, email, select, etc.
+- ✅ **Médias complets** : image, gallery, video, file, files
+- ✅ **Contenu riche** : richtext, date, time, datetime
+- ✅ **Translatable fields** : Gestion multilangue complète
+- ✅ **Validation** : required, minLength, maxLength, pattern, min, max
+
+### **Sécurité & Performance**
+- **Filtrage strict** : Groupes globaux exclus des formulaires entités
+- **Fallback intelligent** : Valeurs globales = backup, jamais écrasées
+- **Cache optimisé** : Requêtes séparées pour valeurs globales
+- **Upload sécurisé** : Même sécurité que valeurs spécifiques
+
+### **Cas d'Usage**
+- **Template produit** : "Marque par défaut" pour tous produits
+- **Client entreprise** : "Secteur d'activité par défaut"
+- **Catégorie générique** : "Description commune"
+- **Configuration globale** : Valeurs partagées multi-entités
+
+### **Migration & Compatibilité**
+- **Backward compatible** : Groupes existants = scope "entity"
+- **Migration automatique** : Pas de script requis
+- **Multi-shop** : Support complet (shop_id dans valeurs)
+- **Multi-lang** : Support complet (lang_id nullable)
+
+---
+
 ## 🔮 **ÉVOLUTION & ROADMAP**
+
+### **✅ v1.4.0 - Global Values System**
+- **Valeurs globales** : Définition de valeurs par défaut pour tous EntityTypes
+- **Logique de priorité** : spécifique → global → vide
+- **Builder amélioré** : Onglet "Values" pour groupes globaux
+- **Support fichiers** : Upload image/video/file dans valeurs globales
+- **Validation complète** : Client-side + server-side pour valeurs globales
+- **Filtrage intelligent** : Groupes globaux exclus des formulaires entités
 
 ### **✅ v1.3.1 - Customer Entity Support**
 - **Support complet Customer entity** (admin + front)
@@ -549,4 +708,4 @@ foOptions.displayHooks = Array.isArray(foOptions.displayHooks)
 
 ---
 
-**Ce module représente un exemple d'excellence en développement PrestaShop moderne, combinant architecture propre, UX moderne, et fonctionnalités avancées.** 🎉
+**Ce module représente un exemple d'excellence en développement PrestaShop moderne, combinant architecture propre, UX moderne, et fonctionnalités avancées. Avec le système de valeurs globales v1.4.0, il offre désormais une flexibilité ultime pour la gestion de contenu personnalisé.** 🎉

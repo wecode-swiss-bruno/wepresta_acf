@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use Module;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
@@ -350,9 +351,13 @@ final class SyncService
 
         $checksum = $this->calculateChecksum($group, $fields);
 
+        // Get module version
+        $module = Module::getInstanceByName('wepresta_acf');
+        $moduleVersion = $module ? $module::VERSION : '1.0.0';
+
         return [
             'version' => self::JSON_VERSION,
-            'module_version' => \WeprestaAcf::VERSION,
+            'module_version' => $moduleVersion,
             'exported_at' => date('c'),
             'checksum' => $checksum,
             'group' => $groupData,

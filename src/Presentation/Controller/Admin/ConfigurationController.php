@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Presentation\Controller\Admin;
 
+use Module;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -53,9 +54,13 @@ class ConfigurationController extends FrameworkBundleAdminController
         $fieldTypes = $this->fieldTypeLoader->getLoadedTypesInfo();
         $discoveryPaths = $this->fieldTypeLoader->getDiscoveryPaths();
 
+        // Get module version
+        $module = Module::getInstanceByName('wepresta_acf');
+        $moduleVersion = $module ? $module::VERSION : '1.0.0';
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/configuration.html.twig', [
             'configurationForm' => $form->createView(),
-            'moduleVersion' => \WeprestaAcf::VERSION,
+            'moduleVersion' => $moduleVersion,
             'syncEnabled' => $this->syncService->isEnabled(),
             'syncPath' => $this->syncService->getSyncPath(),
             'syncStatus' => $syncStatus,

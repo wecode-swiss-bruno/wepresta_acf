@@ -77,6 +77,13 @@ final class EntityFieldService
             foreach ($groups as $group) {
                 $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
                 if ($this->locationProviderRegistry->matchLocation($locationRules, $context)) {
+                    // ⚠️ Exclude groups with global value scope (entity_id = 0)
+                    // Global values are managed in the builder, not in entity forms
+                    $foOptions = json_decode($group['fo_options'] ?? '{}', true);
+                    if (($foOptions['valueScope'] ?? 'entity') === 'global') {
+                        continue;
+                    }
+                    
                     $matchingGroups[] = $group;
                 }
             }

@@ -96,8 +96,6 @@ final class FormModifierService
                     continue;
                 }
                 
-                // ⚠️ Exclude groups with global value scope (entity_id = 0)
-                // Global values are managed in the builder, not in entity forms
                 $foOptions = json_decode($group['fo_options'] ?? '{}', true);
                 if (($foOptions['valueScope'] ?? 'entity') === 'global') {
                     \PrestaShopLogger::addLog('[ACF modifyForm] Skipping group "' . $group['title'] . '" (global scope)', 1);
