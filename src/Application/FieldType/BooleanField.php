@@ -80,7 +80,10 @@ final class BooleanField extends AbstractFieldType
 
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
-        $boolValue = $this->denormalizeValue($value, $fieldConfig);
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        $boolValue = $this->denormalizeValue($actualValue, $fieldConfig);
 
         $trueLabel = $this->getConfigValue($fieldConfig, 'trueLabel', 'Yes');
         $falseLabel = $this->getConfigValue($fieldConfig, 'falseLabel', 'No');

@@ -103,9 +103,16 @@ final class TimeField extends AbstractFieldType
             return '';
         }
 
-        $timeStr = $value instanceof \DateTimeInterface
-            ? $value->format('H:i')
-            : (string) $value;
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        if ($actualValue === null || $actualValue === '') {
+            return '';
+        }
+
+        $timeStr = $actualValue instanceof \DateTimeInterface
+            ? $actualValue->format('H:i')
+            : (string) $actualValue;
 
         // Check display format
         $format = $this->getConfigValue($fieldConfig, 'format', '24h');

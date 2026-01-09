@@ -47,12 +47,10 @@ const init = () => {
 
   // Initialize language tracking for translatable subfields
   const subfields = props.field.children || []
-  rows.value.forEach((row: RepeaterRow) => {
-    subfields.forEach((subfield: AcfField) => {
-      if (isTranslatable(subfield)) {
-        currentLangByField.value[`${row.row_id}-${subfield.slug}`] = props.defaultLanguage?.id_lang || 1
-      }
-    })
+  subfields.forEach((subfield: AcfField) => {
+    if (isTranslatable(subfield)) {
+      currentLangByField.value[subfield.slug] = props.defaultLanguage?.id_lang || 1
+    }
   })
 }
 
@@ -78,7 +76,7 @@ const canAddRow = computed(() => {
 })
 
 // Check if can remove rows
-const canRemoveRow = (_index: number) => {
+const canRemoveRow = (index: number) => {
   const min = repeaterConfig.value.min
   return rows.value.length > min
 }
@@ -91,7 +89,7 @@ function isTranslatable(field: AcfField): boolean {
 // Get field value for display
 function getSubfieldValue(row: RepeaterRow, subfield: AcfField): any {
   if (isTranslatable(subfield)) {
-    const langId = currentLangByField.value[`${row.row_id}-${subfield.slug}`] ?? props.defaultLanguage?.id_lang
+    const langId = currentLangByField.value[subfield.slug] ?? props.defaultLanguage?.id_lang
     const values = row.values[subfield.slug]
     if (typeof values === 'object' && values !== null) {
       return values[langId] ?? ''
@@ -125,7 +123,7 @@ function getDefaultValue(field: AcfField): any {
 // Set subfield value
 function setSubfieldValue(row: RepeaterRow, subfield: AcfField, value: any): void {
   if (isTranslatable(subfield)) {
-    const langId = currentLangByField.value[`${row.row_id}-${subfield.slug}`] ?? props.defaultLanguage?.id_lang
+    const langId = currentLangByField.value[subfield.slug] ?? props.defaultLanguage?.id_lang
     if (!row.values[subfield.slug] || typeof row.values[subfield.slug] !== 'object') {
       row.values[subfield.slug] = {}
     }
@@ -155,13 +153,9 @@ function toggleCheckboxValue(row: RepeaterRow, subfield: AcfField, value: string
   setSubfieldValue(row, subfield, valuesArray)
 }
 
-// Set current language for a subfield in a specific row
-function setCurrentLanguage(rowId: string, subfieldSlug: string, langId: number): void {
-  // Use object spread to ensure reactivity in Vue 3
-  currentLangByField.value = {
-    ...currentLangByField.value,
-    [`${rowId}-${subfieldSlug}`]: langId,
-  }
+// Set current language for a subfield
+function setCurrentLanguage(subfieldSlug: string, langId: number): void {
+  currentLangByField.value[subfieldSlug] = langId
 }
 
 // Add new row
@@ -170,7 +164,7 @@ function addRow(): void {
 
   const newRow: RepeaterRow = {
     row_id: uuidv4(),
-    collapsed: Boolean(repeaterConfig.value.collapsed),
+    collapsed: repeaterConfig.value.collapsed,
     values: {},
   }
 
@@ -189,17 +183,6 @@ function addRow(): void {
 
   rows.value.push(newRow)
   expandedRows.value.add(newRow.row_id)
-
-  // Initialize language tracking for translatable subfields in this new row
-  subfields.value.forEach((field: AcfField) => {
-    if (isTranslatable(field)) {
-      currentLangByField.value = {
-        ...currentLangByField.value,
-        [`${newRow.row_id}-${field.slug}`]: props.defaultLanguage?.id_lang || 1,
-      }
-    }
-  })
-
   emitUpdate()
 }
 
@@ -232,7 +215,7 @@ function moveRow(fromIndex: number, toIndex: number): void {
 
 // Get row title
 function getRowTitle(index: number, row: RepeaterRow): string {
-  let title = String(repeaterConfig.value.rowTitle || 'Row {#}')
+  let title = repeaterConfig.value.rowTitle
   title = title.replace('{#}', String(index + 1))
 
   // Replace field placeholders with values
@@ -400,11 +383,11 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                     class="acf-lang-tab"
                     :class="{
                       active:
-                        (currentLangByField[`${row.row_id}-${subfield.slug}`] ??
-                          defaultLanguage?.id_lang) === lang.id_lang,
+                        (currentLangByField[subfield.slug] ?? defaultLanguage?.id_lang) ===
+                        lang.id_lang,
                       'is-default': lang.is_default,
                     }"
-                    @click="setCurrentLanguage(row.row_id, subfield.slug, lang.id_lang)"
+                    @click="setCurrentLanguage(subfield.slug, lang.id_lang)"
                   >
                     {{ lang.iso_code.toUpperCase() }}
                     <span v-if="lang.is_default" class="material-icons" style="font-size: 12px;">

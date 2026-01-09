@@ -638,7 +638,8 @@ onBeforeUnmount(() => {
           <div class="acfps-form-section">
             <h4>{{ t('frontendOptions') }}</h4>
 
-            <div class="form-group">
+            <!-- Value translatable option - not shown for repeater fields -->
+            <div v-if="localField.type !== 'repeater'" class="form-group">
               <label class="form-control-label">
                 {{ t('valueTranslatable') || 'Value is translatable' }}
                 <span class="material-icons text-muted" style="font-size: 16px; vertical-align: middle;" title="Field metadata (title, instructions) are always translatable. This option controls whether the field VALUES should be translated.">

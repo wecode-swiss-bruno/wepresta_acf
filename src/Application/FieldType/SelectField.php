@@ -168,13 +168,20 @@ final class SelectField extends AbstractFieldType
             return '';
         }
 
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        if ($actualValue === null || $actualValue === '' || $actualValue === []) {
+            return '';
+        }
+
         // Get the choices map for label lookup
         $choicesMap = $this->buildValueToLabelMap($fieldConfig);
         $allowMultiple = $this->getConfigValue($fieldConfig, 'allowMultiple', false);
 
         if ($allowMultiple) {
             // Handle allowMultiple values
-            $values = is_array($value) ? $value : json_decode((string) $value, true) ?? [];
+            $values = is_array($actualValue) ? $actualValue : json_decode((string) $actualValue, true) ?? [];
             $labels = [];
 
             foreach ($values as $val) {
@@ -187,7 +194,7 @@ final class SelectField extends AbstractFieldType
         }
 
         // Single value
-        $label = $choicesMap[$value] ?? (string) $value;
+        $label = $choicesMap[$actualValue] ?? (string) $actualValue;
 
         return htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
     }

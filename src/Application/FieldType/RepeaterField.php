@@ -171,14 +171,14 @@ final class RepeaterField extends AbstractFieldType
             $subfieldsBySlug[$subfield['slug']] = $subfield;
         }
 
-        $html = '<div class="acf-repeater">';
+        $html = '<table class="acf-repeater">';
 
         foreach ($rows as $index => $row) {
-            $html .= '<div class="acf-repeater-row" data-row-id="' . htmlspecialchars($row['row_id'] ?? '', ENT_QUOTES, 'UTF-8') . '">';
+            $html .= '<tr class="acf-repeater-row" data-row-id="' . htmlspecialchars($row['row_id'] ?? '', ENT_QUOTES, 'UTF-8') . '">';
 
             if (!empty($row['values']) && is_array($row['values'])) {
                 foreach ($row['values'] as $slug => $subfieldValue) {
-                    $html .= '<div class="acf-repeater-field" data-field="' . htmlspecialchars($slug, ENT_QUOTES, 'UTF-8') . '">';
+                    $html .= '<td class="acf-repeater-field" data-field="' . htmlspecialchars($slug, ENT_QUOTES, 'UTF-8') . '">';
 
                     // Try to render using the appropriate field type
                     $rendered = false;
@@ -198,14 +198,14 @@ final class RepeaterField extends AbstractFieldType
                         $html .= htmlspecialchars(is_string($subfieldValue) ? $subfieldValue : json_encode($subfieldValue), ENT_QUOTES, 'UTF-8');
                     }
 
-                    $html .= '</div>';
+                    $html .= '</td>';
                 }
             }
 
-            $html .= '</div>';
+            $html .= '</tr>';
         }
 
-        $html .= '</div>';
+        $html .= '</table>';
 
         return $html;
     }

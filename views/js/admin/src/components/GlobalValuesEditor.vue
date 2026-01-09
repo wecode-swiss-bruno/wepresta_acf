@@ -5,6 +5,7 @@ import { useTranslations } from '@/composables/useTranslations'
 import { useApi } from '@/composables/useApi'
 import type { AcfField } from '@/types'
 import FileUploadField from '@/components/ui/FileUploadField.vue'
+import RepeaterGlobalField from '@/components/ui/RepeaterGlobalField.vue'
 
 const emit = defineEmits<{
   'next-step': []
@@ -467,13 +468,23 @@ const entityTypeLabel = computed(() => {
           @update:model-value="updateFieldValue(field, $event)"
         />
 
+        <!-- Repeater -->
+        <RepeaterGlobalField
+          v-else-if="field.type === 'repeater'"
+          :field="field"
+          :model-value="getFieldValue(field)"
+          :languages="languages"
+          :default-language="defaultLanguage"
+          @update:model-value="updateFieldValue(field, $event)"
+        />
+
         <!-- Fallback for unsupported types -->
         <div v-else class="alert alert-warning">
           <i class="material-icons mr-2" style="vertical-align: middle;">warning</i>
           Field type <code>{{ field.type }}</code> is not yet supported for global values.
           <br>
           <small class="text-muted mt-1 d-block">
-            Supported types: text, textarea, number, email, url, date, color, boolean, select, file, image, video
+            Supported types: text, textarea, number, email, url, date, color, boolean, select, file, image, video, repeater
           </small>
         </div>
 

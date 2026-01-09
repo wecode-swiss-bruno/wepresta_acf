@@ -80,7 +80,16 @@ final class ColorField extends AbstractFieldType
             return '';
         }
 
-        $color = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        // Convert to string and handle empty values
+        $stringValue = (string) $actualValue;
+        if ($stringValue === '') {
+            return '';
+        }
+
+        $color = htmlspecialchars($stringValue, ENT_QUOTES, 'UTF-8');
         $showHex = $this->getConfigValue($fieldConfig, 'showHex', true);
 
         $html = sprintf(

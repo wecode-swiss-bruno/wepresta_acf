@@ -171,8 +171,11 @@ class StarRatingField extends AbstractFieldType
      */
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
         $maxStars = (int) ($fieldConfig['max_stars'] ?? 5);
-        $rating = (float) $value;
+        $rating = (float) $actualValue;
         $allowHalf = !empty($fieldConfig['allow_half']);
         $starSize = (int) ($fieldConfig['star_size'] ?? 24);
         $colorFilled = htmlspecialchars($fieldConfig['color_filled'] ?? '#ffc107', ENT_QUOTES, 'UTF-8');

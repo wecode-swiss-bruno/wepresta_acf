@@ -82,8 +82,17 @@ final class TextareaField extends AbstractFieldType
             return '';
         }
 
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        // Convert to string and handle empty values
+        $stringValue = (string) $actualValue;
+        if ($stringValue === '') {
+            return '';
+        }
+
         // Escape HTML and convert newlines to <br>
-        $output = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+        $output = htmlspecialchars($stringValue, ENT_QUOTES, 'UTF-8');
         $output = nl2br($output);
 
         // Add prefix/suffix for display

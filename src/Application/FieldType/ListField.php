@@ -159,7 +159,10 @@ final class ListField extends AbstractFieldType
      */
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
-        $items = $this->denormalizeValue($value, $fieldConfig);
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        $items = $this->denormalizeValue($actualValue, $fieldConfig);
 
         if (count($items) === 0) {
             return '';

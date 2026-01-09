@@ -72,6 +72,26 @@ abstract class AbstractFieldType implements FieldTypeInterface
     }
 
     /**
+     * Helper method to extract the correct value for translatable fields.
+     *
+     * For translatable fields, values are stored as arrays with language keys.
+     * This method extracts the value for the current language.
+     */
+    protected function extractTranslatableValue(mixed $value): mixed
+    {
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        // Get current language ID
+        $contextAdapter = new \WeprestaAcf\Wedev\Core\Adapter\ContextAdapter();
+        $currentLangId = $contextAdapter->getLanguageId();
+
+        // Extract value for current language, fallback to first available value
+        return $value[$currentLangId] ?? reset($value) ?? null;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string

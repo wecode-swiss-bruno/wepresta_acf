@@ -66,7 +66,16 @@ final class EmailField extends AbstractFieldType
             return '';
         }
 
-        $email = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        // Convert to string and handle empty values
+        $stringValue = (string) $actualValue;
+        if ($stringValue === '') {
+            return '';
+        }
+
+        $email = htmlspecialchars($stringValue, ENT_QUOTES, 'UTF-8');
 
         // Add prefix/suffix for display
         $prefix = $fieldConfig['prefix'] ?? '';

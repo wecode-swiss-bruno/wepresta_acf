@@ -114,9 +114,16 @@ final class DateField extends AbstractFieldType
             return '';
         }
 
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        if ($actualValue === null || $actualValue === '') {
+            return '';
+        }
+
         // Get timestamp
-        $timestamp = is_numeric($value) ? (int) $value : (
-            $value instanceof \DateTimeInterface ? $value->getTimestamp() : strtotime((string) $value)
+        $timestamp = is_numeric($actualValue) ? (int) $actualValue : (
+            $actualValue instanceof \DateTimeInterface ? $actualValue->getTimestamp() : strtotime((string) $actualValue)
         );
 
         if ($timestamp === false || $timestamp === 0) {

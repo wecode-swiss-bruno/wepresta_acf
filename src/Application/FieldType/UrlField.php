@@ -74,7 +74,16 @@ final class UrlField extends AbstractFieldType
             return '';
         }
 
-        $url = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        // Convert to string and handle empty values
+        $stringValue = (string) $actualValue;
+        if ($stringValue === '') {
+            return '';
+        }
+
+        $url = htmlspecialchars($stringValue, ENT_QUOTES, 'UTF-8');
         $target = $this->getConfigValue($fieldConfig, 'target', '_blank');
         $linkText = $this->getConfigValue($fieldConfig, 'linkText', '');
 

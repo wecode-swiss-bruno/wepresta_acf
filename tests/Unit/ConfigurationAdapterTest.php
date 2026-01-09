@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Unit;
 
-use WeprestaAcf\Infrastructure\Adapter\ConfigurationAdapter;
+use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 use PHPUnit\Framework\TestCase;
 
 /**

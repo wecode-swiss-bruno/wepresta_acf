@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
 import { useFieldConfig } from '@/composables/useFieldConfig'
@@ -48,13 +48,21 @@ function parseChoices(input: unknown): Choice[] {
 
 // Choices with v-model on ChoicesEditor
 const choices = ref<Choice[]>(parseChoices(props.config.choices))
+const isUpdatingChoices = ref(false)
 
 watch(() => props.config.choices, (newChoices) => {
-  choices.value = parseChoices(newChoices)
+  if (!isUpdatingChoices.value) {
+    choices.value = parseChoices(newChoices)
+  }
 })
 
 watch(choices, (newChoices) => {
+  isUpdatingChoices.value = true
   updateConfig('choices', newChoices)
+  // Reset flag on next tick
+  nextTick(() => {
+    isUpdatingChoices.value = false
+  })
 }, { deep: true })
 
 // Boolean with auto-conversion

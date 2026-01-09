@@ -121,9 +121,18 @@ final class RichTextField extends AbstractFieldType
             return '';
         }
 
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        // Convert to string and handle empty values
+        $stringValue = (string) $actualValue;
+        if ($stringValue === '') {
+            return '';
+        }
+
         // Return HTML as-is since it was sanitized on save
         // The template should use {$value nofilter} for this
-        return (string) $value;
+        return $stringValue;
     }
 
     public function getIndexValue(mixed $value, array $fieldConfig = []): ?string

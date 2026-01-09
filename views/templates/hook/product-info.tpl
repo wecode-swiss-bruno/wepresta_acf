@@ -26,6 +26,20 @@
     </div>
 </div>
 
+
+$ingredients = acf_field('ingredients');
+
+{if $ingredients}
+    <div class="acf-field acf-field--repeater">
+        <span class="acf-field__label">Ingredients:</span>
+        foreach ($ingredients as $ingredient) {
+            <div class="acf-field__value">{$ingredient.name}</div>
+            <div class="acf-field__value">{$ingredient.quantity}</div>
+            <div class="acf-field__value">{$ingredient.unit}</div>
+        }
+    </div>
+{/if}
+
 <style>
 /* ACF Product Info Styles */
 .acf-product-info {

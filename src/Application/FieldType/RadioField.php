@@ -77,6 +77,13 @@ final class RadioField extends AbstractFieldType
             return '';
         }
 
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        if ($actualValue === null || $actualValue === '') {
+            return '';
+        }
+
         // Get label for selected value
         $choices = $fieldConfig['choices'] ?? [];
         if (\is_string($choices)) {
@@ -87,13 +94,13 @@ final class RadioField extends AbstractFieldType
         }
 
         foreach ($choices as $choice) {
-            if (($choice['value'] ?? '') === $value) {
-                return htmlspecialchars($choice['label'] ?? $value, ENT_QUOTES, 'UTF-8');
+            if (($choice['value'] ?? '') === $actualValue) {
+                return htmlspecialchars($choice['label'] ?? $actualValue, ENT_QUOTES, 'UTF-8');
             }
         }
 
         // Fallback to value if no label found
-        return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+        return htmlspecialchars((string) $actualValue, ENT_QUOTES, 'UTF-8');
     }
 
     public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array

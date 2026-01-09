@@ -132,7 +132,16 @@ final class NumberField extends AbstractFieldType
             return '';
         }
 
-        $numericValue = (float) $value;
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        // Convert to string and handle empty values
+        $stringValue = (string) $actualValue;
+        if ($stringValue === '') {
+            return '';
+        }
+
+        $numericValue = (float) $stringValue;
         $decimals = $this->getConfigValue($fieldConfig, 'decimals', 2);
 
         // Format number

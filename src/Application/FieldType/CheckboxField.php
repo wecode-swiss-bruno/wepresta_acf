@@ -99,7 +99,10 @@ final class CheckboxField extends AbstractFieldType
 
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
-        $values = $this->denormalizeValue($value, $fieldConfig);
+        // Extract value for current language if translatable
+        $actualValue = $this->extractTranslatableValue($value);
+
+        $values = $this->denormalizeValue($actualValue, $fieldConfig);
 
         if (empty($values)) {
             return '';

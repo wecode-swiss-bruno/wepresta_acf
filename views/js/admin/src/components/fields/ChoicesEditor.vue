@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 
 export interface Choice {
   value: string
@@ -23,10 +23,13 @@ const emit = defineEmits<{
 
 // Local choices state
 const choices = ref<Choice[]>([...props.modelValue])
+const isUpdating = ref(false)
 
 // Sync from props
 watch(() => props.modelValue, (newVal) => {
-  choices.value = [...newVal]
+  if (!isUpdating.value) {
+    choices.value = [...newVal]
+  }
 })
 
 function addChoice(): void {
@@ -45,7 +48,12 @@ function updateChoice(index: number, field: 'value' | 'label', value: string): v
 }
 
 function emitChoices(): void {
+  isUpdating.value = true
   emit('update:modelValue', [...choices.value])
+  // Reset flag on next tick to allow prop updates
+  nextTick(() => {
+    isUpdating.value = false
+  })
 }
 </script>
 
