@@ -206,7 +206,7 @@ function getEntityTypeLabel(entityType: string): string {
     <div v-if="rules.length > 0" class="mb-4">
       <h4 class="mb-3">
         <i class="material-icons text-success mr-2" style="vertical-align: middle;">check_circle</i>
-        Active Display Rules
+        Active Location Rules
       </h4>
       <p class="text-muted mb-3">Your custom fields will appear on these content types:</p>
       <div class="list-group">
@@ -303,7 +303,7 @@ function getEntityTypeLabel(entityType: string): string {
           </span>
           <span v-else>
             <i class="material-icons mr-1" style="font-size: 18px; vertical-align: middle;">add</i>
-            {{ t('addRule') || 'Add Display Rule' }}
+            {{ t('addRule') || 'Add Location Rule' }}
           </span>
         </button>
       </div>
