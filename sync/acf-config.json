@@ -33,14 +33,6 @@
             "priority": 10,
             "active": true,
             "bo_options": [],
-            "fo_options": {
-                "visible": true,
-                "valueScope": "global",
-                "displayHooks": {
-                    "product": "displayProductAdditionalInfo",
-                    "category": "displayHeaderCategory"
-                }
-            },
             "shop_ids": [
                 1
             ],
@@ -62,9 +54,6 @@
                     "wrapper": {
                         "width": "100"
                     },
-                    "fo_options": {
-                        "visible": true
-                    }
                 }
             ],
             "field_values": [

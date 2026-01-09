@@ -44,7 +44,6 @@ interface AcfFieldValueRepositoryInterface
      * 
      * @return array<int, array{slug: string, title: string, type: string, value: mixed, instructions: string|null, config: array<string, mixed>, fo_options: array<string, mixed>}>
      */
-    public function findByEntityWithMetaForHook(string $entityType, int $entityId, string $hookName, ?int $shopId = null, ?int $langId = null): array;
 
     public function findByFieldAndEntity(int $fieldId, string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): ?string;
 

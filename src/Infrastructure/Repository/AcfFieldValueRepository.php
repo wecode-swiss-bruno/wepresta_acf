@@ -199,48 +199,52 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         return $values;
     }
 
-    public function findByEntityWithMetaForHook(string $entityType, int $entityId, string $hookName, ?int $shopId = null, ?int $langId = null): array
+
+    public function findByEntityWithMeta(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
     {
+        // Fallback: get all fields without hook filtering
         $shopId ??= (int) Context::getContext()->shop->id;
         $langId ??= (int) Context::getContext()->language->id;
 
         $sql = new DbQuery();
-        $sql->select('fv.value, f.slug, f.title, f.type, f.instructions, f.config, f.fo_options, f.wrapper, f.position, f.' . self::FIELD_FK . ', g.fo_options AS group_fo_options, fv.entity_type AS value_entity_type')
-            ->from($this->getTableName(), 'fv')
-            ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
-            ->innerJoin(self::GROUP_TABLE, 'g', 'f.id_wepresta_acf_group = g.id_wepresta_acf_group')
-            // For global scope groups: accept values with entity_id=0 regardless of entity_type
-            // For entity scope groups: only accept values with matching entity_type
-            ->where('(
-                (JSON_UNQUOTE(JSON_EXTRACT(g.fo_options, "$.valueScope")) = "global" AND fv.entity_id = 0)
-                OR
-                ((JSON_UNQUOTE(JSON_EXTRACT(g.fo_options, "$.valueScope")) != "global" OR g.fo_options IS NULL) AND fv.entity_type = "' . pSQL($entityType) . '" AND (fv.entity_id = ' . (int) $entityId . ' OR fv.entity_id = 0))
-            )')
-            ->where('fv.id_shop = ' . (int) $shopId)
-            ->where('f.active = 1')
-            ->where('g.active = 1')
-            ->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)')
-            ->where('fv.' . $this->getPrimaryKey() . ' = (
-                SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2
-                INNER JOIN `' . $this->dbPrefix . self::FIELD_TABLE . '` f2 ON fv2.' . self::FIELD_FK . ' = f2.' . self::FIELD_FK . '
-                INNER JOIN `' . $this->dbPrefix . self::GROUP_TABLE . '` g2 ON f2.id_wepresta_acf_group = g2.id_wepresta_acf_group
-                WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . '
-                AND (
-                    (JSON_UNQUOTE(JSON_EXTRACT(g2.fo_options, "$.valueScope")) = "global" AND fv2.entity_id = 0)
-                    OR
-                    ((JSON_UNQUOTE(JSON_EXTRACT(g2.fo_options, "$.valueScope")) != "global" OR g2.fo_options IS NULL) AND fv2.entity_type = fv.entity_type AND (fv2.entity_id = fv.entity_id OR (fv2.entity_id = 0 AND fv.entity_id = 0)))
-                )
-                AND fv2.id_shop = fv.id_shop
-                AND (fv2.id_lang = fv.id_lang OR (fv2.id_lang IS NULL AND fv.id_lang IS NULL))
-            )');
-
-        // Filter by display hook if specified
-        if (!empty($hookName)) {
-            // Check displayHooks.{entityType} = hookName
-            $sql->where('g.fo_options IS NOT NULL');
-            $sql->where('JSON_UNQUOTE(JSON_EXTRACT(g.fo_options, "$.displayHooks.' . pSQL($entityType) . '")) = "' . pSQL($hookName) . '"');
-        }
-
+        $sql->select('
+            fv.id_wepresta_acf_field_value,
+            fv.id_wepresta_acf_field,
+            fv.entity_type,
+            fv.entity_id,
+            fv.id_shop,
+            fv.id_lang,
+            fv.value,
+            fv.value_index,
+            f.uuid as field_uuid,
+            f.title as field_title,
+            f.slug as field_slug,
+            f.instructions as field_instructions,
+            f.type as field_type,
+            f.config as field_config,
+            f.validation as field_validation,
+            f.conditions as field_conditions,
+            f.wrapper as field_wrapper,
+            f.position as field_position,
+            f.translatable as field_translatable,
+            g.uuid as group_uuid,
+            g.title as group_title,
+            g.bo_options as group_bo_options
+        ');
+        $sql->from('wepresta_acf_field_value', 'fv');
+        $sql->innerJoin('wepresta_acf_field', 'f', 'fv.id_wepresta_acf_field = f.id_wepresta_acf_field');
+        $sql->innerJoin('wepresta_acf_group', 'g', 'f.id_wepresta_acf_group = g.id_wepresta_acf_group');
+        
+        // Filter by entity
+        $sql->where('fv.entity_type = "' . pSQL($entityType) . '"');
+        $sql->where('fv.entity_id = ' . (int) $entityId);
+        $sql->where('fv.id_shop = ' . (int) $shopId);
+        $sql->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)');
+        
+        // Only active fields and groups
+        $sql->where('f.active = 1');
+        $sql->where('g.active = 1');
+        
         $sql->orderBy('f.position ASC');
 
         $results = $this->db->executeS($sql);
@@ -249,42 +253,19 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             return [];
         }
 
-        $fields = [];
+        $processedResults = [];
         foreach ($results as $row) {
-            // Check if group is in global scope mode
-            $groupFoOptions = json_decode($row['group_fo_options'] ?? '{}', true);
-            $isGlobalScope = ($groupFoOptions['valueScope'] ?? 'entity') === 'global';
+            // Decode JSON fields
+            $row['field_config'] = json_decode($row['field_config'] ?: '[]', true);
+            $row['field_validation'] = json_decode($row['field_validation'] ?: '[]', true);
+            $row['field_conditions'] = json_decode($row['field_conditions'] ?: '[]', true);
+            $row['field_wrapper'] = json_decode($row['field_wrapper'] ?: '{}', true);
+            $row['group_bo_options'] = json_decode($row['group_bo_options'] ?: '{}', true);
             
-            // If global scope, only use entity_id = 0 values
-            // If entity scope, prefer entity-specific values over global (but allow global as fallback if no specific value)
-            if ($isGlobalScope) {
-                // For global scope, we want the value with entity_id = 0
-                // Skip entity-specific values
-                // (The query should already handle this, but double-check)
-            }
-            
-            $value = $row['value'];
-            $decodedValue = $value === null ? null : (json_decode($value, true) ?? $value);
-            $fields[] = [
-                'id_wepresta_acf_field' => (int) $row[self::FIELD_FK],
-                'slug' => $row['slug'],
-                'title' => $row['title'],
-                'type' => $row['type'],
-                'value' => $decodedValue,
-                'instructions' => $row['instructions'] ?: null,
-                'config' => json_decode($row['config'] ?? '{}', true) ?? [],
-                'fo_options' => json_decode($row['fo_options'] ?? '{}', true) ?? [],
-                'wrapper' => json_decode($row['wrapper'] ?? '{}', true) ?? [],
-            ];
+            $processedResults[] = $row;
         }
 
-        return $fields;
-    }
-
-    public function findByEntityWithMeta(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
-    {
-        // Fallback: get all fields without hook filtering
-        return $this->findByEntityWithMetaForHook($entityType, $entityId, '', $shopId, $langId);
+        return $processedResults;
     }
 
     public function findByFieldAndEntity(int $fieldId, string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): ?string
