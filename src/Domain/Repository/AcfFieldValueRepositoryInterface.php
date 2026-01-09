@@ -7,13 +7,8 @@ namespace WeprestaAcf\Domain\Repository;
 interface AcfFieldValueRepositoryInterface
 {
     // Legacy product-specific methods (backward compatibility)
-    /** @return array<string, mixed> */
-    public function findByProduct(int $productId, ?int $shopId = null, ?int $langId = null): array;
-
     /** @return array<int, array{slug: string, title: string, type: string, value: mixed, instructions: string|null, config: array<string, mixed>, fo_options: array<string, mixed>}> */
     public function findByProductWithMeta(int $productId, ?int $shopId = null, ?int $langId = null): array;
-
-    public function findByFieldAndProduct(int $fieldId, int $productId, ?int $shopId = null, ?int $langId = null): ?string;
 
     public function save(
         int $fieldId,
@@ -27,9 +22,6 @@ interface AcfFieldValueRepositoryInterface
 
     public function deleteByProduct(int $productId, ?int $shopId = null): bool;
     public function deleteByFieldAndProduct(int $fieldId, int $productId, ?int $shopId = null, ?int $langId = null): bool;
-
-    /** @return array<int> */
-    public function findProductsByFieldValue(int $fieldId, string $value, ?int $shopId = null): array;
 
     // New generic entity methods
     /** @return array<string, mixed> */
@@ -80,5 +72,14 @@ interface AcfFieldValueRepositoryInterface
 
     /** @return array<int> */
     public function findEntitiesByFieldValue(int $fieldId, string $value, string $entityType, ?int $shopId = null): array;
+
+    /**
+     * Find all field values for all fields in a group.
+     * Used for export functionality.
+     *
+     * @param int $groupId Group ID
+     * @return array<array<string, mixed>> Array of field values with all columns
+     */
+    public function findAllByGroup(int $groupId): array;
 }
 

@@ -101,6 +101,27 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
     }
 
     /**
+     * Get shop IDs associated with a group.
+     *
+     * @param int $groupId Group ID
+     * @return array<int> Array of shop IDs
+     */
+    public function getShopIds(int $groupId): array
+    {
+        $sql = new DbQuery();
+        $sql->select('id_shop')
+            ->from(self::TABLE_SHOP)
+            ->where($this->getPrimaryKey() . ' = ' . (int) $groupId);
+
+        $results = $this->db->executeS($sql);
+        if (!$results) {
+            return [];
+        }
+
+        return array_map(static fn(array $row): int => (int) $row['id_shop'], $results);
+    }
+
+    /**
      * Associate a group with a shop.
      */
     public function addShopAssociation(int $groupId, int $shopId): bool
@@ -109,6 +130,20 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
             $this->getPrimaryKey() => (int) $groupId,
             'id_shop' => (int) $shopId,
         ], false, true, \Db::ON_DUPLICATE_KEY);
+    }
+
+    /**
+     * Remove all shop associations for a group.
+     *
+     * @param int $groupId Group ID
+     * @return bool Success
+     */
+    public function removeAllShopAssociations(int $groupId): bool
+    {
+        return $this->db->delete(
+            self::TABLE_SHOP,
+            $this->getPrimaryKey() . ' = ' . (int) $groupId
+        );
     }
 
     /**

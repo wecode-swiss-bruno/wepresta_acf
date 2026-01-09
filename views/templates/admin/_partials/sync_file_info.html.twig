@@ -1,0 +1,51 @@
+{#
+ * Sync File Info Partial
+ * Displays information about the sync configuration file
+ #}
+{% if fileInfo and fileInfo.exists %}
+    <div class="alert alert-light border">
+        <div class="d-flex align-items-center mb-2">
+            <i class="material-icons mr-2">folder</i>
+            <strong>{{ 'File:'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong>
+            <code class="ml-2">/modules/wepresta_acf/sync/acf-config.json</code>
+        </div>
+        <div class="d-flex align-items-center mb-2">
+            <i class="material-icons mr-2">schedule</i>
+            <strong>{{ 'Last update:'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong>
+            <span class="ml-2">
+                {% if fileInfo.updated_at %}
+                    {{ fileInfo.updated_at }}
+                {% else %}
+                    {{ 'Unknown'|trans({}, 'Admin.Global') }}
+                {% endif %}
+            </span>
+        </div>
+        <div class="d-flex align-items-center mb-2">
+            <i class="material-icons mr-2">assessment</i>
+            <strong>{{ 'Content:'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong>
+            <span class="ml-2">{{ fileInfo.groups_count }} {{ 'groups'|trans({}, 'Modules.Weprestaacf.Admin') }}, {{ fileInfo.fields_count }} {{ 'fields'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
+        </div>
+        {% if syncStatus %}
+            <div class="d-flex align-items-center mt-2 pt-2 border-top">
+                {% if syncStatus.status == 'synced' %}
+                    <i class="material-icons text-success mr-2">check_circle</i>
+                    <strong class="text-success">{{ 'Status:'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong>
+                    <span class="ml-2 text-success">{{ 'Synchronized'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
+                {% elseif syncStatus.status == 'file_newer' %}
+                    <i class="material-icons text-warning mr-2">arrow_downward</i>
+                    <strong class="text-warning">{{ 'Status:'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong>
+                    <span class="ml-2 text-warning">{{ 'File is newer - Import available'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
+                {% elseif syncStatus.status == 'db_newer' %}
+                    <i class="material-icons text-info mr-2">arrow_upward</i>
+                    <strong class="text-info">{{ 'Status:'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong>
+                    <span class="ml-2 text-info">{{ 'Database is newer - Export available'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="alert alert-warning">
+        <i class="material-icons">warning</i>
+        {{ 'No configuration file found. Export to create the file.'|trans({}, 'Modules.Weprestaacf.Admin') }}
+    </div>
+{% endif %}

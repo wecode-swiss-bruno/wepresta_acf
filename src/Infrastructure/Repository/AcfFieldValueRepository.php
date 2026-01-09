@@ -28,22 +28,10 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         return 'id_wepresta_acf_field_value';
     }
 
-    public function findByProduct(int $productId, ?int $shopId = null, ?int $langId = null): array
-    {
-        // Use generic method for backward compatibility
-        return $this->findByEntity('product', $productId, $shopId, $langId);
-    }
-
     public function findByProductWithMeta(int $productId, ?int $shopId = null, ?int $langId = null): array
     {
         // Use generic method for backward compatibility
         return $this->findByEntityWithMeta('product', $productId, $shopId, $langId);
-    }
-
-    public function findByFieldAndProduct(int $fieldId, int $productId, ?int $shopId = null, ?int $langId = null): ?string
-    {
-        // Use generic method for backward compatibility
-        return $this->findByFieldAndEntity($fieldId, 'product', $productId, $shopId, $langId);
     }
 
     public function save(
@@ -80,11 +68,6 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
     {
         $where = self::FIELD_FK . ' = ' . (int) $fieldId . ' AND id_lang IS NOT NULL';
         return $this->db->delete($this->getTableName(), $where);
-    }
-
-    public function findProductsByFieldValue(int $fieldId, string $value, ?int $shopId = null): array
-    {
-        return $this->findEntitiesByFieldValue($fieldId, $value, 'product', $shopId);
     }
 
     // =========================================================================
@@ -222,24 +205,30 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         $langId ??= (int) Context::getContext()->language->id;
 
         $sql = new DbQuery();
-        $sql->select('fv.value, f.slug, f.title, f.type, f.instructions, f.config, f.fo_options, f.wrapper, f.position, f.' . self::FIELD_FK . ', g.fo_options AS group_fo_options')
+        $sql->select('fv.value, f.slug, f.title, f.type, f.instructions, f.config, f.fo_options, f.wrapper, f.position, f.' . self::FIELD_FK . ', g.fo_options AS group_fo_options, fv.entity_type AS value_entity_type')
             ->from($this->getTableName(), 'fv')
             ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
             ->innerJoin(self::GROUP_TABLE, 'g', 'f.id_wepresta_acf_group = g.id_wepresta_acf_group')
-            ->where('fv.entity_type = "' . pSQL($entityType) . '"')
-            // ⚠️ Modified: entity_id = entityId OR entity_id = 0 (global values)
-            ->where('(fv.entity_id = ' . (int) $entityId . ' OR fv.entity_id = 0)')
+            // For global scope groups: accept values with entity_id=0 regardless of entity_type
+            // For entity scope groups: only accept values with matching entity_type
+            ->where('(
+                (JSON_UNQUOTE(JSON_EXTRACT(g.fo_options, "$.valueScope")) = "global" AND fv.entity_id = 0)
+                OR
+                ((JSON_UNQUOTE(JSON_EXTRACT(g.fo_options, "$.valueScope")) != "global" OR g.fo_options IS NULL) AND fv.entity_type = "' . pSQL($entityType) . '" AND (fv.entity_id = ' . (int) $entityId . ' OR fv.entity_id = 0))
+            )')
             ->where('fv.id_shop = ' . (int) $shopId)
             ->where('f.active = 1')
             ->where('g.active = 1')
             ->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)')
             ->where('fv.' . $this->getPrimaryKey() . ' = (
                 SELECT MAX(fv2.' . $this->getPrimaryKey() . ') FROM `' . $this->dbPrefix . $this->getTableName() . '` fv2
+                INNER JOIN `' . $this->dbPrefix . self::FIELD_TABLE . '` f2 ON fv2.' . self::FIELD_FK . ' = f2.' . self::FIELD_FK . '
+                INNER JOIN `' . $this->dbPrefix . self::GROUP_TABLE . '` g2 ON f2.id_wepresta_acf_group = g2.id_wepresta_acf_group
                 WHERE fv2.' . self::FIELD_FK . ' = fv.' . self::FIELD_FK . '
-                AND fv2.entity_type = fv.entity_type 
                 AND (
-                    fv2.entity_id = fv.entity_id
-                    OR (fv2.entity_id = 0 AND fv.entity_id = 0)
+                    (JSON_UNQUOTE(JSON_EXTRACT(g2.fo_options, "$.valueScope")) = "global" AND fv2.entity_id = 0)
+                    OR
+                    ((JSON_UNQUOTE(JSON_EXTRACT(g2.fo_options, "$.valueScope")) != "global" OR g2.fo_options IS NULL) AND fv2.entity_type = fv.entity_type AND (fv2.entity_id = fv.entity_id OR (fv2.entity_id = 0 AND fv.entity_id = 0)))
                 )
                 AND fv2.id_shop = fv.id_shop
                 AND (fv2.id_lang = fv.id_lang OR (fv2.id_lang IS NULL AND fv.id_lang IS NULL))
@@ -410,14 +399,30 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             ->from($this->getTableName())
             ->where(self::FIELD_FK . ' = ' . (int) $fieldId)
             ->where('entity_type = "' . pSQL($entityType) . '"')
-            ->where("value_index = '" . pSQL($value) . "'");
+            ->where('value_index = "' . pSQL($value) . '"');
 
         if ($shopId !== null) {
             $sql->where('id_shop = ' . (int) $shopId);
         }
 
         $results = $this->db->executeS($sql);
+        return $results ? array_map(fn($r) => (int) $r['entity_id'], $results) : [];
+    }
 
-        return $results ? array_column($results, 'entity_id') : [];
+    /**
+     * Find all field values for all fields in a group.
+     * Used for export functionality.
+     */
+    public function findAllByGroup(int $groupId): array
+    {
+        $sql = new DbQuery();
+        $sql->select('fv.*')
+            ->from($this->getTableName(), 'fv')
+            ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
+            ->where('f.id_wepresta_acf_group = ' . (int) $groupId)
+            ->orderBy('fv.' . $this->getPrimaryKey() . ' ASC');
+
+        $results = $this->db->executeS($sql);
+        return $results ?: [];
     }
 }

@@ -1,0 +1,104 @@
+{#
+ * WePresta ACF - Common Macros for Admin Templates
+ * Reusable components to avoid code duplication
+ #}
+
+{# -----------------------------------------------------------------------------
+ # Card with Header
+ # Usage: {{ common.card('Title', 'icon_name', 'md', content_html) }}
+ # Or: {% set card_content %}...{% endset %}{{ common.card('Title', 'icon', 'md', card_content) }}
+ # -------------------------------------------------------------------------- #}
+{% macro card(title, icon, iconSize, content, class) %}
+    <div class="card {{ class|default('mb-4') }}">
+        <div class="card-header">
+            <h3 class="card-header-title">
+                {% if icon %}
+                    {% import '@Modules/wepresta_acf/src/Wedev/Extension/UI/Twig/Macros/admin.html.twig' as ui %}
+                    {{ ui.icon(icon, iconSize|default('md')) }}
+                {% endif %}
+                {{ title }}
+            </h3>
+        </div>
+        <div class="card-body">
+            {{ content|default('')|raw }}
+        </div>
+    </div>
+{% endmacro %}
+
+{# -----------------------------------------------------------------------------
+ # Toolbar Save Button - Note: Cannot use macro, must define directly in template
+ # Usage: Copy the array definition directly in your template
+ # -------------------------------------------------------------------------- #}
+
+{# -----------------------------------------------------------------------------
+ # Back Button
+ # Usage: {{ common.back_button(path('route_name')) }}
+ # -------------------------------------------------------------------------- #}
+{% macro back_button(url) %}
+    <div class="mb-3">
+        <a href="{{ url }}" class="btn btn-outline-secondary">
+            <i class="material-icons">arrow_back</i>
+            {{ 'Back'|trans({}, 'Admin.Global') }}
+        </a>
+    </div>
+{% endmacro %}
+
+{# -----------------------------------------------------------------------------
+ # Alert Box
+ # Usage: {{ common.alert('message', 'info', 'title') }}
+ # -------------------------------------------------------------------------- #}
+{% macro alert(message, type, title, icon) %}
+    <div class="alert alert-{{ type|default('info') }}">
+        {% if icon %}
+            <i class="material-icons">{{ icon }}</i>
+        {% endif %}
+        {% if title %}
+            <strong>{{ title }}</strong>
+        {% endif %}
+        {{ message }}
+    </div>
+{% endmacro %}
+
+{# -----------------------------------------------------------------------------
+ # Form Group Row
+ # Usage: {{ common.form_group_row(form.field, 'Label') }}
+ # -------------------------------------------------------------------------- #}
+{% macro form_group_row(field, label, help) %}
+    <div class="form-group row">
+        {% if label %}
+            <label class="form-control-label col-sm-3">
+                {{ label }}
+            </label>
+        {% else %}
+            {{ form_label(field) }}
+        {% endif %}
+        <div class="col-sm-9">
+            {{ form_widget(field) }}
+            {{ form_errors(field) }}
+            {% if help %}
+                <small class="form-text text-muted">{{ help }}</small>
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}
+
+{# -----------------------------------------------------------------------------
+ # Save Button Handler Script
+ # Usage: {{ common.save_button_script('form-id') }}
+ # -------------------------------------------------------------------------- #}
+{% macro save_button_script(formId) %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const saveBtn = document.querySelector('[id*="save"]');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = document.getElementById('{{ formId }}');
+                if (form) {
+                    form.submit();
+                }
+            });
+        }
+    });
+    </script>
+{% endmacro %}

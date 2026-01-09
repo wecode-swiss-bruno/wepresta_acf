@@ -1,0 +1,31 @@
+{#
+ * WePresta ACF - Base Layout for Admin Pages
+ * Provides common structure, stylesheets, and includes
+ #}
+
+{% extends '@PrestaShop/Admin/layout.html.twig' %}
+
+{# Import WEDEV UI Macros #}
+{% import '@Modules/wepresta_acf/src/Wedev/Extension/UI/Twig/Macros/admin.html.twig' as ui %}
+{% import '@Modules/wepresta_acf/views/templates/admin/_macros/common.html.twig' as common %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="{{ asset('../modules/wepresta_acf/views/dist/admin.css') }}">
+    {% block extra_stylesheets %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+    {# Include WEDEV UI Partials #}
+    {% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/confirm-modal.html.twig' %}
+    {% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/toasts.html.twig' %}
+
+    {% block page_content %}{% endblock %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('../modules/wepresta_acf/views/dist/admin.js') }}"></script>
+    {% block extra_javascripts %}{% endblock %}
+{% endblock %}

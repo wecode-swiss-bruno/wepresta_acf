@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api;
 
+use WeprestaAcf\Application\Service\AutoSyncService;
 use WeprestaAcf\Application\Service\SlugGenerator;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface;
@@ -23,6 +24,7 @@ class FieldApiController extends FrameworkBundleAdminController
         private readonly AcfGroupRepositoryInterface $groupRepository,
         private readonly AcfFieldValueRepositoryInterface $valueRepository,
         private readonly SlugGenerator $slugGenerator,
+        private readonly AutoSyncService $autoSyncService
     ) {}
 
     public function create(int $groupId, Request $request): JsonResponse
@@ -62,6 +64,9 @@ class FieldApiController extends FrameworkBundleAdminController
             ]);
 
             $field = $this->fieldRepository->findById($fieldId);
+
+            // Mark for auto-sync export
+            $this->autoSyncService->markDirty();
 
             return $this->json(
                 ['success' => true, 'data' => $this->serializeField($field)],
@@ -120,6 +125,9 @@ class FieldApiController extends FrameworkBundleAdminController
                 $this->fieldRepository->saveFieldTranslations($id, $data['translations']);
             }
 
+            // Mark for auto-sync export
+            $this->autoSyncService->markDirty();
+
             return $this->json([
                 'success' => true,
                 'data' => $this->serializeField($this->fieldRepository->findById($id))
@@ -137,6 +145,9 @@ class FieldApiController extends FrameworkBundleAdminController
             }
 
             $this->fieldRepository->delete($id);
+
+            // Mark for auto-sync export
+            $this->autoSyncService->markDirty();
 
             return $this->json(['success' => true, 'message' => 'Field deleted successfully']);
         } catch (\Exception $e) {
@@ -156,6 +167,9 @@ class FieldApiController extends FrameworkBundleAdminController
             foreach ($data['order'] as $position => $fieldId) {
                 $this->fieldRepository->update((int) $fieldId, ['position' => $position]);
             }
+
+            // Mark for auto-sync export
+            $this->autoSyncService->markDirty();
 
             return $this->json(['success' => true, 'message' => 'Fields reordered successfully']);
         } catch (\Exception $e) {

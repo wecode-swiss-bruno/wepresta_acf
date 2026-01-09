@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api;
 
+use WeprestaAcf\Application\Service\AutoSyncService;
 use WeprestaAcf\Application\Service\SlugGenerator;
 use WeprestaAcf\Application\Service\ValueProvider;
 use WeprestaAcf\Application\Service\ValueHandler;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
+use WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,9 +22,11 @@ class GroupApiController extends FrameworkBundleAdminController
     public function __construct(
         private readonly AcfGroupRepositoryInterface $groupRepository,
         private readonly AcfFieldRepositoryInterface $fieldRepository,
+        private readonly AcfFieldValueRepositoryInterface $valueRepository,
         private readonly SlugGenerator $slugGenerator,
         private readonly ValueProvider $valueProvider,
         private readonly ValueHandler $valueHandler,
+        private readonly AutoSyncService $autoSyncService
     ) {}
 
     public function list(): JsonResponse
@@ -71,6 +75,9 @@ class GroupApiController extends FrameworkBundleAdminController
                 $this->groupRepository->saveGroupTranslations($groupId, $data['translations']);
             }
 
+            // Mark for auto-sync export
+            $this->autoSyncService->markDirty();
+
             return $this->json(['success' => true, 'data' => $this->serializeGroup($this->groupRepository->findById($groupId))], Response::HTTP_CREATED);
         } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
     }
@@ -102,6 +109,9 @@ class GroupApiController extends FrameworkBundleAdminController
                 $this->groupRepository->saveGroupTranslations($id, $data['translations']);
             }
 
+            // Mark for auto-sync export
+            $this->autoSyncService->markDirty();
+
             return $this->json(['success' => true, 'data' => $this->serializeGroup($this->groupRepository->findById($id), true)]);
         } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
     }
@@ -111,6 +121,10 @@ class GroupApiController extends FrameworkBundleAdminController
         try {
             if (!$this->groupRepository->findById($id)) { return $this->jsonError('Group not found', Response::HTTP_NOT_FOUND); }
             $this->groupRepository->delete($id);
+            
+            // Mark for auto-sync export
+            $this->autoSyncService->markDirty();
+            
             return $this->json(['success' => true, 'message' => 'Group deleted successfully']);
         } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
     }
@@ -144,6 +158,10 @@ class GroupApiController extends FrameworkBundleAdminController
                     'position' => $field['position'], 'value_translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false), 'translatable' => (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false), 'active' => $field['active'],
                 ]);
             }
+            
+            // Mark for auto-sync export
+            $this->autoSyncService->markDirty();
+            
             return $this->json(['success' => true, 'data' => $this->serializeGroup($this->groupRepository->findById($newGroupId), true)], Response::HTTP_CREATED);
         } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
     }
@@ -211,6 +229,7 @@ class GroupApiController extends FrameworkBundleAdminController
     /**
      * Get global values for a group (entity_id = 0).
      * Returns ALL languages for translatable fields.
+     * For global scope, values are shared across all entity_types, so we use the first entity_type.
      */
     public function getGlobalValues(int $id): JsonResponse
     {
@@ -220,17 +239,19 @@ class GroupApiController extends FrameworkBundleAdminController
                 return $this->jsonError('Group not found', Response::HTTP_NOT_FOUND);
             }
 
-            // Get entity_type from location_rules (first rule)
+            // Extract first entity_type from location_rules (values are stored with first entity_type)
             $locationRules = json_decode($group['location_rules'] ?? '[]', true);
             if (empty($locationRules) || !isset($locationRules[0]['=='][1])) {
                 return $this->jsonError('No entity type defined for this group', Response::HTTP_BAD_REQUEST);
             }
 
-            $entityType = $locationRules[0]['=='][1];
+            // Use first entity_type (values are stored with this type for global scope)
+            $primaryEntityType = $locationRules[0]['=='][1];
             $shopId = (int) Context::getContext()->shop->id;
 
             // Get values with entity_id = 0 (global) - including ALL languages for translatable fields
-            $values = $this->valueProvider->getEntityFieldValuesAllLanguages($entityType, 0, $shopId);
+            // These values are shared across all entity_types in the group
+            $values = $this->valueProvider->getEntityFieldValuesAllLanguages($primaryEntityType, 0, $shopId);
 
             // Ensure values is always an object in JSON, not an array
             // Use stdClass for empty to force {} instead of []
@@ -239,7 +260,7 @@ class GroupApiController extends FrameworkBundleAdminController
             return $this->json([
                 'success' => true,
                 'data' => [
-                    'entityType' => $entityType,
+                    'entityType' => $primaryEntityType,
                     'values' => $jsonValues,
                 ]
             ]);
@@ -250,6 +271,7 @@ class GroupApiController extends FrameworkBundleAdminController
 
     /**
      * Save global values for a group (entity_id = 0).
+     * For global scope, values are shared across all entity_types in the group.
      */
     public function saveGlobalValues(int $id, Request $request): JsonResponse
     {
@@ -265,21 +287,59 @@ class GroupApiController extends FrameworkBundleAdminController
                 return $this->jsonError('This group is not configured for global values', Response::HTTP_BAD_REQUEST);
             }
 
-            // Get entity_type from location_rules (first rule)
+            // Extract ALL entity types from location_rules
             $locationRules = json_decode($group['location_rules'] ?? '[]', true);
-            if (empty($locationRules) || !isset($locationRules[0]['=='][1])) {
+            if (empty($locationRules)) {
                 return $this->jsonError('No entity type defined for this group', Response::HTTP_BAD_REQUEST);
             }
 
-            $entityType = $locationRules[0]['=='][1];
+            $entityTypes = [];
+            foreach ($locationRules as $rule) {
+                if (isset($rule['==']) && isset($rule['=='][1])) {
+                    $entityType = $rule['=='][1];
+                    if (!in_array($entityType, $entityTypes, true)) {
+                        $entityTypes[] = $entityType;
+                    }
+                }
+            }
+
+            if (empty($entityTypes)) {
+                return $this->jsonError('No entity type defined for this group', Response::HTTP_BAD_REQUEST);
+            }
+
+            // Use first entity_type as primary (for storage)
+            $primaryEntityType = $entityTypes[0];
             $shopId = (int) Context::getContext()->shop->id;
 
             // Get values from request
             $data = $this->getJsonPayload($request);
             $values = $data['values'] ?? [];
 
-            // Save with entity_id = 0 (global)
-            $this->valueHandler->saveEntityFieldValues($entityType, 0, $values, $shopId);
+            // Get all fields in this group to clean up old global values
+            $groupId = (int) $group['id_wepresta_acf_group'];
+            $fields = $this->fieldRepository->findAllByGroup($groupId);
+
+            // For each field being saved, delete all existing global values (entity_id=0) for ALL entity_types
+            // This ensures we don't have duplicate values when entity_types change
+            foreach ($fields as $field) {
+                $fieldId = (int) $field['id_wepresta_acf_field'];
+                $fieldSlug = $field['slug'];
+                
+                // Only process fields that are being saved
+                if (!isset($values[$fieldSlug])) {
+                    continue;
+                }
+
+                // Delete all global values (entity_id=0) for this field across all entity_types
+                // This ensures a single shared value regardless of entity_type
+                foreach ($entityTypes as $entityType) {
+                    $this->valueRepository->deleteByFieldAndEntity($fieldId, $entityType, 0, $shopId);
+                }
+            }
+
+            // Save with primary entity_type and entity_id = 0 (global)
+            // This single value will be shared across all entity_types when reading
+            $this->valueHandler->saveEntityFieldValues($primaryEntityType, 0, $values, $shopId);
 
             return $this->json([
                 'success' => true,

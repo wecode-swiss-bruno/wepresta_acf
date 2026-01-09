@@ -1,0 +1,88 @@
+{#
+ * WePresta ACF - Export Page
+ #}
+
+{% extends '@Modules/wepresta_acf/views/templates/admin/_layout/admin_base.html.twig' %}
+
+{# Import Macros #}
+{% import '@Modules/wepresta_acf/src/Wedev/Extension/UI/Twig/Macros/admin.html.twig' as ui %}
+{% import '@Modules/wepresta_acf/views/templates/admin/_macros/common.html.twig' as common %}
+
+{% block page_content %}
+<div class="wepresta_acf-sync-export">
+    <div class="row">
+        <div class="col-12">
+            {% include '@Modules/wepresta_acf/views/templates/admin/_partials/back_button.html.twig' with {'back_url': path('wepresta_acf_sync')} %}
+
+            {% set export_content %}
+                    {# Export All Button #}
+                    <div class="text-center mb-4 p-4 border rounded">
+                        <a href="{{ path('wepresta_acf_api_export_all') }}" class="btn btn-primary btn-lg" id="export-all-btn">
+                            <i class="material-icons">archive</i>
+                            {{ 'Export All'|trans({}, 'Modules.Weprestaacf.Admin') }}
+                        </a>
+                        <p class="text-muted mt-2 mb-0">
+                            {{ 'Export all groups and their configuration'|trans({}, 'Modules.Weprestaacf.Admin') }}
+                        </p>
+                    </div>
+
+                    <hr>
+
+                    {# Export Individual Groups #}
+                    <h5 class="mb-3">{{ 'Or export a specific group:'|trans({}, 'Modules.Weprestaacf.Admin') }}</h5>
+
+                    {% if groups|length > 0 %}
+                        <div class="list-group">
+                            {% for group in groups %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ group.title }}</h6>
+                                        <small class="text-muted">
+                                            {{ group.field_count }} {{ 'fields'|trans({}, 'Modules.Weprestaacf.Admin') }} • {{ group.entity_type }}
+                                        </small>
+                                    </div>
+                                    <a href="{{ path('wepresta_acf_api_export_group', {groupId: group.id}) }}" class="btn btn-outline-primary btn-sm export-group-btn" data-group-id="{{ group.id }}">
+                                        <i class="material-icons">download</i>
+                                        {{ 'Export'|trans({}, 'Modules.Weprestaacf.Admin') }}
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="material-icons">info</i>
+                            {{ 'No groups to export.'|trans({}, 'Modules.Weprestaacf.Admin') }}
+                        </div>
+                    {% endif %}
+            {% endset %}
+            {{ common.card('Export'|trans({}, 'Modules.Weprestaacf.Admin'), 'cloud_download', 'md', export_content) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_javascripts %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle export buttons
+        const exportButtons = document.querySelectorAll('.export-group-btn, #export-all-btn');
+        
+        exportButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Show loading state
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> ' + 
+                    '{{ 'Exporting...'|trans({}, 'Modules.Weprestaacf.Admin') }}';
+                this.disabled = true;
+
+                // The download will be triggered by the browser
+                // Re-enable button after a delay in case of error
+                setTimeout(() => {
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
+                }, 3000);
+            });
+        });
+    });
+    </script>
+{% endblock %}

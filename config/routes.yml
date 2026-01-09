@@ -21,6 +21,103 @@ wepresta_acf_configuration:
         _legacy_link: AdminWeprestaAcfConfiguration
 
 # =========================================================================
+# Sync (Export/Import)
+# =========================================================================
+
+wepresta_acf_sync:
+    path: /modules/wepresta_acf/sync
+    methods: [GET, POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::index'
+        _legacy_controller: AdminWeprestaAcfSync
+        _legacy_link: AdminWeprestaAcfSync
+
+wepresta_acf_sync_export:
+    path: /modules/wepresta_acf/sync/export
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::export'
+        _legacy_controller: AdminWeprestaAcfSync
+        _legacy_link: AdminWeprestaAcfSync
+
+wepresta_acf_sync_import:
+    path: /modules/wepresta_acf/sync/import
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::import'
+        _legacy_controller: AdminWeprestaAcfSync
+        _legacy_link: AdminWeprestaAcfSync
+
+wepresta_acf_api_export_all:
+    path: /api/export/all
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportAll'
+
+wepresta_acf_api_export_group:
+    path: /api/export/group/{groupId}
+    methods: [GET]
+    requirements:
+        groupId: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportGroup'
+
+wepresta_acf_api_import_validate:
+    path: /api/import/validate
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::validateFile'
+
+wepresta_acf_api_import:
+    path: /api/import
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::importFile'
+
+# =========================================================================
+# API - Auto-Sync
+# =========================================================================
+
+wepresta_acf_api_auto_sync_toggle:
+    path: /api/auto-sync/toggle
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::toggleAutoSync'
+
+wepresta_acf_api_auto_sync_export_now:
+    path: /api/auto-sync/export-now
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportNow'
+
+wepresta_acf_api_auto_sync_import:
+    path: /api/auto-sync/import
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::importFromSync'
+
+wepresta_acf_api_auto_sync_dismiss:
+    path: /api/auto-sync/dismiss
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::dismissSyncNotification'
+
+wepresta_acf_api_auto_sync_now:
+    path: /api/auto-sync/sync-now
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::syncNow'
+
+# =========================================================================
 # API - Groups
 # =========================================================================
 
@@ -177,13 +274,6 @@ wepresta_acf_api_slugify:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::slugify'
 
-wepresta_acf_api_seed:
-    path: /api/seed
-    methods: [POST]
-    defaults:
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::seed'
-
 wepresta_acf_api_force_upgrade:
     path: /api/force-upgrade
     methods: [POST]
@@ -197,65 +287,6 @@ wepresta_acf_api_upload_file:
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::uploadFile'
-
-# =========================================================================
-# API - Sync
-# =========================================================================
-
-wepresta_acf_api_sync_status:
-    path: /api/sync/status
-    methods: [GET]
-    defaults:
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::status'
-
-wepresta_acf_api_sync_group_status:
-    path: /api/sync/status/{groupId}
-    methods: [GET]
-    requirements:
-        groupId: \d+
-    defaults:
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::groupStatus'
-
-wepresta_acf_api_sync_push:
-    path: /api/sync/push/{groupId}
-    methods: [POST]
-    requirements:
-        groupId: \d+
-    defaults:
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::push'
-
-wepresta_acf_api_sync_pull:
-    path: /api/sync/pull/{slug}
-    methods: [POST]
-    defaults:
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::pull'
-
-wepresta_acf_api_sync_push_all:
-    path: /api/sync/push-all
-    methods: [POST]
-    defaults:
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::pushAll'
-
-wepresta_acf_api_sync_pull_all:
-    path: /api/sync/pull-all
-    methods: [POST]
-    defaults:
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::pullAll'
-
-wepresta_acf_api_sync_export:
-    path: /api/sync/export/{groupId}
-    methods: [GET]
-    requirements:
-        groupId: \d+
-    defaults:
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::export'
 
 # =========================================================================
 # API - Field Types Management

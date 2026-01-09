@@ -1,0 +1,131 @@
+{#
+ * WePresta ACF - Import Page
+ #}
+
+{% extends '@Modules/wepresta_acf/views/templates/admin/_layout/admin_base.html.twig' %}
+
+{# Import Macros #}
+{% import '@Modules/wepresta_acf/src/Wedev/Extension/UI/Twig/Macros/admin.html.twig' as ui %}
+{% import '@Modules/wepresta_acf/views/templates/admin/_macros/common.html.twig' as common %}
+
+{% block extra_stylesheets %}
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .drop-zone:hover {
+            border-color: #25b9d7;
+            background: #e8f4f8;
+        }
+        .drop-zone.dragover {
+            border-color: #25b9d7;
+            background: #d1ecf1;
+        }
+        .drop-zone.has-file {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .file-preview {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .import-mode-radio {
+            margin: 20px 0;
+        }
+        .import-mode-radio label {
+            display: block;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .import-mode-radio input[type="radio"]:checked + label {
+            border-color: #25b9d7;
+            background: #e8f4f8;
+        }
+    </style>
+{% endblock %}
+
+{% block page_content %}
+<div class="wepresta_acf-sync-import">
+    <div class="row">
+        <div class="col-12">
+            {% include '@Modules/wepresta_acf/views/templates/admin/_partials/back_button.html.twig' with {'back_url': path('wepresta_acf_sync')} %}
+
+            {% set import_content %}
+                    {# File Drop Zone #}
+                    <div class="drop-zone" id="drop-zone">
+                        <input type="file" id="file-input" accept=".json" style="display: none;">
+                        <i class="material-icons" style="font-size: 48px; color: #6c757d; margin-bottom: 15px;">cloud_upload</i>
+                        <h5>{{ 'Drop JSON file here or click to select'|trans({}, 'Modules.Weprestaacf.Admin') }}</h5>
+                        <p class="text-muted mb-0">{{ 'Only JSON files are allowed'|trans({}, 'Modules.Weprestaacf.Admin') }}</p>
+                    </div>
+
+                    {# File Preview #}
+                    <div id="file-preview" class="file-preview" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong id="file-name"></strong>
+                                <div class="text-muted small" id="file-info"></div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="remove-file-btn">
+                                <i class="material-icons">close</i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {# Import Mode Selection #}
+                    <div class="import-mode-radio" id="import-mode-section" style="display: none;">
+                        <h5 class="mb-3">{{ 'Import mode:'|trans({}, 'Modules.Weprestaacf.Admin') }}</h5>
+                        
+                        <div>
+                            <input type="radio" name="import-mode" id="mode-merge" value="merge" checked>
+                            <label for="mode-merge">
+                                <strong>{{ 'Merge (recommended)'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong><br>
+                                <small class="text-muted">{{ 'Add/update groups without deleting existing groups not present in the file'|trans({}, 'Modules.Weprestaacf.Admin') }}</small>
+                            </label>
+                        </div>
+
+                        <div>
+                            <input type="radio" name="import-mode" id="mode-replace" value="replace">
+                            <label for="mode-replace">
+                                <strong>{{ 'Replace all'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong><br>
+                                <small class="text-danger">{{ 'This action will delete all existing groups then import. This action is irreversible.'|trans({}, 'Modules.Weprestaacf.Admin') }}</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    {# Import Button #}
+                    <div class="text-center mt-4" id="import-button-section" style="display: none;">
+                        <button type="button" class="btn btn-primary btn-lg" id="import-btn">
+                            <i class="material-icons">upload</i>
+                            {{ 'Import'|trans({}, 'Modules.Weprestaacf.Admin') }}
+                        </button>
+                    </div>
+            {% endset %}
+            {{ common.card('Import'|trans({}, 'Modules.Weprestaacf.Admin'), 'cloud_upload', 'md', import_content) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_javascripts %}
+    <script>
+    window.acfSyncConfig = {
+        apiBase: '{{ path('wepresta_acf_api_export_all') | replace({'/export/all': ''}) }}',
+        validateUrl: '{{ path('wepresta_acf_api_import_validate') }}',
+        importUrl: '{{ path('wepresta_acf_api_import') }}',
+    };
+    </script>
+    <script src="{{ asset('../modules/wepresta_acf/views/js/admin/sync.js') }}"></script>
+{% endblock %}

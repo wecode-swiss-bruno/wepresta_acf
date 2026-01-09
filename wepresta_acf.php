@@ -37,15 +37,11 @@ class WeprestaAcf extends Module
     public const VERSION = '1.2.1';
 
     public const DEFAULT_CONFIG = [
-        'WEPRESTA_ACF_ACTIVE' => true,
         'WEPRESTA_ACF_MAX_FILE_SIZE' => 10485760, // 10MB
         'WEPRESTA_ACF_DEBUG' => false,
-        // Sync settings
-        'WEPRESTA_ACF_SYNC_ENABLED' => false,
-        'WEPRESTA_ACF_AUTO_SYNC_ON_SAVE' => false,
-        'WEPRESTA_ACF_SYNC_ON_INSTALL' => true,
-        'WEPRESTA_ACF_SYNC_PATH_TYPE' => 'theme',  // 'theme', 'parent', 'custom'
-        'WEPRESTA_ACF_SYNC_CUSTOM_PATH' => '',
+        // Auto-sync settings
+        'WEPRESTA_ACF_AUTO_SYNC_ENABLED' => false,
+        'WEPRESTA_ACF_SYNC_LAST_UPDATE' => 0,
     ];
 
     private ?ConfigurationAdapter $config = null;
@@ -55,9 +51,9 @@ class WeprestaAcf extends Module
         $this->name = 'wepresta_acf';
         $this->tab = 'administration';
         $this->version = self::VERSION;
-        $this->author = 'Bruno Studer';
+        $this->author = 'WePresta';
         $this->need_instance = false;
-        $this->ps_versions_compliancy = ['min' => '8.0.0', 'max' => '9.99.99'];
+        $this->ps_versions_compliancy = ['min' => '8.0.0', 'max' => _PS_VERSION_];
         $this->bootstrap = true;
 
         parent::__construct();
@@ -622,7 +618,7 @@ class WeprestaAcf extends Module
         $controller = Tools::getValue('controller');
 
         // ACF Builder and Configuration pages - load Vue.js builder assets
-        if (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration'], true)) {
+        if (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'], true)) {
             if (file_exists($this->getLocalPath() . 'views/dist/admin.css')) {
                 $this->context->controller->addCSS($this->_path . 'views/dist/admin.css');
             }
@@ -780,7 +776,7 @@ class WeprestaAcf extends Module
         return rtrim($baseAdmin, '/') . '/modules/wepresta_acf/api';
     }
 
-    public function isActive(): bool { return (bool) Configuration::get('WEPRESTA_ACF_ACTIVE'); }
+    public function isActive(): bool { return (bool) $this->active; }
     public function getConfig(): ConfigurationAdapter { return $this->config ??= new ConfigurationAdapter(); }
 
     public function getService(string $serviceId): ?object

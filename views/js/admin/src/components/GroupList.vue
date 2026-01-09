@@ -13,7 +13,6 @@ const api = useApi()
 const syncEnabled = ref(false)
 const syncStatus = ref<Record<number, { status: string }>>({})
 const themeOnlyGroups = ref<Array<{ slug: string; title: string }>>([])
-const seeding = ref(false)
 
 // Load sync status on mount
 onMounted(async () => {
@@ -107,31 +106,6 @@ async function exportGroup(groupId: number): Promise<void> {
   }
 }
 
-async function runSeed(): Promise<void> {
-  if (!confirm(t('confirmSeed'))) {
-    return
-  }
-
-  seeding.value = true
-  try {
-    const response = await api.fetchJson('/seed', { method: 'POST' })
-    if (response.success) {
-      if (response.skipped) {
-        alert(t('seedSkipped'))
-      } else {
-        alert(t('seedSuccess') + ` (${response.data.fields_inserted} fields)`)
-      }
-      // Reload groups list
-      await store.loadGroups()
-    } else {
-      alert(t('seedError') + ': ' + (response.error || 'Unknown error'))
-    }
-  } catch (e) {
-    alert(t('seedError') + ': ' + (e as Error).message)
-  } finally {
-    seeding.value = false
-  }
-}
 
 function getGroupSyncStatus(groupId: number): string {
   return syncStatus.value[groupId]?.status || 'unknown'
@@ -172,11 +146,6 @@ function getGroupSyncStatus(groupId: number): string {
           <button class="btn btn-outline-primary mr-2" @click="store.createNewGroup">
             <i class="material-icons">add</i>
             {{ t('addGroup') }}
-          </button>
-          <button class="btn btn-outline-info" @click="runSeed" :disabled="seeding">
-            <i class="material-icons" v-if="!seeding">science</i>
-            <span v-else class="spinner-border spinner-border-sm" role="status"></span>
-            {{ seeding ? t('seeding') : t('seedTestData') }}
           </button>
         </div>
       </div>

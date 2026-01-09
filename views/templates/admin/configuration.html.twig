@@ -3,25 +3,17 @@
  *
  * @var FormView configurationForm
  * @var string moduleVersion
- * @var bool syncEnabled
- * @var string syncPath
- * @var array|null syncStatus
  * @var array fieldTypes
  * @var array discoveryPaths
  * #}
 
-{% extends '@PrestaShop/Admin/layout.html.twig' %}
+{% extends '@Modules/wepresta_acf/views/templates/admin/_layout/admin_base.html.twig' %}
 
-{# Import WEDEV UI Macros via relative path #}
+{# Import Macros #}
 {% import '@Modules/wepresta_acf/src/Wedev/Extension/UI/Twig/Macros/admin.html.twig' as ui %}
+{% import '@Modules/wepresta_acf/views/templates/admin/_macros/common.html.twig' as common %}
 
-{% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="{{ asset('../modules/wepresta_acf/views/dist/admin.css') }}">
-{% endblock %}
-
-{# Define toolbar buttons - rendered by PrestaShop Toolbar component #}
+{# Define toolbar buttons - must be array, not macro result #}
 {% set layoutHeaderToolbarBtn = {
     'save': {
         'href': '#',
@@ -32,10 +24,7 @@
     }
 } %}
 
-{% block content %}
-{# Include WEDEV UI Partials #}
-{% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/confirm-modal.html.twig' %}
-{% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/toasts.html.twig' %}
+{% block page_content %}
 
 <div class="wepresta_acf-config">
     {# Tabs Navigation #}
@@ -44,18 +33,6 @@
             <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab">
                 {{ ui.icon('settings', 'sm') }}
                 {{ 'General'|trans({}, 'Admin.Global') }}
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="sync-tab" data-toggle="tab" href="#sync" role="tab">
-                {{ ui.icon('sync', 'sm') }}
-                {{ 'Sync'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                {% if syncStatus and syncStatus.need_push > 0 %}
-                    <span class="badge badge-warning ml-1">{{ syncStatus.need_push }}</span>
-                {% endif %}
-                {% if syncStatus and syncStatus.need_pull > 0 %}
-                    <span class="badge badge-info ml-1">{{ syncStatus.need_pull }}</span>
-                {% endif %}
             </a>
         </li>
         <li class="nav-item">
@@ -83,14 +60,6 @@
                             </h3>
                         </div>
                         <div class="card-body">
-                            <div class="form-group row">
-                                {{ form_label(configurationForm.active) }}
-                                <div class="col-sm">
-                                    {{ form_widget(configurationForm.active) }}
-                                    {{ form_errors(configurationForm.active) }}
-                                </div>
-                            </div>
-
                             <div class="form-group row">
                                 {{ form_label(configurationForm.debug) }}
                                 <div class="col-sm">
@@ -131,196 +100,6 @@
                                     {{ 'Manage Field Groups'|trans({}, 'Modules.Weprestaacf.Admin') }}
                                 </a>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# ========== Sync Tab ========== #}
-        <div class="tab-pane fade" id="sync" role="tabpanel">
-            <div class="row">
-                <div class="col-xl-8">
-                    {# Sync Settings Card #}
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h3 class="card-header-title">
-                                {{ ui.icon('settings', 'md') }}
-                                {{ 'Sync Settings'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group row">
-                                {{ form_label(configurationForm.sync_enabled) }}
-                                <div class="col-sm">
-                                    {{ form_widget(configurationForm.sync_enabled) }}
-                                    {{ form_errors(configurationForm.sync_enabled) }}
-                                </div>
-                            </div>
-
-                            <div class="form-group row">
-                                {{ form_label(configurationForm.auto_sync_on_save) }}
-                                <div class="col-sm">
-                                    {{ form_widget(configurationForm.auto_sync_on_save) }}
-                                    {{ form_errors(configurationForm.auto_sync_on_save) }}
-                                </div>
-                            </div>
-
-                            <div class="form-group row">
-                                {{ form_label(configurationForm.sync_on_install) }}
-                                <div class="col-sm">
-                                    {{ form_widget(configurationForm.sync_on_install) }}
-                                    {{ form_errors(configurationForm.sync_on_install) }}
-                                </div>
-                            </div>
-
-                            <hr>
-
-                            <div class="form-group row">
-                                {{ form_label(configurationForm.sync_path_type) }}
-                                <div class="col-sm">
-                                    {{ form_widget(configurationForm.sync_path_type, {'attr': {'id': 'sync_path_type'}}) }}
-                                    {{ form_errors(configurationForm.sync_path_type) }}
-                                </div>
-                            </div>
-
-                            <div class="form-group row" id="custom_path_group" style="display: none;">
-                                {{ form_label(configurationForm.sync_custom_path) }}
-                                <div class="col-sm">
-                                    {{ form_widget(configurationForm.sync_custom_path) }}
-                                    {{ form_errors(configurationForm.sync_custom_path) }}
-                                </div>
-                            </div>
-
-                            {% if syncPath %}
-                            <div class="alert alert-info mb-0">
-                                <strong>{{ 'Current sync path:'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong>
-                                <code>{{ syncPath }}</code>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {# Sync Status Card #}
-                    {% if syncEnabled and syncStatus %}
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h3 class="card-header-title">
-                                {{ ui.icon('assessment', 'md') }}
-                                {{ 'Sync Status'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            {# Status Overview #}
-                            <div class="row text-center mb-4">
-                                <div class="col">
-                                    <div class="h4 mb-0">{{ syncStatus.db_count }}</div>
-                                    <small class="text-muted">{{ 'In Database'|trans({}, 'Modules.Weprestaacf.Admin') }}</small>
-                                </div>
-                                <div class="col">
-                                    <div class="h4 mb-0">{{ syncStatus.theme_count }}</div>
-                                    <small class="text-muted">{{ 'In Theme'|trans({}, 'Modules.Weprestaacf.Admin') }}</small>
-                                </div>
-                                <div class="col">
-                                    <div class="h4 mb-0 text-success">{{ syncStatus.synced }}</div>
-                                    <small class="text-muted">{{ 'Synced'|trans({}, 'Modules.Weprestaacf.Admin') }}</small>
-                                </div>
-                                <div class="col">
-                                    <div class="h4 mb-0 text-warning">{{ syncStatus.need_push }}</div>
-                                    <small class="text-muted">{{ 'Need Push'|trans({}, 'Modules.Weprestaacf.Admin') }}</small>
-                                </div>
-                                <div class="col">
-                                    <div class="h4 mb-0 text-info">{{ syncStatus.need_pull }}</div>
-                                    <small class="text-muted">{{ 'Need Pull'|trans({}, 'Modules.Weprestaacf.Admin') }}</small>
-                                </div>
-                            </div>
-
-                            {# Groups Table #}
-                            {% if syncStatus.groups|length > 0 %}
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>{{ 'Group'|trans({}, 'Modules.Weprestaacf.Admin') }}</th>
-                                            <th>{{ 'Status'|trans({}, 'Admin.Global') }}</th>
-                                            <th>{{ 'Actions'|trans({}, 'Admin.Global') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for group in syncStatus.groups %}
-                                        <tr>
-                                            <td>
-                                                <strong>{{ group.title }}</strong>
-                                                <br><small class="text-muted">{{ group.slug }}</small>
-                                            </td>
-                                            <td>
-                                                {% if group.status == 'synced' %}
-                                                    <span class="badge badge-success">{{ ui.icon('check_circle', 'xs') }} {{ 'Synced'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
-                                                {% elseif group.status == 'modified' %}
-                                                    <span class="badge badge-warning">{{ ui.icon('edit', 'xs') }} {{ 'Modified'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
-                                                {% elseif group.status == 'need_push' %}
-                                                    <span class="badge badge-info">{{ ui.icon('cloud_upload', 'xs') }} {{ 'Need Push'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
-                                                {% elseif group.status == 'theme_only' %}
-                                                    <span class="badge badge-primary">{{ ui.icon('cloud_download', 'xs') }} {{ 'Theme Only'|trans({}, 'Modules.Weprestaacf.Admin') }}</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                {% if group.source == 'database' %}
-                                                    <button type="button" class="btn btn-sm btn-outline-primary btn-sync-push" data-group-id="{{ group.id }}">
-                                                        {{ ui.icon('cloud_upload', 'xs') }} {{ 'Push'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                                                    </button>
-                                                {% endif %}
-                                                {% if group.status == 'theme_only' or group.status == 'modified' %}
-                                                    <button type="button" class="btn btn-sm btn-outline-info btn-sync-pull" data-slug="{{ group.slug }}">
-                                                        {{ ui.icon('cloud_download', 'xs') }} {{ 'Pull'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                                                    </button>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-secondary">
-                                {{ 'No groups found.'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="col-xl-4">
-                    {# Sync Actions Card #}
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            <h3 class="card-header-title">
-                                {{ ui.icon('flash_on', 'md') }}
-                                {{ 'Manual Sync'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-primary btn-block mb-2" id="btn-sync-all" {% if not syncEnabled %}disabled{% endif %}>
-                                    {{ ui.icon('sync', 'sm') }}
-                                    {{ 'Sync All'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                                </button>
-                                <button type="button" class="btn btn-outline-primary btn-block mb-2" id="btn-push-all" {% if not syncEnabled %}disabled{% endif %}>
-                                    {{ ui.icon('cloud_upload', 'sm') }}
-                                    {{ 'Push All to Theme'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                                </button>
-                                <button type="button" class="btn btn-outline-info btn-block mb-2" id="btn-pull-all" {% if not syncEnabled %}disabled{% endif %}>
-                                    {{ ui.icon('cloud_download', 'sm') }}
-                                    {{ 'Pull All from Theme'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                                </button>
-                            </div>
-
-                            {% if not syncEnabled %}
-                            <div class="alert alert-warning mt-3 mb-0">
-                                {{ 'Enable JSON sync to use these features.'|trans({}, 'Modules.Weprestaacf.Admin') }}
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -447,9 +226,7 @@
 </div>
 {% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script src="{{ asset('../modules/wepresta_acf/views/dist/admin.js') }}"></script>
+{% block extra_javascripts %}
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Setup Save button in toolbar

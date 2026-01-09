@@ -1,0 +1,31 @@
+{#
+ * Sync Notification Banner Partial
+ * Displays when a newer configuration file is detected
+ #}
+{% if hasNewerConfig %}
+<div class="alert alert-info alert-dismissible fade show" role="alert" id="sync-notification-banner">
+    <div class="d-flex align-items-center">
+        <i class="material-icons mr-2">info</i>
+        <div class="flex-grow-1">
+            <strong>{{ 'Newer configuration detected'|trans({}, 'Modules.Weprestaacf.Admin') }}</strong>
+            <p class="mb-0">
+                {% if fileInfo and fileInfo.exists and fileInfo.updated_at %}
+                    {% set fileDate = fileInfo.updated_at %}
+                    {{ 'The sync file contains a configuration from %date% newer than your database.'|trans({'%date%': fileDate}, 'Modules.Weprestaacf.Admin') }}
+                {% else %}
+                    {{ 'A newer configuration file has been detected.'|trans({}, 'Modules.Weprestaacf.Admin') }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="ml-3">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-import-from-sync">
+                <i class="material-icons">cloud_download</i>
+                {{ 'Import'|trans({}, 'Modules.Weprestaacf.Admin') }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm ml-2" id="btn-dismiss-notification">
+                {{ 'Dismiss'|trans({}, 'Modules.Weprestaacf.Admin') }}
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}

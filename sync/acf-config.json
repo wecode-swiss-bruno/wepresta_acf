@@ -1,0 +1,86 @@
+{
+    "version": "1.0",
+    "exported_at": "2026-01-08T15:03:24+01:00",
+    "module_version": "1.2.1",
+    "prestashop_version": "9.0.2",
+    "groups": [
+        {
+            "uuid": "6fedfed1-b0f7-4e26-9b90-ba97f8598ecb",
+            "title": "test",
+            "slug": "test",
+            "description": "",
+            "location_rules": [
+                {
+                    "==": [
+                        {
+                            "var": "entity_type"
+                        },
+                        "product"
+                    ]
+                },
+                {
+                    "==": [
+                        {
+                            "var": "entity_type"
+                        },
+                        "category"
+                    ]
+                }
+            ],
+            "placement_tab": "extra",
+            "placement_position": "",
+            "position": 10,
+            "priority": 10,
+            "active": true,
+            "bo_options": [],
+            "fo_options": {
+                "visible": true,
+                "valueScope": "global",
+                "displayHooks": {
+                    "product": "displayProductAdditionalInfo",
+                    "category": "displayHeaderCategory"
+                }
+            },
+            "shop_ids": [
+                1
+            ],
+            "fields": [
+                {
+                    "uuid": "2bdecb79-265c-4fc0-9c6c-1eecc35ba7fa",
+                    "id_parent": null,
+                    "type": "text",
+                    "title": "Text Field",
+                    "slug": "text_field",
+                    "instructions": "",
+                    "position": 0,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "visible": true
+                    }
+                }
+            ],
+            "field_values": [
+                {
+                    "field_slug": "text_field",
+                    "entity_type": "product",
+                    "entity_id": 0,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "TEST PRODUCT / CAT",
+                    "value_index": "TEST PRODUCT / CAT"
+                }
+            ]
+        }
+    ],
+    "timestamp": 1767881004,
+    "updated_at": "2026-01-08T15:03:24+01:00"
+}
