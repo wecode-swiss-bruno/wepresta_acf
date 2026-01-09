@@ -17,9 +17,6 @@ export interface AcfField {
   conditions: FieldConditions
   wrapper: FieldWrapper
   position: number
-  value_translatable?: boolean  // Whether field VALUES are translatable (not metadata)
-  valueTranslatable?: boolean   // Alias for camelCase
-  translatable?: boolean        // Legacy support - maps to value_translatable
   translations?: FieldTranslations  // Multilingual metadata (title, instructions, placeholder)
   active: boolean
   dateAdd?: string

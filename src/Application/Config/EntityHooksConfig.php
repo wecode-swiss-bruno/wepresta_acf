@@ -93,7 +93,6 @@ final class EntityHooksConfig
     public const SYSTEM_HOOKS = [
         'actionAdminControllerSetMedia',
         'actionFrontControllerSetMedia',
-        'displayHeader',
     ];
 
     /**

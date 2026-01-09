@@ -315,9 +315,6 @@ export const useBuilderStore = defineStore('builder', () => {
       conditions: {},
       wrapper: { width: '100' },
       position: 0,
-      value_translatable: false,
-      valueTranslatable: false,
-      translatable: false,  // Legacy support
       translations: {},  // Initialize empty translations object
       active: true,
     }

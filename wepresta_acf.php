@@ -639,14 +639,19 @@ class WeprestaAcf extends Module
 
 
 
-    /**
-     * Generic method to render entity fields for front-office display (legacy - no hook filtering).
-     * @deprecated Use renderEntityFieldsForDisplayInHook instead
-     *
-     * @param string $entityType Entity type (product, category, customer, order)
-     * @param int $entityId Entity ID
-     * @return string HTML output
-     */
+
+
+    public function hookActionFrontControllerSetMedia(array $params): void
+    {
+        if (!$this->isActive()) { return; }
+
+        $controller = Tools::getValue('controller');
+        // Register JS for V1 entity pages (product, category)
+        $v1Controllers = ['product', 'category'];
+        if (in_array($controller, $v1Controllers, true)) {
+            $this->context->controller->registerJavascript('wepresta_acf-front', 'modules/' . $this->name . '/views/js/front.js', ['position' => 'bottom', 'priority' => 150]);
+        }
+    }
 
 
     private function handleFileDownload(): void

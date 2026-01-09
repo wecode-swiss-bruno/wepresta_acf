@@ -32,7 +32,7 @@ const store = useBuilderStore()
 const { t } = useTranslations()
 const api = useApi()
 
-const activeTab = ref<'general' | 'validation' | 'presentation'>('general')
+const activeTab = ref<'general' | 'validation'>('general')
 
 // Local copy for editing
 const localField = ref<AcfField | null>(null)
@@ -214,15 +214,6 @@ function onFieldChange(): void {
 
 // Handlers for boolean switches
 
-function onValueTranslatableChange(val: boolean): void {
-  if (!localField.value) return
-  // Sync with legacy field and camelCase variant
-  localField.value.value_translatable = val
-  localField.value.valueTranslatable = val
-  localField.value.translatable = val  // Legacy support
-  onFieldChange()
-}
-
 // Save to API
 async function saveFieldToApi(): Promise<void> {
   if (!localField.value) return
@@ -395,13 +386,6 @@ onBeforeUnmount(() => {
           @click="activeTab = 'validation'"
         >
           {{ t('validation') }}
-        </button>
-        <button
-          class="acfps-config-tab"
-          :class="{ active: activeTab === 'presentation' }"
-          @click="activeTab = 'presentation'"
-        >
-          {{ t('presentation') }}
         </button>
       </div>
 
@@ -586,73 +570,6 @@ onBeforeUnmount(() => {
           </div>
         </template>
 
-        <!-- Presentation tab -->
-        <template v-if="activeTab === 'presentation'">
-          <div class="acfps-form-section">
-            <div class="form-group">
-              <label class="form-control-label">{{ t('wrapperWidth') }}</label>
-              <select
-                v-model="localField.wrapper.width"
-                class="form-control"
-                @change="onFieldChange"
-              >
-                <option
-                  v-for="opt in layoutOptions.widths"
-                  :key="opt.value"
-                  :value="opt.value"
-                >
-                  {{ opt.label }}
-                </option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-control-label">{{ t('wrapperClass') }}</label>
-              <input
-                v-model="localField.wrapper.class"
-                type="text"
-                class="form-control"
-                placeholder="my-custom-class"
-                @input="onFieldChange"
-              >
-            </div>
-
-            <div class="form-group">
-              <label class="form-control-label">{{ t('wrapperId') }}</label>
-              <input
-                v-model="localField.wrapper.id"
-                type="text"
-                class="form-control"
-                placeholder="my-field-id"
-                @input="onFieldChange"
-              >
-            </div>
-          </div>
-
-          <div class="acfps-form-section">
-            <h4>{{ t('frontendOptions') }}</h4>
-
-            <!-- Value translatable option - not shown for repeater fields -->
-            <div v-if="localField.type !== 'repeater'" class="form-group">
-              <label class="form-control-label">
-                {{ t('valueTranslatable') || 'Value is translatable' }}
-                <span class="material-icons text-muted" style="font-size: 16px; vertical-align: middle;" title="Field metadata (title, instructions) are always translatable. This option controls whether the field VALUES should be translated.">
-                  info
-                </span>
-              </label>
-              <PsSwitch
-                :model-value="!!localField.value_translatable"
-                id="field-value-translatable"
-                @update:model-value="onValueTranslatableChange"
-              />
-              <small class="form-text text-muted">
-                Enable this to allow storing different values per language (e.g., product description in FR/EN).
-                Field labels and instructions are always translatable.
-              </small>
-            </div>
-
-          </div>
-        </template>
       </div>
     </template>
   </div>

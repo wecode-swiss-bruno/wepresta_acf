@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
     <name>wepresta_acf</name>
-    <displayName><![CDATA[Module Starter]]></displayName>
-    <version><![CDATA[1.0.0]]></version>
-    <description><![CDATA[Template PRO de d&eacute;marrage pour module PrestaShop 8.x/9.x avec architecture moderne]]></description>
-    <author><![CDATA[Bruno Studer]]></author>
+    <displayName><![CDATA[WePresta ACF]]></displayName>
+    <version><![CDATA[1.2.1]]></version>
+    <description><![CDATA[Champs personnalis&eacute;s avanc&eacute;s pour PrestaShop - Constructeur de champs style ACF]]></description>
+    <author><![CDATA[WePresta]]></author>
     <tab><![CDATA[administration]]></tab>
-	<confirmUninstall><![CDATA[Êtes-vous sûr de vouloir désinstaller ce module ? Toutes les données seront perdues.]]></confirmUninstall>
+	<confirmUninstall><![CDATA[Supprimer tous les champs personnalisés et leurs valeurs ?]]></confirmUninstall>
     <is_configurable>1</is_configurable>
     <need_instance>0</need_instance>
 </module>
