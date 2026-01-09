@@ -54,8 +54,6 @@ class AcfField
     /** @ORM\Column(type="json", nullable=true) @var array<string, mixed>|null */
     private ?array $wrapper = null;
 
-    /** @ORM\Column(type="json", name="fo_options", nullable=true) @var array<string, mixed>|null */
-    private ?array $foOptions = null;
 
     /** @ORM\Column(type="integer") */
     private int $position = 0;
@@ -148,9 +146,6 @@ class AcfField
     /** @param array<string, mixed>|null $wrapper */
     public function setWrapper(?array $wrapper): self { $this->wrapper = $wrapper; return $this; }
     /** @return array<string, mixed>|null */
-    public function getFoOptions(): ?array { return $this->foOptions; }
-    /** @param array<string, mixed>|null $foOptions */
-    public function setFoOptions(?array $foOptions): self { $this->foOptions = $foOptions; return $this; }
     public function getPosition(): int { return $this->position; }
     public function setPosition(int $position): self { $this->position = $position; return $this; }
     public function isTranslatable(): bool { return $this->translatable; }
@@ -171,7 +166,7 @@ class AcfField
             'type' => $this->type, 'title' => $this->title, 'slug' => $this->slug,
             'instructions' => $this->instructions, 'config' => $this->config,
             'validation' => $this->validation, 'conditions' => $this->conditions,
-            'wrapper' => $this->wrapper, 'fo_options' => $this->foOptions,
+            'wrapper' => $this->wrapper,
             'position' => $this->position, 'translatable' => $this->translatable, 'active' => $this->active,
             'date_add' => $this->dateAdd->format('Y-m-d H:i:s'), 'date_upd' => $this->dateUpd->format('Y-m-d H:i:s'),
         ];

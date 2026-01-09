@@ -77,13 +77,6 @@ services:
             $valueRepository: '@WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface'
         public: true
 
-    WeprestaAcf\Application\Service\FieldRenderService:
-        arguments:
-            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
-            $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
-            $fieldRepository: '@WeprestaAcf\Infrastructure\Repository\AcfFieldRepository'
-        public: true
-
     WeprestaAcf\Application\Service\ValueHandler:
         arguments:
             $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
@@ -190,10 +183,6 @@ services:
         arguments:
             $syncService: '@WeprestaAcf\Application\Service\SyncService'
             $statusResolver: '@WeprestaAcf\Application\Service\SyncStatusResolver'
-        tags: ['controller.service_arguments']
-        public: true
-
-    WeprestaAcf\Infrastructure\Api\FrontHooksController:
         tags: ['controller.service_arguments']
         public: true
 

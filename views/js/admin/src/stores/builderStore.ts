@@ -6,23 +6,13 @@ import { useApi } from '@/composables/useApi'
 export type ViewMode = 'list' | 'edit'
 
 /**
- * Normalize group data to ensure foOptions and boOptions are objects, not arrays.
+ * Normalize group data to ensure boOptions are objects, not arrays.
  * This handles legacy data that might have been stored as arrays.
  */
 function normalizeGroup(group: AcfGroup): AcfGroup {
-  const foOptions = Array.isArray(group.foOptions) ? {} : (group.foOptions || {})
-
-  // Ensure displayHooks is always an object with entityType keys, never an array
-  if (Array.isArray(foOptions.displayHooks)) {
-    foOptions.displayHooks = {}
-  } else if (!foOptions.displayHooks) {
-    foOptions.displayHooks = {}
-  }
-
   return {
     ...group,
     boOptions: Array.isArray(group.boOptions) ? {} : (group.boOptions || {}),
-    foOptions,
   }
 }
 
@@ -103,9 +93,6 @@ export const useBuilderStore = defineStore('builder', () => {
       placementPosition: null,
       priority: 10,
       boOptions: {},
-      foOptions: {
-        visible: true,
-      },
       active: true,
       fields: [],
     }
@@ -327,7 +314,6 @@ export const useBuilderStore = defineStore('builder', () => {
       validation: {},
       conditions: {},
       wrapper: { width: '100' },
-      foOptions: { visible: true },
       position: 0,
       value_translatable: false,
       valueTranslatable: false,

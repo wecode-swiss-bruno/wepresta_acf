@@ -78,17 +78,6 @@ const isGroupSaved = computed(() => {
   return group.value && group.value.id !== undefined && group.value.id !== null
 })
 
-// Ensure foOptions.visible is always a boolean
-const showOnFrontend = computed({
-  get: () => Boolean(group.value?.foOptions?.visible),
-  set: (value: boolean) => {
-    if (group.value?.foOptions) {
-      group.value.foOptions.visible = value
-      // Mark as having unsaved changes
-      store.markAsUnsaved()
-    }
-  }
-})
 
 // Computed property for slug field readonly state
 const slugReadonly = computed(() => {
@@ -237,16 +226,6 @@ function onSlugFocus(): void {
         </small>
       </div>
 
-      <div class="form-group">
-        <label class="form-control-label">{{ t('showOnFrontend') }}</label>
-        <PsSwitch
-          v-model="showOnFrontend"
-          id="group-fo-visible"
-        />
-        <small class="form-text text-muted">
-          Display this group's fields on the product page.
-        </small>
-      </div>
     </div>
 
     <!-- Step Navigation -->

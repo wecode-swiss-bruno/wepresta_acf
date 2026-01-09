@@ -32,15 +32,8 @@ const canAccessLocation = computed(() => isGeneralSettingsComplete.value)
 // Check if fields tab can be accessed (requires completed general settings AND entity type)
 const canAccessFields = computed(() => isGeneralSettingsComplete.value && hasEntityTypeDefined.value)
 
-// Check if group is configured for global value scope
-const isGlobalValueScope = computed(() => {
-  const group = store.currentGroup
-  const foOptions = group?.foOptions
-  return foOptions?.valueScope === 'global'
-})
-
-// Check if values tab should be shown (only if global scope)
-const shouldShowValuesStep = computed(() => isGlobalValueScope.value && canAccessFields.value)
+// Values tab is not used anymore (removed front-office features)
+const shouldShowValuesStep = computed(() => false)
 
 // Step status for wizard
 const stepStatus = computed(() => ({

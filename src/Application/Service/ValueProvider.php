@@ -34,37 +34,6 @@ final class ValueProvider
         return $this->valueRepository->findByEntity($entityType, $entityId, $shopId, $langId);
     }
 
-    /**
-     * Gets field values for any entity type, including ALL languages for translatable fields.
-     * Returns: [slug => value] for non-translatable, [slug => [langId => value]] for translatable
-     *
-     * @return array<string, mixed>
-     */
-    public function getEntityFieldValuesAllLanguages(string $entityType, int $entityId, ?int $shopId = null): array
-    {
-        return $this->valueRepository->findByEntityAllLanguages($entityType, $entityId, $shopId);
-    }
 
-    /**
-     * Gets field values with metadata for any entity type WITH hook filtering.
-     * Only returns fields from groups configured to display in the specified hook.
-     *
-     * @return array<int, array{slug: string, title: string, type: string, value: mixed, instructions: string|null, config: array<string, mixed>, fo_options: array<string, mixed>}>
-     */
-    public function getEntityFieldValuesWithMetaForHook(string $entityType, int $entityId, string $hookName, ?int $shopId = null, ?int $langId = null): array
-    {
-        return $this->valueRepository->findByEntityWithMetaForHook($entityType, $entityId, $hookName, $shopId, $langId);
-    }
-
-    /**
-     * Gets field values with metadata for any entity type (legacy - no hook filtering).
-     *
-     * @return array<int, array{slug: string, title: string, type: string, value: mixed, instructions: string|null, config: array<string, mixed>, fo_options: array<string, mixed>}>
-     */
-    public function getEntityFieldValuesWithMeta(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
-    {
-        // Fallback: get all fields without hook filtering
-        return $this->getEntityFieldValuesWithMetaForHook($entityType, $entityId, '', $shopId, $langId);
-    }
 }
 

@@ -8,11 +8,11 @@ namespace WeprestaAcf\Application\Config;
  * Configuration centralisée des hooks ACF - Version V1 (Product + Category).
  *
  * Architecture simplifiée pour faciliter la maintenance et l'ajout d'entités.
- * Les hooks sont séparés clairement : ADMIN (back-office) vs FRONT (front-office).
+ * Les hooks sont séparés clairement : ADMIN (back-office).
  *
  * Pour ajouter une nouvelle entité:
  * 1. Ajouter dans ENABLED_ENTITIES
- * 2. Ajouter config dans ADMIN_HOOKS et/ou FRONT_HOOKS
+ * 2. Ajouter config dans ADMIN_HOOKS
  * 3. Ajouter méthodes hook dans EntityFieldHooksTrait
  */
 final class EntityHooksConfig
@@ -84,40 +84,6 @@ final class EntityHooksConfig
         ],
     ];
 
-    /**
-     * Configuration des hooks FRONT (front-office).
-     * Structure: entity => [hook1, hook2, ...]
-     *
-     * Note: Cette liste contient les hooks ACTUELLEMENT UTILISÉS par défaut.
-     * Pour la liste COMPLÈTE des hooks disponibles, voir FrontHooksRegistry.
-     *
-     * @var array<string, string[]>
-     */
-    public const FRONT_HOOKS = [
-        'product' => [
-            'displayProductAdditionalInfo',
-            'displayProductExtraContent',
-            'displayProductButtons',
-            'displayProductActions',
-            'displayProductPriceBlock',
-            'displayAfterProductThumbs',
-            'displayReassurance',
-            'displayProductListReviews',
-            'displayProductListFunctionalButtons',
-            'displayFooterProduct',
-        ],
-        'category' => [
-            'displayHeaderCategory',
-            'displayFooterCategory',
-        ],
-        'customer' => [
-            'displayCustomerAccount',
-            'displayCustomerAccountForm',
-            'displayCustomerAccountFormTop',
-            'displayCustomerAccountTop',
-            'displayCustomerLoginFormAfter',
-        ],
-    ];
 
     /**
      * Hooks système (toujours actifs, indépendants des entités).
@@ -140,11 +106,10 @@ final class EntityHooksConfig
 
     /**
      * Retourne tous les hooks à enregistrer dans le module.
-     * 
+     *
      * Inclut:
      * - Hooks système (media, header)
      * - Hooks admin (display, save, Symfony)
-     * - TOUS les hooks front disponibles (FrontHooksRegistry)
      *
      * @return string[]
      */
@@ -158,14 +123,11 @@ final class EntityHooksConfig
             $hooks = array_merge($hooks, $config['save']);
             
             // Ajouter les hooks Symfony si présents
-            if (isset($config['symfony'])) {
+            if (isset($config['symfony']) && is_array($config['symfony'])) {
                 $hooks[] = $config['symfony']['form_builder'];
                 $hooks = array_merge($hooks, $config['symfony']['form_handlers']);
             }
         }
-
-        // Front hooks - TOUS les hooks disponibles (pas seulement ceux par défaut)
-        $hooks = array_merge($hooks, FrontHooksRegistry::getAllHookNames());
 
         return array_unique($hooks);
     }
@@ -207,16 +169,6 @@ final class EntityHooksConfig
     }
 
     /**
-     * Retourne les hooks front-office pour une entité.
-     *
-     * @return string[]
-     */
-    public static function getFrontHooks(string $entity): array
-    {
-        return self::FRONT_HOOKS[$entity] ?? [];
-    }
-
-    /**
      * Retourne le nom du paramètre ID pour une entité.
      * Ex: 'product' => 'id_product', 'category' => 'id_category'
      */
@@ -255,7 +207,6 @@ final class EntityHooksConfig
         }
 
         $adminConfig = self::ADMIN_HOOKS[$entityType] ?? null;
-        $frontHooks = self::FRONT_HOOKS[$entityType] ?? [];
 
         if ($adminConfig === null) {
             return null;
@@ -267,7 +218,7 @@ final class EntityHooksConfig
             'form_builder_hook' => null,
             'form_handler_hooks' => [],
             'id_param' => self::getIdParam($entityType),
-            'display_hooks' => array_merge([$adminConfig['display']], $frontHooks),
+            'display_hooks' => [$adminConfig['display']],
             'integration_type' => 'active',
         ];
     }
@@ -287,15 +238,6 @@ final class EntityHooksConfig
             }
             foreach ($config['save'] as $saveHook) {
                 if (strtolower($saveHook) === $hookNameLower) {
-                    return $entity;
-                }
-            }
-        }
-
-        // Check front hooks
-        foreach (self::FRONT_HOOKS as $entity => $hooks) {
-            foreach ($hooks as $hook) {
-                if (strtolower($hook) === $hookNameLower) {
                     return $entity;
                 }
             }

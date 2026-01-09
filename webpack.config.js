@@ -29,7 +29,6 @@ Encore
     /*
      * ENTRY CONFIG
      */
-    .addEntry('front', './_dev/js/front.js')
     .addEntry('admin', './_dev/js/admin.js')
 
     // enables the Symfony UX Stimulus bridge (used in Symfony projects)

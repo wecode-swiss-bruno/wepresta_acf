@@ -116,19 +116,6 @@ final class AcfServiceContainer
         return self::$services[ValueProvider::class];
     }
 
-    public static function getFieldRenderService(): FieldRenderService
-    {
-        if (!isset(self::$services[FieldRenderService::class])) {
-            $service = self::tryGet(FieldRenderService::class);
-            self::$services[FieldRenderService::class] = $service ?? new FieldRenderService(
-                self::getValueProvider(),
-                self::getFieldTypeRegistry(),
-                self::getFieldRepository()
-            );
-        }
-        /** @var FieldRenderService */
-        return self::$services[FieldRenderService::class];
-    }
 
     public static function getValueHandler(): ValueHandler
     {

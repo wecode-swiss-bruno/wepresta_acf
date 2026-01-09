@@ -16,7 +16,6 @@ export interface AcfField {
   validation: FieldValidation
   conditions: FieldConditions
   wrapper: FieldWrapper
-  foOptions: FieldFrontendOptions
   position: number
   value_translatable?: boolean  // Whether field VALUES are translatable (not metadata)
   valueTranslatable?: boolean   // Alias for camelCase
@@ -88,16 +87,6 @@ export interface FieldWrapper {
   width?: '100' | '75' | '50' | '33' | '25'
 }
 
-/**
- * Field front-end rendering options
- */
-export interface FieldFrontendOptions {
-  visible?: boolean
-  template?: string
-  wrapperClass?: string
-  beforeContent?: string
-  afterContent?: string
-}
 
 /**
  * JSONLogic rule structure

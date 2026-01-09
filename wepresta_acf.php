@@ -637,59 +637,7 @@ class WeprestaAcf extends Module
     // FRONT-OFFICE HOOKS
     // =========================================================================
 
-    public function hookDisplayHeader(array $params): string
-    {
-        if (!$this->isActive()) { return ''; }
-        $this->context->controller->registerStylesheet('wepresta_acf-front', 'modules/' . $this->name . '/views/dist/front.css', ['media' => 'all', 'priority' => 150]);
-        return '';
-    }
 
-    /**
-     * Generic method to render entity fields for front-office display WITH hook filtering.
-     * Only renders groups that are configured to display in the specified hook.
-     *
-     * @param string $entityType Entity type (product, category, customer, order)
-     * @param int $entityId Entity ID
-     * @param string $hookName Current hook name (for filtering groups)
-     * @return string HTML output
-     */ 
-    private function renderEntityFieldsForDisplayInHook(string $entityType, int $entityId, string $hookName): string
-    {
-        if (!$this->isActive() || $entityId <= 0) {
-            return '';
-        }
-
-        try {
-            AcfServiceContainer::loadCustomFieldTypes();
-
-            $fieldRenderService = AcfServiceContainer::getFieldRenderService();
-            $displayFields = $fieldRenderService->getEntityFieldsForDisplayInHook($entityType, $entityId, $hookName);
-
-            if (empty($displayFields)) {
-                return '';
-            }
-
-            $this->context->smarty->assign([
-                'acf_fields' => $displayFields,
-                'acf_entity_type' => $entityType,
-                'acf_entity_id' => $entityId,
-                'acf_hook_name' => $hookName,
-                // Backward compatibility for product template
-                'acf_product_id' => $entityType === 'product' ? $entityId : null,
-            ]);
-
-            // Use product-info.tpl for products (backward compatibility)
-            // Use entity-info.tpl for other entities (generic)
-            $template = $entityType === 'product'
-                ? 'module:wepresta_acf/views/templates/hook/product-info.tpl'
-                : 'module:wepresta_acf/views/templates/hook/entity-info.tpl';
-
-            return $this->fetch($template);
-        } catch (\Exception $e) {
-            $this->log("Error rendering {$entityType} fields in hook {$hookName}: " . $e->getMessage(), 3);
-            return '';
-        }
-    }
 
     /**
      * Generic method to render entity fields for front-office display (legacy - no hook filtering).
@@ -699,28 +647,7 @@ class WeprestaAcf extends Module
      * @param int $entityId Entity ID
      * @return string HTML output
      */
-    private function renderEntityFieldsForDisplay(string $entityType, int $entityId): string
-    {
-        // Fallback: render without hook filtering (shows in all hooks)
-        return $this->renderEntityFieldsForDisplayInHook($entityType, $entityId, hookName: '');
-    }
 
-    public function hookActionFrontControllerSetMedia(array $params): void
-    {
-        if (!$this->isActive()) { return; }
-
-        $controller = Tools::getValue('controller');
-        // Register JS for V1 entity pages (product, category)
-        $v1Controllers = ['product', 'category'];
-        if (in_array($controller, $v1Controllers, true)) {
-            $this->context->controller->registerJavascript('wepresta_acf-front', 'modules/' . $this->name . '/views/js/front.js', ['position' => 'bottom', 'priority' => 150]);
-        }
-
-        // Handle file downloads
-        if (Tools::getValue('acf_download')) {
-            $this->handleFileDownload();
-        }
-    }
 
     private function handleFileDownload(): void
     {

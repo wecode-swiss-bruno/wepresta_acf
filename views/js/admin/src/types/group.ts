@@ -15,7 +15,6 @@ export interface AcfGroup {
   placementPosition?: string | null
   priority: number
   boOptions: GroupBackendOptions
-  foOptions: GroupFrontendOptions
   active: boolean
   fields?: AcfField[]
   fieldCount?: number
@@ -31,16 +30,6 @@ export interface GroupBackendOptions {
   collapsed?: boolean
 }
 
-/**
- * Group front-office display options
- */
-export interface GroupFrontendOptions {
-  visible?: boolean
-  template?: string
-  wrapperClass?: string
-  displayHooks?: Record<string, string>  // Map of entity_type => hook_name (e.g., {product: 'displayProductAdditionalInfo', category: 'displayCategoryHeader'})
-  valueScope?: 'global' | 'entity'  // global: shared values (entity_id=0), entity: per-entity values (default)
-}
 
 /**
  * Product tab option for placement
@@ -66,12 +55,3 @@ export interface LayoutOptions {
   positions: LayoutOption[]
 }
 
-/**
- * Front-office hook option (for presentation settings)
- */
-export interface FrontHookOption {
-  value: string
-  label: string
-  description?: string
-  ps_version?: number
-}

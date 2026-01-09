@@ -45,8 +45,6 @@ class AcfGroup
     /** @ORM\Column(type="json", name="bo_options", nullable=true) @var array<string, mixed>|null */
     private ?array $boOptions = null;
 
-    /** @ORM\Column(type="json", name="fo_options", nullable=true) @var array<string, mixed>|null */
-    private ?array $foOptions = null;
 
     /** @ORM\Column(type="boolean") */
     private bool $active = true;
@@ -102,9 +100,6 @@ class AcfGroup
     /** @param array<string, mixed>|null $boOptions */
     public function setBoOptions(?array $boOptions): self { $this->boOptions = $boOptions; return $this; }
     /** @return array<string, mixed>|null */
-    public function getFoOptions(): ?array { return $this->foOptions; }
-    /** @param array<string, mixed>|null $foOptions */
-    public function setFoOptions(?array $foOptions): self { $this->foOptions = $foOptions; return $this; }
     public function isActive(): bool { return $this->active; }
     public function setActive(bool $active): self { $this->active = $active; return $this; }
     public function getDateAdd(): \DateTimeInterface { return $this->dateAdd; }
@@ -136,7 +131,7 @@ class AcfGroup
             'id' => $this->id, 'uuid' => $this->uuid, 'title' => $this->title, 'slug' => $this->slug,
             'description' => $this->description, 'location_rules' => $this->locationRules,
             'placement_tab' => $this->placementTab, 'placement_position' => $this->placementPosition,
-            'priority' => $this->priority, 'bo_options' => $this->boOptions, 'fo_options' => $this->foOptions,
+            'priority' => $this->priority, 'bo_options' => $this->boOptions,
             'active' => $this->active, 'date_add' => $this->dateAdd->format('Y-m-d H:i:s'),
             'date_upd' => $this->dateUpd->format('Y-m-d H:i:s'),
         ];

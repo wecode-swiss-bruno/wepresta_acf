@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
 import { useApi } from '@/composables/useApi'
-import type { JsonLogicRule, FrontHookOption } from '@/types'
+import type { JsonLogicRule } from '@/types'
 import type { LocationOption } from '@/types/api'
 
 const emit = defineEmits<{
@@ -21,9 +21,6 @@ const group = computed(() => store.currentGroup)
 // Auto-save state for rule addition
 const savingRule = ref(false)
 
-// Front hooks state - now per entity type
-const availableFrontHooks = ref<Record<string, FrontHookOption[]>>({})
-const loadingHooks = ref<Record<string, boolean>>({})
 const selectedEntityType = ref<string>('')
 const selectedOperator = ref<string>('==')
 
@@ -82,96 +79,11 @@ const activeEntityTypes = computed(() => {
   return types
 })
 
-// Check if ALL entity types have a display hook selected
-const hasAllDisplayHooks = computed(() => {
-  if (activeEntityTypes.value.length === 0) return false
-  
-  const displayHooks = group.value?.foOptions?.displayHooks || {}
-  
-  for (const entityType of activeEntityTypes.value) {
-    if (!displayHooks[entityType]) {
-      return false
-    }
-  }
-  
-  return true
-})
 
-// Validation: can proceed to next step only if entity types AND all display hooks are selected
-const canProceedToFields = computed(() => hasEntityType.value && hasAllDisplayHooks.value)
+// Validation: can proceed to next step if entity types are selected
+const canProceedToFields = computed(() => hasEntityType.value)
 
-// Value scope management
-const valueScope = computed({
-  get: () => group.value?.foOptions?.valueScope || 'entity',
-  set: (value: 'global' | 'entity') => {
-    if (group.value && group.value.foOptions) {
-      group.value.foOptions.valueScope = value
-    }
-  }
-})
 
-async function handleValueScopeChange(): Promise<void> {
-  if (!group.value) return
-  
-  try {
-    await store.saveGroup()
-    console.log('✅ Value scope saved:', valueScope.value)
-  } catch (error) {
-    console.error('❌ Failed to save value scope:', error)
-    alert('Failed to save value scope. Please try again.')
-  }
-}
-
-// Load available front hooks for a specific entity type
-async function loadHooksForEntityType(entityType: string): Promise<void> {
-  if (!entityType || loadingHooks.value[entityType]) return
-  
-  loadingHooks.value[entityType] = true
-  
-  try {
-    const { hooks, defaultHook } = await api.getFrontHooksForEntity(entityType)
-    availableFrontHooks.value[entityType] = hooks
-    
-    // Initialize displayHooks object if not exists
-    if (group.value && !group.value.foOptions) {
-      group.value.foOptions = {}
-    }
-    if (group.value && !group.value.foOptions!.displayHooks) {
-      group.value.foOptions!.displayHooks = {}
-    }
-    
-    // Auto-select default hook if no hook is selected yet for this entity
-    if (group.value && !group.value.foOptions!.displayHooks![entityType] && defaultHook) {
-      group.value.foOptions!.displayHooks![entityType] = defaultHook
-      // Auto-save
-      await store.saveGroup()
-    }
-  } catch (error) {
-    console.error(`Failed to load front hooks for ${entityType}:`, error)
-    availableFrontHooks.value[entityType] = []
-  } finally {
-    loadingHooks.value[entityType] = false
-  }
-}
-
-// Watch active entity types and load hooks for each
-watch(activeEntityTypes, async (newTypes, oldTypes) => {
-  // Load hooks for new entity types
-  for (const entityType of newTypes) {
-    if (!oldTypes?.includes(entityType)) {
-      await loadHooksForEntityType(entityType)
-    }
-  }
-  
-  // Clean up hooks for removed entity types
-  if (group.value?.foOptions?.displayHooks) {
-    for (const entityType of Object.keys(group.value.foOptions.displayHooks)) {
-      if (!newTypes.includes(entityType)) {
-        delete group.value.foOptions.displayHooks[entityType]
-      }
-    }
-  }
-}, { immediate: true, deep: true })
 
 async function addRule(event?: Event): Promise<void> {
   if (event) {
@@ -270,20 +182,6 @@ function findLocationByValue(value: string): LocationOption | undefined {
   return undefined
 }
 
-/**
- * Handle display hook change for a specific entity type - auto-save
- */
-async function handleDisplayHookChange(entityType: string): Promise<void> {
-  if (!group.value) return
-  
-  try {
-    await store.saveGroup()
-    console.log(`✅ Display hook for ${entityType} saved:`, group.value.foOptions?.displayHooks?.[entityType])
-  } catch (error) {
-    console.error(`❌ Failed to save display hook for ${entityType}:`, error)
-    alert(`Failed to save display hook for ${entityType}. Please try again.`)
-  }
-}
 
 /**
  * Get label for entity type
@@ -411,118 +309,7 @@ function getEntityTypeLabel(entityType: string): string {
       </div>
     </div>
 
-    <!-- Value Scope Selection -->
-    <div v-if="group && activeEntityTypes.length > 0" class="card mt-4 border-info">
-      <div class="card-header bg-light">
-        <h4 class="mb-0">
-          <i class="material-icons mr-2" style="vertical-align: middle;">storage</i>
-          {{ t('valueScope') || 'Value Storage Scope' }}
-        </h4>
-      </div>
-      <div class="card-body">
-        <p class="text-muted mb-3">
-          <i class="material-icons mr-1" style="vertical-align: middle; font-size: 16px;">info</i>
-          Choose how field values will be stored and managed.
-        </p>
 
-        <div class="form-check mb-3">
-          <input
-            type="radio"
-            class="form-check-input"
-            id="scope-entity"
-            :value="'entity'"
-            v-model="valueScope"
-            @change="handleValueScopeChange"
-          >
-          <label class="form-check-label" for="scope-entity">
-            <strong>Per Entity (Default)</strong>
-            <br>
-            <small class="text-muted">
-              Each entity has its own field values. Values are editable on each entity's edit page.
-            </small>
-          </label>
-        </div>
-
-        <div class="form-check">
-          <input
-            type="radio"
-            class="form-check-input"
-            id="scope-global"
-            :value="'global'"
-            v-model="valueScope"
-            @change="handleValueScopeChange"
-          >
-          <label class="form-check-label" for="scope-global">
-            <strong>Global (Shared)</strong>
-            <br>
-            <small class="text-muted">
-              All entities share the same field values. Values are editable in the next step (Values tab).
-            </small>
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Front-Office Display Hook Selection - One per entity type -->
-    <div v-if="group && activeEntityTypes.length > 0" class="card mt-4 border-primary">
-      <div class="card-header bg-light">
-        <h4 class="mb-0">
-          <i class="material-icons mr-2" style="vertical-align: middle;">tune</i>
-          {{ t('presentation') || 'Presentation Settings' }}
-          <span class="badge badge-primary ml-2">Required</span>
-        </h4>
-      </div>
-      <div class="card-body">
-        <p class="text-muted mb-3">
-          <i class="material-icons mr-1" style="vertical-align: middle; font-size: 16px;">visibility</i>
-          Choose where your custom fields will be displayed for each content type.
-        </p>
-
-        <!-- Display hook selector for EACH entity type -->
-        <div
-          v-for="entityType in activeEntityTypes"
-          :key="entityType"
-          class="form-group mb-3"
-        >
-          <label class="form-control-label">
-            <i class="material-icons mr-1" style="font-size: 16px; vertical-align: middle;">insert_link</i>
-            Display Hook for <strong>{{ getEntityTypeLabel(entityType) }}</strong>
-            <span class="text-danger">*</span>
-          </label>
-          
-          <select
-            v-if="!loadingHooks[entityType]"
-            v-model="group.foOptions!.displayHooks![entityType]"
-            class="form-control"
-            :class="{ 'is-invalid': !group.foOptions?.displayHooks?.[entityType] }"
-            @change="handleDisplayHookChange(entityType)"
-          >
-            <option value="">{{ t('selectDisplayHook') || 'Choose display location...' }}</option>
-            <option
-              v-for="hook in availableFrontHooks[entityType] || []"
-              :key="hook.value"
-              :value="hook.value"
-            >
-              {{ hook.label }}
-              <template v-if="hook.description"> - {{ hook.description }}</template>
-            </option>
-          </select>
-          
-          <div v-else class="form-control">
-            <i class="material-icons" style="font-size: 18px; vertical-align: middle;">sync</i>
-            Loading hooks for {{ entityType }}...
-          </div>
-          
-          <small class="form-text text-muted">
-            Where fields will appear on {{ getEntityTypeLabel(entityType) }} pages.
-          </small>
-          
-          <div v-if="!group.foOptions?.displayHooks?.[entityType]" class="invalid-feedback d-block">
-            Please select a display hook for {{ getEntityTypeLabel(entityType) }}.
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Warning if no entity type selected -->
     <div v-if="group && activeEntityTypes.length === 0" class="card mt-4 border-warning">
@@ -571,7 +358,7 @@ function getEntityTypeLabel(entityType: string): string {
         class="btn btn-primary"
         :disabled="!canProceedToFields"
         @click="emit('next-step')"
-        :title="!hasEntityType ? t('defineEntityTypeFirst') : !hasAllDisplayHooks ? 'Please select display hooks for all content types' : ''"
+        :title="!hasEntityType ? t('defineEntityTypeFirst') : ''"
       >
         Next: {{ t('fields') }}
         <span class="material-icons">arrow_forward</span>

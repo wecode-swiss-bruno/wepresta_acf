@@ -58,7 +58,6 @@ watch(() => store.selectedField, (newField) => {
     const copy = JSON.parse(JSON.stringify(newField))
     // Ensure defaults for nested objects
     copy.wrapper = { width: '100', ...copy.wrapper }
-    copy.foOptions = { visible: true, ...copy.foOptions }
     copy.validation = copy.validation && typeof copy.validation === 'object' && !Array.isArray(copy.validation) ? copy.validation : {}
     copy.config = copy.config || {}
     
@@ -214,11 +213,6 @@ function onFieldChange(): void {
 
 
 // Handlers for boolean switches
-function onFoVisibleChange(val: boolean): void {
-  if (!localField.value) return
-  localField.value.foOptions.visible = val
-  onFieldChange()
-}
 
 function onValueTranslatableChange(val: boolean): void {
   if (!localField.value) return
@@ -657,14 +651,6 @@ onBeforeUnmount(() => {
               </small>
             </div>
 
-            <div class="form-group">
-              <label class="form-control-label">{{ t('showOnFrontend') }}</label>
-              <PsSwitch
-                :model-value="!!localField.foOptions.visible"
-                id="field-fo-visible"
-                @update:model-value="onFoVisibleChange"
-              />
-            </div>
           </div>
         </template>
       </div>
