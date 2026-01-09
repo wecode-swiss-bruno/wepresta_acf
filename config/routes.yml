@@ -79,6 +79,17 @@ wepresta_acf_api_import:
         _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::importFile'
 
 # =========================================================================
+# API - Sync Status
+# =========================================================================
+
+wepresta_acf_api_sync_status:
+    path: /api/sync/status
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::status'
+
+# =========================================================================
 # API - Auto-Sync
 # =========================================================================
 

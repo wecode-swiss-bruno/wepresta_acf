@@ -4,7 +4,7 @@
     <displayName><![CDATA[WePresta ACF]]></displayName>
     <version><![CDATA[1.2.1]]></version>
     <description><![CDATA[Advanced Custom Fields for PrestaShop - ACF-style field builder]]></description>
-    <author><![CDATA[Bruno Studer]]></author>
+    <author><![CDATA[WePresta]]></author>
     <tab><![CDATA[administration]]></tab>
 	<confirmUninstall><![CDATA[Delete all custom fields and values?]]></confirmUninstall>
     <is_configurable>1</is_configurable>

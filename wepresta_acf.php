@@ -58,9 +58,9 @@ class WeprestaAcf extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->trans('WePresta ACF', [], 'Modules.WeprestaAcf.Admin');
-        $this->description = $this->trans('Advanced Custom Fields for PrestaShop - ACF-style field builder', [], 'Modules.WeprestaAcf.Admin');
-        $this->confirmUninstall = $this->trans('Delete all custom fields and values?', [], 'Modules.WeprestaAcf.Admin');
+        $this->displayName = $this->trans('WePresta ACF', [], 'Modules.Weprestaacf.Admin');
+        $this->description = $this->trans('Advanced Custom Fields for PrestaShop - ACF-style field builder', [], 'Modules.Weprestaacf.Admin');
+        $this->confirmUninstall = $this->trans('Delete all custom fields and values?', [], 'Modules.Weprestaacf.Admin');
 
         // Initialize service container
         AcfServiceContainer::init($this);
