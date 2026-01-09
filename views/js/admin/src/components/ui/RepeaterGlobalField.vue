@@ -157,7 +157,11 @@ function toggleCheckboxValue(row: RepeaterRow, subfield: AcfField, value: string
 
 // Set current language for a subfield in a specific row
 function setCurrentLanguage(rowId: string, subfieldSlug: string, langId: number): void {
-  currentLangByField.value[`${rowId}-${subfieldSlug}`] = langId
+  // Use object spread to ensure reactivity in Vue 3
+  currentLangByField.value = {
+    ...currentLangByField.value,
+    [`${rowId}-${subfieldSlug}`]: langId,
+  }
 }
 
 // Add new row
@@ -185,6 +189,17 @@ function addRow(): void {
 
   rows.value.push(newRow)
   expandedRows.value.add(newRow.row_id)
+
+  // Initialize language tracking for translatable subfields in this new row
+  subfields.value.forEach((field: AcfField) => {
+    if (isTranslatable(field)) {
+      currentLangByField.value = {
+        ...currentLangByField.value,
+        [`${newRow.row_id}-${field.slug}`]: props.defaultLanguage?.id_lang || 1,
+      }
+    }
+  })
+
   emitUpdate()
 }
 
