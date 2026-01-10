@@ -3,11 +3,13 @@
 ## 🎯 **IDENTITÉ DU MODULE**
 
 **Nom** : `wepresta_acf`  
-**Version** : `1.4.0`  
+**Version** : `1.5.0` (Back-Office Only)  
 **Type** : Module PrestaShop 8.x/9.x  
-**Description** : Système Advanced Custom Fields (ACF) complet avec builder visuel Vue.js  
+**Description** : Système Advanced Custom Fields (ACF) simplifié pour back-office uniquement avec builder visuel Vue.js  
 **Auteur** : Bruno Studer (WeCode)  
-**License** : MIT  
+**License** : MIT
+
+**⚠️ VERSION SIMPLIFIÉE** : Cette version du module se concentre exclusivement sur la gestion de champs personnalisés en back-office. Toutes les fonctionnalités d'affichage front-office automatique ont été supprimées.  
 
 ---
 
@@ -31,7 +33,7 @@
 ### **Service Container Intelligent**
 ```php
 AcfServiceContainer::getValueHandler();
-// Fallback automatique vers DI Symfony si indisponible dans hooks
+// Container de services pour l'accès aux fonctionnalités du module
 ```
 
 ---
@@ -42,7 +44,7 @@ AcfServiceContainer::getValueHandler();
 ```php
 - id, uuid, title, slug, description
 - location_rules (JSONLogic), placement_tab, placement_position
-- priority, bo_options, fo_options
+- priority, bo_options
 - active, date_add/upd
 - Relations: fields (OneToMany), translations, shops
 ```
@@ -52,8 +54,8 @@ AcfServiceContainer::getValueHandler();
 - id, uuid, group_id, parent_id (pour repeater)
 - type, title, slug, instructions
 - config (JSON), validation (JSON), conditions (JSON)
-- wrapper (JSON), fo_options (JSON)
-- position, translatable, active
+- wrapper (JSON)
+- position, active
 - Relations: group, parent, children, values
 ```
 
@@ -111,7 +113,7 @@ abstract class AbstractFieldType implements FieldTypeInterface {
 
 ---
 
-## 🌐 **API REST COMPLÈTE (45+ ENDPOINTS)**
+## 🌐 **API REST SIMPLIFIÉE (Back-Office Only)**
 
 ### **Endpoints CRUD Groups**
 ```
@@ -134,10 +136,7 @@ POST   /api/groups/{id}/fields/reorder # Réordonner
 ### **Endpoints Values**
 ```
 POST   /api/values              # Sauvegarder valeurs
-GET    /api/values/{productId}  # Récupérer valeurs produit
-GET    /api/groups/{id}/global-values    # Récupérer valeurs globales
-POST   /api/groups/{id}/global-values    # Sauvegarder valeurs globales
-POST   /api/upload-file                  # Upload fichiers (global scope)
+GET    /api/values/{entityId}?entity_type=product  # Récupérer valeurs par entité
 ```
 
 ### **Endpoints Sync (Template ↔ Boutique)**
@@ -154,22 +153,17 @@ GET    /api/sync/export/{id}     # Export JSON
 ```
 GET    /api/field-types          # Types disponibles
 POST   /api/slugify              # Générer slug
-GET    /api/front-hooks          # Hooks front-office (toutes entités)
-GET    /api/front-hooks/{entity} # Hooks front-office par entité (product, category, customer)
 ```
 
 ---
 
-## 🎭 **INTERFACE UTILISATEUR**
+## 🎭 **INTERFACE UTILISATEUR (Back-Office Only)**
 
 ### **Builder Vue.js SPA**
 - **Route** : `/modules/wepresta_acf/builder`
 - **Techno** : Vue.js 3 + Composition API
 - **Features** : Drag & drop, aperçu temps réel, validation
-- **Nouveaux composants** :
-  - `GlobalValuesEditor.vue` - Éditeur valeurs globales avec validation
-  - `FileUploadField.vue` - Upload fichiers réutilisable
-  - Support translatable fields avec onglets langues
+- **3 onglets** : General, Validation, Fields
 
 ### **Configuration Module**
 - **Route** : `/modules/wepresta_acf/configuration`
@@ -190,8 +184,8 @@ GET    /api/front-hooks/{entity} # Hooks front-office par entité (product, cate
 
 ### **Injection Back-Office**
 - **Hook** : `actionAdminControllerSetMedia`
-- **Injection** : Champs ACF dans formulaires produit/catégorie
-- **JS** : `acf-fields.js` détecte automatiquement `#acf-entity-fields`
+- **Injection** : Champs ACF dans formulaires admin
+- **Focus** : Configuration et gestion des champs uniquement
 
 ---
 
@@ -258,26 +252,25 @@ interface EntityFieldProviderInterface {
 
 ## 🎯 **HOOKS PRESTASHOP**
 
-### **Hooks Enregistrés**
+### **Hooks Enregistrés (Back-Office Only)**
 ```php
 // System hooks (toujours actifs)
 'actionAdminControllerSetMedia'
-'actionFrontControllerSetMedia'
-'displayHeader'
-'hookActionProductAdd'
-'hookActionValidateOrder'
 
 // Dynamic hooks (via EntityHooksConfig)
-// Admin hooks
+// Admin display hooks
 'displayAdminProductsExtra'      // Produits (BO)
 'displayAdminCategoriesExtra'    // Catégories (BO)
 'displayAdminCustomers'          // Clients (BO)
+
+// Admin save hooks
 'actionProductUpdate'            // Produits
 'actionProductAdd'               // Produits
 'actionCategoryUpdate'           // Catégories
 'actionCategoryAdd'              // Catégories
 'actionObjectCustomerUpdateAfter' // Clients
 'actionObjectCustomerAddAfter'   // Clients
+
 // Symfony Form hooks (PS8/9)
 'actionProductFormBuilderModifier'
 'actionAfterCreateProductFormHandler'
@@ -288,114 +281,42 @@ interface EntityFieldProviderInterface {
 'actionCustomerFormBuilderModifier'
 'actionAfterCreateCustomerFormHandler'
 'actionAfterUpdateCustomerFormHandler'
-// Front hooks
-'displayProductAdditionalInfo'   // Produits
-'displayProductExtraContent'     // Produits
-'displayProductButtons'          // Produits
-'displayProductActions'          // Produits
-'displayProductPriceBlock'       // Produits
-'displayAfterProductThumbs'      // Produits
-'displayReassurance'             // Produits
-'displayProductListReviews'      // Produits
-'displayProductListFunctionalButtons' // Produits
-'displayFooterProduct'           // Produits
-'displayHeaderCategory'          // Catégories
-'displayFooterCategory'          // Catégories
-'displayCustomerAccount'         // Clients
-'displayMyAccountBlock'          // Clients
-'displayMyAccountBlockfooter'    // Clients
-'displayCustomerAccountForm'     // Clients
-'displayCustomerAccountFormTop'  // Clients
 ```
 
 ### **EntityHooksConfig - Configuration Centralisée**
 ```php
-EntityHooksConfig::getAllHooks(); // Retourne tous hooks selon entités
-EntityHooksConfig::getAdminHooks(); // Hooks back-office (display + save + symfony)
-EntityHooksConfig::getFrontHooks(); // Hooks front-office par entité
-EntityHooksConfig::getSystemHooks(); // Hooks système (media, header)
+EntityHooksConfig::getAllHooks(); // Retourne tous hooks admin + système
+EntityHooksConfig::isEnabled('product'); // Vérifie si une entité est activée
+EntityHooksConfig::getAdminDisplayHook('product'); // Hook d'affichage admin
 ```
 
 ---
 
-## 🎨 **AFFICHAGE FRONT-OFFICE**
+## 🎨 **ARCHITECTURE SIMPLIFIÉE (Back-Office Only)**
 
-### **Méthode Générique**
-```php
-private function renderEntityFieldsForDisplayInHook(
-    string $entityType,
-    int $entityId,
-    string $hookName
-): string
-```
-
-### **Templates Smarty**
-- `product-info.tpl` - Produits (legacy)
-- `entity-info.tpl` - Toutes entités (générique)
-- Styles CSS intégrés
-
-### **Hooks Front-Office par entité**
-
-#### **🏷️ Produits (10 hooks)**
-- `displayProductAdditionalInfo` - Informations supplémentaires produit
-- `displayProductExtraContent` - Contenu supplémentaire (onglets)
-- `displayProductButtons` - Boutons d'action produit
-- `displayProductActions` - Zone actions produit
-- `displayProductPriceBlock` - Bloc prix produit
-- `displayAfterProductThumbs` - Après miniatures produit
-- `displayReassurance` - Bloc confiance/produits similaires
-- `displayProductListReviews` - Avis dans liste produits
-- `displayProductListFunctionalButtons` - Boutons fonctionnels liste
-- `displayFooterProduct` - Pied de page produit
-
-#### **📁 Catégories (2 hooks)**
-- `displayHeaderCategory` - En-tête catégorie
-- `displayFooterCategory` - Pied de page catégorie
-
-#### **👤 Clients (5 hooks)**
-- `displayCustomerAccount` - Page Mon Compte (principale)
-- `displayMyAccountBlock` - Bloc latéral Mon Compte (liens)
-- `displayMyAccountBlockfooter` - Pied du bloc Mon Compte
-- `displayCustomerAccountForm` - Formulaire édition compte (après)
-- `displayCustomerAccountFormTop` - Formulaire édition compte (avant)
-
-### **Filtrage Intelligent**
-- **Par hook** : Un groupe peut s'afficher dans `displayHome` mais pas `displayFooter`
-- **Par options FO** : `fo_options.visible`, `fo_options.show_label`
-- **Conditions** : Respecte les règles `conditions` des champs
+**Cette version du module se concentre exclusivement sur la gestion de champs personnalisés en back-office. Aucune fonctionnalité d'affichage front-office automatique n'est incluse.**
 
 ---
 
-## 🔧 **SERVICES PRINCIPAUX**
+## 🔧 **SERVICES PRINCIPAUX (Back-Office Only)**
 
 ### **ValueHandler - Gestion valeurs**
 ```php
-$valueHandler->saveProductFieldValues($productId, $values, $shopId);
-$valueHandler->saveFieldValue($productId, $slug, $value, $shopId, $langId);
-```
-
-### **FieldRenderService - Rendu champs**
-```php
-$renderService->getEntityFieldsForDisplayInHook($entityType, $entityId, $hookName);
+$valueHandler->saveEntityFieldValues($entityType, $entityId, $values, $shopId);
+$valueHandler->saveFieldValue($entityType, $entityId, $slug, $value, $shopId, $langId);
 ```
 
 ### **ValueProvider - Lecture valeurs**
 ```php
-$valueProvider->getProductFieldValues($productId, $shopId);
-$valueProvider->getFieldValue($productId, $slug, $shopId, $langId);
-$valueProvider->getEntityFieldValuesAllLanguages($entityType, $entityId, $shopId); // NOUVEAU
+$valueProvider->getEntityFieldValues($entityType, $entityId, $shopId);
+$valueProvider->getFieldValue($entityType, $entityId, $slug, $shopId, $langId);
 ```
 
 ### **FormModifierService - Modification formulaires**
 - Injection champs ACF dans formulaires admin (legacy + Symfony)
 - Gestion validation et soumission
 - Support complet Customer entity (Symfony forms PS8/9)
-- **Filtrage groupes globaux** : Exclusion automatique des groupes `valueScope: 'global'`
-
-### **EntityFieldHooksTrait - Gestion hooks**
-- **12 méthodes Customer** ajoutées (admin + front + symfony)
-- **extractCustomerIdFromParams()** - Extraction ID client sécurisée
-- Support context PrestaShop + paramètres URL + objets Customer
+- Focus sur l'administration uniquement
 
 ---
 
@@ -543,169 +464,40 @@ foOptions.displayHooks = Array.isArray(foOptions.displayHooks)
 
 ---
 
-## 🌍 **VALEURS GLOBALES (v1.4.0 - NOUVELLES FONCTIONNALITÉS)**
 
-### **Principe des Valeurs Globales**
-
-Les **valeurs globales** permettent de définir des valeurs par défaut communes à toutes les entités d'un même type, plutôt que des valeurs spécifiques à chaque entité.
-
-**Logique de priorité :**
-1. **Valeur spécifique** (entity_id = X) si définie
-2. **Valeur globale** (entity_id = 0) comme fallback
-3. **Vide** sinon
-
-### **Architecture Technique**
-
-#### **Value Scope dans GroupFrontendOptions**
-```typescript
-export interface GroupFrontendOptions {
-  visible?: boolean
-  template?: string
-  wrapperClass?: string
-  displayHooks?: Record<string, string>
-  valueScope?: 'global' | 'entity' // ← NOUVEL ATTRIBUT
-}
-```
-
-#### **Stockage en Base**
-```sql
--- Valeurs spécifiques (par entité)
-INSERT INTO wepresta_acf_field_value
-  (field_id, entity_type, entity_id, value, shop_id, lang_id)
-VALUES
-  (1, 'customer', 123, 'John Doe', 1, 1);
-
--- Valeurs globales (entity_id = 0)
-INSERT INTO wepresta_acf_field_value
-  (field_id, entity_type, entity_id, value, shop_id, lang_id)
-VALUES
-  (1, 'customer', 0, 'Default Name', 1, 1);
-```
-
-### **Interface Utilisateur**
-
-#### **Configuration du Scope**
-- **Emplacement** : Étape "Location Rules" du builder
-- **Choix** : Radio buttons "Global" / "Per Entity"
-- **Visibilité** : Après sélection du type d'entité
-
-#### **Édition des Valeurs Globales**
-- **Nouvel onglet** : "Values" dans le wizard builder
-- **Conditionnel** : Visible seulement si `valueScope = 'global'`
-- **Support complet** :
-  - Champs translatables (onglets par langue)
-  - Validation client-side (required, minLength, pattern, etc.)
-  - Upload de fichiers (image, video, file, gallery, files)
-  - Aperçu temps réel
-  - Sauvegarde automatique
-
-### **API REST - Nouveaux Endpoints**
-
-#### **Gestion des Valeurs Globales**
-```
-GET    /api/groups/{id}/global-values    # Récupérer valeurs globales
-POST   /api/groups/{id}/global-values    # Sauvegarder valeurs globales
-POST   /api/upload-file                  # Upload fichiers (global scope)
-```
-
-#### **Repository Methods**
-```php
-// Nouvelle méthode dans AcfFieldValueRepository
-findByEntityAllLanguages(string $entityType, int $entityId, ?int $shopId): array
-
-// Nouvelle méthode dans ValueProvider
-getEntityFieldValuesAllLanguages(string $entityType, int $entityId, ?int $shopId): array
-```
-
-### **Services Modifiés**
-
-#### **FormModifierService**
-```php
-// Exclusion groupes globaux des formulaires admin
-if (($foOptions['valueScope'] ?? 'entity') === 'global') {
-    continue; // Skip global groups
-}
-```
-
-#### **EntityFieldService**
-```php
-// Même logique pour hooks displayAdmin*
-if (($foOptions['valueScope'] ?? 'entity') === 'global') {
-    continue; // Skip global groups
-}
-```
-
-### **Composants Vue.js Ajoutés**
-
-#### **GlobalValuesEditor.vue**
-- Éditeur complet pour valeurs globales
-- Support champs translatables avec onglets langues
-- Validation intégrée (HTML5 + custom)
-- Gestion erreurs et aperçu
-
-#### **FileUploadField.vue**
-- Composant réutilisable pour uploads
-- Support single/multi fichiers
-- Aperçu, progression, remplacement
-- Intégration API upload
-
-### **Types de Champs Supportés**
-- ✅ **Tous les types natifs** : text, textarea, number, email, select, etc.
-- ✅ **Médias complets** : image, gallery, video, file, files
-- ✅ **Contenu riche** : richtext, date, time, datetime
-- ✅ **Translatable fields** : Gestion multilangue complète
-- ✅ **Validation** : required, minLength, maxLength, pattern, min, max
-
-### **Sécurité & Performance**
-- **Filtrage strict** : Groupes globaux exclus des formulaires entités
-- **Fallback intelligent** : Valeurs globales = backup, jamais écrasées
-- **Cache optimisé** : Requêtes séparées pour valeurs globales
-- **Upload sécurisé** : Même sécurité que valeurs spécifiques
-
-### **Cas d'Usage**
-- **Template produit** : "Marque par défaut" pour tous produits
-- **Client entreprise** : "Secteur d'activité par défaut"
-- **Catégorie générique** : "Description commune"
-- **Configuration globale** : Valeurs partagées multi-entités
-
-### **Migration & Compatibilité**
-- **Backward compatible** : Groupes existants = scope "entity"
-- **Migration automatique** : Pas de script requis
-- **Multi-shop** : Support complet (shop_id dans valeurs)
-- **Multi-lang** : Support complet (lang_id nullable)
 
 ---
 
-## 🔮 **ÉVOLUTION & ROADMAP**
+## 🔮 **VERSION ACTUELLE & HISTORIQUE**
 
-### **✅ v1.4.0 - Global Values System**
-- **Valeurs globales** : Définition de valeurs par défaut pour tous EntityTypes
-- **Logique de priorité** : spécifique → global → vide
-- **Builder amélioré** : Onglet "Values" pour groupes globaux
-- **Support fichiers** : Upload image/video/file dans valeurs globales
-- **Validation complète** : Client-side + server-side pour valeurs globales
-- **Filtrage intelligent** : Groupes globaux exclus des formulaires entités
+### **✅ v1.5.0 - Back-Office Only Refactoring (2025)**
+- **Refactoring complet** : Suppression de toutes les fonctionnalités front-office
+- **Focus back-office** : Module dédié uniquement à l'administration
+- **Nettoyage architecture** : Suppression de 40% du code (hooks, templates, APIs front)
+- **Interface simplifiée** : 3 onglets uniquement (General, Validation, Fields)
+- **Maintenance facilitée** : Code plus propre et maintenable
 
-### **✅ v1.3.1 - Customer Entity Support**
-- **Support complet Customer entity** (admin + front)
-- **5 hooks front-office** pour pages compte client
-- **Hooks Symfony PS8/9** pour formulaires clients
-- **Correction bug Display Hooks** (sauvegarde Vue.js)
-- **URLs admin documentées** pour toutes entités
+### **❌ Fonctionnalités supprimées (Front-Office)**
+- **Display hooks** : Tous les hooks `displayProduct*`, `displayCategory*`, `displayCustomer*`
+- **Templates front** : `product-info.tpl`, `entity-info.tpl`, rendu automatique
+- **Valeurs globales** : Système de valeurs partagées entre entités
+- **APIs front** : Endpoints `/api/front-hooks/*`, `/api/global-values`
+- **Options front** : `fo_options`, `valueScope`, `displayHooks` dans les entités
 
-### **Features Planifiées**
-- **Templates marketplace** (partage groupes entre boutiques)
-- **Workflows approval** (validation avant publication)
-- **Analytics reporting** (utilisation champs)
-- **API GraphQL** (alternative REST)
-- **Field types premium** (paiement, signature, etc.)
+### **Roadmap Future**
+- **Field types additionnels** : Types de champs spécialisés (couleur, icône, etc.)
+- **Export/Import amélioré** : Migration entre environnements
+- **Analytics basique** : Statistiques d'utilisation des champs
+- **Performance optimisée** : Cache et requêtes optimisées
+- **Documentation développeur** : Guides d'intégration pour thèmes
 
-### **Améliorations Architecturales**
-- **CQRS complet** (séparation read/write models)
-- **Event sourcing** (historique modifications)
-- **Microservices** (API en service séparé)
-- **Real-time sync** (WebSocket pour builder collaboratif)
+### **Avantages de la Version Simplifiée**
+- **Maintenance réduite** : Moins de code = moins de bugs
+- **Performance améliorée** : Pas de logique front-office inutile
+- **Focus métier** : Concentration sur la création/gestion de champs
+- **Évolutivité** : Architecture prête pour futures extensions
+- **Simplicité** : Interface claire et intuitive
 
 ---
 
-**Ce module représente un exemple d'excellence en développement PrestaShop moderne, combinant architecture propre, UX moderne, et fonctionnalités avancées. Avec le système de valeurs globales v1.4.0, il offre désormais une flexibilité ultime pour la gestion de contenu personnalisé.** 🎉
+**Ce module représente un exemple de **refactoring réussi** en développement PrestaShop moderne. En se concentrant sur sa **vocation première** (gestion de champs personnalisés en back-office), il offre une **solution robuste, maintenable et performante** pour les besoins d'administration personnalisée.** 🎯
