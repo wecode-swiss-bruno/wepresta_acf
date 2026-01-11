@@ -20,7 +20,7 @@ interface ParserInterface
      * Écrit des données dans un fichier.
      *
      * @param array<array<string, mixed>> $data
-     * @param array<string>               $columns
+     * @param array<string> $columns
      */
     public function write(string $filePath, array $data, array $columns): void;
 
@@ -34,4 +34,3 @@ interface ParserInterface
      */
     public function getFileExtension(): string;
 }
-

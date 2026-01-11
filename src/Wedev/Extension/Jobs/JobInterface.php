@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Jobs;
 
+use Throwable;
+
 /**
  * Interface pour les jobs asynchrones.
  *
@@ -15,7 +17,7 @@ interface JobInterface
     /**
      * Exécute le job.
      *
-     * @throws \Throwable En cas d'échec
+     * @throws Throwable En cas d'échec
      */
     public function handle(): void;
 
@@ -37,6 +39,5 @@ interface JobInterface
     /**
      * Callback appelé en cas d'échec définitif.
      */
-    public function onFailed(\Throwable $exception): void;
+    public function onFailed(Throwable $exception): void;
 }
-

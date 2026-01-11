@@ -40,4 +40,3 @@ final class ApiKeyAuth implements AuthInterface
         ];
     }
 }
-

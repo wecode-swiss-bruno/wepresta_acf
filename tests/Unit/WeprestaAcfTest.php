@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Unit;
 
-use WeprestaAcf\Domain\Entity\WeprestaAcfEntity;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Domain\Entity\WeprestaAcfEntity;
 
 /**
- * Tests unitaires pour l'entité WeprestaAcf
+ * Tests unitaires pour l'entité WeprestaAcf.
  */
 class WeprestaAcfTest extends TestCase
 {

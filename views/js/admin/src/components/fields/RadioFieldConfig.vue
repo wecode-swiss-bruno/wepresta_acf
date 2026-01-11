@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { FieldConfig } from '@/types'
+import type { FieldConfig, FieldChoice } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
 import { useFieldConfig } from '@/composables/useFieldConfig'
-import ChoicesEditor, { type Choice } from './ChoicesEditor.vue'
+import ChoicesEditor from './ChoicesEditor.vue'
 
 const props = defineProps<{
   config: FieldConfig
@@ -16,15 +16,44 @@ const emit = defineEmits<{
 const { t } = useTranslations()
 const { updateConfig } = useFieldConfig(props, emit)
 
+/**
+ * Parse choices from config, ensuring translations are preserved.
+ */
+function parseChoices(input: unknown): FieldChoice[] {
+  if (!input) return []
+  
+  if (Array.isArray(input)) {
+    return input.map((item) => {
+      if (typeof item === 'object' && item !== null) {
+        return {
+          value: item.value || '',
+          label: item.label || '',
+          translations: item.translations || {}
+        }
+      }
+      return { value: String(item), label: String(item), translations: {} }
+    })
+  }
+  
+  return []
+}
+
 // Choices with v-model on ChoicesEditor
-const choices = ref<Choice[]>((props.config.choices as Choice[]) || [])
+const choices = ref<FieldChoice[]>(parseChoices(props.config.choices))
+const isUpdatingChoices = ref(false)
 
 watch(() => props.config.choices, (newChoices) => {
-  choices.value = (newChoices as Choice[]) || []
+  if (!isUpdatingChoices.value) {
+    choices.value = parseChoices(newChoices)
+  }
 })
 
 watch(choices, (newChoices) => {
+  isUpdatingChoices.value = true
   updateConfig('choices', newChoices)
+  setTimeout(() => {
+    isUpdatingChoices.value = false
+  }, 0)
 }, { deep: true })
 </script>
 

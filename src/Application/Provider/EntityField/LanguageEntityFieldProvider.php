@@ -39,4 +39,3 @@ final class LanguageEntityFieldProvider implements EntityFieldProviderInterface
         return 'Language';
     }
 }
-

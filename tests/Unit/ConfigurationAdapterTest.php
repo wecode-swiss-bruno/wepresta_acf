@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Unit;
 
-use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 
 /**
- * Tests pour ConfigurationAdapter
+ * Tests pour ConfigurationAdapter.
  *
  * Note: Ces tests mocquent la classe Configuration de PrestaShop
  */
@@ -106,4 +106,3 @@ class ConfigurationAdapterTest extends TestCase
         ];
     }
 }
-

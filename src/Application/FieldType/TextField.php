@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,63 +22,48 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 /**
- * Text field type
+ * Text field type.
  *
  * Basic single-line text input field.
  */
 final class TextField extends AbstractFieldType
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getType(): string
     {
         return 'text';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getLabel(): string
     {
         return 'Text';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFormType(): string
     {
         return TextType::class;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFormOptions(array $fieldConfig, array $validation = []): array
     {
         $options = parent::getFormOptions($fieldConfig, $validation);
 
         // Add maxlength attribute if configured
-        if (!empty($validation['maxLength'])) {
+        if (! empty($validation['maxLength'])) {
             $options['attr']['maxlength'] = (int) $validation['maxLength'];
         }
 
         // Add prefix/suffix if configured
-        if (!empty($fieldConfig['prefix'])) {
+        if (! empty($fieldConfig['prefix'])) {
             $options['attr']['data-prefix'] = $fieldConfig['prefix'];
         }
 
-        if (!empty($fieldConfig['suffix'])) {
+        if (! empty($fieldConfig['suffix'])) {
             $options['attr']['data-suffix'] = $fieldConfig['suffix'];
         }
 
         return $options;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
         if ($value === null || $value === '') {
@@ -86,7 +71,7 @@ final class TextField extends AbstractFieldType
         }
 
         // Handle arrays/objects (empty objects from JS become empty arrays)
-        if (is_array($value) || is_object($value)) {
+        if (\is_array($value) || \is_object($value)) {
             return null;
         }
 
@@ -96,9 +81,6 @@ final class TextField extends AbstractFieldType
         return $value === '' ? null : $value;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
         if ($value === null || $value === '') {
@@ -110,6 +92,7 @@ final class TextField extends AbstractFieldType
 
         // Convert to string and handle empty values
         $stringValue = (string) $actualValue;
+
         if ($stringValue === '') {
             return '';
         }
@@ -131,9 +114,6 @@ final class TextField extends AbstractFieldType
         return $output;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array
     {
         $errors = parent::validate($value, $fieldConfig, $validation);
@@ -149,7 +129,7 @@ final class TextField extends AbstractFieldType
         $errors = array_merge($errors, $this->validateStringLength($stringValue, $validation));
 
         // Pattern validation
-        if (!empty($validation['pattern'])) {
+        if (! empty($validation['pattern'])) {
             $errors = array_merge(
                 $errors,
                 $this->validatePattern($stringValue, $validation['pattern'], $validation['patternMessage'] ?? 'Invalid format.')
@@ -159,9 +139,6 @@ final class TextField extends AbstractFieldType
         return $errors;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDefaultConfig(): array
     {
         return [
@@ -171,9 +148,6 @@ final class TextField extends AbstractFieldType
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getConfigSchema(): array
     {
         return array_merge(parent::getConfigSchema(), [
@@ -192,17 +166,11 @@ final class TextField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getIcon(): string
     {
         return 'text_fields';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -216,16 +184,13 @@ final class TextField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
         $config = $this->getFieldConfig($field);
         $placeholder = addslashes($config['placeholder'] ?? '');
 
-        return sprintf(
+        return \sprintf(
             '<input type="text" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="{value}" placeholder="%s">',
             $this->escapeAttr($slug),
             $placeholder

@@ -1,6 +1,7 @@
 <?php
+
 /**
- * ConfigurationType - Module configuration form
+ * ConfigurationType - Module configuration form.
  */
 
 declare(strict_types=1);
@@ -9,10 +10,7 @@ namespace WeprestaAcf\Application\Form;
 
 use PrestaShopBundle\Form\Admin\Type\SwitchType;
 use PrestaShopBundle\Form\Admin\Type\TranslatorAwareType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Range;
@@ -54,4 +52,3 @@ class ConfigurationType extends TranslatorAwareType
         ]);
     }
 }
-

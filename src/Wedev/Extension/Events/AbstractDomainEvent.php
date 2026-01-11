@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace WeprestaAcf\Wedev\Extension\Events;
 
 use DateTimeImmutable;
+use ReflectionClass;
+use ReflectionProperty;
 
 /**
  * Base class for all domain events.
@@ -36,14 +38,10 @@ use DateTimeImmutable;
  */
 abstract class AbstractDomainEvent
 {
-    /**
-     * When the event occurred.
-     */
+    /** When the event occurred. */
     public readonly DateTimeImmutable $occurredAt;
 
-    /**
-     * Unique identifier for this event instance.
-     */
+    /** Unique identifier for this event instance. */
     public readonly string $eventId;
 
     public function __construct()
@@ -73,10 +71,12 @@ abstract class AbstractDomainEvent
         ];
 
         // Add public properties from child classes
-        $reflection = new \ReflectionClass($this);
-        foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
+        $reflection = new ReflectionClass($this);
+
+        foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             $name = $property->getName();
-            if (!isset($data[$name]) && $name !== 'occurredAt' && $name !== 'eventId') {
+
+            if (! isset($data[$name]) && $name !== 'occurredAt' && $name !== 'eventId') {
                 $data[$name] = $property->getValue($this);
             }
         }
@@ -89,11 +89,10 @@ abstract class AbstractDomainEvent
      */
     private function generateEventId(): string
     {
-        return sprintf(
+        return \sprintf(
             '%s-%s',
             substr(str_replace('.', '_', $this->getEventName()), 0, 20),
             bin2hex(random_bytes(8))
         );
     }
 }
-

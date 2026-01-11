@@ -41,4 +41,3 @@ interface FieldTypeBrickInterface extends BrickInterface, AssetProviderInterface
      */
     public function getFieldType(): FieldTypeInterface;
 }
-

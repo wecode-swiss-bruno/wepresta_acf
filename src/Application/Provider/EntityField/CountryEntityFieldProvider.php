@@ -43,4 +43,3 @@ final class CountryEntityFieldProvider implements EntityFieldProviderInterface
         return 'Country';
     }
 }
-

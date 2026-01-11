@@ -6,8 +6,8 @@ namespace WeprestaAcf\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
 use WeprestaAcf\Application\Config\EntityHooksConfig;
-use WeprestaAcf\Application\Provider\EntityField\GenericSymfonyEntityFieldProvider;
 use WeprestaAcf\Application\Provider\EntityField\GenericLegacyEntityFieldProvider;
+use WeprestaAcf\Application\Provider\EntityField\GenericSymfonyEntityFieldProvider;
 
 /**
  * Integration tests for the Universal Entity Hooks system.
@@ -29,6 +29,7 @@ class EntityHooksIntegrationTest extends TestCase
 
             if ($provider === null) {
                 $failedEntities[] = $entityType;
+
                 continue;
             }
 
@@ -54,6 +55,7 @@ class EntityHooksIntegrationTest extends TestCase
 
             if ($provider === null) {
                 $failedEntities[] = $entityType;
+
                 continue;
             }
 
@@ -131,6 +133,7 @@ class EntityHooksIntegrationTest extends TestCase
         );
 
         $groupedEntities = [];
+
         foreach ($grouped as $category => $entities) {
             $groupedEntities = array_merge($groupedEntities, array_keys($entities));
         }
@@ -158,7 +161,7 @@ class EntityHooksIntegrationTest extends TestCase
         }
 
         // Should have reasonable number of categories (5-15)
-        $categoryCount = count($grouped);
+        $categoryCount = \count($grouped);
         $this->assertGreaterThanOrEqual(5, $categoryCount);
         $this->assertLessThanOrEqual(15, $categoryCount);
     }
@@ -210,8 +213,8 @@ class EntityHooksIntegrationTest extends TestCase
     {
         $hooks = EntityHooksConfig::getAllHooks();
 
-        $symfonyCount = count(EntityHooksConfig::SYMFONY_ENTITIES);
-        $legacyCount = count(EntityHooksConfig::LEGACY_ENTITIES);
+        $symfonyCount = \count(EntityHooksConfig::SYMFONY_ENTITIES);
+        $legacyCount = \count(EntityHooksConfig::LEGACY_ENTITIES);
 
         // Symfony: 1 form_builder + 2 form_handlers = 3 per entity
         // Some have display_hooks too
@@ -221,7 +224,7 @@ class EntityHooksIntegrationTest extends TestCase
 
         $this->assertGreaterThanOrEqual(
             $minExpected,
-            count($hooks),
+            \count($hooks),
             "Should have at least {$minExpected} hooks"
         );
     }
@@ -324,4 +327,3 @@ class EntityHooksIntegrationTest extends TestCase
         ];
     }
 }
-

@@ -103,6 +103,7 @@ final class EntityFieldRegistry
     public function getHooksForEntityType(string $entityType): array
     {
         $provider = $this->getEntityType($entityType);
+
         if ($provider === null) {
             return [];
         }
@@ -125,6 +126,7 @@ final class EntityFieldRegistry
         }
 
         $allHooks = [];
+
         foreach ($this->providers as $provider) {
             $allHooks = array_merge(
                 $allHooks,
@@ -134,6 +136,7 @@ final class EntityFieldRegistry
         }
 
         $this->hooksCache = array_unique($allHooks);
+
         return $this->hooksCache;
     }
 
@@ -145,9 +148,11 @@ final class EntityFieldRegistry
     public function getAllDisplayHooks(): array
     {
         $hooks = [];
+
         foreach ($this->providers as $provider) {
             $hooks = array_merge($hooks, $provider->getDisplayHooks());
         }
+
         return array_unique($hooks);
     }
 
@@ -159,9 +164,11 @@ final class EntityFieldRegistry
     public function getAllActionHooks(): array
     {
         $hooks = [];
+
         foreach ($this->providers as $provider) {
             $hooks = array_merge($hooks, $provider->getActionHooks());
         }
+
         return array_unique($hooks);
     }
 
@@ -173,15 +180,18 @@ final class EntityFieldRegistry
     public function getEntityTypesForHook(string $hookName): array
     {
         $entityTypes = [];
+
         foreach ($this->providers as $entityType => $provider) {
             $hooks = array_merge(
                 $provider->getDisplayHooks(),
                 $provider->getActionHooks()
             );
-            if (in_array($hookName, $hooks, true)) {
+
+            if (\in_array($hookName, $hooks, true)) {
                 $entityTypes[] = $entityType;
             }
         }
+
         return $entityTypes;
     }
 
@@ -193,4 +203,3 @@ final class EntityFieldRegistry
         $this->hooksCache = null;
     }
 }
-

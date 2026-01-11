@@ -38,9 +38,7 @@ final class PluginRegistry
      */
     private array $pluginInfos = [];
 
-    /**
-     * Whether plugins have been booted.
-     */
+    /** Whether plugins have been booted. */
     private bool $booted = false;
 
     public function __construct(
@@ -85,7 +83,7 @@ final class PluginRegistry
                 continue;
             }
 
-            if (!$this->has($dependency) && !$this->discovery->has($dependency)) {
+            if (! $this->has($dependency) && ! $this->discovery->has($dependency)) {
                 throw DependencyException::missingPluginDependency($name, $dependency);
             }
         }
@@ -197,8 +195,10 @@ final class PluginRegistry
      * Resolves dependencies and returns plugins in load order.
      *
      * @param array<string, PluginInfo> $plugins
-     * @return array<PluginInfo>
+     *
      * @throws DependencyException If circular dependency detected
+     *
+     * @return array<PluginInfo>
      */
     private function resolveDependencies(array $plugins): array
     {
@@ -218,6 +218,7 @@ final class PluginRegistry
      * @param array<string, PluginInfo> $plugins
      * @param array<PluginInfo> $resolved
      * @param array<string, bool> $resolving
+     *
      * @throws DependencyException If circular dependency detected
      */
     private function resolvePlugin(
@@ -256,4 +257,3 @@ final class PluginRegistry
         $resolved[] = $plugin;
     }
 }
-

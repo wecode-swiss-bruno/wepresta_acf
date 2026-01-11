@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Domain\Entity;
 
+use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass="WeprestaAcf\Infrastructure\Repository\AcfFieldValueRepository")
+ *
  * @ORM\Table(name="PREFIX_wepresta_acf_field_value")
+ *
  * @ORM\HasLifecycleCallbacks
  */
 class AcfFieldValue
@@ -35,53 +39,138 @@ class AcfFieldValue
     private ?string $valueIndex = null;
 
     /** @ORM\Column(type="datetime", name="date_add") */
-    private \DateTimeInterface $dateAdd;
+    private DateTimeInterface $dateAdd;
 
     /** @ORM\Column(type="datetime", name="date_upd") */
-    private \DateTimeInterface $dateUpd;
+    private DateTimeInterface $dateUpd;
 
     public function __construct()
     {
-        $this->dateAdd = new \DateTime();
-        $this->dateUpd = new \DateTime();
+        $this->dateAdd = new DateTime();
+        $this->dateUpd = new DateTime();
     }
 
-    /** @ORM\PreUpdate */
-    public function onPreUpdate(): void { $this->dateUpd = new \DateTime(); }
+    /**
+     * @ORM\PreUpdate
+     */
+    public function onPreUpdate(): void
+    {
+        $this->dateUpd = new DateTime();
+    }
 
-    public function getId(): int { return $this->id; }
-    public function getField(): AcfField { return $this->field; }
-    public function setField(AcfField $field): self { $this->field = $field; return $this; }
-    public function getProductId(): int { return $this->productId; }
-    public function setProductId(int $productId): self { $this->productId = $productId; return $this; }
-    public function getShopId(): int { return $this->shopId; }
-    public function setShopId(int $shopId): self { $this->shopId = $shopId; return $this; }
-    public function getLangId(): ?int { return $this->langId; }
-    public function setLangId(?int $langId): self { $this->langId = $langId; return $this; }
-    public function getValue(): ?string { return $this->value; }
-    public function setValue(?string $value): self { $this->value = $value; return $this; }
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getField(): AcfField
+    {
+        return $this->field;
+    }
+
+    public function setField(AcfField $field): self
+    {
+        $this->field = $field;
+
+        return $this;
+    }
+
+    public function getProductId(): int
+    {
+        return $this->productId;
+    }
+
+    public function setProductId(int $productId): self
+    {
+        $this->productId = $productId;
+
+        return $this;
+    }
+
+    public function getShopId(): int
+    {
+        return $this->shopId;
+    }
+
+    public function setShopId(int $shopId): self
+    {
+        $this->shopId = $shopId;
+
+        return $this;
+    }
+
+    public function getLangId(): ?int
+    {
+        return $this->langId;
+    }
+
+    public function setLangId(?int $langId): self
+    {
+        $this->langId = $langId;
+
+        return $this;
+    }
+
+    public function getValue(): ?string
+    {
+        return $this->value;
+    }
+
+    public function setValue(?string $value): self
+    {
+        $this->value = $value;
+
+        return $this;
+    }
 
     public function getDecodedValue(): mixed
     {
-        if ($this->value === null || $this->value === '') { return null; }
+        if ($this->value === null || $this->value === '') {
+            return null;
+        }
         $decoded = json_decode($this->value, true);
+
         return json_last_error() === JSON_ERROR_NONE ? $decoded : $this->value;
     }
 
     public function setMixedValue(mixed $value): self
     {
-        if ($value === null) { $this->value = null; }
-        elseif (is_array($value) || is_object($value)) { $this->value = json_encode($value, JSON_THROW_ON_ERROR); }
-        else { $this->value = (string) $value; }
+        if ($value === null) {
+            $this->value = null;
+        } elseif (\is_array($value) || \is_object($value)) {
+            $this->value = json_encode($value, JSON_THROW_ON_ERROR);
+        } else {
+            $this->value = (string) $value;
+        }
+
         return $this;
     }
 
-    public function getValueIndex(): ?string { return $this->valueIndex; }
-    public function setValueIndex(?string $valueIndex): self { $this->valueIndex = $valueIndex !== null ? substr($valueIndex, 0, 255) : null; return $this; }
-    public function getDateAdd(): \DateTimeInterface { return $this->dateAdd; }
-    public function getDateUpd(): \DateTimeInterface { return $this->dateUpd; }
+    public function getValueIndex(): ?string
+    {
+        return $this->valueIndex;
+    }
 
-    /** @return array<string, mixed> */
+    public function setValueIndex(?string $valueIndex): self
+    {
+        $this->valueIndex = $valueIndex !== null ? substr($valueIndex, 0, 255) : null;
+
+        return $this;
+    }
+
+    public function getDateAdd(): DateTimeInterface
+    {
+        return $this->dateAdd;
+    }
+
+    public function getDateUpd(): DateTimeInterface
+    {
+        return $this->dateUpd;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         return [
@@ -92,4 +181,3 @@ class AcfFieldValue
         ];
     }
 }
-

@@ -30,10 +30,10 @@ use WeprestaAcf\Wedev\Extension\Events\AbstractDomainEvent;
 final class EntityUpdatedEvent extends AbstractDomainEvent
 {
     /**
-     * @param string              $entityType The type of entity
-     * @param int|string          $entityId   The entity's identifier
-     * @param array<string,mixed> $oldData    Data before the update
-     * @param array<string,mixed> $newData    Data after the update
+     * @param string $entityType The type of entity
+     * @param int|string $entityId The entity's identifier
+     * @param array<string,mixed> $oldData Data before the update
+     * @param array<string,mixed> $newData Data after the update
      */
     public function __construct(
         public readonly string $entityType,
@@ -54,7 +54,7 @@ final class EntityUpdatedEvent extends AbstractDomainEvent
      */
     public function getSpecificEventName(): string
     {
-        return sprintf('%s.updated', $this->entityType);
+        return \sprintf('%s.updated', $this->entityType);
     }
 
     /**
@@ -122,4 +122,3 @@ final class EntityUpdatedEvent extends AbstractDomainEvent
         return $diff;
     }
 }
-

@@ -19,18 +19,10 @@ declare(strict_types=1);
  *   - breakWord (bool): Couper au milieu d'un mot (défaut: false)
  * =============================================================================
  */
-
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
-/**
- * @param string $string
- * @param int $length
- * @param string $suffix
- * @param bool $breakWord
- * @return string
- */
 function smarty_modifier_wedev_truncate(
     string $string,
     int $length = 50,
@@ -50,8 +42,9 @@ function smarty_modifier_wedev_truncate(
     $truncated = mb_substr($string, 0, $length, 'UTF-8');
 
     // Si on ne coupe pas les mots, on cherche le dernier espace
-    if (!$breakWord) {
+    if (! $breakWord) {
         $lastSpace = mb_strrpos($truncated, ' ', 0, 'UTF-8');
+
         if ($lastSpace !== false && $lastSpace > $length * 0.5) {
             $truncated = mb_substr($truncated, 0, $lastSpace, 'UTF-8');
         }
@@ -59,8 +52,3 @@ function smarty_modifier_wedev_truncate(
 
     return rtrim($truncated) . $suffix;
 }
-
-
-
-
-

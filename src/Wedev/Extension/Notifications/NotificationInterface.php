@@ -40,4 +40,3 @@ interface NotificationInterface
      */
     public function getChannels(): array;
 }
-

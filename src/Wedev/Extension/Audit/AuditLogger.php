@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Audit;
 
+use Context;
+use PrestaShopLogger;
+use Tools;
 use WeprestaAcf\Wedev\Core\Contract\ExtensionInterface;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 
@@ -78,7 +81,7 @@ final class AuditLogger implements ExtensionInterface
             entityId: $entityId,
             userId: $this->getCurrentUserId(),
             userName: $this->getCurrentUserName(),
-            ipAddress: \Tools::getRemoteAddr() ?: 'unknown',
+            ipAddress: Tools::getRemoteAddr() ?: 'unknown',
             oldValues: $oldValues,
             newValues: $newValues,
             context: $context,
@@ -87,7 +90,7 @@ final class AuditLogger implements ExtensionInterface
 
         $id = $this->repository->save($entry);
 
-        $this->logInternal('debug', sprintf(
+        $this->logInternal('debug', \sprintf(
             'Audit: %s %s #%s by %s',
             $action,
             $entityType,
@@ -147,7 +150,7 @@ final class AuditLogger implements ExtensionInterface
     /**
      * Logger une suppression.
      *
-     * @param array<string, mixed> $values  Valeurs avant suppression
+     * @param array<string, mixed> $values Valeurs avant suppression
      * @param array<string, mixed> $context
      */
     public function logDelete(
@@ -270,7 +273,7 @@ final class AuditLogger implements ExtensionInterface
 
     private function getCurrentUserId(): ?int
     {
-        $context = \Context::getContext();
+        $context = Context::getContext();
 
         if (isset($context->employee) && $context->employee->id) {
             return (int) $context->employee->id;
@@ -285,10 +288,10 @@ final class AuditLogger implements ExtensionInterface
 
     private function getCurrentUserName(): ?string
     {
-        $context = \Context::getContext();
+        $context = Context::getContext();
 
         if (isset($context->employee) && $context->employee->id) {
-            return sprintf(
+            return \sprintf(
                 '%s %s',
                 $context->employee->firstname,
                 $context->employee->lastname
@@ -296,7 +299,7 @@ final class AuditLogger implements ExtensionInterface
         }
 
         if (isset($context->customer) && $context->customer->id) {
-            return sprintf(
+            return \sprintf(
                 '%s %s',
                 $context->customer->firstname,
                 $context->customer->lastname
@@ -308,7 +311,7 @@ final class AuditLogger implements ExtensionInterface
 
     private function getCurrentShopId(): int
     {
-        $context = \Context::getContext();
+        $context = Context::getContext();
 
         return isset($context->shop) ? (int) $context->shop->id : 0;
     }
@@ -316,7 +319,7 @@ final class AuditLogger implements ExtensionInterface
     private function logInternal(string $level, string $message): void
     {
         // Éviter la récursion infinie si LoggerTrait utilise l'audit
-        \PrestaShopLogger::addLog(
+        PrestaShopLogger::addLog(
             $message,
             $level === 'error' ? 3 : 1,
             null,
@@ -326,4 +329,3 @@ final class AuditLogger implements ExtensionInterface
         );
     }
 }
-

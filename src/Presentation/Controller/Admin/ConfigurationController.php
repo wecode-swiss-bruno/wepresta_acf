@@ -1,12 +1,14 @@
 <?php
+
 /**
- * ConfigurationController - Module configuration admin page
+ * ConfigurationController - Module configuration admin page.
  */
 
 declare(strict_types=1);
 
 namespace WeprestaAcf\Presentation\Controller\Admin;
 
+use Configuration;
 use Module;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,8 +78,7 @@ class ConfigurationController extends FrameworkBundleAdminController
     private function saveFormData(array $data): void
     {
         // PrestaShop Configuration expects integers for boolean values (1 or 0)
-        \Configuration::updateValue('WEPRESTA_ACF_DEBUG', !empty($data['debug']) ? 1 : 0);
-        \Configuration::updateValue('WEPRESTA_ACF_MAX_FILE_SIZE', ((int) ($data['max_file_size'] ?? 10)) * 1048576);
+        Configuration::updateValue('WEPRESTA_ACF_DEBUG', ! empty($data['debug']) ? 1 : 0);
+        Configuration::updateValue('WEPRESTA_ACF_MAX_FILE_SIZE', ((int) ($data['max_file_size'] ?? 10)) * 1048576);
     }
 }
-

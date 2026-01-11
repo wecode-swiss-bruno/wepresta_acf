@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - LoggerTrait
+ * WEDEV Core - LoggerTrait.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -14,6 +15,7 @@ namespace WeprestaAcf\Wedev\Core\Trait;
 
 use PrestaShopLogger;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Trait pour le logging.
@@ -65,9 +67,9 @@ trait LoggerTrait
     /**
      * Log une exception.
      */
-    protected function logException(\Throwable $e, array $context = []): void
+    protected function logException(Throwable $e, array $context = []): void
     {
-        $context['exception'] = get_class($e);
+        $context['exception'] = \get_class($e);
         $context['file'] = $e->getFile();
         $context['line'] = $e->getLine();
         $context['trace'] = $e->getTraceAsString();
@@ -96,11 +98,11 @@ trait LoggerTrait
         }
 
         // Fallback: PrestaShopLogger
-        $contextString = !empty($context) ? ' | ' . json_encode($context) : '';
+        $contextString = ! empty($context) ? ' | ' . json_encode($context) : '';
         $moduleName = property_exists($this, 'name') ? $this->name : 'module';
 
         PrestaShopLogger::addLog(
-            "[$moduleName] $message$contextString",
+            "[{$moduleName}] {$message}{$contextString}",
             $severity,
             null,
             null,
@@ -109,4 +111,3 @@ trait LoggerTrait
         );
     }
 }
-

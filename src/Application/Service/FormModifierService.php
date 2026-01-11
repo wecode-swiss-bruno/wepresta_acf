@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use Configuration;
 use Context;
+use Exception;
 use Language;
+use PrestaShopLogger;
 use Symfony\Component\Form\FormBuilderInterface;
 use Twig\Environment;
 use WeprestaAcf\Application\Form\Type\AcfContainerType;
@@ -88,50 +91,175 @@ final class FormModifierService
 
             // Filter groups by location rules AND exclude global scope groups
             $matchingGroups = [];
+
             foreach ($groups as $group) {
                 $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
-                
+
                 // Check if group matches location rules
-                if (!$this->locationProviderRegistry->matchLocation($locationRules, $context)) {
+                if (! $this->locationProviderRegistry->matchLocation($locationRules, $context)) {
                     continue;
                 }
-                
+
                 $foOptions = json_decode($group['fo_options'] ?? '{}', true);
+
                 if (($foOptions['valueScope'] ?? 'entity') === 'global') {
-                    \PrestaShopLogger::addLog('[ACF modifyForm] Skipping group "' . $group['title'] . '" (global scope)', 1);
+                    PrestaShopLogger::addLog('[ACF modifyForm] Skipping group "' . $group['title'] . '" (global scope)', 1);
+
                     continue;
                 }
-                
+
                 $matchingGroups[] = $group;
             }
 
             if (empty($matchingGroups)) {
-                \PrestaShopLogger::addLog('[ACF modifyForm] No matching groups', 1);
+                PrestaShopLogger::addLog('[ACF modifyForm] No matching groups', 1);
+
                 return;
             }
 
-            \PrestaShopLogger::addLog('[ACF modifyForm] Found ' . count($matchingGroups) . ' matching groups', 1);
+            PrestaShopLogger::addLog('[ACF modifyForm] Found ' . \count($matchingGroups) . ' matching groups', 1);
 
             // Render ACF fields using Twig for full field support
             $html = $this->renderAcfFields($matchingGroups, $entityType, $entityId);
-            
-            \PrestaShopLogger::addLog('[ACF modifyForm] Rendered HTML length: ' . strlen($html), 1);
+
+            PrestaShopLogger::addLog('[ACF modifyForm] Rendered HTML length: ' . \strlen($html), 1);
             // Log meaningful preview - skip leading whitespace
             $trimmedHtml = ltrim($html);
-            \PrestaShopLogger::addLog('[ACF modifyForm] HTML preview: ' . substr($trimmedHtml, 0, 400), 1);
+            PrestaShopLogger::addLog('[ACF modifyForm] HTML preview: ' . substr($trimmedHtml, 0, 400), 1);
 
             // Add container with pre-rendered HTML
             $formBuilder->add('acf_fields', AcfContainerType::class, [
                 'acf_html' => $html,
             ]);
-            
-            \PrestaShopLogger::addLog('[ACF modifyForm] Added acf_fields to form', 1);
-        } catch (\Exception $e) {
-            \PrestaShopLogger::addLog(
+
+            PrestaShopLogger::addLog('[ACF modifyForm] Added acf_fields to form', 1);
+        } catch (Exception $e) {
+            PrestaShopLogger::addLog(
                 'ACF FormModifierService error: ' . $e->getMessage(),
                 3
             );
         }
+    }
+
+    /**
+     * Extracts ACF field data from submitted form data.
+     *
+     * @param array $formData The submitted form data
+     *
+     * @return array<string, mixed> ACF field values keyed by slug
+     */
+    public function extractAcfData(array $formData): array
+    {
+        $acfData = [];
+
+        foreach ($formData as $key => $value) {
+            if (str_starts_with($key, 'acf_')) {
+                $slug = substr($key, 4);
+                $acfData[$slug] = $value;
+            }
+        }
+
+        return $acfData;
+    }
+
+    /**
+     * Saves ACF data after form submission.
+     *
+     * Called by FormHandler hooks (e.g., actionAfterUpdateCustomerFormHandler).
+     *
+     * @param string $entityType Entity type
+     * @param int $entityId Entity ID
+     * @param array $formData Complete form data
+     */
+    public function saveAcfData(string $entityType, int $entityId, array $formData): void
+    {
+        if ($entityId <= 0) {
+            return;
+        }
+
+        try {
+            $acfData = $this->extractAcfData($formData);
+
+            if (empty($acfData)) {
+                return;
+            }
+
+            $shopId = (int) Context::getContext()->shop->id;
+
+            // Handle translatable fields
+            $languages = Language::getLanguages(true);
+            $translatableValues = [];
+
+            foreach ($acfData as $slug => $value) {
+                // Check if this is a translatable field with language suffix
+                if (preg_match('/^(.+)_(\d+)$/', $slug, $matches)) {
+                    $baseSlug = $matches[1];
+                    $langId = (int) $matches[2];
+
+                    $field = $this->fieldRepository->findBySlug($baseSlug);
+
+                    if ($field && (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false)) {
+                        $translatableValues[$baseSlug][$langId] = $value;
+                        unset($acfData[$slug]);
+
+                        continue;
+                    }
+                }
+            }
+
+            // Save non-translatable values
+            $this->valueHandler->saveEntityFieldValues($entityType, $entityId, $acfData, $shopId);
+
+            // Save translatable values
+            foreach ($translatableValues as $slug => $langValues) {
+                foreach ($langValues as $langId => $value) {
+                    $this->valueHandler->saveEntityFieldValue(
+                        $entityType,
+                        $entityId,
+                        $slug,
+                        $value,
+                        $shopId,
+                        $langId
+                    );
+                }
+            }
+        } catch (Exception $e) {
+            PrestaShopLogger::addLog(
+                'ACF FormModifierService save error: ' . $e->getMessage(),
+                3
+            );
+        }
+    }
+
+    /**
+     * Gets the entity ID from hook parameters.
+     *
+     * @param string $entityType Entity type
+     * @param array $params Hook parameters
+     *
+     * @return int|null Entity ID or null if not found
+     */
+    public function getEntityIdFromParams(string $entityType, array $params): ?int
+    {
+        // Check common parameter names
+        $possibleKeys = ['id', 'id_' . $entityType, $entityType . '_id'];
+
+        foreach ($possibleKeys as $key) {
+            if (isset($params[$key]) && (int) $params[$key] > 0) {
+                return (int) $params[$key];
+            }
+        }
+
+        // Check in form_data if present
+        if (isset($params['form_data']) && \is_array($params['form_data'])) {
+            foreach ($possibleKeys as $key) {
+                if (isset($params['form_data'][$key]) && (int) $params['form_data'][$key] > 0) {
+                    return (int) $params['form_data'][$key];
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -140,20 +268,23 @@ final class FormModifierService
      * @param array $matchingGroups Groups that match location rules
      * @param string $entityType Entity type
      * @param int|null $entityId Entity ID
+     *
      * @return string Rendered HTML
      */
     private function renderAcfFields(array $matchingGroups, string $entityType, ?int $entityId): string
     {
         $languages = Language::getLanguages(true);
-        $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+        $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
         $currentLangId = (int) Context::getContext()->language->id;
         $shopId = (int) Context::getContext()->shop->id;
 
         // Get field values for the entity
         $values = [];
         $valuesPerLang = [];
+
         if ($entityId !== null && $entityId > 0) {
             $values = $this->valueProvider->getEntityFieldValues($entityType, $entityId, null, $currentLangId);
+
             foreach ($languages as $lang) {
                 $valuesPerLang[(int) $lang['id_lang']] = $this->valueProvider->getEntityFieldValues(
                     $entityType,
@@ -166,21 +297,23 @@ final class FormModifierService
 
         // Build groups data for Twig
         $groupsData = [];
-        \PrestaShopLogger::addLog('[ACF renderAcfFields] Processing ' . count($matchingGroups) . ' groups', 1);
+        PrestaShopLogger::addLog('[ACF renderAcfFields] Processing ' . \count($matchingGroups) . ' groups', 1);
+
         foreach ($matchingGroups as $group) {
             $groupId = (int) $group['id_wepresta_acf_group'];
-            \PrestaShopLogger::addLog('[ACF renderAcfFields] Group ID: ' . $groupId . ', Title: ' . ($group['title'] ?? 'N/A'), 1);
+            PrestaShopLogger::addLog('[ACF renderAcfFields] Group ID: ' . $groupId . ', Title: ' . ($group['title'] ?? 'N/A'), 1);
             $fields = $this->fieldRepository->findByGroup($groupId);
-            \PrestaShopLogger::addLog('[ACF renderAcfFields] Found ' . count($fields) . ' fields', 1);
+            PrestaShopLogger::addLog('[ACF renderAcfFields] Found ' . \count($fields) . ' fields', 1);
 
             $fieldsHtml = [];
+
             foreach ($fields as $field) {
                 $slug = $field['slug'];
                 $type = $field['type'];
                 $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
                 $fieldType = $this->fieldTypeRegistry->getOrNull($type);
 
-                if (!$fieldType) {
+                if (! $fieldType) {
                     continue;
                 }
 
@@ -198,8 +331,10 @@ final class FormModifierService
                     $children = $this->fieldRepository->findByParent($fieldId);
                     $field['children'] = $children;
                     $field['jsTemplates'] = [];
+
                     foreach ($children as $child) {
                         $childType = $this->fieldTypeRegistry->getOrNull($child['type']);
+
                         if ($childType) {
                             $field['jsTemplates'][$child['slug']] = $childType->getJsTemplate($child);
                         }
@@ -209,6 +344,7 @@ final class FormModifierService
                 if ($isTranslatable) {
                     // Render field for each language
                     $langInputs = [];
+
                     foreach ($languages as $lang) {
                         $langId = (int) $lang['id_lang'];
                         $langValue = $valuesPerLang[$langId][$slug] ?? null;
@@ -249,9 +385,10 @@ final class FormModifierService
         // Build API URL
         $apiUrl = $this->getAdminApiBaseUrl();
 
-        \PrestaShopLogger::addLog('[ACF renderAcfFields] Total groups to render: ' . count($groupsData), 1);
+        PrestaShopLogger::addLog('[ACF renderAcfFields] Total groups to render: ' . \count($groupsData), 1);
+
         foreach ($groupsData as $g) {
-            \PrestaShopLogger::addLog('[ACF renderAcfFields] Group "' . $g['title'] . '" has ' . count($g['fields']) . ' fields', 1);
+            PrestaShopLogger::addLog('[ACF renderAcfFields] Group "' . $g['title'] . '" has ' . \count($g['fields']) . ' fields', 1);
         }
 
         // Render using Twig
@@ -265,8 +402,6 @@ final class FormModifierService
 
     /**
      * Gets the admin API base URL.
-     *
-     * @return string
      */
     private function getAdminApiBaseUrl(): string
     {
@@ -280,134 +415,21 @@ final class FormModifierService
         try {
             // Try to get the API URL from the router
             $router = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance()->get('router');
+
             if ($router) {
                 // Use values route and strip /values to get base URL
                 $url = $router->generate('wepresta_acf_api_values_save');
+
                 return preg_replace('/\/values$/', '', $url);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback
         }
 
         // Fallback to manual URL construction
         $adminDir = basename(_PS_ADMIN_DIR_);
         $baseUrl = $context->shop->getBaseURL(true) . $adminDir;
+
         return $baseUrl . '/modules/wepresta_acf/api';
-    }
-
-    /**
-     * Extracts ACF field data from submitted form data.
-     *
-     * @param array $formData The submitted form data
-     * @return array<string, mixed> ACF field values keyed by slug
-     */
-    public function extractAcfData(array $formData): array
-    {
-        $acfData = [];
-
-        foreach ($formData as $key => $value) {
-            if (str_starts_with($key, 'acf_')) {
-                $slug = substr($key, 4);
-                $acfData[$slug] = $value;
-            }
-        }
-
-        return $acfData;
-    }
-
-    /**
-     * Saves ACF data after form submission.
-     *
-     * Called by FormHandler hooks (e.g., actionAfterUpdateCustomerFormHandler).
-     *
-     * @param string $entityType Entity type
-     * @param int $entityId Entity ID
-     * @param array $formData Complete form data
-     */
-    public function saveAcfData(string $entityType, int $entityId, array $formData): void
-    {
-        if ($entityId <= 0) {
-            return;
-        }
-
-        try {
-            $acfData = $this->extractAcfData($formData);
-            if (empty($acfData)) {
-                return;
-            }
-
-            $shopId = (int) Context::getContext()->shop->id;
-
-            // Handle translatable fields
-            $languages = Language::getLanguages(true);
-            $translatableValues = [];
-
-            foreach ($acfData as $slug => $value) {
-                // Check if this is a translatable field with language suffix
-                if (preg_match('/^(.+)_(\d+)$/', $slug, $matches)) {
-                    $baseSlug = $matches[1];
-                    $langId = (int) $matches[2];
-
-                    $field = $this->fieldRepository->findBySlug($baseSlug);
-                    if ($field && (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false)) {
-                        $translatableValues[$baseSlug][$langId] = $value;
-                        unset($acfData[$slug]);
-                        continue;
-                    }
-                }
-            }
-
-            // Save non-translatable values
-            $this->valueHandler->saveEntityFieldValues($entityType, $entityId, $acfData, $shopId);
-
-            // Save translatable values
-            foreach ($translatableValues as $slug => $langValues) {
-                foreach ($langValues as $langId => $value) {
-                    $this->valueHandler->saveEntityFieldValue(
-                        $entityType,
-                        $entityId,
-                        $slug,
-                        $value,
-                        $shopId,
-                        $langId
-                    );
-                }
-            }
-        } catch (\Exception $e) {
-            \PrestaShopLogger::addLog(
-                'ACF FormModifierService save error: ' . $e->getMessage(),
-                3
-            );
-        }
-    }
-
-    /**
-     * Gets the entity ID from hook parameters.
-     *
-     * @param string $entityType Entity type
-     * @param array $params Hook parameters
-     * @return int|null Entity ID or null if not found
-     */
-    public function getEntityIdFromParams(string $entityType, array $params): ?int
-    {
-        // Check common parameter names
-        $possibleKeys = ['id', 'id_' . $entityType, $entityType . '_id'];
-
-        foreach ($possibleKeys as $key) {
-            if (isset($params[$key]) && (int) $params[$key] > 0) {
-                return (int) $params[$key];
-            }
-        }
-
-        // Check in form_data if present
-        if (isset($params['form_data']) && is_array($params['form_data'])) {
-            foreach ($possibleKeys as $key) {
-                if (isset($params['form_data'][$key]) && (int) $params['form_data'][$key] > 0) {
-                    return (int) $params['form_data'][$key];
-                }
-            }
-        }
-
-        return null;
     }
 }

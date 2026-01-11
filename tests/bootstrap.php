@@ -3,27 +3,27 @@
 declare(strict_types=1);
 
 /**
- * Bootstrap PHPUnit pour tests WEDEV
+ * Bootstrap PHPUnit pour tests WEDEV.
  */
 
 // Autoloader Composer
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 // Définir les constantes PrestaShop simulées
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     define('_PS_VERSION_', '9.0.0');
 }
 
-if (!defined('_DB_PREFIX_')) {
+if (! defined('_DB_PREFIX_')) {
     define('_DB_PREFIX_', 'ps_');
 }
 
-if (!defined('_PS_MODULE_DIR_')) {
+if (! defined('_PS_MODULE_DIR_')) {
     define('_PS_MODULE_DIR_', dirname(__DIR__) . '/');
 }
 
 // Classe Mock pour Configuration PrestaShop
-if (!class_exists('Configuration')) {
+if (! class_exists('Configuration')) {
     class Configuration
     {
         private static array $data = [];
@@ -41,12 +41,14 @@ if (!class_exists('Configuration')) {
         public static function updateValue(string $key, mixed $value, bool $html = false): bool
         {
             self::$data[$key] = $value;
+
             return true;
         }
 
         public static function deleteByName(string $key): bool
         {
             unset(self::$data[$key]);
+
             return true;
         }
 
@@ -63,14 +65,19 @@ if (!class_exists('Configuration')) {
 }
 
 // Classe Mock pour Context
-if (!class_exists('Context')) {
+if (! class_exists('Context')) {
     class Context
     {
         public ?object $shop = null;
+
         public ?object $language = null;
+
         public ?object $customer = null;
+
         public ?object $cart = null;
+
         public ?object $smarty = null;
+
         public ?object $controller = null;
 
         private static ?Context $instance = null;
@@ -85,10 +92,11 @@ if (!class_exists('Context')) {
                 self::$instance->cart = (object) [
                     'id' => 0,
                     'id_customer' => 0,
-                    'getOrderTotal' => fn() => 0.0,
-                    'nbProducts' => fn() => 0,
+                    'getOrderTotal' => fn () => 0.0,
+                    'nbProducts' => fn () => 0,
                 ];
             }
+
             return self::$instance;
         }
 
@@ -100,7 +108,7 @@ if (!class_exists('Context')) {
 }
 
 // Classe Mock pour Shop
-if (!class_exists('Shop')) {
+if (! class_exists('Shop')) {
     class Shop
     {
         public static function isFeatureActive(): bool
@@ -118,7 +126,7 @@ if (!class_exists('Shop')) {
 }
 
 // Classe Mock pour Db
-if (!class_exists('Db')) {
+if (! class_exists('Db')) {
     class Db
     {
         private static ?Db $instance = null;
@@ -128,6 +136,7 @@ if (!class_exists('Db')) {
             if (self::$instance === null) {
                 self::$instance = new self();
             }
+
             return self::$instance;
         }
 
@@ -179,41 +188,52 @@ if (!class_exists('Db')) {
 }
 
 // Classe Mock pour DbQuery
-if (!class_exists('DbQuery')) {
+if (! class_exists('DbQuery')) {
     class DbQuery
     {
         private string $query = '';
 
+        public function __toString(): string
+        {
+            return $this->build();
+        }
+
         public function select(string $fields): self
         {
             $this->query = "SELECT {$fields}";
+
             return $this;
         }
 
         public function from(string $table, ?string $alias = null): self
         {
-            $this->query .= " FROM " . _DB_PREFIX_ . $table;
+            $this->query .= ' FROM ' . _DB_PREFIX_ . $table;
+
             if ($alias) {
                 $this->query .= " {$alias}";
             }
+
             return $this;
         }
 
         public function where(string $condition): self
         {
             $this->query .= " WHERE {$condition}";
+
             return $this;
         }
 
         public function orderBy(string $order): self
         {
             $this->query .= " ORDER BY {$order}";
+
             return $this;
         }
 
         public function limit(int $limit, int $offset = 0): self
         {
             $this->query .= " LIMIT {$offset}, {$limit}";
+
             return $this;
         }
 
@@ -221,16 +241,11 @@ if (!class_exists('DbQuery')) {
         {
             return $this->query;
         }
-
-        public function __toString(): string
-        {
-            return $this->build();
-        }
     }
 }
 
 // Fonction pSQL
-if (!function_exists('pSQL')) {
+if (! function_exists('pSQL')) {
     function pSQL(string $string): string
     {
         return addslashes($string);
@@ -238,12 +253,15 @@ if (!function_exists('pSQL')) {
 }
 
 // Classe PrestaShopLogger
-if (!class_exists('PrestaShopLogger')) {
+if (! class_exists('PrestaShopLogger')) {
     class PrestaShopLogger
     {
         public const LOG_SEVERITY_LEVEL_INFORMATIVE = 1;
+
         public const LOG_SEVERITY_LEVEL_WARNING = 2;
+
         public const LOG_SEVERITY_LEVEL_ERROR = 3;
+
         public const LOG_SEVERITY_LEVEL_MAJOR = 4;
 
         public static function addLog(

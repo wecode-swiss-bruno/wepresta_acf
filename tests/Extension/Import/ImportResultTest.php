@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Import;
 
-use WeprestaAcf\Extension\Import\ImportResult;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Extension\Import\ImportResult;
 
 class ImportResultTest extends TestCase
 {
@@ -136,4 +136,3 @@ class ImportResultTest extends TestCase
         $this->assertStringContainsString('Updated: 1', $summary);
     }
 }
-

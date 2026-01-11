@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - ModuleAwareTrait
+ * WEDEV Core - ModuleAwareTrait.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -12,6 +13,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Trait;
 
+use Exception;
 use Module;
 
 /**
@@ -69,7 +71,9 @@ trait ModuleAwareTrait
      * Récupère un service du container Symfony.
      *
      * @template T of object
+     *
      * @param class-string<T> $serviceId
+     *
      * @return T|null
      */
     public function getService(string $serviceId): ?object
@@ -81,14 +85,13 @@ trait ModuleAwareTrait
         try {
             $container = $this->module->get('service_container');
 
-            if ($container === null || !$container->has($serviceId)) {
+            if ($container === null || ! $container->has($serviceId)) {
                 return null;
             }
 
             return $container->get($serviceId);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
 }
-

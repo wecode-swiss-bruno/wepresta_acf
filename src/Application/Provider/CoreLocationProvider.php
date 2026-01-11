@@ -7,7 +7,7 @@ namespace WeprestaAcf\Application\Provider;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
 
 /**
- * Core PrestaShop location provider
+ * Core PrestaShop location provider.
  */
 final class CoreLocationProvider implements LocationProviderInterface
 {
@@ -16,8 +16,15 @@ final class CoreLocationProvider implements LocationProviderInterface
     ) {
     }
 
-    public function getIdentifier(): string { return 'prestashop_core'; }
-    public function getName(): string { return 'PrestaShop'; }
+    public function getIdentifier(): string
+    {
+        return 'prestashop_core';
+    }
+
+    public function getName(): string
+    {
+        return 'PrestaShop';
+    }
 
     public function getLocations(): array
     {
@@ -33,6 +40,7 @@ final class CoreLocationProvider implements LocationProviderInterface
 
         if ($ruleType === 'entity_type') {
             $contextEntityType = $context['entity_type'] ?? '';
+
             return match ($ruleOperator) {
                 'equals' => $ruleValue === $contextEntityType || $ruleValue === 'all',
                 'not_equals' => $ruleValue !== $contextEntityType,
@@ -42,17 +50,22 @@ final class CoreLocationProvider implements LocationProviderInterface
 
         if ($ruleType === 'product_category') {
             $contextCategoryIds = $context['category_ids'] ?? [];
-            if (isset($context['category_id'])) { $contextCategoryIds[] = $context['category_id']; }
+
+            if (isset($context['category_id'])) {
+                $contextCategoryIds[] = $context['category_id'];
+            }
             $ruleValueInt = (int) $ruleValue;
+
             return match ($ruleOperator) {
-                'equals' => in_array($ruleValueInt, array_map('intval', $contextCategoryIds), true),
-                'not_equals' => !in_array($ruleValueInt, array_map('intval', $contextCategoryIds), true),
+                'equals' => \in_array($ruleValueInt, array_map('intval', $contextCategoryIds), true),
+                'not_equals' => ! \in_array($ruleValueInt, array_map('intval', $contextCategoryIds), true),
                 default => false,
             };
         }
 
         if ($ruleType === 'product_type') {
             $contextProductType = $context['product_type'] ?? '';
+
             return match ($ruleOperator) {
                 'equals' => $ruleValue === $contextProductType,
                 'not_equals' => $ruleValue !== $contextProductType,
@@ -63,6 +76,8 @@ final class CoreLocationProvider implements LocationProviderInterface
         return false;
     }
 
-    public function getPriority(): int { return 0; }
+    public function getPriority(): int
+    {
+        return 0;
+    }
 }
-

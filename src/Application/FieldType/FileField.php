@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -20,9 +20,10 @@ declare(strict_types=1);
 namespace WeprestaAcf\Application\FieldType;
 
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Tools;
 
 /**
- * File upload field type
+ * File upload field type.
  *
  * Stores file metadata as JSON:
  * {
@@ -36,9 +37,7 @@ use Symfony\Component\Form\Extension\Core\Type\FileType;
  */
 final class FileField extends AbstractFieldType
 {
-    /**
-     * Default allowed MIME types for file uploads
-     */
+    /** Default allowed MIME types for file uploads */
     private const DEFAULT_ALLOWED_MIMES = [
         'application/pdf',
         'application/msword',
@@ -73,10 +72,11 @@ final class FileField extends AbstractFieldType
         }
 
         // If already JSON string, validate and return
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
+
             // Valid file data has either filename (uploaded) or url (external link)
-            if (is_array($decoded) && (isset($decoded['filename']) || isset($decoded['url']))) {
+            if (\is_array($decoded) && (isset($decoded['filename']) || isset($decoded['url']))) {
                 return $value;
             }
 
@@ -84,7 +84,7 @@ final class FileField extends AbstractFieldType
         }
 
         // If array (from upload or external link), encode to JSON
-        if (is_array($value) && (isset($value['filename']) || isset($value['url']))) {
+        if (\is_array($value) && (isset($value['filename']) || isset($value['url']))) {
             return json_encode($value);
         }
 
@@ -98,15 +98,16 @@ final class FileField extends AbstractFieldType
         }
 
         // Parse JSON to array
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
+
+            if (\is_array($decoded)) {
                 return $decoded;
             }
         }
 
         // Already an array
-        if (is_array($value)) {
+        if (\is_array($value)) {
             return $value;
         }
 
@@ -117,7 +118,7 @@ final class FileField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (!is_array($data) || !isset($data['url'])) {
+        if (! \is_array($data) || ! isset($data['url'])) {
             return '';
         }
 
@@ -125,7 +126,7 @@ final class FileField extends AbstractFieldType
         $url = htmlspecialchars($data['url'], ENT_QUOTES, 'UTF-8');
         $size = isset($data['size']) ? $this->formatFileSize((int) $data['size']) : '';
 
-        return sprintf(
+        return \sprintf(
             '<a href="%s" class="acf-file-download" target="_blank" download>%s</a>%s',
             $url,
             $filename,
@@ -137,7 +138,7 @@ final class FileField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (!is_array($data)) {
+        if (! \is_array($data)) {
             return null;
         }
 
@@ -159,7 +160,7 @@ final class FileField extends AbstractFieldType
         $data = $this->denormalizeValue($value, $fieldConfig);
 
         // Valid file data has either filename (uploaded) or url (external link)
-        if (!is_array($data) || (!isset($data['filename']) && !isset($data['url']))) {
+        if (! \is_array($data) || (! isset($data['filename']) && ! isset($data['url']))) {
             $errors[] = 'Invalid file data.';
         }
 
@@ -218,7 +219,7 @@ final class FileField extends AbstractFieldType
     }
 
     /**
-     * Get allowed MIME types from config
+     * Get allowed MIME types from config.
      *
      * @return array<string>
      */
@@ -227,24 +228,6 @@ final class FileField extends AbstractFieldType
         return $fieldConfig['allowedMimes'] ?? self::DEFAULT_ALLOWED_MIMES;
     }
 
-    /**
-     * Format file size for display
-     */
-    private function formatFileSize(int $bytes): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $i = 0;
-        while ($bytes >= 1024 && $i < count($units) - 1) {
-            $bytes /= 1024;
-            ++$i;
-        }
-
-        return round($bytes, 2) . ' ' . $units[$i];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -256,20 +239,17 @@ final class FileField extends AbstractFieldType
             'prefix' => $context['prefix'] ?? 'acf_',
             'value' => $data,
             'context' => $context,
-            'base_url' => $context['base_url'] ?? \Tools::getShopDomainSsl(true) . __PS_BASE_URI__,
+            'base_url' => $context['base_url'] ?? Tools::getShopDomainSsl(true) . __PS_BASE_URI__,
             'product_link' => $context['product_link'] ?? '',
             'product_attachments' => $context['product_attachments'] ?? [],
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<div class="acf-file-field acf-file-compact" data-slug="%s">' .
             '<input type="hidden" class="acf-subfield-input acf-file-value" data-subfield="%s" value="{value}">' .
             '<div class="acf-file-preview" style="display: none;"><div class="acf-file-info"><i class="material-icons">insert_drive_file</i><span class="acf-file-name"></span></div><button type="button" class="btn btn-sm btn-link text-danger acf-file-remove"><i class="material-icons">delete</i></button></div>' .
@@ -278,5 +258,21 @@ final class FileField extends AbstractFieldType
             $this->escapeAttr($slug),
             $this->escapeAttr($slug)
         );
+    }
+
+    /**
+     * Format file size for display.
+     */
+    private function formatFileSize(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = 0;
+
+        while ($bytes >= 1024 && $i < \count($units) - 1) {
+            $bytes /= 1024;
+            ++$i;
+        }
+
+        return round($bytes, 2) . ' ' . $units[$i];
     }
 }

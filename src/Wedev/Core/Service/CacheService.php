@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - CacheService
+ * WEDEV Core - CacheService.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -24,7 +25,9 @@ use Symfony\Contracts\Cache\ItemInterface;
 class CacheService
 {
     private ?CacheInterface $symfonyCache;
+
     private string $prefix;
+
     private int $defaultTtl;
 
     public function __construct(
@@ -41,13 +44,15 @@ class CacheService
      * Récupère une valeur du cache ou la calcule.
      *
      * @template T
+     *
      * @param callable(): T $callback
+     *
      * @return T
      */
     public function get(string $key, callable $callback, ?int $ttl = null): mixed
     {
         $prefixedKey = $this->prefix . $key;
-        $ttl = $ttl ?? $this->defaultTtl;
+        $ttl ??= $this->defaultTtl;
 
         // Symfony Cache si disponible
         if ($this->symfonyCache !== null) {
@@ -60,6 +65,7 @@ class CacheService
 
         // Fallback: PrestaShop Cache
         $cached = Cache::getInstance()->get($prefixedKey);
+
         if ($cached !== false) {
             return $cached;
         }
@@ -76,11 +82,11 @@ class CacheService
     public function set(string $key, mixed $value, ?int $ttl = null): void
     {
         $prefixedKey = $this->prefix . $key;
-        $ttl = $ttl ?? $this->defaultTtl;
+        $ttl ??= $this->defaultTtl;
 
         if ($this->symfonyCache !== null) {
             $this->symfonyCache->delete($prefixedKey);
-            $this->get($key, fn() => $value, $ttl);
+            $this->get($key, fn () => $value, $ttl);
 
             return;
         }
@@ -132,7 +138,9 @@ class CacheService
      * Cache le résultat d'une méthode avec ses arguments.
      *
      * @template T
+     *
      * @param callable(): T $callback
+     *
      * @return T
      */
     public function remember(string $key, array $params, callable $callback, ?int $ttl = null): mixed
@@ -142,4 +150,3 @@ class CacheService
         return $this->get($cacheKey, $callback, $ttl);
     }
 }
-

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -19,10 +19,12 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\FieldType;
 
+use DateTimeInterface;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Tools;
 
 /**
- * DateTime field type
+ * DateTime field type.
  *
  * Combines date and time, stores as Unix timestamp.
  */
@@ -65,12 +67,13 @@ final class DatetimeField extends AbstractFieldType
         }
 
         // DateTime object
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return (string) $value->getTimestamp();
         }
 
         // Parse datetime string
         $timestamp = strtotime((string) $value);
+
         if ($timestamp === false) {
             return null;
         }
@@ -90,17 +93,18 @@ final class DatetimeField extends AbstractFieldType
         }
 
         // DateTime object - format to string
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return $value->format('Y-m-d\TH:i');
         }
 
         // Already a string in correct format
-        if (is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/', $value)) {
+        if (\is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/', $value)) {
             return $value;
         }
 
         // Try to parse and format
         $timestamp = strtotime((string) $value);
+
         if ($timestamp !== false) {
             return date('Y-m-d\TH:i', $timestamp);
         }
@@ -123,7 +127,7 @@ final class DatetimeField extends AbstractFieldType
 
         // Get timestamp
         $timestamp = is_numeric($actualValue) ? (int) $actualValue : (
-            $actualValue instanceof \DateTimeInterface ? $actualValue->getTimestamp() : strtotime((string) $actualValue)
+            $actualValue instanceof DateTimeInterface ? $actualValue->getTimestamp() : strtotime((string) $actualValue)
         );
 
         if ($timestamp === false || $timestamp === 0) {
@@ -131,8 +135,8 @@ final class DatetimeField extends AbstractFieldType
         }
 
         // Use PrestaShop's date formatting + time
-        if (function_exists('Tools::displayDate')) {
-            $formatted = \Tools::displayDate(date('Y-m-d H:i:s', $timestamp), null, true);
+        if (\function_exists('Tools::displayDate')) {
+            $formatted = Tools::displayDate(date('Y-m-d H:i:s', $timestamp), null, true);
         } else {
             // Fallback format
             $dateFormat = $this->getConfigValue($fieldConfig, 'dateFormat', 'd/m/Y');
@@ -203,9 +207,6 @@ final class DatetimeField extends AbstractFieldType
         return 'event';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -220,14 +221,11 @@ final class DatetimeField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<input type="datetime-local" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="{value}">',
             $this->escapeAttr($slug)
         );

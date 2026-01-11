@@ -20,15 +20,12 @@ declare(strict_types=1);
  *   - class (string): Classes CSS additionnelles
  * =============================================================================
  */
-
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
 /**
  * @param array<string, mixed> $params
- * @param Smarty_Internal_Template $template
- * @return string
  */
 function smarty_function_wedev_badge(array $params, Smarty_Internal_Template $template): string
 {
@@ -44,7 +41,8 @@ function smarty_function_wedev_badge(array $params, Smarty_Internal_Template $te
 
     // Validation de la variante
     $validVariants = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
-    if (!in_array($variant, $validVariants, true)) {
+
+    if (! in_array($variant, $validVariants, true)) {
         $variant = 'primary';
     }
 
@@ -65,8 +63,3 @@ function smarty_function_wedev_badge(array $params, Smarty_Internal_Template $te
         htmlspecialchars($text, ENT_QUOTES, 'UTF-8')
     );
 }
-
-
-
-
-

@@ -4,20 +4,22 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Unit;
 
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use WeprestaAcf\Application\Service\WeprestaAcfService;
 use WeprestaAcf\Domain\Entity\WeprestaAcfEntity;
 use WeprestaAcf\Domain\Repository\WeprestaAcfRepositoryInterface;
 use WeprestaAcf\Infrastructure\Adapter\ConfigurationAdapter;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 
 /**
- * Tests pour WeprestaAcfService
+ * Tests pour WeprestaAcfService.
  */
 class WeprestaAcfServiceTest extends TestCase
 {
     private WeprestaAcfRepositoryInterface&MockObject $repository;
+
     private ConfigurationAdapter&MockObject $config;
+
     private WeprestaAcfService $service;
 
     protected function setUp(): void
@@ -235,4 +237,3 @@ class WeprestaAcfServiceTest extends TestCase
         $this->assertSame(7200, $this->service->getCacheTtl());
     }
 }
-

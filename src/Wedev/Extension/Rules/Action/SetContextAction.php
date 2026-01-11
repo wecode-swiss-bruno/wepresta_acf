@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Action;
 
+use Context;
 use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 
 /**
@@ -28,11 +29,10 @@ final class SetContextAction implements ActionInterface
 
     public function execute(RuleContext $context): void
     {
-        $psContext = \Context::getContext();
+        $psContext = Context::getContext();
 
         if (isset($psContext->smarty)) {
             $psContext->smarty->assign($this->key, $this->value);
         }
     }
 }
-

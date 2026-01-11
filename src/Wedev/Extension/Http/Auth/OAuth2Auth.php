@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Http\Auth;
 
+use JsonException;
 use WeprestaAcf\Wedev\Extension\Http\HttpException;
 
 /**
@@ -33,12 +34,11 @@ use WeprestaAcf\Wedev\Extension\Http\HttpException;
  */
 final class OAuth2Auth implements AuthInterface
 {
-    /**
-     * Marge de sécurité avant expiration (en secondes).
-     */
+    /** Marge de sécurité avant expiration (en secondes). */
     private const EXPIRY_MARGIN = 60;
 
     private ?string $accessToken = null;
+
     private ?int $expiresAt = null;
 
     /**
@@ -116,7 +116,7 @@ final class OAuth2Auth implements AuthInterface
             'client_secret' => $this->clientSecret,
         ];
 
-        if (!empty($this->scopes)) {
+        if (! empty($this->scopes)) {
             $data['scope'] = implode(' ', $this->scopes);
         }
 
@@ -138,6 +138,7 @@ final class OAuth2Auth implements AuthInterface
 
         if ($response === false) {
             $error = error_get_last();
+
             throw HttpException::requestFailed(
                 'OAuth2 token request failed: ' . ($error['message'] ?? 'Unknown error')
             );
@@ -145,7 +146,7 @@ final class OAuth2Auth implements AuthInterface
 
         try {
             $json = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             throw HttpException::invalidResponse('Invalid OAuth2 response: ' . $e->getMessage());
         }
 
@@ -155,7 +156,7 @@ final class OAuth2Auth implements AuthInterface
             );
         }
 
-        if (!isset($json['access_token'])) {
+        if (! isset($json['access_token'])) {
             throw HttpException::invalidResponse('OAuth2 response missing access_token');
         }
 
@@ -163,4 +164,3 @@ final class OAuth2Auth implements AuthInterface
         $this->expiresAt = time() + ($json['expires_in'] ?? 3600);
     }
 }
-

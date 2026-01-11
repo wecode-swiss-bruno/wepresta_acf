@@ -30,7 +30,7 @@ final class ConfigurationException extends ModuleException
     public static function missingKey(string $key): self
     {
         return new self(
-            sprintf('Configuration key "%s" is missing.', $key),
+            \sprintf('Configuration key "%s" is missing.', $key),
             self::CODE_CONFIGURATION
         );
     }
@@ -41,7 +41,7 @@ final class ConfigurationException extends ModuleException
     public static function invalidValue(string $key, mixed $value): self
     {
         return new self(
-            sprintf(
+            \sprintf(
                 'Invalid value for configuration key "%s": %s',
                 $key,
                 self::formatValue($value)
@@ -56,7 +56,7 @@ final class ConfigurationException extends ModuleException
     public static function invalidType(string $key, string $expectedType, mixed $actualValue): self
     {
         return new self(
-            sprintf(
+            \sprintf(
                 'Configuration key "%s" expects %s, got %s.',
                 $key,
                 $expectedType,
@@ -72,7 +72,7 @@ final class ConfigurationException extends ModuleException
     public static function notInitialized(string $prefix): self
     {
         return new self(
-            sprintf('Configuration with prefix "%s" has not been initialized.', $prefix),
+            \sprintf('Configuration with prefix "%s" has not been initialized.', $prefix),
             self::CODE_CONFIGURATION
         );
     }
@@ -82,19 +82,18 @@ final class ConfigurationException extends ModuleException
      */
     private static function formatValue(mixed $value): string
     {
-        if (is_array($value)) {
-            return 'array(' . count($value) . ')';
+        if (\is_array($value)) {
+            return 'array(' . \count($value) . ')';
         }
 
-        if (is_object($value)) {
-            return get_class($value);
+        if (\is_object($value)) {
+            return \get_class($value);
         }
 
-        if (is_string($value) && strlen($value) > 50) {
+        if (\is_string($value) && \strlen($value) > 50) {
             return '"' . substr($value, 0, 47) . '..."';
         }
 
         return var_export($value, true);
     }
 }
-

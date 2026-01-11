@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Extension - EntityPicker
+ * WEDEV Extension - EntityPicker.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -34,9 +35,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class EntityPickerType extends AbstractType
 {
-    /**
-     * {@inheritDoc}
-     */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         // Le champ hidden stocke les IDs sélectionnés en JSON
@@ -49,9 +47,6 @@ class EntityPickerType extends AbstractType
         ]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function buildView(FormView $view, FormInterface $form, array $options): void
     {
         $view->vars['entity_type'] = $options['entity_type'];
@@ -65,9 +60,6 @@ class EntityPickerType extends AbstractType
         $view->vars['initial_entities'] = $options['initial_entities'];
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
@@ -94,12 +86,8 @@ class EntityPickerType extends AbstractType
         $resolver->setAllowedTypes('initial_entities', 'array');
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getBlockPrefix(): string
     {
         return 'wedev_entity_picker';
     }
 }
-

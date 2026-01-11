@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Integration;
 
+use Configuration;
+use Context;
+use PHPUnit\Framework\TestCase;
 use WeprestaAcf\Core\Adapter\ConfigurationAdapter;
 use WeprestaAcf\Extension\Audit\AuditEntry;
-use WeprestaAcf\Extension\Audit\AuditLogger;
 use WeprestaAcf\Extension\Import\ImportResult;
 use WeprestaAcf\Extension\Import\Parser\CsvParser;
-use WeprestaAcf\Extension\Jobs\JobDispatcher;
 use WeprestaAcf\Extension\Jobs\JobEntry;
 use WeprestaAcf\Extension\Notifications\Notification;
 use WeprestaAcf\Extension\Rules\Action\SetContextAction;
@@ -17,22 +18,21 @@ use WeprestaAcf\Extension\Rules\Condition\CartCondition;
 use WeprestaAcf\Extension\Rules\RuleBuilder;
 use WeprestaAcf\Extension\Rules\RuleContext;
 use WeprestaAcf\Extension\Rules\RuleEngine;
-use PHPUnit\Framework\TestCase;
 
 /**
- * Tests d'intégration - workflow complet entre extensions
+ * Tests d'intégration - workflow complet entre extensions.
  */
 class FullWorkflowTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        \Configuration::reset();
-        \Context::reset();
+        Configuration::reset();
+        Context::reset();
     }
 
     /**
-     * Test: Configuration → Rules → Action
+     * Test: Configuration → Rules → Action.
      */
     public function testConfigToRulesWorkflow(): void
     {
@@ -60,7 +60,7 @@ class FullWorkflowTest extends TestCase
     }
 
     /**
-     * Test: Rules avec conditions complexes
+     * Test: Rules avec conditions complexes.
      */
     public function testComplexRulesEvaluation(): void
     {
@@ -87,7 +87,7 @@ class FullWorkflowTest extends TestCase
     }
 
     /**
-     * Test: Import workflow complet
+     * Test: Import workflow complet.
      */
     public function testImportWorkflow(): void
     {
@@ -107,7 +107,7 @@ class FullWorkflowTest extends TestCase
                 $result->incrementProcessed();
 
                 // Simuler la logique d'import
-                if (!empty($row['reference']) && !empty($row['name'])) {
+                if (! empty($row['reference']) && ! empty($row['name'])) {
                     $result->incrementCreated();
                 } else {
                     $result->incrementSkipped();
@@ -124,7 +124,7 @@ class FullWorkflowTest extends TestCase
     }
 
     /**
-     * Test: Notification construction
+     * Test: Notification construction.
      */
     public function testNotificationConstruction(): void
     {
@@ -150,7 +150,7 @@ class FullWorkflowTest extends TestCase
     }
 
     /**
-     * Test: Job entry lifecycle
+     * Test: Job entry lifecycle.
      */
     public function testJobEntryLifecycle(): void
     {
@@ -177,7 +177,7 @@ class FullWorkflowTest extends TestCase
     }
 
     /**
-     * Test: Audit entry avec changements
+     * Test: Audit entry avec changements.
      */
     public function testAuditEntryWithChanges(): void
     {
@@ -208,7 +208,7 @@ class FullWorkflowTest extends TestCase
     }
 
     /**
-     * Test: Configuration multi-shop simulation
+     * Test: Configuration multi-shop simulation.
      */
     public function testMultiShopConfiguration(): void
     {
@@ -222,7 +222,7 @@ class FullWorkflowTest extends TestCase
     }
 
     /**
-     * Test: Workflow complet - Règle → Job → Notification → Audit
+     * Test: Workflow complet - Règle → Job → Notification → Audit.
      */
     public function testCompleteWorkflow(): void
     {
@@ -267,4 +267,3 @@ class FullWorkflowTest extends TestCase
         $this->assertEquals('Order', $auditEntry->getEntityType());
     }
 }
-

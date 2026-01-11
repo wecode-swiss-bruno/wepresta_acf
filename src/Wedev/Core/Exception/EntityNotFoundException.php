@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - EntityNotFoundException
+ * WEDEV Core - EntityNotFoundException.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -20,7 +21,7 @@ class EntityNotFoundException extends ModuleException
     public static function withId(string $entityName, int|string $id): self
     {
         return new self(
-            sprintf('%s with ID "%s" not found.', $entityName, $id),
+            \sprintf('%s with ID "%s" not found.', $entityName, $id),
             404,
             null,
             ['entity' => $entityName, 'id' => $id]
@@ -30,11 +31,10 @@ class EntityNotFoundException extends ModuleException
     public static function withCriteria(string $entityName, array $criteria): self
     {
         return new self(
-            sprintf('%s not found with given criteria.', $entityName),
+            \sprintf('%s not found with given criteria.', $entityName),
             404,
             null,
             ['entity' => $entityName, 'criteria' => $criteria]
         );
     }
 }
-

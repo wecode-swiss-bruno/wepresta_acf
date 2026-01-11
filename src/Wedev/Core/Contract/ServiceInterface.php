@@ -40,4 +40,3 @@ namespace WeprestaAcf\Wedev\Core\Contract;
 interface ServiceInterface
 {
 }
-

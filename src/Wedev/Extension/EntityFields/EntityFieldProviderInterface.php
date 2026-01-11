@@ -91,6 +91,7 @@ interface EntityFieldProviderInterface
      * - etc.
      *
      * @param int $entityId The entity ID
+     *
      * @return array<string, mixed> Context array
      */
     public function buildContext(int $entityId): array;
@@ -101,8 +102,8 @@ interface EntityFieldProviderInterface
      * Used in UI (e.g., location rules editor, field group builder).
      *
      * @param int $langId Language ID
+     *
      * @return string Entity label
      */
     public function getEntityLabel(int $langId): string;
 }
-

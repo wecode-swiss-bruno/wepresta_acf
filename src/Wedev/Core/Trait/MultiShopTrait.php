@@ -131,4 +131,3 @@ trait MultiShopTrait
         return $this->getShopAdapter()->mapShops($callback);
     }
 }
-

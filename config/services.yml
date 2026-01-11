@@ -137,38 +137,46 @@ services:
         public: true
 
     # =========================================================================
-    # API Controllers
+    # API Infrastructure
     # =========================================================================
 
-    WeprestaAcf\Infrastructure\Api\GroupApiController:
-        arguments:
-            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
-            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
-            $slugGenerator: '@WeprestaAcf\Application\Service\SlugGenerator'
-            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
-            $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
-            $autoSyncService: '@WeprestaAcf\Application\Service\AutoSyncService'
-        tags: ['controller.service_arguments']
+    # API Transformers
+    WeprestaAcf\Infrastructure\Api\Transformer\:
+        resource: '../src/Infrastructure/Api/Transformer/*'
         public: true
+
+    # API Validators
+    WeprestaAcf\Infrastructure\Api\Validator\:
+        resource: '../src/Infrastructure/Api/Validator/*'
+        public: true
+
+    # API Services (Business Logic)
+    WeprestaAcf\Infrastructure\Api\Service\:
+        resource: '../src/Infrastructure/Api/Service/*'
+        public: true
+
+    # =========================================================================
+    # API Controllers (déclaration individuelle requise pour PrestaShop)
+    # =========================================================================
 
     WeprestaAcf\Infrastructure\Api\FieldApiController:
         arguments:
             $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
             $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
-            $valueRepository: '@WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface'
-            $slugGenerator: '@WeprestaAcf\Application\Service\SlugGenerator'
-            $autoSyncService: '@WeprestaAcf\Application\Service\AutoSyncService'
+            $fieldTransformer: '@WeprestaAcf\Infrastructure\Api\Transformer\FieldTransformer'
+            $fieldMutationService: '@WeprestaAcf\Infrastructure\Api\Service\FieldMutationService'
         tags: ['controller.service_arguments']
         public: true
 
-    WeprestaAcf\Infrastructure\Api\RelationApiController:
-        tags: ['controller.service_arguments']
-        public: true
-
-    WeprestaAcf\Infrastructure\Api\UtilityApiController:
+    WeprestaAcf\Infrastructure\Api\GroupApiController:
         arguments:
-            $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
-            $slugGenerator: '@WeprestaAcf\Application\Service\SlugGenerator'
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $valueRepository: '@WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface'
+            $groupTransformer: '@WeprestaAcf\Infrastructure\Api\Transformer\GroupTransformer'
+            $groupMutationService: '@WeprestaAcf\Infrastructure\Api\Service\GroupMutationService'
+            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
+            $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
         tags: ['controller.service_arguments']
         public: true
 
@@ -179,10 +187,29 @@ services:
         tags: ['controller.service_arguments']
         public: true
 
+    WeprestaAcf\Infrastructure\Api\FieldTypeApiController:
+        arguments:
+            $registry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+            $loader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\RelationApiController:
+        tags: ['controller.service_arguments']
+        public: true
+
     WeprestaAcf\Infrastructure\Api\SyncApiController:
         arguments:
             $syncService: '@WeprestaAcf\Application\Service\SyncService'
             $statusResolver: '@WeprestaAcf\Application\Service\SyncStatusResolver'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\UtilityApiController:
+        arguments:
+            $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
+            $slugGenerator: '@WeprestaAcf\Application\Service\SlugGenerator'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
         tags: ['controller.service_arguments']
         public: true
 
@@ -350,12 +377,6 @@ services:
             $brickDiscovery: '@WeprestaAcf\Application\Brick\AcfBrickDiscovery'
         public: true
 
-    WeprestaAcf\Infrastructure\Api\FieldTypeApiController:
-        arguments:
-            $registry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
-            $loader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
-        tags: ['controller.service_arguments']
-        public: true
 
     # =========================================================================
     # Form Types

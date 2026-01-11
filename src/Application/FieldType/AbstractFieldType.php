@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -19,17 +19,16 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\FieldType;
 
+use Context;
+
 /**
- * Base class for all field types
+ * Base class for all field types.
  *
  * Provides default implementations for common functionality.
  * Extend this class to create new field types.
  */
 abstract class AbstractFieldType implements FieldTypeInterface
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getFormOptions(array $fieldConfig, array $validation = []): array
     {
         $options = [
@@ -37,21 +36,18 @@ abstract class AbstractFieldType implements FieldTypeInterface
         ];
 
         // Add placeholder if configured
-        if (!empty($fieldConfig['placeholder'])) {
+        if (! empty($fieldConfig['placeholder'])) {
             $options['attr']['placeholder'] = $fieldConfig['placeholder'];
         }
 
         // Add CSS class if configured
-        if (!empty($fieldConfig['class'])) {
+        if (! empty($fieldConfig['class'])) {
             $options['attr']['class'] = $fieldConfig['class'];
         }
 
         return $options;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
         // Default: return value as-is
@@ -62,38 +58,12 @@ abstract class AbstractFieldType implements FieldTypeInterface
         return $value;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function denormalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
         // Default: return value as-is
         return $value;
     }
 
-    /**
-     * Helper method to extract the correct value for translatable fields.
-     *
-     * For translatable fields, values are stored as arrays with language keys.
-     * This method extracts the value for the current language.
-     */
-    protected function extractTranslatableValue(mixed $value): mixed
-    {
-        if (!is_array($value)) {
-            return $value;
-        }
-
-        // Get current language ID
-        $contextAdapter = new \WeprestaAcf\Wedev\Core\Adapter\ContextAdapter();
-        $currentLangId = $contextAdapter->getLanguageId();
-
-        // Extract value for current language, fallback to first available value
-        return $value[$currentLangId] ?? reset($value) ?? null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
         if ($value === null || $value === '') {
@@ -104,9 +74,6 @@ abstract class AbstractFieldType implements FieldTypeInterface
         return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getIndexValue(mixed $value, array $fieldConfig = []): ?string
     {
         if ($value === null || $value === '') {
@@ -114,17 +81,131 @@ abstract class AbstractFieldType implements FieldTypeInterface
         }
 
         // Default: first 255 chars of string representation
-        $stringValue = is_string($value) ? $value : (string) $value;
+        $stringValue = \is_string($value) ? $value : (string) $value;
 
         return substr($stringValue, 0, 255);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDefaultConfig(): array
     {
         return [];
+    }
+
+    public function getConfigSchema(): array
+    {
+        return [
+            'placeholder' => [
+                'type' => 'text',
+                'label' => 'Placeholder',
+                'default' => '',
+            ],
+            'class' => [
+                'type' => 'text',
+                'label' => 'CSS Class',
+                'default' => '',
+            ],
+        ];
+    }
+
+    public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array
+    {
+        $errors = [];
+
+        // Check required
+        if (! empty($validation['required']) && ($value === null || $value === '')) {
+            $errors[] = 'This field is required.';
+        }
+
+        return $errors;
+    }
+
+    public function supportsTranslation(): bool
+    {
+        // Default: text-based fields support translation
+        return true;
+    }
+
+    public function getCategory(): string
+    {
+        return 'basic';
+    }
+
+    public function getIcon(): string
+    {
+        return 'text_fields';
+    }
+
+    public function renderAdminInput(array $field, mixed $value, array $context = []): string
+    {
+        $slug = $field['slug'] ?? '';
+        $config = $this->getFieldConfig($field);
+
+        // Context options
+        $size = $context['size'] ?? '';
+        $prefix = $context['prefix'] ?? 'acf_';
+        $dataSubfield = ! empty($context['dataSubfield']);
+        $idPrefix = $context['idPrefix'] ?? 'acf_';
+
+        // Build attributes
+        $sizeClass = $size ? "form-control-{$size}" : '';
+        $escapedSlug = htmlspecialchars($slug, ENT_QUOTES, 'UTF-8');
+        $escapedValue = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+        $placeholder = htmlspecialchars($config['placeholder'] ?? '', ENT_QUOTES, 'UTF-8');
+
+        // Name or data-subfield attribute
+        $nameAttr = $dataSubfield
+            ? ''
+            : \sprintf('name="%s%s"', $prefix, $escapedSlug);
+        $dataAttr = $dataSubfield
+            ? \sprintf('data-subfield="%s"', $escapedSlug)
+            : '';
+        $inputClass = $dataSubfield ? 'acf-subfield-input' : '';
+
+        return \sprintf(
+            '<input type="text" class="form-control %s %s" id="%s%s" %s %s value="%s" placeholder="%s">',
+            $sizeClass,
+            $inputClass,
+            $idPrefix,
+            $escapedSlug,
+            $nameAttr,
+            $dataAttr,
+            $escapedValue,
+            $placeholder
+        );
+    }
+
+    public function getJsTemplate(array $field): string
+    {
+        $slug = $field['slug'] ?? '';
+        $config = $this->getFieldConfig($field);
+        $placeholder = addslashes($config['placeholder'] ?? '');
+        $escapedSlug = htmlspecialchars($slug, ENT_QUOTES, 'UTF-8');
+
+        return \sprintf(
+            '<input type="text" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="{value}" placeholder="%s">',
+            $escapedSlug,
+            $placeholder
+        );
+    }
+
+    /**
+     * Helper method to extract the correct value for translatable fields.
+     *
+     * For translatable fields, values are stored as arrays with language keys.
+     * This method extracts the value for the current language.
+     */
+    protected function extractTranslatableValue(mixed $value): mixed
+    {
+        if (! \is_array($value)) {
+            return $value;
+        }
+
+        // Get current language ID
+        $contextAdapter = new \WeprestaAcf\Wedev\Core\Adapter\ContextAdapter();
+        $currentLangId = $contextAdapter->getLanguageId();
+
+        // Extract value for current language, fallback to first available value
+        return $value[$currentLangId] ?? reset($value) ?? null;
     }
 
     /**
@@ -144,7 +225,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
             $config = json_decode($config, true) ?: [];
         }
 
-        if (!\is_array($config)) {
+        if (! \is_array($config)) {
             return [];
         }
 
@@ -152,8 +233,10 @@ abstract class AbstractFieldType implements FieldTypeInterface
         foreach ($config as $key => $value) {
             if (\is_string($value)) {
                 $firstChar = $value[0] ?? '';
+
                 if ($firstChar === '[' || $firstChar === '{') {
                     $decoded = json_decode($value, true);
+
                     if (\is_array($decoded)) {
                         $config[$key] = $decoded;
                     }
@@ -174,10 +257,11 @@ abstract class AbstractFieldType implements FieldTypeInterface
      */
     protected function renderPartial(string $template, array $vars = []): string
     {
-        $smarty = \Context::getContext()->smarty;
+        $smarty = Context::getContext()->smarty;
 
         // Save current vars to restore after
         $savedVars = [];
+
         foreach ($vars as $key => $value) {
             if ($smarty->getTemplateVars($key) !== null) {
                 $savedVars[$key] = $smarty->getTemplateVars($key);
@@ -187,8 +271,8 @@ abstract class AbstractFieldType implements FieldTypeInterface
 
         $templatePath = _PS_MODULE_DIR_ . 'wepresta_acf/views/templates/admin/fields/' . $template;
 
-        if (!file_exists($templatePath)) {
-            return sprintf('<!-- Template not found: %s -->', htmlspecialchars($template));
+        if (! file_exists($templatePath)) {
+            return \sprintf('<!-- Template not found: %s -->', htmlspecialchars($template));
         }
 
         $html = $smarty->fetch($templatePath);
@@ -202,66 +286,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function getConfigSchema(): array
-    {
-        return [
-            'placeholder' => [
-                'type' => 'text',
-                'label' => 'Placeholder',
-                'default' => '',
-            ],
-            'class' => [
-                'type' => 'text',
-                'label' => 'CSS Class',
-                'default' => '',
-            ],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array
-    {
-        $errors = [];
-
-        // Check required
-        if (!empty($validation['required']) && ($value === null || $value === '')) {
-            $errors[] = 'This field is required.';
-        }
-
-        return $errors;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function supportsTranslation(): bool
-    {
-        // Default: text-based fields support translation
-        return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCategory(): string
-    {
-        return 'basic';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getIcon(): string
-    {
-        return 'text_fields';
-    }
-
-    /**
-     * Helper: Get a config value with default fallback
+     * Helper: Get a config value with default fallback.
      *
      * @param array<string, mixed> $config Configuration array
      * @param string $key Key to retrieve
@@ -275,7 +300,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
     }
 
     /**
-     * Helper: Check if value is empty (null, empty string, or empty array)
+     * Helper: Check if value is empty (null, empty string, or empty array).
      */
     protected function isEmpty(mixed $value): bool
     {
@@ -283,15 +308,11 @@ abstract class AbstractFieldType implements FieldTypeInterface
             return true;
         }
 
-        if (is_array($value) && count($value) === 0) {
-            return true;
-        }
-
-        return false;
+        return (bool) (\is_array($value) && \count($value) === 0);
     }
 
     /**
-     * Helper: Validate string length
+     * Helper: Validate string length.
      *
      * @param string $value Value to check
      * @param array<string, mixed> $validation Validation rules
@@ -302,19 +323,19 @@ abstract class AbstractFieldType implements FieldTypeInterface
     {
         $errors = [];
 
-        if (isset($validation['minLength']) && strlen($value) < (int) $validation['minLength']) {
-            $errors[] = sprintf('Value must be at least %d characters.', $validation['minLength']);
+        if (isset($validation['minLength']) && \strlen($value) < (int) $validation['minLength']) {
+            $errors[] = \sprintf('Value must be at least %d characters.', $validation['minLength']);
         }
 
-        if (isset($validation['maxLength']) && strlen($value) > (int) $validation['maxLength']) {
-            $errors[] = sprintf('Value must not exceed %d characters.', $validation['maxLength']);
+        if (isset($validation['maxLength']) && \strlen($value) > (int) $validation['maxLength']) {
+            $errors[] = \sprintf('Value must not exceed %d characters.', $validation['maxLength']);
         }
 
         return $errors;
     }
 
     /**
-     * Helper: Validate against a regex pattern
+     * Helper: Validate against a regex pattern.
      *
      * @param string $value Value to check
      * @param string $pattern Regex pattern
@@ -324,7 +345,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
      */
     protected function validatePattern(string $value, string $pattern, string $message = 'Invalid format.'): array
     {
-        if ($value !== '' && !preg_match($pattern, $value)) {
+        if ($value !== '' && ! preg_match($pattern, $value)) {
             return [$message];
         }
 
@@ -332,66 +353,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $slug = $field['slug'] ?? '';
-        $config = $this->getFieldConfig($field);
-
-        // Context options
-        $size = $context['size'] ?? '';
-        $prefix = $context['prefix'] ?? 'acf_';
-        $dataSubfield = !empty($context['dataSubfield']);
-        $idPrefix = $context['idPrefix'] ?? 'acf_';
-
-        // Build attributes
-        $sizeClass = $size ? "form-control-{$size}" : '';
-        $escapedSlug = htmlspecialchars($slug, ENT_QUOTES, 'UTF-8');
-        $escapedValue = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-        $placeholder = htmlspecialchars($config['placeholder'] ?? '', ENT_QUOTES, 'UTF-8');
-
-        // Name or data-subfield attribute
-        $nameAttr = $dataSubfield
-            ? ''
-            : sprintf('name="%s%s"', $prefix, $escapedSlug);
-        $dataAttr = $dataSubfield
-            ? sprintf('data-subfield="%s"', $escapedSlug)
-            : '';
-        $inputClass = $dataSubfield ? 'acf-subfield-input' : '';
-
-        return sprintf(
-            '<input type="text" class="form-control %s %s" id="%s%s" %s %s value="%s" placeholder="%s">',
-            $sizeClass,
-            $inputClass,
-            $idPrefix,
-            $escapedSlug,
-            $nameAttr,
-            $dataAttr,
-            $escapedValue,
-            $placeholder
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getJsTemplate(array $field): string
-    {
-        $slug = $field['slug'] ?? '';
-        $config = $this->getFieldConfig($field);
-        $placeholder = addslashes($config['placeholder'] ?? '');
-        $escapedSlug = htmlspecialchars($slug, ENT_QUOTES, 'UTF-8');
-
-        return sprintf(
-            '<input type="text" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="{value}" placeholder="%s">',
-            $escapedSlug,
-            $placeholder
-        );
-    }
-
-    /**
-     * Helper: Escape HTML attribute value
+     * Helper: Escape HTML attribute value.
      */
     protected function escapeAttr(string $value): string
     {
@@ -399,7 +361,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
     }
 
     /**
-     * Helper: Build common input attributes
+     * Helper: Build common input attributes.
      *
      * @param array<string, mixed> $field Field data
      * @param array<string, mixed> $context Rendering context
@@ -411,13 +373,13 @@ abstract class AbstractFieldType implements FieldTypeInterface
         $slug = $field['slug'] ?? '';
         $size = $context['size'] ?? '';
         $prefix = $context['prefix'] ?? 'acf_';
-        $dataSubfield = !empty($context['dataSubfield']);
+        $dataSubfield = ! empty($context['dataSubfield']);
         $idPrefix = $context['idPrefix'] ?? 'acf_';
 
         $escapedSlug = $this->escapeAttr($slug);
         $sizeClass = $size ? "form-control-{$size}" : '';
-        $nameAttr = $dataSubfield ? '' : sprintf('name="%s%s"', $prefix, $escapedSlug);
-        $dataAttr = $dataSubfield ? sprintf('data-subfield="%s"', $escapedSlug) : '';
+        $nameAttr = $dataSubfield ? '' : \sprintf('name="%s%s"', $prefix, $escapedSlug);
+        $dataAttr = $dataSubfield ? \sprintf('data-subfield="%s"', $escapedSlug) : '';
         $inputClass = $dataSubfield ? 'acf-subfield-input' : '';
 
         return [

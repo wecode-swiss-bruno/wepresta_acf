@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use Configuration;
 use Context;
+use Exception;
 use Language;
 use Module;
+use PrestaShopLogger;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldContext;
-use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldProviderInterface;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
 
 /**
@@ -40,6 +42,7 @@ final class EntityFieldService
      * @param string $entityType Entity type (e.g., 'product', 'category', 'cpt_event')
      * @param int $entityId Entity ID
      * @param Module $module Module instance (for template rendering)
+     *
      * @return string HTML output
      */
     public function renderFieldsForEntity(string $entityType, int $entityId, Module $module): string
@@ -51,9 +54,12 @@ final class EntityFieldService
         try {
             // Load custom field types
             AcfServiceContainer::loadCustomFieldTypes();
+            // Initialize entity providers before accessing registry
+            $this->locationProviderRegistry->getAllLocations();
 
             // Get entity provider
             $provider = $this->entityFieldRegistry->getEntityType($entityType);
+
             if ($provider === null) {
                 return '';
             }
@@ -68,22 +74,26 @@ final class EntityFieldService
             // Get active groups
             $groupRepository = AcfServiceContainer::getGroupRepository();
             $groups = $groupRepository->findActiveGroups((int) Context::getContext()->shop->id);
+
             if (empty($groups)) {
                 return '';
             }
 
             // Filter groups by location rules
             $matchingGroups = [];
+
             foreach ($groups as $group) {
                 $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
+
                 if ($this->locationProviderRegistry->matchLocation($locationRules, $context)) {
                     // ⚠️ Exclude groups with global value scope (entity_id = 0)
                     // Global values are managed in the builder, not in entity forms
                     $foOptions = json_decode($group['fo_options'] ?? '{}', true);
+
                     if (($foOptions['valueScope'] ?? 'entity') === 'global') {
                         continue;
                     }
-                    
+
                     $matchingGroups[] = $group;
                 }
             }
@@ -93,35 +103,59 @@ final class EntityFieldService
             }
 
             $languages = Language::getLanguages(true);
-            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
             $currentLangId = (int) Context::getContext()->language->id;
 
-            // Get field values for the entity
-            $values = $this->valueProvider->getEntityFieldValues($entityType, $entityId, null, $currentLangId);
+            // Get field values for the entity (all languages for translatable fields)
+            $valuesAllLanguages = $this->valueProvider->getEntityFieldValuesAllLanguages($entityType, $entityId, null);
+
+            // Current language values (for non-translatable fields and current language)
+            $values = [];
             $valuesPerLang = [];
-            foreach ($languages as $lang) {
-                $valuesPerLang[(int) $lang['id_lang']] = $this->valueProvider->getEntityFieldValues(
-                    $entityType,
-                    $entityId,
-                    null,
-                    (int) $lang['id_lang']
-                );
+
+            foreach ($valuesAllLanguages as $slug => $value) {
+                if (\is_array($value) && \array_key_exists($currentLangId, $value)) {
+                    // Translatable field with translations
+                    $values[$slug] = $value[$currentLangId];
+                    $valuesPerLang[$currentLangId][$slug] = $value[$currentLangId];
+
+                    foreach ($value as $langId => $langValue) {
+                        if (! isset($valuesPerLang[$langId])) {
+                            $valuesPerLang[$langId] = [];
+                        }
+                        $valuesPerLang[$langId][$slug] = $langValue;
+                    }
+                } else {
+                    // Non-translatable field
+                    $values[$slug] = $value;
+
+                    foreach ($languages as $lang) {
+                        $langId = (int) $lang['id_lang'];
+
+                        if (! isset($valuesPerLang[$langId])) {
+                            $valuesPerLang[$langId] = [];
+                        }
+                        $valuesPerLang[$langId][$slug] = $value;
+                    }
+                }
             }
 
             // Build groups data
             $groupsData = [];
+
             foreach ($matchingGroups as $group) {
                 $groupId = (int) $group['id_wepresta_acf_group'];
                 $fields = $this->fieldRepository->findByGroup($groupId);
 
                 $fieldsHtml = [];
+
                 foreach ($fields as $field) {
                     $slug = $field['slug'];
                     $type = $field['type'];
                     $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
                     $fieldType = $this->fieldTypeRegistry->getOrNull($type);
 
-                    if (!$fieldType) {
+                    if (! $fieldType) {
                         continue;
                     }
 
@@ -137,19 +171,112 @@ final class EntityFieldService
                     if ($type === 'repeater') {
                         $fieldId = (int) $field['id_wepresta_acf_field'];
                         $children = $this->fieldRepository->findByParent($fieldId);
-                        $field['children'] = $children;
+                        $field['children'] = [];
                         $field['jsTemplates'] = [];
-                        foreach ($children as $child) {
-                            $childType = $this->fieldTypeRegistry->getOrNull($child['type']);
-                            if ($childType) {
-                                $field['jsTemplates'][$child['slug']] = $childType->getJsTemplate($child);
+
+                        // Parse repeater value to extract subfield values per language
+                        $repeaterValue = $values[$slug] ?? null;
+                        $repeaterRows = [];
+
+                        if ($repeaterValue) {
+                            if (\is_string($repeaterValue)) {
+                                $decoded = json_decode($repeaterValue, true);
+                                $repeaterRows = \is_array($decoded) ? $decoded : [];
+                            } elseif (\is_array($repeaterValue)) {
+                                $repeaterRows = $repeaterValue;
                             }
+                        }
+
+                        foreach ($children as $child) {
+                            $childSlug = $child['slug'];
+                            $childType = $this->fieldTypeRegistry->getOrNull($child['type']);
+                            $childIsTranslatable = (bool) ($child['value_translatable'] ?? $child['translatable'] ?? false);
+
+                            // Prepare child field data with translation support
+                            $childData = $child;
+                            $childData['translatable'] = $childIsTranslatable;
+
+                            if ($childType) {
+                                // Generate JS template
+                                $field['jsTemplates'][$childSlug] = $childType->getJsTemplate($child);
+
+                                // For translatable subfields, prepare lang_inputs
+                                if ($childIsTranslatable) {
+                                    $childLangInputs = [];
+
+                                    foreach ($languages as $lang) {
+                                        $langId = (int) $lang['id_lang'];
+
+                                        // Extract value for this language from repeater rows
+                                        // Values structure: row.values[subfieldSlug] can be:
+                                        // - string for non-translatable
+                                        // - {langId: value} object for translatable
+                                        $langValue = null;
+
+                                        if (! empty($repeaterRows)) {
+                                            // Get first row's value (or merge all rows - depends on UI needs)
+                                            // For now, we'll use the first row, but the UI should handle per-row values
+                                            foreach ($repeaterRows as $row) {
+                                                // Ensure row['values'] is an array
+                                                $rowValues = $row['values'] ?? [];
+
+                                                // If values is a string (JSON), decode it
+                                                if (\is_string($rowValues)) {
+                                                    $decoded = json_decode($rowValues, true);
+                                                    $rowValues = \is_array($decoded) ? $decoded : [];
+                                                }
+
+                                                // Check if values is actually an array before accessing
+                                                if (\is_array($rowValues) && isset($rowValues[$childSlug])) {
+                                                    $subfieldValue = $rowValues[$childSlug];
+
+                                                    // If subfieldValue is a string (JSON), decode it
+                                                    if (\is_string($subfieldValue)) {
+                                                        $decoded = json_decode($subfieldValue, true);
+                                                        $subfieldValue = \is_array($decoded) ? $decoded : $subfieldValue;
+                                                    }
+
+                                                    if (\is_array($subfieldValue) && isset($subfieldValue[$langId])) {
+                                                        $langValue = $subfieldValue[$langId];
+                                                    } elseif (! \is_array($subfieldValue) && $langId === $defaultLangId) {
+                                                        // Fallback: if not an array, use as default language value
+                                                        $langValue = $subfieldValue;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        $childLangInputs[] = [
+                                            'id_lang' => $langId,
+                                            'iso_code' => $lang['iso_code'],
+                                            'name' => $lang['name'],
+                                            'is_default' => $langId === $defaultLangId,
+                                            'html' => $childType->renderAdminInput($child, $langValue, [
+                                                'prefix' => 'acf_repeater_',
+                                                'suffix' => '_' . $langId,
+                                                'fieldRenderer' => $this->fieldTypeRegistry,
+                                                'dataSubfield' => true,
+                                                'size' => 'sm',
+                                            ]),
+                                        ];
+                                    }
+
+                                    $childData['lang_inputs'] = $childLangInputs;
+                                } else {
+                                    $childData['lang_inputs'] = [];
+                                }
+                            } else {
+                                $childData['lang_inputs'] = [];
+                            }
+
+                            $field['children'][] = $childData;
                         }
                     }
 
                     if ($isTranslatable) {
                         // Render field for each language
                         $langInputs = [];
+
                         foreach ($languages as $lang) {
                             $langId = (int) $lang['id_lang'];
                             $langValue = $valuesPerLang[$langId][$slug] ?? null;
@@ -169,12 +296,21 @@ final class EntityFieldService
                         $fieldData['html'] = '';
                     } else {
                         $value = $values[$slug] ?? null;
-                        $fieldData['html'] = $fieldType->renderAdminInput($field, $value, [
+
+                        // For repeater fields, pass languages in context for subfield translation support
+                        $renderContext = [
                             'prefix' => 'acf_',
                             'fieldRenderer' => $this->fieldTypeRegistry,
                             'entity_id' => $entityId,
                             'id_product' => $entityType === 'product' ? $entityId : 0,
-                        ]);
+                        ];
+
+                        if ($type === 'repeater') {
+                            $renderContext['languages'] = $languages;
+                            $renderContext['default_lang_id'] = $defaultLangId;
+                        }
+
+                        $fieldData['html'] = $fieldType->renderAdminInput($field, $value, $renderContext);
                         $fieldData['lang_inputs'] = [];
                     }
 
@@ -219,8 +355,9 @@ final class EntityFieldService
 
             // Use generic template (will be created)
             return $module->fetch('module:wepresta_acf/views/templates/admin/entity-fields.tpl');
-        } catch (\Exception $e) {
-            \PrestaShopLogger::addLog('ACF Error rendering fields for entity: ' . $e->getMessage(), 3);
+        } catch (Exception $e) {
+            PrestaShopLogger::addLog('ACF Error rendering fields for entity: ' . $e->getMessage(), 3);
+
             return '<div class="alert alert-danger">ACF Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
@@ -258,8 +395,8 @@ final class EntityFieldService
 
             // Process and save fields for any entity type
             $this->saveEntityFields($entityType, $entityId, $postData, $files, $module);
-        } catch (\Exception $e) {
-            \PrestaShopLogger::addLog('ACF Error saving entity fields: ' . $e->getMessage(), 3);
+        } catch (Exception $e) {
+            PrestaShopLogger::addLog('ACF Error saving entity fields: ' . $e->getMessage(), 3);
         }
     }
 
@@ -269,6 +406,7 @@ final class EntityFieldService
      * @param string $entityType Entity type
      * @param int $entityId Entity ID
      * @param int|null $langId Language ID
+     *
      * @return array<string, mixed> Field values
      */
     public function getFieldValuesForEntity(string $entityType, int $entityId, ?int $langId = null): array
@@ -295,54 +433,57 @@ final class EntityFieldService
         $translatableValues = [];
         $processedSlugs = [];
 
-            // Process multi-media fields (gallery, files)
-            $this->processMultiMediaFields(
-                $postData,
-                $files,
-                $entityType,
-                $entityId,
-                $shopId,
-                $values,
-                $processedSlugs,
-                $module
-            );
+        // Process multi-media fields (gallery, files)
+        $this->processMultiMediaFields(
+            $postData,
+            $files,
+            $entityType,
+            $entityId,
+            $shopId,
+            $values,
+            $processedSlugs,
+            $module
+        );
 
-            // Process single media fields (image, video)
-            $this->processSingleMediaFields(
-                $postData,
-                $files,
-                $entityType,
-                $entityId,
-                $shopId,
-                $values,
-                $processedSlugs,
-                $module
-            );
+        // Process single media fields (image, video)
+        $this->processSingleMediaFields(
+            $postData,
+            $files,
+            $entityType,
+            $entityId,
+            $shopId,
+            $values,
+            $processedSlugs,
+            $module
+        );
 
         // Process simple file uploads
         foreach ($files as $key => $file) {
-            if (!str_starts_with($key, 'acf_')) {
+            if (! str_starts_with($key, 'acf_')) {
                 continue;
             }
             $slug = substr($key, 4);
+
             if (isset($processedSlugs[$slug]) || preg_match('/_(?:new|alt|poster|replace)$/i', $key)) {
                 continue;
             }
 
-            $hasFile = is_array($file['error'])
-                ? !empty(array_filter($file['error'], fn($e) => $e === UPLOAD_ERR_OK))
+            $hasFile = \is_array($file['error'])
+                ? ! empty(array_filter($file['error'], fn ($e) => $e === UPLOAD_ERR_OK))
                 : $file['error'] === UPLOAD_ERR_OK;
-            if (!$hasFile) {
+
+            if (! $hasFile) {
                 continue;
             }
 
             $field = $this->fieldRepository->findBySlug($slug);
-            if (!$field) {
+
+            if (! $field) {
                 continue;
             }
 
             $fieldId = (int) $field['id_wepresta_acf_field'];
-            $type = in_array($field['type'], ['image', 'gallery'], true) ? 'images' : 'files';
+            $type = \in_array($field['type'], ['image', 'gallery'], true) ? 'images' : 'files';
 
             try {
                 // FileUploadService still uses productId - will need update
@@ -350,14 +491,14 @@ final class EntityFieldService
                 $uploadResult = $this->fileUploadService->upload($file, $fieldId, $entityId, $shopId, $type);
                 $values[$slug] = $uploadResult;
                 $processedSlugs[$slug] = true;
-            } catch (\Exception $e) {
-                \PrestaShopLogger::addLog('ACF File upload failed for ' . $slug . ': ' . $e->getMessage(), 2);
+            } catch (Exception $e) {
+                PrestaShopLogger::addLog('ACF File upload failed for ' . $slug . ': ' . $e->getMessage(), 2);
             }
         }
 
         // Process regular POST values
         foreach ($postData as $key => $value) {
-            if (!str_starts_with($key, 'acf_')) {
+            if (! str_starts_with($key, 'acf_')) {
                 continue;
             }
 
@@ -367,6 +508,7 @@ final class EntityFieldService
             if (preg_match('/_(items|new_\d+|title|delete|link_url|url_mode|link_mode|attachment|alt|poster|poster_url|url_alt|replace|delete_alt|delete_poster)(?:\[\d*\])?$/i', $key)) {
                 continue;
             }
+
             if (preg_match('/_url$/i', $key) && isset($postData[$key . '_mode'])) {
                 continue;
             }
@@ -376,8 +518,9 @@ final class EntityFieldService
                 $slug = $matches[1];
                 $langId = (int) $matches[2];
 
-                if (in_array($langId, $langIds, true)) {
+                if (\in_array($langId, $langIds, true)) {
                     $field = $this->fieldRepository->findBySlug($slug);
+
                     if ($field && (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false)) {
                         // For richtext translatable fields, get raw HTML from POST
                         if ($field['type'] === 'richtext') {
@@ -386,6 +529,7 @@ final class EntityFieldService
                         } else {
                             $translatableValues[$slug][$langId] = $value;
                         }
+
                         continue;
                     }
                 }
@@ -397,6 +541,7 @@ final class EntityFieldService
 
             // For richtext fields, preserve raw HTML - don't let PrestaShop clean it
             $field = $this->fieldRepository->findBySlug($keyWithoutPrefix);
+
             if ($field && $field['type'] === 'richtext') {
                 // Get raw value from POST to avoid any PrestaShop cleaning
                 $rawValue = $_POST[$key] ?? $value;
@@ -431,17 +576,19 @@ final class EntityFieldService
         Module $module
     ): void {
         foreach ($postData as $key => $val) {
-            if (!str_starts_with($key, 'acf_') || !str_ends_with($key, '_items')) {
+            if (! str_starts_with($key, 'acf_') || ! str_ends_with($key, '_items')) {
                 continue;
             }
 
             $slug = substr($key, 4, -6);
+
             if (isset($processedSlugs[$slug])) {
                 continue;
             }
 
             $field = $this->fieldRepository->findBySlug($slug);
-            if (!$field || !in_array($field['type'], ['gallery', 'files'], true)) {
+
+            if (! $field || ! \in_array($field['type'], ['gallery', 'files'], true)) {
                 continue;
             }
 
@@ -451,30 +598,36 @@ final class EntityFieldService
 
             // Parse existing items
             $existingItems = $postData[$key] ?? [];
-            if (is_array($existingItems)) {
+
+            if (\is_array($existingItems)) {
                 foreach ($existingItems as $idx => $jsonItem) {
-                    $item = is_string($jsonItem) ? json_decode($jsonItem, true) : $jsonItem;
-                    if (!is_array($item) || empty($item['url'])) {
+                    $item = \is_string($jsonItem) ? json_decode($jsonItem, true) : $jsonItem;
+
+                    if (! \is_array($item) || empty($item['url'])) {
                         continue;
                     }
                     $titleKey = 'acf_' . $slug . '_title';
+
                     if (isset($postData[$titleKey][$idx])) {
                         $item['title'] = $postData[$titleKey][$idx];
                     }
                     $descKey = 'acf_' . $slug . '_desc';
+
                     if (isset($postData[$descKey][$idx])) {
                         $item['description'] = $postData[$descKey][$idx];
                     }
-                    $item['position'] = count($items);
+                    $item['position'] = \count($items);
                     $items[] = $item;
                 }
             }
 
             // Upload new files
             $newFilesKey = 'acf_' . $slug . '_new';
-            if (isset($files[$newFilesKey]) && is_array($files[$newFilesKey]['name'])) {
-                $count = count($files[$newFilesKey]['name']);
-                for ($i = 0; $i < $count; $i++) {
+
+            if (isset($files[$newFilesKey]) && \is_array($files[$newFilesKey]['name'])) {
+                $count = \count($files[$newFilesKey]['name']);
+
+                for ($i = 0; $i < $count; ++$i) {
                     if ($files[$newFilesKey]['error'][$i] !== UPLOAD_ERR_OK) {
                         continue;
                     }
@@ -491,15 +644,15 @@ final class EntityFieldService
                         // FileUploadService still uses productId - will need update
                         // For now, use entityId as productId for backward compatibility
                         $uploaded = $this->fileUploadService->upload($singleFile, $fieldId, $entityId, $shopId, $type);
-                        $uploaded['position'] = count($items);
+                        $uploaded['position'] = \count($items);
                         $items[] = $uploaded;
-                    } catch (\Exception $e) {
-                        \PrestaShopLogger::addLog('ACF Gallery upload failed: ' . $e->getMessage(), 2);
+                    } catch (Exception $e) {
+                        PrestaShopLogger::addLog('ACF Gallery upload failed: ' . $e->getMessage(), 2);
                     }
                 }
             }
 
-            $values[$slug] = !empty($items) ? $items : null;
+            $values[$slug] = ! empty($items) ? $items : null;
             $processedSlugs[$slug] = true;
         }
     }
@@ -528,12 +681,14 @@ final class EntityFieldService
     {
         try {
             $container = $module->getContainer();
+
             if ($container && $container->has('router')) {
                 $router = $container->get('router');
                 $url = $router->generate('wepresta_acf_api_relation_search');
+
                 return preg_replace('/\/relation\/search$/', '', $url);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback
         }
 
@@ -546,4 +701,3 @@ final class EntityFieldService
         return rtrim($baseAdmin, '/') . '/modules/' . $module->name . '/api';
     }
 }
-

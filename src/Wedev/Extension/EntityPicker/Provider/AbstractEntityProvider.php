@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Extension - EntityPicker
+ * WEDEV Extension - EntityPicker.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -12,6 +13,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\EntityPicker\Provider;
 
+use Context;
 use Db;
 use PrestaShop\PrestaShop\Adapter\LegacyContext;
 
@@ -21,8 +23,11 @@ use PrestaShop\PrestaShop\Adapter\LegacyContext;
 abstract class AbstractEntityProvider implements EntityProviderInterface
 {
     protected Db $db;
+
     protected int $langId;
+
     protected int $shopId;
+
     protected string $dbPrefix;
 
     public function __construct(
@@ -32,7 +37,7 @@ abstract class AbstractEntityProvider implements EntityProviderInterface
         $this->db = $db ?? Db::getInstance();
 
         // LegacyContext::getContext() retourne le Context PrestaShop
-        $context = $legacyContext?->getContext() ?? \Context::getContext();
+        $context = $legacyContext?->getContext() ?? Context::getContext();
 
         $this->langId = (int) ($context->language->id ?? 1);
         $this->shopId = (int) ($context->shop->id ?? 1);
@@ -97,4 +102,3 @@ abstract class AbstractEntityProvider implements EntityProviderInterface
         return $field . ' IN (' . implode(',', $safeIds) . ')';
     }
 }
-

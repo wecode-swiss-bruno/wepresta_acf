@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 
 /**
- * Email field type
+ * Email field type.
  *
  * Email input with validation.
  */
@@ -50,7 +50,7 @@ final class EmailField extends AbstractFieldType
         }
 
         // Handle arrays/objects (empty objects from JS become empty arrays)
-        if (is_array($value) || is_object($value)) {
+        if (\is_array($value) || \is_object($value)) {
             return null;
         }
 
@@ -71,6 +71,7 @@ final class EmailField extends AbstractFieldType
 
         // Convert to string and handle empty values
         $stringValue = (string) $actualValue;
+
         if ($stringValue === '') {
             return '';
         }
@@ -91,7 +92,7 @@ final class EmailField extends AbstractFieldType
 
         // Optionally render as clickable link
         if ($this->getConfigValue($renderOptions, 'linkify', true)) {
-            return sprintf('<a href="mailto:%s">%s</a>', htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'), $email);
+            return \sprintf('<a href="mailto:%s">%s</a>', htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'), $email);
         }
 
         return $email;
@@ -108,7 +109,7 @@ final class EmailField extends AbstractFieldType
         $stringValue = (string) $value;
 
         // Email format validation
-        if (!filter_var($stringValue, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($stringValue, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Please enter a valid email address.';
         }
 
@@ -133,9 +134,6 @@ final class EmailField extends AbstractFieldType
         return 'email';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $attrs = $this->buildInputAttrs($field, $context);
@@ -143,7 +141,7 @@ final class EmailField extends AbstractFieldType
         $escapedValue = $this->escapeAttr((string) $value);
         $placeholder = $this->escapeAttr($config['placeholder'] ?? 'email@example.com');
 
-        return sprintf(
+        return \sprintf(
             '<input type="email" class="form-control %s %s" id="%s%s" %s %s value="%s" placeholder="%s">',
             $attrs['sizeClass'],
             $attrs['inputClass'],
@@ -156,16 +154,13 @@ final class EmailField extends AbstractFieldType
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
         $config = $this->getFieldConfig($field);
         $placeholder = addslashes($config['placeholder'] ?? 'email@example.com');
 
-        return sprintf(
+        return \sprintf(
             '<input type="email" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="{value}" placeholder="%s">',
             $this->escapeAttr($slug),
             $placeholder

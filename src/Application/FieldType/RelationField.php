@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -19,44 +19,38 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\FieldType;
 
+use Category;
+use Context;
+use Image;
+use Product;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Tools;
+use Validate;
 
 /**
- * Relation field type
+ * Relation field type.
  *
  * Allows selecting related products or categories.
  * Supports single and multiple selection with search and filters.
  */
 final class RelationField extends AbstractFieldType
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getType(): string
     {
         return 'relation';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getLabel(): string
     {
         return 'Relation';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFormType(): string
     {
         // We use hidden type since the UI is custom JavaScript
         return HiddenType::class;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFormOptions(array $fieldConfig, array $validation = []): array
     {
         $options = parent::getFormOptions($fieldConfig, $validation);
@@ -68,33 +62,31 @@ final class RelationField extends AbstractFieldType
         return $options;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
         // Handle empty values - return null for empty arrays, strings, or null values
-        if ($value === null || $value === '' || (is_array($value) && empty($value))) {
+        if ($value === null || $value === '' || (\is_array($value) && empty($value))) {
             return null;
         }
 
         $multiple = $this->getConfigValue($fieldConfig, 'multiple', false);
 
         // Already JSON string (from form submission)
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
+
             if (json_last_error() === JSON_ERROR_NONE) {
                 // Handle empty arrays from JSON
-                if (is_array($decoded) && empty($decoded)) {
+                if (\is_array($decoded) && empty($decoded)) {
                     return null;
                 }
 
                 if ($multiple) {
                     // Ensure array of integers
-                    if (is_array($decoded)) {
+                    if (\is_array($decoded)) {
                         // If it's an array of objects with 'id' keys, extract IDs
                         $ids = array_map(function ($item) {
-                            return is_array($item) && isset($item['id']) ? (int) $item['id'] : (int) $item;
+                            return \is_array($item) && isset($item['id']) ? (int) $item['id'] : (int) $item;
                         }, $decoded);
                     } else {
                         $ids = [(int) $decoded];
@@ -103,15 +95,16 @@ final class RelationField extends AbstractFieldType
                     $ids = array_filter($ids);
 
                     // Return null if no valid IDs after filtering
-                    return !empty($ids) ? json_encode(array_values($ids), JSON_THROW_ON_ERROR) : null;
+                    return ! empty($ids) ? json_encode(array_values($ids), JSON_THROW_ON_ERROR) : null;
                 }
 
                 // Single value
-                if (is_array($decoded)) {
+                if (\is_array($decoded)) {
                     // If it's an object with an 'id' key (from JS), extract the ID
                     if (isset($decoded['id'])) {
                         return (string) $decoded['id'];
                     }
+
                     // If it's a numeric array, take the first element
                     return (string) ($decoded[0] ?? 0);
                 }
@@ -126,10 +119,10 @@ final class RelationField extends AbstractFieldType
         }
 
         // Array of IDs or objects
-        if (is_array($value)) {
+        if (\is_array($value)) {
             // Extract IDs from array of objects or plain IDs
             $ids = array_map(function ($item) {
-                if (is_array($item) && isset($item['id'])) {
+                if (\is_array($item) && isset($item['id'])) {
                     return (int) $item['id'];
                 }
 
@@ -159,9 +152,6 @@ final class RelationField extends AbstractFieldType
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function denormalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
         if ($value === null || $value === '') {
@@ -173,8 +163,10 @@ final class RelationField extends AbstractFieldType
 
         // Decode JSON if string
         $decoded = $value;
-        if (is_string($value)) {
+
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 // Plain numeric string
                 $decoded = is_numeric($value) ? [(int) $value] : null;
@@ -187,11 +179,12 @@ final class RelationField extends AbstractFieldType
 
         // Handle array of objects with 'id' key (from repeater/frontend)
         // Example: [{"id":14,"name":"..."},{"id":11,"name":"..."}]
-        if (is_array($decoded) && !empty($decoded)) {
+        if (\is_array($decoded) && ! empty($decoded)) {
             $firstItem = reset($decoded);
-            if (is_array($firstItem) && isset($firstItem['id'])) {
+
+            if (\is_array($firstItem) && isset($firstItem['id'])) {
                 // Already denormalized - extract IDs and reload with fresh data
-                $ids = array_map(fn($item) => (int) ($item['id'] ?? 0), $decoded);
+                $ids = array_map(fn ($item) => (int) ($item['id'] ?? 0), $decoded);
                 $ids = array_filter($ids);
             } elseif (is_numeric($firstItem)) {
                 // Array of IDs
@@ -217,125 +210,12 @@ final class RelationField extends AbstractFieldType
         }
 
         // Single selection - return first entity or null
-        return count($entities) > 0 ? $entities[0] : null;
+        return \count($entities) > 0 ? $entities[0] : null;
     }
 
-    /**
-     * Load entities by IDs with their display data
-     *
-     * @param array<int> $ids Entity IDs
-     * @param string $entityType 'product' or 'category'
-     * @param array<string, mixed> $fieldConfig Field configuration
-     *
-     * @return array<array<string, mixed>> Entity data
-     */
-    private function loadEntities(array $ids, string $entityType, array $fieldConfig): array
-    {
-        if (empty($ids)) {
-            return [];
-        }
-
-        $displayFormat = $this->getConfigValue($fieldConfig, 'displayFormat', 'name');
-        $langId = (int) \Context::getContext()->language->id;
-        $entities = [];
-
-        foreach ($ids as $id) {
-            $id = (int) $id;
-            if ($id <= 0) {
-                continue;
-            }
-
-            if ($entityType === 'category') {
-                $category = new \Category($id, $langId);
-                if (\Validate::isLoadedObject($category)) {
-                    $entities[] = $this->formatCategoryData($category, $displayFormat);
-                }
-            } else {
-                // Default: product
-                $product = new \Product($id, false, $langId);
-                if (\Validate::isLoadedObject($product)) {
-                    $entities[] = $this->formatProductData($product, $displayFormat);
-                }
-            }
-        }
-
-        return $entities;
-    }
-
-    /**
-     * Format product data for display
-     *
-     * @param \Product $product
-     * @param string $displayFormat
-     *
-     * @return array<string, mixed>
-     */
-    private function formatProductData(\Product $product, string $displayFormat): array
-    {
-        $data = [
-            'id' => (int) $product->id,
-            'type' => 'product',
-            'name' => $product->name,
-            'reference' => $product->reference,
-            'link' => \Context::getContext()->link->getProductLink($product),
-        ];
-
-        // Always load image for frontend display
-        $cover = \Image::getCover($product->id);
-        if ($cover) {
-            $imageLink = \Context::getContext()->link->getImageLink(
-                $product->link_rewrite,
-                (string) $cover['id_image'],
-                'small_default'
-            );
-            $data['image'] = $imageLink;
-        }
-
-        // Add price if full format
-        if ($displayFormat === 'full') {
-            $data['price'] = $product->getPrice(true, null, 2);
-            $data['price_formatted'] = \Tools::displayPrice($data['price']);
-        }
-
-        return $data;
-    }
-
-    /**
-     * Format category data for display
-     *
-     * @param \Category $category
-     * @param string $displayFormat
-     *
-     * @return array<string, mixed>
-     */
-    private function formatCategoryData(\Category $category, string $displayFormat): array
-    {
-        $data = [
-            'id' => (int) $category->id,
-            'type' => 'category',
-            'name' => $category->name,
-            'link' => \Context::getContext()->link->getCategoryLink($category),
-        ];
-
-        // Add image if needed
-        if ($displayFormat === 'thumbnail_name' || $displayFormat === 'full') {
-            $imageLink = \Context::getContext()->link->getCatImageLink(
-                $category->name,
-                (int) $category->id,
-                'category_default'
-            );
-            $data['image'] = $imageLink;
-        }
-
-        return $data;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
-        if ($value === null || $value === '' || (is_array($value) && empty($value))) {
+        if ($value === null || $value === '' || (\is_array($value) && empty($value))) {
             return '';
         }
 
@@ -345,13 +225,14 @@ final class RelationField extends AbstractFieldType
         // Ensure we have array of entities
         $entities = $multiple ? $value : [$value];
 
-        if (!is_array($entities)) {
+        if (! \is_array($entities)) {
             return '';
         }
 
         $output = [];
+
         foreach ($entities as $entity) {
-            if (!is_array($entity) || !isset($entity['name'])) {
+            if (! \is_array($entity) || ! isset($entity['name'])) {
                 continue;
             }
 
@@ -369,96 +250,6 @@ final class RelationField extends AbstractFieldType
         return $html;
     }
 
-    /**
-     * Render a single entity card for frontend display.
-     *
-     * @param array<string, mixed> $entity
-     */
-    private function renderEntityCard(array $entity, string $displayFormat): string
-    {
-        $name = htmlspecialchars($entity['name'] ?? '', ENT_QUOTES, 'UTF-8');
-        $reference = htmlspecialchars($entity['reference'] ?? '', ENT_QUOTES, 'UTF-8');
-        $link = htmlspecialchars($entity['link'] ?? '#', ENT_QUOTES, 'UTF-8');
-        $image = $entity['image'] ?? '';
-
-        $html = '<a href="' . $link . '" class="acf-relation-card" target="_blank">';
-
-        // Image thumbnail
-        if ($image) {
-            $html .= '<img src="' . htmlspecialchars($image, ENT_QUOTES, 'UTF-8') . '" alt="' . $name . '" class="acf-relation-card__image">';
-        }
-
-        // Content
-        $html .= '<span class="acf-relation-card__content">';
-        $html .= '<span class="acf-relation-card__name">' . $name . '</span>';
-
-        if ($displayFormat === 'name_reference' && $reference) {
-            $html .= '<span class="acf-relation-card__reference">(' . $reference . ')</span>';
-        }
-
-        $html .= '</span>';
-        $html .= '</a>';
-
-        return $html;
-    }
-
-    /**
-     * Get CSS styles for frontend display.
-     */
-    private function getFrontendStyles(): string
-    {
-        return <<<'CSS'
-<style>
-.acf-relation-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-.acf-relation-card {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.5rem;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.2s ease;
-}
-.acf-relation-card:hover {
-    background: #e9ecef;
-    border-color: #adb5bd;
-    text-decoration: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.acf-relation-card__image {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    border-radius: 3px;
-}
-.acf-relation-card__content {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
-}
-.acf-relation-card__name {
-    font-weight: 500;
-    color: #212529;
-    font-size: 0.9rem;
-}
-.acf-relation-card__reference {
-    font-size: 0.8em;
-    color: #6c757d;
-}
-</style>
-CSS;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getIndexValue(mixed $value, array $fieldConfig = []): ?string
     {
         if ($value === null || $value === '' || $value === []) {
@@ -466,29 +257,27 @@ CSS;
         }
 
         // Decode if JSON
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $ids = is_array($decoded) ? $decoded : [$decoded];
 
-                return implode(',', array_slice($ids, 0, 10)); // First 10 IDs for index
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $ids = \is_array($decoded) ? $decoded : [$decoded];
+
+                return implode(',', \array_slice($ids, 0, 10)); // First 10 IDs for index
             }
 
             return substr($value, 0, 255);
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             $ids = array_column($value, 'id');
 
-            return implode(',', array_slice($ids, 0, 10));
+            return implode(',', \array_slice($ids, 0, 10));
         }
 
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array
     {
         $errors = parent::validate($value, $fieldConfig, $validation);
@@ -502,10 +291,11 @@ CSS;
 
         // Get IDs from value
         $ids = [];
-        if (is_string($value)) {
+
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            $ids = json_last_error() === JSON_ERROR_NONE ? (is_array($decoded) ? $decoded : [$decoded]) : [];
-        } elseif (is_array($value)) {
+            $ids = json_last_error() === JSON_ERROR_NONE ? (\is_array($decoded) ? $decoded : [$decoded]) : [];
+        } elseif (\is_array($value)) {
             $ids = array_column($value, 'id') ?: $value;
         }
 
@@ -514,21 +304,18 @@ CSS;
         $max = $this->getConfigValue($fieldConfig, 'max', null);
 
         if ($multiple) {
-            if ($min > 0 && count($ids) < $min) {
-                $errors[] = sprintf('At least %d item(s) required.', $min);
+            if ($min > 0 && \count($ids) < $min) {
+                $errors[] = \sprintf('At least %d item(s) required.', $min);
             }
 
-            if ($max !== null && count($ids) > $max) {
-                $errors[] = sprintf('Maximum %d item(s) allowed.', $max);
+            if ($max !== null && \count($ids) > $max) {
+                $errors[] = \sprintf('Maximum %d item(s) allowed.', $max);
             }
         }
 
         return $errors;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDefaultConfig(): array
     {
         return [
@@ -547,9 +334,6 @@ CSS;
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getConfigSchema(): array
     {
         return array_merge(parent::getConfigSchema(), [
@@ -606,34 +390,22 @@ CSS;
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function supportsTranslation(): bool
     {
         // Relations are not translatable - they reference entity IDs
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getCategory(): string
     {
         return 'relational';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getIcon(): string
     {
         return 'link';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -641,10 +413,11 @@ CSS;
         // Get raw IDs and load entities for display
         $rawIds = $this->getRawIds($value, $config);
         $entityType = $this->getConfigValue($config, 'entityType', 'product');
-        $entities = !empty($rawIds) ? $this->loadEntities($rawIds, $entityType, $config) : [];
+        $entities = ! empty($rawIds) ? $this->loadEntities($rawIds, $entityType, $config) : [];
 
         // Extract entity ID from context for relation filters
         $entityId = 0;
+
         if (isset($context['entity_id'])) {
             $entityId = (int) $context['entity_id'];
         } elseif (isset($context['id_product'])) {
@@ -662,10 +435,243 @@ CSS;
         ]);
     }
 
+    public function getJsTemplate(array $field): string
+    {
+        $slug = $field['slug'] ?? '';
+        $config = $this->getFieldConfig($field);
+        $entityType = $this->getConfigValue($config, 'entityType', 'product');
+        $multiple = (bool) $this->getConfigValue($config, 'multiple', false);
+        $placeholder = $entityType === 'category' ? 'Search categories...' : 'Search products...';
+
+        // Compact template for repeater table mode - matching full template structure
+        $html = \sprintf(
+            '<div class="acf-relation-field acf-relation-compact" data-slug="%s" data-entity-type="%s" data-multiple="%s">',
+            $this->escapeAttr($slug),
+            $this->escapeAttr($entityType),
+            $multiple ? '1' : '0'
+        );
+
+        $html .= \sprintf(
+            '<input type="hidden" class="acf-subfield-input acf-relation-value" data-subfield="%s" value="{value}">',
+            $this->escapeAttr($slug)
+        );
+
+        $html .= '<div class="acf-relation-selected"></div>';
+
+        // Use same structure as relation.tpl for consistent behavior
+        $html .= '<div class="acf-relation-search position-relative">';
+        $html .= '<div class="input-group">';
+        $html .= '<span class="input-group-text"><span class="material-icons" style="font-size:18px;">search</span></span>';
+        $html .= \sprintf(
+            '<input type="text" class="form-control acf-relation-search-input" placeholder="%s" autocomplete="off">',
+            $this->escapeAttr($placeholder)
+        );
+        $html .= '</div>';
+        $html .= '<div class="acf-relation-dropdown list-group position-absolute w-100 shadow d-none" style="z-index:1050;max-height:200px;overflow-y:auto;"></div>';
+        $html .= '</div>';
+        $html .= '</div>';
+
+        return $html;
+    }
+
     /**
-     * Get raw IDs from value (without loading entities)
+     * Load entities by IDs with their display data.
      *
-     * @param mixed $value
+     * @param array<int> $ids Entity IDs
+     * @param string $entityType 'product' or 'category'
+     * @param array<string, mixed> $fieldConfig Field configuration
+     *
+     * @return array<array<string, mixed>> Entity data
+     */
+    private function loadEntities(array $ids, string $entityType, array $fieldConfig): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $displayFormat = $this->getConfigValue($fieldConfig, 'displayFormat', 'name');
+        $langId = (int) Context::getContext()->language->id;
+        $entities = [];
+
+        foreach ($ids as $id) {
+            $id = (int) $id;
+
+            if ($id <= 0) {
+                continue;
+            }
+
+            if ($entityType === 'category') {
+                $category = new Category($id, $langId);
+
+                if (Validate::isLoadedObject($category)) {
+                    $entities[] = $this->formatCategoryData($category, $displayFormat);
+                }
+            } else {
+                // Default: product
+                $product = new Product($id, false, $langId);
+
+                if (Validate::isLoadedObject($product)) {
+                    $entities[] = $this->formatProductData($product, $displayFormat);
+                }
+            }
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Format product data for display.
+     *
+     * @return array<string, mixed>
+     */
+    private function formatProductData(Product $product, string $displayFormat): array
+    {
+        $data = [
+            'id' => (int) $product->id,
+            'type' => 'product',
+            'name' => $product->name,
+            'reference' => $product->reference,
+            'link' => Context::getContext()->link->getProductLink($product),
+        ];
+
+        // Always load image for frontend display
+        $cover = Image::getCover($product->id);
+
+        if ($cover) {
+            $imageLink = Context::getContext()->link->getImageLink(
+                $product->link_rewrite,
+                (string) $cover['id_image'],
+                'small_default'
+            );
+            $data['image'] = $imageLink;
+        }
+
+        // Add price if full format
+        if ($displayFormat === 'full') {
+            $data['price'] = $product->getPrice(true, null, 2);
+            $data['price_formatted'] = Tools::displayPrice($data['price']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Format category data for display.
+     *
+     * @return array<string, mixed>
+     */
+    private function formatCategoryData(Category $category, string $displayFormat): array
+    {
+        $data = [
+            'id' => (int) $category->id,
+            'type' => 'category',
+            'name' => $category->name,
+            'link' => Context::getContext()->link->getCategoryLink($category),
+        ];
+
+        // Add image if needed
+        if ($displayFormat === 'thumbnail_name' || $displayFormat === 'full') {
+            $imageLink = Context::getContext()->link->getCatImageLink(
+                $category->name,
+                (int) $category->id,
+                'category_default'
+            );
+            $data['image'] = $imageLink;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Render a single entity card for frontend display.
+     *
+     * @param array<string, mixed> $entity
+     */
+    private function renderEntityCard(array $entity, string $displayFormat): string
+    {
+        $name = htmlspecialchars($entity['name'] ?? '', ENT_QUOTES, 'UTF-8');
+        $reference = htmlspecialchars($entity['reference'] ?? '', ENT_QUOTES, 'UTF-8');
+        $link = htmlspecialchars($entity['link'] ?? '#', ENT_QUOTES, 'UTF-8');
+        $image = $entity['image'] ?? '';
+
+        $html = '<a href="' . $link . '" class="acf-relation-card" target="_blank">';
+
+        // Image thumbnail
+        if ($image) {
+            $html .= '<img src="' . htmlspecialchars($image, ENT_QUOTES, 'UTF-8') . '" alt="' . $name . '" class="acf-relation-card__image">';
+        }
+
+        // Content
+        $html .= '<span class="acf-relation-card__content">';
+        $html .= '<span class="acf-relation-card__name">' . $name . '</span>';
+
+        if ($displayFormat === 'name_reference' && $reference) {
+            $html .= '<span class="acf-relation-card__reference">(' . $reference . ')</span>';
+        }
+
+        $html .= '</span>';
+        $html .= '</a>';
+
+        return $html;
+    }
+
+    /**
+     * Get CSS styles for frontend display.
+     */
+    private function getFrontendStyles(): string
+    {
+        return <<<'CSS'
+            <style>
+            .acf-relation-items {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .acf-relation-card {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.25rem 0.5rem;
+                background: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                text-decoration: none;
+                color: inherit;
+                transition: all 0.2s ease;
+            }
+            .acf-relation-card:hover {
+                background: #e9ecef;
+                border-color: #adb5bd;
+                text-decoration: none;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .acf-relation-card__image {
+                width: 40px;
+                height: 40px;
+                object-fit: cover;
+                border-radius: 3px;
+            }
+            .acf-relation-card__content {
+                display: flex;
+                flex-direction: column;
+                line-height: 1.2;
+            }
+            .acf-relation-card__name {
+                font-weight: 500;
+                color: #212529;
+                font-size: 0.9rem;
+            }
+            .acf-relation-card__reference {
+                font-size: 0.8em;
+                color: #6c757d;
+            }
+            </style>
+            CSS;
+    }
+
+    /**
+     * Get raw IDs from value (without loading entities).
+     *
      * @param array<string, mixed> $config
      *
      * @return array<int>
@@ -679,25 +685,28 @@ CSS;
         $multiple = $this->getConfigValue($config, 'multiple', false);
 
         // If already denormalized (array of entities)
-        if (is_array($value) && isset($value[0]['id'])) {
-            return array_map(fn($e) => (int) $e['id'], $value);
+        if (\is_array($value) && isset($value[0]['id'])) {
+            return array_map(fn ($e) => (int) $e['id'], $value);
         }
 
         // If single entity
-        if (is_array($value) && isset($value['id'])) {
+        if (\is_array($value) && isset($value['id'])) {
             return [(int) $value['id']];
         }
 
         // If JSON string
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
+
             if (json_last_error() === JSON_ERROR_NONE) {
-                if (is_array($decoded)) {
+                if (\is_array($decoded)) {
                     return array_map('intval', array_filter($decoded));
                 }
+
                 // Single value decoded from JSON
                 return [(int) $decoded];
             }
+
             // Plain numeric string
             if (is_numeric($value)) {
                 return [(int) $value];
@@ -705,11 +714,12 @@ CSS;
         }
 
         // If array of IDs (or array of numbers)
-        if (is_array($value)) {
+        if (\is_array($value)) {
             // Check if it's an array of numbers or array of arrays
             if (isset($value[0]) && is_numeric($value[0])) {
                 return array_map('intval', array_filter($value));
             }
+
             // Empty array
             if (empty($value)) {
                 return [];
@@ -725,7 +735,7 @@ CSS;
     }
 
     /**
-     * Render a selected entity badge
+     * Render a selected entity badge.
      */
     private function renderSelectedEntity(array $entity, string $displayFormat, bool $isCompact): string
     {
@@ -734,61 +744,20 @@ CSS;
         $reference = $this->escapeAttr($entity['reference'] ?? '');
         $image = $entity['image'] ?? '';
 
-        $html = sprintf('<div class="acf-relation-item badge badge-secondary" data-id="%d">', $id);
+        $html = \sprintf('<div class="acf-relation-item badge badge-secondary" data-id="%d">', $id);
 
-        if (!$isCompact && $image && ($displayFormat === 'thumbnail_name' || $displayFormat === 'full')) {
-            $html .= sprintf('<img src="%s" alt="" class="acf-relation-thumb">', $this->escapeAttr($image));
+        if (! $isCompact && $image && ($displayFormat === 'thumbnail_name' || $displayFormat === 'full')) {
+            $html .= \sprintf('<img src="%s" alt="" class="acf-relation-thumb">', $this->escapeAttr($image));
         }
 
         $label = $name;
+
         if ($displayFormat === 'name_reference' && $reference) {
             $label .= ' (' . $reference . ')';
         }
 
-        $html .= sprintf('<span class="acf-relation-name">%s</span>', htmlspecialchars($label, ENT_QUOTES, 'UTF-8'));
+        $html .= \sprintf('<span class="acf-relation-name">%s</span>', htmlspecialchars($label, ENT_QUOTES, 'UTF-8'));
         $html .= '<button type="button" class="acf-relation-remove" title="Remove"><span class="material-icons" style="font-size: 14px;">close</span></button>';
-        $html .= '</div>';
-
-        return $html;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getJsTemplate(array $field): string
-    {
-        $slug = $field['slug'] ?? '';
-        $config = $this->getFieldConfig($field);
-        $entityType = $this->getConfigValue($config, 'entityType', 'product');
-        $multiple = (bool) $this->getConfigValue($config, 'multiple', false);
-        $placeholder = $entityType === 'category' ? 'Search categories...' : 'Search products...';
-
-        // Compact template for repeater table mode - matching full template structure
-        $html = sprintf(
-            '<div class="acf-relation-field acf-relation-compact" data-slug="%s" data-entity-type="%s" data-multiple="%s">',
-            $this->escapeAttr($slug),
-            $this->escapeAttr($entityType),
-            $multiple ? '1' : '0'
-        );
-
-        $html .= sprintf(
-            '<input type="hidden" class="acf-subfield-input acf-relation-value" data-subfield="%s" value="{value}">',
-            $this->escapeAttr($slug)
-        );
-
-        $html .= '<div class="acf-relation-selected"></div>';
-        
-        // Use same structure as relation.tpl for consistent behavior
-        $html .= '<div class="acf-relation-search position-relative">';
-        $html .= '<div class="input-group">';
-        $html .= '<span class="input-group-text"><span class="material-icons" style="font-size:18px;">search</span></span>';
-        $html .= sprintf(
-            '<input type="text" class="form-control acf-relation-search-input" placeholder="%s" autocomplete="off">',
-            $this->escapeAttr($placeholder)
-        );
-        $html .= '</div>';
-        $html .= '<div class="acf-relation-dropdown list-group position-absolute w-100 shadow d-none" style="z-index:1050;max-height:200px;overflow-y:auto;"></div>';
-        $html .= '</div>';
         $html .= '</div>';
 
         return $html;

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -23,7 +23,7 @@ use Ramsey\Uuid\Uuid;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 /**
- * Repeater field type - Group repeater with unlimited nesting
+ * Repeater field type - Group repeater with unlimited nesting.
  *
  * Stores array of rows as JSON:
  * [
@@ -74,9 +74,6 @@ final class RepeaterField extends AbstractFieldType
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
         if ($value === null || $value === '' || $value === '[]') {
@@ -84,23 +81,38 @@ final class RepeaterField extends AbstractFieldType
         }
 
         // If already JSON string, decode
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (!is_array($decoded)) {
+
+            if (! \is_array($decoded)) {
                 return null;
             }
             $value = $decoded;
         }
 
-        if (!is_array($value)) {
+        if (! \is_array($value)) {
             return null;
+        }
+
+        // Check if this is a valid repeater structure
+        // Valid format: [{"row_id":"...","values":{...}}, ...]
+        // Invalid format: {"1":"...","2":"..."} (translations object)
+        if (! empty($value)) {
+            $firstItem = reset($value);
+            $isValidRepeaterStructure = \is_array($firstItem) && (isset($firstItem['row_id']) || isset($firstItem['values']));
+
+            // If invalid structure (like a translations object), return null
+            // This prevents errors and allows proper handling elsewhere
+            if (! $isValidRepeaterStructure) {
+                return null;
+            }
         }
 
         // Normalize each row
         $normalized = [];
 
         foreach ($value as $row) {
-            if (!is_array($row)) {
+            if (! \is_array($row)) {
                 continue;
             }
 
@@ -111,53 +123,66 @@ final class RepeaterField extends AbstractFieldType
             ];
 
             // Copy values as-is (subfield normalization happens in ValueHandler)
-            if (isset($row['values']) && is_array($row['values'])) {
+            if (isset($row['values']) && \is_array($row['values'])) {
                 $rowData['values'] = $row['values'];
             }
 
             $normalized[] = $rowData;
         }
 
-        if (count($normalized) === 0) {
+        if (\count($normalized) === 0) {
             return null;
         }
 
         return json_encode($normalized);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function denormalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
         if ($value === null || $value === '' || $value === '[]') {
             return [];
         }
 
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
-                return $decoded;
+
+            if (\is_array($decoded)) {
+                // Check if this is a valid repeater structure (array of rows)
+                // Valid structure: [{"row_id":"...","values":{...}}]
+                // If not, it might be malformed data - return empty array to avoid errors
+                $isValidRepeaterStructure = false;
+
+                if (! empty($decoded)) {
+                    $firstItem = reset($decoded);
+                    $isValidRepeaterStructure = \is_array($firstItem) && (isset($firstItem['row_id']) || isset($firstItem['values']));
+                }
+
+                return $isValidRepeaterStructure ? $decoded : [];
             }
 
             return [];
         }
 
-        if (is_array($value)) {
-            return $value;
+        if (\is_array($value)) {
+            // Same validation for array values
+            if (! empty($value)) {
+                $firstItem = reset($value);
+                $isValidRepeaterStructure = \is_array($firstItem) && (isset($firstItem['row_id']) || isset($firstItem['values']));
+
+                return $isValidRepeaterStructure ? $value : [];
+            }
+
+            return [];
         }
 
         return [];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string
     {
         $rows = $this->denormalizeValue($value, $fieldConfig);
 
-        if (count($rows) === 0) {
+        if (\count($rows) === 0) {
             return '';
         }
 
@@ -167,6 +192,7 @@ final class RepeaterField extends AbstractFieldType
 
         // Index subfields by slug for easy lookup
         $subfieldsBySlug = [];
+
         foreach ($subfields as $subfield) {
             $subfieldsBySlug[$subfield['slug']] = $subfield;
         }
@@ -176,15 +202,17 @@ final class RepeaterField extends AbstractFieldType
         foreach ($rows as $index => $row) {
             $html .= '<tr class="acf-repeater-row" data-row-id="' . htmlspecialchars($row['row_id'] ?? '', ENT_QUOTES, 'UTF-8') . '">';
 
-            if (!empty($row['values']) && is_array($row['values'])) {
+            if (! empty($row['values']) && \is_array($row['values'])) {
                 foreach ($row['values'] as $slug => $subfieldValue) {
                     $html .= '<td class="acf-repeater-field" data-field="' . htmlspecialchars($slug, ENT_QUOTES, 'UTF-8') . '">';
 
                     // Try to render using the appropriate field type
                     $rendered = false;
+
                     if ($registry !== null && isset($subfieldsBySlug[$slug])) {
                         $subfield = $subfieldsBySlug[$slug];
                         $subfieldType = $registry->getOrNull($subfield['type'] ?? '');
+
                         if ($subfieldType !== null) {
                             $subfieldConfig = json_decode($subfield['config'] ?? '{}', true) ?: [];
                             $denormalizedValue = $subfieldType->denormalizeValue($subfieldValue, $subfieldConfig);
@@ -194,8 +222,8 @@ final class RepeaterField extends AbstractFieldType
                     }
 
                     // Fallback to simple rendering
-                    if (!$rendered) {
-                        $html .= htmlspecialchars(is_string($subfieldValue) ? $subfieldValue : json_encode($subfieldValue), ENT_QUOTES, 'UTF-8');
+                    if (! $rendered) {
+                        $html .= htmlspecialchars(\is_string($subfieldValue) ? $subfieldValue : json_encode($subfieldValue), ENT_QUOTES, 'UTF-8');
                     }
 
                     $html .= '</td>';
@@ -210,24 +238,18 @@ final class RepeaterField extends AbstractFieldType
         return $html;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getIndexValue(mixed $value, array $fieldConfig = []): ?string
     {
         $rows = $this->denormalizeValue($value, $fieldConfig);
 
-        if (count($rows) === 0) {
+        if (\count($rows) === 0) {
             return null;
         }
 
         // Index: count of rows
-        return sprintf('%d rows', count($rows));
+        return \sprintf('%d rows', \count($rows));
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDefaultConfig(): array
     {
         return [
@@ -240,9 +262,6 @@ final class RepeaterField extends AbstractFieldType
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getConfigSchema(): array
     {
         return array_merge(parent::getConfigSchema(), [
@@ -285,18 +304,15 @@ final class RepeaterField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array
     {
         $errors = [];
 
         $rows = $this->denormalizeValue($value, $fieldConfig);
-        $count = count($rows);
+        $count = \count($rows);
 
         // Check required
-        if (!empty($validation['required']) && $count === 0) {
+        if (! empty($validation['required']) && $count === 0) {
             $errors[] = 'This field is required.';
 
             return $errors;
@@ -304,14 +320,16 @@ final class RepeaterField extends AbstractFieldType
 
         // Check min
         $min = (int) $this->getConfigValue($fieldConfig, 'min', 0);
+
         if ($min > 0 && $count < $min) {
-            $errors[] = sprintf('At least %d row(s) required.', $min);
+            $errors[] = \sprintf('At least %d row(s) required.', $min);
         }
 
         // Check max
         $max = (int) $this->getConfigValue($fieldConfig, 'max', 0);
+
         if ($max > 0 && $count > $max) {
-            $errors[] = sprintf('Maximum %d row(s) allowed.', $max);
+            $errors[] = \sprintf('Maximum %d row(s) allowed.', $max);
         }
 
         // Note: Subfield validation is handled by ValueHandler
@@ -319,9 +337,6 @@ final class RepeaterField extends AbstractFieldType
         return $errors;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getFormOptions(array $fieldConfig, array $validation = []): array
     {
         return [
@@ -338,7 +353,7 @@ final class RepeaterField extends AbstractFieldType
     }
 
     /**
-     * Create an empty row structure
+     * Create an empty row structure.
      *
      * @return array<string, mixed>
      */
@@ -352,7 +367,7 @@ final class RepeaterField extends AbstractFieldType
     }
 
     /**
-     * Generate row title from template
+     * Generate row title from template.
      *
      * @param string $template Title template (e.g., "{title}" or "Row {#}")
      * @param array<string, mixed> $values Row values
@@ -363,7 +378,7 @@ final class RepeaterField extends AbstractFieldType
     public static function generateRowTitle(string $template, array $values, int $rowIndex): string
     {
         if (empty($template)) {
-            return sprintf('Row %d', $rowIndex);
+            return \sprintf('Row %d', $rowIndex);
         }
 
         $title = $template;
@@ -377,9 +392,10 @@ final class RepeaterField extends AbstractFieldType
         foreach ($matches[1] as $fieldSlug) {
             if (isset($values[$fieldSlug])) {
                 $value = $values[$fieldSlug];
-                if (is_string($value)) {
+
+                if (\is_string($value)) {
                     $title = str_replace('{' . $fieldSlug . '}', $value, $title);
-                } elseif (is_array($value) && isset($value['text'])) {
+                } elseif (\is_array($value) && isset($value['text'])) {
                     // For list items, use first text
                     $title = str_replace('{' . $fieldSlug . '}', $value['text'], $title);
                 }
@@ -389,7 +405,7 @@ final class RepeaterField extends AbstractFieldType
             }
         }
 
-        return trim($title) ?: sprintf('Row %d', $rowIndex);
+        return trim($title) ?: \sprintf('Row %d', $rowIndex);
     }
 
     /**
@@ -409,12 +425,11 @@ final class RepeaterField extends AbstractFieldType
             'value' => $rows,
             'context' => $context,
             'fieldRenderer' => $context['fieldRenderer'] ?? null,
+            'languages' => $context['languages'] ?? [],
+            'default_lang_id' => $context['default_lang_id'] ?? 1,
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
@@ -422,7 +437,7 @@ final class RepeaterField extends AbstractFieldType
         $buttonLabel = $config['buttonLabel'] ?? 'Add Row';
 
         // Nested repeaters in table mode are simplified
-        return sprintf(
+        return \sprintf(
             '<div class="acf-repeater-field acf-repeater-compact" data-slug="%s">' .
             '<input type="hidden" class="acf-subfield-input acf-repeater-value" data-subfield="%s" value="{value}">' .
             '<div class="acf-repeater-rows"></div>' .

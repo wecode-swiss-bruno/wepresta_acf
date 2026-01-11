@@ -18,7 +18,7 @@ class EntityHooksConfigTest extends TestCase
 
     public function testSymfonyEntitiesContainsExpectedCount(): void
     {
-        $count = count(EntityHooksConfig::SYMFONY_ENTITIES);
+        $count = \count(EntityHooksConfig::SYMFONY_ENTITIES);
 
         $this->assertGreaterThanOrEqual(35, $count, 'Should have at least 35 Symfony entities');
         $this->assertLessThanOrEqual(45, $count, 'Should have at most 45 Symfony entities');
@@ -90,7 +90,7 @@ class EntityHooksConfigTest extends TestCase
 
     public function testLegacyEntitiesContainsExpectedCount(): void
     {
-        $count = count(EntityHooksConfig::LEGACY_ENTITIES);
+        $count = \count(EntityHooksConfig::LEGACY_ENTITIES);
 
         $this->assertGreaterThanOrEqual(5, $count, 'Should have at least 5 legacy entities');
         $this->assertLessThanOrEqual(15, $count, 'Should have at most 15 legacy entities');
@@ -182,7 +182,7 @@ class EntityHooksConfigTest extends TestCase
         $hooks = EntityHooksConfig::getAllHooks();
         $uniqueHooks = array_unique($hooks);
 
-        $this->assertCount(count($hooks), $uniqueHooks, 'All hooks should be unique');
+        $this->assertCount(\count($hooks), $uniqueHooks, 'All hooks should be unique');
     }
 
     public function testGetAllHooksReturnsExpectedCount(): void
@@ -193,8 +193,8 @@ class EntityHooksConfigTest extends TestCase
         // + 8 Legacy entities × 2 hooks each = 16
         // + some display hooks
         // Total should be around 100-150
-        $this->assertGreaterThan(100, count($hooks), 'Should have more than 100 hooks');
-        $this->assertLessThan(200, count($hooks), 'Should have less than 200 hooks');
+        $this->assertGreaterThan(100, \count($hooks), 'Should have more than 100 hooks');
+        $this->assertLessThan(200, \count($hooks), 'Should have less than 200 hooks');
     }
 
     // =========================================================================
@@ -347,4 +347,3 @@ class EntityHooksConfigTest extends TestCase
         $this->assertFalse(EntityHooksConfig::isLegacyEntity('category'));
     }
 }
-

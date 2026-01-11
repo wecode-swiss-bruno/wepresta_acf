@@ -64,8 +64,6 @@
                 // Mark input as processed
                 input.removeAttribute('data-acf-html');
                 input.setAttribute('data-acf-injected', 'true');
-
-                console.log('[ACF] Injected ACF container from hidden input');
             } catch (e) {
                 console.error('[ACF] Failed to decode ACF HTML:', e);
             }
@@ -203,41 +201,33 @@
             var trueLabel = trueLabelEl ? trueLabelEl.textContent.trim() : 'Oui';
             var falseLabel = falseLabelEl ? falseLabelEl.textContent.trim() : 'Non';
 
-            console.log('[ACF] Initializing ps-switch status. Labels:', { trueLabel: trueLabel, falseLabel: falseLabel });
-
             // Check data-initial-value attribute for fallback
             var initialValue = psSwitch.getAttribute('data-initial-value');
-            console.log('[ACF] Initial value from data attribute:', initialValue);
 
             function updateStatus() {
                 var checked = psSwitch.querySelector('input[type="radio"]:checked');
-                console.log('[ACF] Updating ps-switch status. Checked:', checked ? checked.value : 'none');
-                
+
                 // If no radio is checked, use data-initial-value to set one
                 if (!checked && initialValue !== null) {
                     var targetRadio = psSwitch.querySelector('input[type="radio"][value="' + initialValue + '"]');
                     if (targetRadio) {
                         targetRadio.checked = true;
                         checked = targetRadio;
-                        console.log('[ACF] Set checked from data-initial-value:', initialValue);
                     }
                 }
-                
+
                 // Still no checked? Default to OFF (value=0)
                 if (!checked) {
                     var offRadio = psSwitch.querySelector('input[type="radio"][value="0"]');
                     if (offRadio) {
                         offRadio.checked = true;
                         checked = offRadio;
-                        console.log('[ACF] Defaulted to OFF (0)');
                     }
                 }
 
                 var isTrue = checked && checked.value === '1';
                 statusBadge.textContent = isTrue ? trueLabel : falseLabel;
                 statusBadge.className = 'badge badge-' + (isTrue ? 'success' : 'secondary');
-                
-                console.log('[ACF] Status updated:', { isTrue: isTrue, text: statusBadge.textContent, class: statusBadge.className });
             }
 
             // Initial update
@@ -385,12 +375,79 @@
                 rows.forEach(function(row, index) {
                     var rowData = { row_id: row.dataset.rowId || generateRowId(), values: {} };
                     subfields.forEach(function(sf) {
-                        var input = row.querySelector('[data-subfield="' + sf.slug + '"]');
-                        if (input) {
-                            if (input.type === 'checkbox') {
-                                rowData.values[sf.slug] = input.checked ? '1' : '0';
-                            } else {
-                                rowData.values[sf.slug] = input.value || '';
+                        // Check if subfield is translatable (has translations tabbable container)
+                        var translatableContainer = row.querySelector('[data-subfield-container="' + sf.slug + '"] .translations.tabbable');
+                        
+                        if (translatableContainer) {
+                            // Translatable subfield - collect values per language
+                            var langValues = {};
+                            var panes = translatableContainer.querySelectorAll('.tab-pane');
+                            
+                            panes.forEach(function(pane) {
+                                // Extract langId from class name like "translationsFields-acf_repeater_field_slug_row_id_subfield_slug_langId"
+                                var classNames = pane.className.split(' ');
+                                var langId = null;
+                                
+                                for (var i = 0; i < classNames.length; i++) {
+                                    var className = classNames[i];
+                                    // Match pattern: translationsFields-acf_repeater_*_*_*_langId
+                                    var match = className.match(/^translationsFields-acf_repeater_.+_\d+_(\d+)$/);
+                                    if (match && match[1]) {
+                                        langId = match[1];
+                                        break;
+                                    }
+                                }
+                                
+                                if (!langId) {
+                                    // Try alternative pattern: look for data-lang-id attribute or data-lang-id in input
+                                    var inputWithLang = pane.querySelector('[data-lang-id]');
+                                    if (inputWithLang) {
+                                        langId = inputWithLang.dataset.langId;
+                                    }
+                                }
+                                
+                                if (!langId) return;
+                                
+                                // Find input in this pane
+                                var input = pane.querySelector('input, textarea, select');
+                                if (input) {
+                                    var val = null;
+                                    
+                                    if (input.type === 'checkbox') {
+                                        val = input.checked ? '1' : '0';
+                                    } else if (input.type === 'radio') {
+                                        if (input.checked) {
+                                            val = input.value || '';
+                                        }
+                                    } else {
+                                        val = input.value || '';
+                                    }
+                                    
+                                    // Only add if value is not empty (or allow empty for translatable fields to support clearing)
+                                    if (val !== null && val !== undefined && val !== '') {
+                                        langValues[langId] = val;
+                                    }
+                                }
+                            });
+                            
+                            // Only add translatable field if it has at least one language value
+                            if (Object.keys(langValues).length > 0) {
+                                rowData.values[sf.slug] = langValues;
+                            }
+                        } else {
+                            // Non-translatable subfield - collect single value
+                            var input = row.querySelector('[data-subfield="' + sf.slug + '"]');
+                            if (input) {
+                                if (input.type === 'checkbox') {
+                                    rowData.values[sf.slug] = input.checked ? '1' : '0';
+                                } else if (input.type === 'radio') {
+                                    var radio = row.querySelector('[data-subfield="' + sf.slug + '"]:checked');
+                                    if (radio) {
+                                        rowData.values[sf.slug] = radio.value || '';
+                                    }
+                                } else {
+                                    rowData.values[sf.slug] = input.value || '';
+                                }
                             }
                         }
                     });
@@ -409,9 +466,63 @@
                 return rowsContainer.querySelectorAll('.acf-repeater-row').length < maxRows;
             }
 
+            // Helper function to generate HTML for a translatable subfield
+            function generateTranslatableSubfieldHtml(subfield, rowId, repeaterSlug, languages, defaultLangId, size) {
+                size = size || 'sm';
+                var sizeClass = size === 'sm' ? 'form-control-sm' : '';
+                var translationsId = 'acf_repeater_' + repeaterSlug + '_' + rowId + '_' + subfield.slug;
+                
+                var html = '<div class="acf-repeater-subfield-translatable" data-subfield-slug="' + subfield.slug + '" data-row-id="' + rowId + '">';
+                html += '<div class="translations tabbable acf-repeater-translations" id="' + translationsId + '" tabindex="1">';
+                html += '<ul class="translationsLocales nav nav-pills" style="font-size: 0.7rem; margin-bottom: 0.25rem;">';
+                
+                languages.forEach(function(lang) {
+                    var isActive = lang.id_lang == defaultLangId ? ' active' : '';
+                    var isDefault = lang.is_default ? ' is-default' : '';
+                    html += '<li class="nav-item">';
+                    html += '<a href="#" data-locale="' + lang.iso_code.toLowerCase() + '" class="nav-link' + isActive + isDefault + '" data-toggle="tab" data-target=".translationsFields-' + translationsId + '_' + lang.id_lang + '">';
+                    html += lang.iso_code.toUpperCase();
+                    if (lang.is_default) {
+                        html += ' <span class="material-icons" style="font-size: 12px;">star</span>';
+                    }
+                    html += '</a></li>';
+                });
+                
+                html += '</ul><div class="translationsFields tab-content">';
+                
+                languages.forEach(function(lang) {
+                    var isActive = lang.id_lang == defaultLangId ? ' show active' : '';
+                    var paneClass = 'translationsFields-' + translationsId + '_' + lang.id_lang;
+                    html += '<div data-locale="' + lang.iso_code.toLowerCase() + '" class="' + paneClass + ' tab-pane translation-field' + isActive + '">';
+                    
+                    // Generate input using template if available, otherwise use simple input
+                    var template = jsTemplates[subfield.slug] || '<input type="text" class="form-control ' + sizeClass + ' acf-subfield-input" data-subfield="' + subfield.slug + '" data-lang-id="' + lang.id_lang + '" value="">';
+                    // Remove {value} placeholder and ensure data-lang-id is set
+                    template = template.replace(/{ldelim}value{rdelim}/g, '').replace(/\{value\}/g, '');
+                    if (!template.includes('data-lang-id')) {
+                        template = template.replace(/data-subfield="([^"]*)"/, 'data-subfield="$1" data-lang-id="' + lang.id_lang + '"');
+                    }
+                    html += template;
+                    html += '</div>';
+                });
+                
+                html += '</div></div></div>';
+                return html;
+            }
+
             function createRow(rowId) {
                 var rowCount = rowsContainer.querySelectorAll('.acf-repeater-row').length;
                 rowId = rowId || generateRowId();
+                
+                // Get languages from data attribute
+                var languages = [];
+                var defaultLangId = 1;
+                try {
+                    languages = JSON.parse(repeater.dataset.languages || '[]');
+                    defaultLangId = parseInt(repeater.dataset.defaultLangId || '1');
+                } catch (e) {
+                    console.error('[ACF Repeater] Error parsing languages:', e);
+                }
 
                 if (displayMode === 'table') {
                     var tr = document.createElement('tr');
@@ -420,8 +531,18 @@
 
                     var html = '<td class="acf-col-drag"><span class="acf-repeater-drag material-icons">drag_indicator</span></td>';
                     subfields.forEach(function(sf) {
-                        var template = jsTemplates[sf.slug] || '<input type="text" class="form-control form-control-sm acf-subfield-input" data-subfield="' + sf.slug + '" value="">';
-                        html += '<td class="acf-repeater-cell" data-subfield-container="' + sf.slug + '">' + template.replace(/{ldelim}value{rdelim}/g, '').replace(/\{value\}/g, '') + '</td>';
+                        html += '<td class="acf-repeater-cell" data-subfield-container="' + sf.slug + '" data-subfield-slug="' + sf.slug + '">';
+                        
+                        // Check if subfield is translatable (check translatable flag or lang_inputs presence)
+                        var isTranslatable = sf.translatable || (sf.lang_inputs && sf.lang_inputs.length > 0);
+                        if (isTranslatable && languages.length > 0) {
+                            html += generateTranslatableSubfieldHtml(sf, rowId, slug, languages, defaultLangId, 'sm');
+                        } else {
+                            var template = jsTemplates[sf.slug] || '<input type="text" class="form-control form-control-sm acf-subfield-input" data-subfield="' + sf.slug + '" value="">';
+                            html += template.replace(/{ldelim}value{rdelim}/g, '').replace(/\{value\}/g, '');
+                        }
+                        
+                        html += '</td>';
                     });
                     html += '<td class="acf-col-actions"><button type="button" class="btn btn-link btn-sm text-danger acf-repeater-remove p-0" title="Remove"><span class="material-icons" style="font-size:18px;">delete</span></button></td>';
                     tr.innerHTML = html;
@@ -439,10 +560,22 @@
                     html += '</div>';
                     html += '<div class="acf-repeater-row-content"><div class="acf-repeater-subfields">';
                     subfields.forEach(function(sf) {
-                        var template = jsTemplates[sf.slug] || '<input type="text" class="form-control acf-subfield-input" data-subfield="' + sf.slug + '" value="">';
-                        html += '<div class="acf-repeater-subfield" data-subfield-container="' + sf.slug + '">';
-                        html += '<label class="form-control-label">' + (sf.title || sf.slug) + '</label>';
-                        html += template.replace(/{ldelim}value{rdelim}/g, '').replace(/\{value\}/g, '');
+                        html += '<div class="acf-repeater-subfield" data-subfield-container="' + sf.slug + '" data-subfield-slug="' + sf.slug + '">';
+                        html += '<label class="form-control-label">' + (sf.title || sf.slug);
+                        if (sf.translatable) {
+                            html += ' <span class="badge badge-info ml-2" style="font-size: 0.7rem;"><i class="material-icons" style="font-size: 12px; vertical-align: middle;">language</i> Translatable</span>';
+                        }
+                        html += '</label>';
+                        
+                        // Check if subfield is translatable (check translatable flag or lang_inputs presence)
+                        var isTranslatable = sf.translatable || (sf.lang_inputs && sf.lang_inputs.length > 0);
+                        if (isTranslatable && languages.length > 0) {
+                            html += generateTranslatableSubfieldHtml(sf, rowId, slug, languages, defaultLangId, '');
+                        } else {
+                            var template = jsTemplates[sf.slug] || '<input type="text" class="form-control acf-subfield-input" data-subfield="' + sf.slug + '" value="">';
+                            html += template.replace(/{ldelim}value{rdelim}/g, '').replace(/\{value\}/g, '');
+                        }
+                        
                         html += '</div>';
                     });
                     html += '</div></div>';
@@ -847,12 +980,26 @@
             container.querySelectorAll('.acf-field').forEach(function(fieldEl) {
                 var slug = fieldEl.dataset.fieldSlug;
                 if (!slug) return;
+                
+                // Skip fields inside repeaters - they are collected by the repeater itself
+                // (but not the repeater field itself, which has its own hidden input)
+                if (fieldEl.closest('.acf-repeater-field')) {
+                    console.log('[ACF] Skipping subfield inside repeater:', slug);
+                    return;
+                }
 
                 var translatableContainer = fieldEl.querySelector('.translations.tabbable');
+                
+                // For repeater fields, skip the translatable container check and go straight to collectFieldValue
+                // This prevents collecting subfield translations as if they were the repeater value
+                var hasRepeater = fieldEl.querySelector('.acf-repeater-field');
+                if (hasRepeater) {
+                    console.log('[ACF] Found repeater field:', slug, '- forcing collectFieldValue');
+                    translatableContainer = null; // Force using collectFieldValue instead
+                }
                 if (translatableContainer) {
                     var langValues = {};
                     var panes = translatableContainer.querySelectorAll('.tab-pane');
-                    console.log('Translatable field found:', slug, 'Panes:', panes.length);
                     panes.forEach(function(pane) {
                         // Extract langId from class name like "translationsFields-acf_text_field_1"
                         // Match pattern: translationsFields-acf_{any_slug}_{langId}
@@ -866,26 +1013,23 @@
                                 break;
                             }
                         }
-                        console.log('Pane class:', pane.className, 'LangId:', langId);
                         if (!langId) return;
 
                         var input = pane.querySelector('input, textarea, select');
-                        console.log('Input found:', input ? input.name : 'none', 'Value:', input ? input.value : 'none');
                         if (input) {
                             var val = getInputValue(input);
-                            console.log('Collected value for lang', langId, ':', val);
                             // Allow empty values for translatable fields (to support clearing)
                             if (val !== null && val !== undefined) {
                                 langValues[langId] = val;
                             }
                         }
                     });
-                    console.log('Lang values collected for', slug, ':', langValues);
                     if (Object.keys(langValues).length > 0) {
                         values[slug] = langValues;
                     }
                 } else {
                     var val = collectFieldValue(fieldEl, slug);
+                    console.log('[ACF] collectFieldValue for', slug, ':', val);
                     if (val !== undefined) {
                         if (typeof val === 'object' && val !== null && !Array.isArray(val) && Object.keys(val).length === 0) {
                             // Empty object -> empty string
@@ -947,7 +1091,6 @@
             if (psSwitchContainer) {
                 var psSwitchChecked = psSwitchContainer.querySelector('input[type="radio"]:checked');
                 if (psSwitchChecked) {
-                    console.log('[ACF] Ps-switch field "' + slug + '" found, value:', psSwitchChecked.value);
                     return psSwitchChecked.value;
                 }
             }
@@ -955,7 +1098,6 @@
             // CHECK FOR CHECKBOX FIELD FIRST (multiple inputs, need to collect all checked)
             var checkboxes = fieldEl.querySelectorAll('input[type="checkbox"][name^="acf_' + slug + '"]:checked');
             if (checkboxes.length > 0) {
-                console.log('[ACF] Checkbox field "' + slug + '" found, collected values:', checkboxes.length);
                 return Array.from(checkboxes).map(function(cb) {
                     return cb.value;
                 });
@@ -977,9 +1119,6 @@
             setStatus('info', 'Collecting field values...');
 
             var values = collectAllValues();
-            
-            // Debug: log collected values
-            console.log('Collected values:', values);
 
             setStatus('info', 'Sending to server...');
 

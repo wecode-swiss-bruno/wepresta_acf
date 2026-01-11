@@ -21,9 +21,9 @@ namespace WeprestaAcf\Wedev\Extension\Notifications;
 final class TemplateNotification implements NotificationInterface
 {
     /**
-     * @param array<string>        $recipients
+     * @param array<string> $recipients
      * @param array<string, mixed> $data
-     * @param array<string>        $channels
+     * @param array<string> $channels
      */
     public function __construct(
         private readonly string $templateName,
@@ -68,4 +68,3 @@ final class TemplateNotification implements NotificationInterface
         return $this->templateName;
     }
 }
-

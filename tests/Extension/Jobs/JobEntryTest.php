@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Jobs;
 
-use WeprestaAcf\Extension\Jobs\JobEntry;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Extension\Jobs\JobEntry;
 
 class JobEntryTest extends TestCase
 {
@@ -64,7 +65,7 @@ class JobEntryTest extends TestCase
 
     public function testScheduledFor(): void
     {
-        $scheduledFor = new \DateTimeImmutable('+1 hour');
+        $scheduledFor = new DateTimeImmutable('+1 hour');
         $entry = JobEntry::createPending('TestJob', [], $scheduledFor);
 
         $this->assertEquals($scheduledFor, $entry->getScheduledFor());
@@ -73,7 +74,7 @@ class JobEntryTest extends TestCase
 
     public function testIsReadyWhenScheduledForPast(): void
     {
-        $scheduledFor = new \DateTimeImmutable('-1 minute');
+        $scheduledFor = new DateTimeImmutable('-1 minute');
         $entry = JobEntry::createPending('TestJob', [], $scheduledFor);
 
         $this->assertTrue($entry->isReady());
@@ -91,4 +92,3 @@ class JobEntryTest extends TestCase
         $this->assertEquals('TestJob', $array['job_class']);
     }
 }
-

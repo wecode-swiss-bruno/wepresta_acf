@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Installer;
 
-use Db;
 use Configuration;
+use Db;
 use Language;
-use Tab;
 use Module;
+use Tab;
 use WeprestaAcf;
 
 /**
- * Gère l'installation du module
+ * Gère l'installation du module.
  */
 final class ModuleInstaller
 {
@@ -30,28 +30,29 @@ final class ModuleInstaller
     }
 
     /**
-     * Installation des valeurs de configuration par défaut
+     * Installation des valeurs de configuration par défaut.
      */
     private function installConfiguration(): bool
     {
         foreach (WeprestaAcf::DEFAULT_CONFIG as $key => $defaultValue) {
             if (Configuration::get($key) === false) {
-                if (!Configuration::updateValue($key, $defaultValue)) {
+                if (! Configuration::updateValue($key, $defaultValue)) {
                     return false;
                 }
             }
         }
+
         return true;
     }
 
     /**
-     * Installation des tables en base de données
+     * Installation des tables en base de données.
      */
     private function installDatabase(): bool
     {
         $sqlFile = $this->module->getLocalPath() . 'sql/install.sql';
 
-        if (!file_exists($sqlFile)) {
+        if (! file_exists($sqlFile)) {
             return true;
         }
 
@@ -59,14 +60,14 @@ final class ModuleInstaller
     }
 
     /**
-     * Installation des onglets admin (menu)
+     * Installation des onglets admin (menu).
      */
     private function installTabs(): bool
     {
         $tabs = $this->getTabsToInstall();
 
         foreach ($tabs as $tabData) {
-            if (!$this->installTab($tabData)) {
+            if (! $this->installTab($tabData)) {
                 return false;
             }
         }
@@ -75,53 +76,53 @@ final class ModuleInstaller
     }
 
     /**
-     * Définition des onglets à installer
+     * Définition des onglets à installer.
      */
     private function getTabsToInstall(): array
-{
-    return [
-        [
-            'class_name' => 'AdminWepresta',
-            'route_name' => '',
-            'name' => 'WePresta',
-            'parent' => 'DEFAULT',
-            'icon' => 'extension', 
-            'visible' => true,
-        ],
-        [
-            'class_name' => 'AdminWeprestaAcf',
-            'route_name' => '',
-            'name' => 'Advanced Custom Fields',
-            'parent' => 'AdminWepresta',
-            'icon' => 'view_list',
-            'visible' => true,
-        ],
-        [
-            'class_name' => 'AdminWeprestaAcfBuilder',
-            'route_name' => 'wepresta_acf_builder',
-            'name' => 'Field Groups',
-            'parent' => 'AdminWeprestaAcf', 
-            'icon' => 'view_list',
-            'visible' => true,
-        ],
-        [
-            'class_name' => 'AdminWeprestaAcfConfiguration',
-            'route_name' => 'wepresta_acf_configuration',
-            'name' => 'Configuration',
-            'parent' => 'AdminWeprestaAcf',
-            'icon' => 'settings',
-            'visible' => true,
-        ],
-        [
-            'class_name' => 'AdminWeprestaAcfSync',
-            'route_name' => 'wepresta_acf_sync',
-            'name' => 'Sync',
-            'parent' => 'AdminWeprestaAcf',
-            'icon' => 'sync',
-            'visible' => true,
-        ],
-    ];
-}
+    {
+        return [
+            [
+                'class_name' => 'AdminWepresta',
+                'route_name' => '',
+                'name' => 'WePresta',
+                'parent' => 'DEFAULT',
+                'icon' => 'extension',
+                'visible' => true,
+            ],
+            [
+                'class_name' => 'AdminWeprestaAcf',
+                'route_name' => '',
+                'name' => 'Advanced Custom Fields',
+                'parent' => 'AdminWepresta',
+                'icon' => 'view_list',
+                'visible' => true,
+            ],
+            [
+                'class_name' => 'AdminWeprestaAcfBuilder',
+                'route_name' => 'wepresta_acf_builder',
+                'name' => 'Field Groups',
+                'parent' => 'AdminWeprestaAcf',
+                'icon' => 'view_list',
+                'visible' => true,
+            ],
+            [
+                'class_name' => 'AdminWeprestaAcfConfiguration',
+                'route_name' => 'wepresta_acf_configuration',
+                'name' => 'Configuration',
+                'parent' => 'AdminWeprestaAcf',
+                'icon' => 'settings',
+                'visible' => true,
+            ],
+            [
+                'class_name' => 'AdminWeprestaAcfSync',
+                'route_name' => 'wepresta_acf_sync',
+                'name' => 'Sync',
+                'parent' => 'AdminWeprestaAcf',
+                'icon' => 'sync',
+                'visible' => true,
+            ],
+        ];
+    }
 
     private function installTab(array $tabData): bool
     {
@@ -173,7 +174,7 @@ final class ModuleInstaller
         foreach ($queries as $query) {
             $query = trim($query);
 
-            if (!empty($query) && !$this->db->execute($query)) {
+            if (! empty($query) && ! $this->db->execute($query)) {
                 return false;
             }
         }
@@ -181,5 +182,3 @@ final class ModuleInstaller
         return true;
     }
 }
-
-

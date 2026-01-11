@@ -16,6 +16,7 @@ export interface AcfField {
   validation: FieldValidation
   conditions: FieldConditions
   wrapper: FieldWrapper
+  foOptions?: FieldFoOptions  // Front-office options (custom class, id, etc.)
   position: number
   translations?: FieldTranslations  // Multilingual metadata (title, instructions, placeholder)
   active: boolean
@@ -84,6 +85,25 @@ export interface FieldWrapper {
   width?: '100' | '75' | '50' | '33' | '25'
 }
 
+/**
+ * Field choice with optional translations
+ */
+export interface FieldChoice {
+  label: string
+  value: string
+  translations?: Record<string, string>
+}
+
+/**
+ * Field front-office rendering options
+ */
+export interface FieldFoOptions {
+  customClass?: string
+  customId?: string
+  showTitle?: boolean
+  [key: string]: unknown
+}
+
 
 /**
  * JSONLogic rule structure
@@ -99,6 +119,7 @@ export interface FieldTypeDefinition {
   icon: string
   category: 'basic' | 'choice' | 'content' | 'media' | 'relational' | 'layout' | 'custom'
   source?: 'core' | 'theme' | 'uploaded'
+  supportsTranslation: boolean
 }
 
 /**

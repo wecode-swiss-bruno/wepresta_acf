@@ -19,9 +19,12 @@ final class ValueHandler
         private readonly AcfFieldRepositoryInterface $fieldRepository,
         private readonly AcfFieldValueRepositoryInterface $valueRepository,
         private readonly FieldTypeRegistry $fieldTypeRegistry
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $values */
+    /**
+     * @param array<string, mixed> $values
+     */
     public function saveProductFieldValues(int $productId, array $values, ?int $shopId = null, ?int $langId = null): void
     {
         $this->saveEntityFieldValues('product', $productId, $values, $shopId, $langId);
@@ -37,7 +40,7 @@ final class ValueHandler
         $this->logInfo('Saving entity field values', [
             'entity_type' => $entityType,
             'entity_id' => $entityId,
-            'field_count' => count($values),
+            'field_count' => \count($values),
             'shop_id' => $shopId,
             'lang_id' => $langId,
         ]);
@@ -58,8 +61,10 @@ final class ValueHandler
     public function saveEntityFieldValue(string $entityType, int $entityId, string $slug, mixed $value, ?int $shopId = null, ?int $langId = null): bool
     {
         $field = $this->fieldRepository->findBySlug($slug);
-        if (!$field) {
+
+        if (! $field) {
             $this->logWarning('Field not found for slug', ['slug' => $slug, 'entity_type' => $entityType, 'entity_id' => $entityId]);
+
             return false;
         }
 
@@ -69,18 +74,21 @@ final class ValueHandler
         $config = $this->parseJsonConfig($field['config'] ?? '{}');
 
         // For translatable fields, value is an array of {langId: value}
-        if ($isTranslatable && is_array($value) && $this->isLangValueArray($value)) {
+        if ($isTranslatable && \is_array($value) && $this->isLangValueArray($value)) {
             $allSuccess = true;
+
             foreach ($value as $langId => $langValue) {
                 $normalizedValue = $this->fieldTypeRegistry->normalizeValue($fieldType, $langValue, $config);
                 $storableValue = $this->toStorableValue($normalizedValue);
                 $indexValue = $this->fieldTypeRegistry->getIndexValue($fieldType, $normalizedValue, $config);
 
                 $result = $this->valueRepository->saveEntity($fieldId, $entityType, $entityId, $storableValue, $shopId, (int) $langId, $isTranslatable, $indexValue);
-                if (!$result) {
+
+                if (! $result) {
                     $allSuccess = false;
                 }
             }
+
             return $allSuccess;
         }
 
@@ -102,18 +110,82 @@ final class ValueHandler
         return $result;
     }
 
+    public function deleteProductFieldValues(int $productId, ?int $shopId = null): bool
+    {
+        $this->logInfo('Deleting all product field values', ['product_id' => $productId, 'shop_id' => $shopId]);
+
+        return $this->valueRepository->deleteByProduct($productId, $shopId);
+    }
+
+    public function deleteFieldValue(int $productId, string $slug, ?int $shopId = null, ?int $langId = null): bool
+    {
+        $field = $this->fieldRepository->findBySlug($slug);
+
+        if (! $field) {
+            return false;
+        }
+
+        return $this->valueRepository->deleteByFieldAndProduct((int) $field['id_wepresta_acf_field'], $productId, $shopId, $langId);
+    }
+
+    /**
+     * @param array<string, mixed> $values @return array<string, array<string>>
+     */
+    public function validateProductFieldValues(array $values): array
+    {
+        $errors = [];
+
+        foreach ($values as $slug => $value) {
+            $field = $this->fieldRepository->findBySlug($slug);
+
+            if (! $field) {
+                continue;
+            }
+
+            $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
+            $config = $this->parseJsonConfig($field['config'] ?? '{}');
+            $validation = $this->parseJsonConfig($field['validation'] ?? '{}');
+
+            // For translatable fields, validate each language value
+            if ($isTranslatable && \is_array($value) && $this->isLangValueArray($value)) {
+                $fieldErrors = [];
+
+                foreach ($value as $langId => $langValue) {
+                    $langErrors = $this->fieldTypeRegistry->validate($field['type'], $langValue, $config, $validation);
+
+                    if (! empty($langErrors)) {
+                        $fieldErrors[$langId] = $langErrors;
+                    }
+                }
+
+                if (! empty($fieldErrors)) {
+                    $errors[$slug] = $fieldErrors;
+                }
+            } else {
+                // Non-translatable field: validate single value
+                $fieldErrors = $this->fieldTypeRegistry->validate($field['type'], $value, $config, $validation);
+
+                if (! empty($fieldErrors)) {
+                    $errors[$slug] = $fieldErrors;
+                }
+            }
+        }
+
+        return $errors;
+    }
+
     /**
      * Checks if an array is a language-value mapping (keys are numeric language IDs).
      */
     private function isLangValueArray(mixed $value): bool
     {
-        if (!is_array($value) || empty($value)) {
+        if (! \is_array($value) || empty($value)) {
             return false;
         }
 
         // Check if all keys are numeric (language IDs)
         foreach (array_keys($value) as $key) {
-            if (!is_numeric($key)) {
+            if (! is_numeric($key)) {
                 return false;
             }
         }
@@ -121,76 +193,54 @@ final class ValueHandler
         return true;
     }
 
-    public function deleteProductFieldValues(int $productId, ?int $shopId = null): bool
-    {
-        $this->logInfo('Deleting all product field values', ['product_id' => $productId, 'shop_id' => $shopId]);
-        return $this->valueRepository->deleteByProduct($productId, $shopId);
-    }
-
-    public function deleteFieldValue(int $productId, string $slug, ?int $shopId = null, ?int $langId = null): bool
-    {
-        $field = $this->fieldRepository->findBySlug($slug);
-        if (!$field) { return false; }
-        return $this->valueRepository->deleteByFieldAndProduct((int) $field['id_wepresta_acf_field'], $productId, $shopId, $langId);
-    }
-
-    /** @param array<string, mixed> $values @return array<string, array<string>> */
-    public function validateProductFieldValues(array $values): array
-    {
-        $errors = [];
-        foreach ($values as $slug => $value) {
-            $field = $this->fieldRepository->findBySlug($slug);
-            if (!$field) { continue; }
-            
-            $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
-            $config = $this->parseJsonConfig($field['config'] ?? '{}');
-            $validation = $this->parseJsonConfig($field['validation'] ?? '{}');
-            
-            // For translatable fields, validate each language value
-            if ($isTranslatable && is_array($value) && $this->isLangValueArray($value)) {
-                $fieldErrors = [];
-                foreach ($value as $langId => $langValue) {
-                    $langErrors = $this->fieldTypeRegistry->validate($field['type'], $langValue, $config, $validation);
-                    if (!empty($langErrors)) {
-                        $fieldErrors[$langId] = $langErrors;
-                    }
-                }
-                if (!empty($fieldErrors)) {
-                    $errors[$slug] = $fieldErrors;
-                }
-            } else {
-                // Non-translatable field: validate single value
-                $fieldErrors = $this->fieldTypeRegistry->validate($field['type'], $value, $config, $validation);
-                if (!empty($fieldErrors)) {
-                    $errors[$slug] = $fieldErrors;
-                }
-            }
-        }
-        return $errors;
-    }
-
-    /** @return array<string, mixed> */
+    /**
+     * @return array<string, mixed>
+     */
     private function parseJsonConfig(string|array|null $config): array
     {
-        if (is_array($config)) { return $config; }
-        if ($config === null || $config === '' || $config === '{}') { return []; }
+        if (\is_array($config)) {
+            return $config;
+        }
+
+        if ($config === null || $config === '' || $config === '{}') {
+            return [];
+        }
         $decoded = json_decode($config, true);
-        return is_array($decoded) ? $decoded : [];
+
+        return \is_array($decoded) ? $decoded : [];
     }
 
     private function toStorableValue(mixed $value): ?string
     {
-        if ($value === null) { return null; }
-        if (is_string($value)) { return $value; }
-        if (is_bool($value)) { return $value ? '1' : '0'; }
-        if (is_numeric($value)) { return (string) $value; }
-        if (is_array($value) || is_object($value)) {
+        if ($value === null) {
+            return null;
+        }
+
+        if (\is_string($value)) {
+            return $value;
+        }
+
+        if (\is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if (is_numeric($value)) {
+            return (string) $value;
+        }
+
+        if (\is_array($value) || \is_object($value)) {
             // Convert empty objects/arrays to null (they should have been normalized already)
-            if (is_array($value) && empty($value)) { return null; }
-            if (is_object($value) && (array) $value === []) { return null; }
+            if (\is_array($value) && empty($value)) {
+                return null;
+            }
+
+            if (\is_object($value) && (array) $value === []) {
+                return null;
+            }
+
             return json_encode($value, JSON_THROW_ON_ERROR);
         }
+
         return (string) $value;
     }
 }
-

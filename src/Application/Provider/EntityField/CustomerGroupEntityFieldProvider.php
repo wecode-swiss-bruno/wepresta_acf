@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Provider\EntityField;
 
-use Group;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldProviderInterface;
 
 /**
@@ -40,4 +39,3 @@ final class CustomerGroupEntityFieldProvider implements EntityFieldProviderInter
         return 'Customer Group';
     }
 }
-

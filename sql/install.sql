@@ -101,12 +101,11 @@ CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_field_value` (
     `entity_id` INT UNSIGNED NOT NULL COMMENT 'Generic entity ID',
     `id_product` INT UNSIGNED DEFAULT NULL COMMENT 'Legacy: kept for backward compatibility',
     `id_shop` INT UNSIGNED NOT NULL DEFAULT 1,
-    `id_lang` INT UNSIGNED DEFAULT NULL COMMENT 'NULL = non-translatable field',
-    `value` LONGTEXT COMMENT 'JSON or string depending on field type',
+    `value` LONGTEXT COMMENT 'JSON or string depending on field type (default language or non-translatable)',
     `value_index` VARCHAR(255) DEFAULT NULL COMMENT 'Indexed value for search/sort',
     `date_add` DATETIME NOT NULL,
     `date_upd` DATETIME NOT NULL,
-    UNIQUE KEY `unique_value` (`id_wepresta_acf_field`, `entity_type`, `entity_id`, `id_shop`, `id_lang`),
+    UNIQUE KEY `unique_value` (`id_wepresta_acf_field`, `entity_type`, `entity_id`, `id_shop`),
     INDEX `idx_entity` (`entity_type`, `entity_id`),
     INDEX `idx_entity_shop` (`entity_type`, `entity_id`, `id_shop`),
     INDEX `idx_search` (`id_wepresta_acf_field`, `value_index`),
@@ -116,5 +115,20 @@ CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_field_value` (
     CONSTRAINT `fk_wepresta_acf_value_field`
         FOREIGN KEY (`id_wepresta_acf_field`)
         REFERENCES `PREFIX_wepresta_acf_field`(`id_wepresta_acf_field`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Field Value Translations (for translatable field values)
+CREATE TABLE IF NOT EXISTS `PREFIX_wepresta_acf_field_value_lang` (
+    `id_wepresta_acf_field_value` INT UNSIGNED NOT NULL,
+    `id_lang` INT UNSIGNED NOT NULL,
+    `value` LONGTEXT COMMENT 'Translated value',
+    `value_index` VARCHAR(255) DEFAULT NULL COMMENT 'Indexed value for search/sort',
+    PRIMARY KEY (`id_wepresta_acf_field_value`, `id_lang`),
+    INDEX `idx_lang` (`id_lang`),
+    INDEX `idx_search` (`id_wepresta_acf_field_value`, `value_index`),
+    CONSTRAINT `fk_wepresta_acf_value_lang_value`
+        FOREIGN KEY (`id_wepresta_acf_field_value`)
+        REFERENCES `PREFIX_wepresta_acf_field_value`(`id_wepresta_acf_field_value`)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

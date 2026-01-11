@@ -9,16 +9,19 @@ use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldProviderInterface;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;
 
 /**
- * Registry for location providers
+ * Registry for location providers.
  */
 final class LocationProviderRegistry
 {
     /** @var array<string, LocationProviderInterface> */
     private array $providers = [];
+
     /** @var array<array<string, mixed>>|null */
     private ?array $locationsCache = null;
+
     /** @var array<EntityFieldProviderInterface> */
     private array $entityFieldProviders = [];
+
     private bool $entityFieldsInitialized = false;
 
     public function __construct(
@@ -28,7 +31,7 @@ final class LocationProviderRegistry
     }
 
     /**
-     * Set the entity field providers directly - they will be registered on demand
+     * Set the entity field providers directly - they will be registered on demand.
      *
      * @param array<EntityFieldProviderInterface> $providers
      */
@@ -39,31 +42,11 @@ final class LocationProviderRegistry
         $this->locationsCache = null;
     }
 
-    /**
-     * Ensure all entity field providers are registered with the registry
-     */
-    private function ensureEntityFieldsInitialized(): void
-    {
-        if ($this->entityFieldsInitialized || $this->entityFieldRegistry === null) {
-            return;
-        }
-
-        foreach ($this->entityFieldProviders as $provider) {
-            if ($provider instanceof EntityFieldProviderInterface) {
-                $this->entityFieldRegistry->registerEntityType(
-                    $provider->getEntityType(),
-                    $provider
-                );
-            }
-        }
-
-        $this->entityFieldsInitialized = true;
-    }
-
     public function register(LocationProviderInterface $provider): self
     {
         $this->providers[$provider->getIdentifier()] = $provider;
         $this->locationsCache = null;
+
         return $this;
     }
 
@@ -71,21 +54,34 @@ final class LocationProviderRegistry
     {
         unset($this->providers[$identifier]);
         $this->locationsCache = null;
+
         return $this;
     }
 
-    public function has(string $identifier): bool { return isset($this->providers[$identifier]); }
-    public function get(string $identifier): ?LocationProviderInterface { return $this->providers[$identifier] ?? null; }
+    public function has(string $identifier): bool
+    {
+        return isset($this->providers[$identifier]);
+    }
 
-    /** @return array<LocationProviderInterface> */
+    public function get(string $identifier): ?LocationProviderInterface
+    {
+        return $this->providers[$identifier] ?? null;
+    }
+
+    /**
+     * @return array<LocationProviderInterface>
+     */
     public function getAll(): array
     {
         $providers = array_values($this->providers);
-        usort($providers, fn($a, $b) => $b->getPriority() <=> $a->getPriority());
+        usort($providers, fn ($a, $b) => $b->getPriority() <=> $a->getPriority());
+
         return $providers;
     }
 
-    /** @return array<array{type: string, value: string, label: string, group: string, icon?: string, description?: string, provider: string, enabled: bool}> */
+    /**
+     * @return array<array{type: string, value: string, label: string, group: string, icon?: string, description?: string, provider: string, enabled: bool}>
+     */
     public function getAllLocations(): array
     {
         if ($this->locationsCache !== null) {
@@ -96,6 +92,7 @@ final class LocationProviderRegistry
         $this->ensureEntityFieldsInitialized();
 
         $locations = [];
+
         foreach ($this->getAll() as $provider) {
             foreach ($provider->getLocations() as $location) {
                 $location['provider'] = $provider->getIdentifier();
@@ -106,16 +103,20 @@ final class LocationProviderRegistry
 
         // Add ALL entity types from EntityHooksConfig (comprehensive list)
         $groupedEntities = EntityHooksConfig::getEntitiesGroupedByCategory();
+
         foreach ($groupedEntities as $category => $entities) {
             foreach ($entities as $entityType => $entityInfo) {
                 // Skip if already added from a provider
                 $alreadyExists = false;
+
                 foreach ($locations as $loc) {
                     if (($loc['value'] ?? '') === $entityType) {
                         $alreadyExists = true;
+
                         break;
                     }
                 }
+
                 if ($alreadyExists) {
                     continue;
                 }
@@ -139,7 +140,7 @@ final class LocationProviderRegistry
                     'label' => $entityInfo['label'],
                     'group' => $category,
                     'icon' => $icon,
-                    'description' => sprintf('Display fields on %s edit pages', $entityInfo['label']),
+                    'description' => \sprintf('Display fields on %s edit pages', $entityInfo['label']),
                     'provider' => 'entity_hooks_config',
                     'integration_type' => $entityInfo['type'], // 'symfony' or 'legacy'
                     'enabled' => EntityHooksConfig::isEntityEnabled($entityType),
@@ -147,16 +148,18 @@ final class LocationProviderRegistry
             }
         }
 
-
-
         $this->locationsCache = $locations;
+
         return $locations;
     }
 
-    /** @return array<string, array<array<string, mixed>>> */
+    /**
+     * @return array<string, array<array<string, mixed>>>
+     */
     public function getLocationsGrouped(): array
     {
         $grouped = [];
+
         foreach ($this->getAllLocations() as $location) {
             $grouped[$location['group'] ?? 'Other'][] = $location;
         }
@@ -171,6 +174,7 @@ final class LocationProviderRegistry
                     // If same status, sort alphabetically by label
                     return strcmp($a['label'] ?? '', $b['label'] ?? '');
                 }
+
                 // Enabled items come first
                 return $aEnabled ? -1 : 1;
             });
@@ -182,7 +186,7 @@ final class LocationProviderRegistry
 
     /**
      * Match location rules against context.
-     * Rules are stored in JsonLogic format: {"==": [{"var": "entity_type"}, "product"]}
+     * Rules are stored in JsonLogic format: {"==": [{"var": "entity_type"}, "product"]}.
      *
      * @param array<array<string, mixed>> $rules
      * @param array<string, mixed> $context
@@ -204,10 +208,44 @@ final class LocationProviderRegistry
         return false;
     }
 
+    public function clearCache(): void
+    {
+        $this->locationsCache = null;
+    }
+
+    /**
+     * @return array<string>
+     */
+    public function getProviderIdentifiers(): array
+    {
+        return array_keys($this->providers);
+    }
+
+    /**
+     * Ensure all entity field providers are registered with the registry.
+     */
+    private function ensureEntityFieldsInitialized(): void
+    {
+        if ($this->entityFieldsInitialized || $this->entityFieldRegistry === null) {
+            return;
+        }
+
+        foreach ($this->entityFieldProviders as $provider) {
+            if ($provider instanceof EntityFieldProviderInterface) {
+                $this->entityFieldRegistry->registerEntityType(
+                    $provider->getEntityType(),
+                    $provider
+                );
+            }
+        }
+
+        $this->entityFieldsInitialized = true;
+    }
+
     /**
      * Match a single JsonLogic rule against context.
      * Format: {"==": [{"var": "entity_type"}, "product"]}
-     *         {"!=": [{"var": "entity_type"}, "category"]}
+     *         {"!=": [{"var": "entity_type"}, "category"]}.
      *
      * @param array<string, mixed> $rule
      * @param array<string, mixed> $context
@@ -215,18 +253,20 @@ final class LocationProviderRegistry
     private function matchJsonLogicRule(array $rule, array $context): bool
     {
         // Handle "==" operator
-        if (isset($rule['==']) && is_array($rule['==']) && count($rule['==']) === 2) {
+        if (isset($rule['==']) && \is_array($rule['==']) && \count($rule['==']) === 2) {
             [$left, $right] = $rule['=='];
             $leftValue = $this->resolveJsonLogicValue($left, $context);
             $rightValue = $this->resolveJsonLogicValue($right, $context);
+
             return $leftValue === $rightValue;
         }
 
         // Handle "!=" operator
-        if (isset($rule['!=']) && is_array($rule['!=']) && count($rule['!=']) === 2) {
+        if (isset($rule['!=']) && \is_array($rule['!=']) && \count($rule['!=']) === 2) {
             [$left, $right] = $rule['!='];
             $leftValue = $this->resolveJsonLogicValue($left, $context);
             $rightValue = $this->resolveJsonLogicValue($right, $context);
+
             return $leftValue !== $rightValue;
         }
 
@@ -241,15 +281,14 @@ final class LocationProviderRegistry
     /**
      * Resolve a JsonLogic value (either a literal or a variable reference).
      *
-     * @param mixed $value
      * @param array<string, mixed> $context
-     * @return mixed
      */
     private function resolveJsonLogicValue(mixed $value, array $context): mixed
     {
-        if (is_array($value) && isset($value['var'])) {
+        if (\is_array($value) && isset($value['var'])) {
             // Variable reference: {"var": "entity_type"}
             $varName = $value['var'];
+
             return $context[$varName] ?? null;
         }
 
@@ -270,11 +309,7 @@ final class LocationProviderRegistry
                 return true;
             }
         }
+
         return false;
     }
-
-    public function clearCache(): void { $this->locationsCache = null; }
-    /** @return array<string> */
-    public function getProviderIdentifiers(): array { return array_keys($this->providers); }
 }
-

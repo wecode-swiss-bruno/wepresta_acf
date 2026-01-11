@@ -35,4 +35,3 @@ final class CallableAction implements ActionInterface
         ($this->callback)($context);
     }
 }
-

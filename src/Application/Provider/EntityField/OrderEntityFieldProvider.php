@@ -50,4 +50,3 @@ final class OrderEntityFieldProvider implements EntityFieldProviderInterface
         return 'Order';
     }
 }
-

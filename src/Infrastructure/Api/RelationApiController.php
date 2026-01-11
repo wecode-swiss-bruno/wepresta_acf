@@ -7,15 +7,19 @@ namespace WeprestaAcf\Infrastructure\Api;
 use Context;
 use Db;
 use DbQuery;
-use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
+use Exception;
+use Image;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * API Controller for Relation field search functionality.
+ * Relation API Controller - Search functionality for relation fields.
  */
-final class RelationApiController extends FrameworkBundleAdminController
+final class RelationApiController extends AbstractApiController
 {
+    /**
+     * Search for products or categories.
+     */
     public function search(Request $request): JsonResponse
     {
         $query = trim((string) $request->query->get('q', ''));
@@ -26,8 +30,8 @@ final class RelationApiController extends FrameworkBundleAdminController
         $inStockOnly = $request->query->getBoolean('in_stock', false);
         $categories = $request->query->get('categories', '');
 
-        if (strlen($query) < 2) {
-            return new JsonResponse(['success' => true, 'data' => []]);
+        if (\strlen($query) < 2) {
+            return $this->jsonSuccess([]);
         }
 
         $context = Context::getContext();
@@ -41,14 +45,25 @@ final class RelationApiController extends FrameworkBundleAdminController
                 $results = $this->searchProducts($query, $langId, $shopId, $limit, $excludeId, $activeOnly, $inStockOnly, $categories);
             }
 
-            return new JsonResponse(['success' => true, 'data' => $results]);
-        } catch (\Exception $e) {
-            return new JsonResponse(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonSuccess($results);
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 
-    private function searchProducts(string $query, int $langId, int $shopId, int $limit, int $excludeId, bool $activeOnly, bool $inStockOnly, string $categories): array
-    {
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function searchProducts(
+        string $query,
+        int $langId,
+        int $shopId,
+        int $limit,
+        int $excludeId,
+        bool $activeOnly,
+        bool $inStockOnly,
+        string $categories
+    ): array {
         $db = Db::getInstance();
         $escapedQuery = pSQL($query);
 
@@ -75,24 +90,28 @@ final class RelationApiController extends FrameworkBundleAdminController
             $sql->where('sa.quantity > 0');
         }
 
-        if (!empty($categories)) {
+        if (! empty($categories)) {
             $categoryIds = array_map('intval', explode(',', $categories));
-            if (!empty($categoryIds)) {
+
+            if (! empty($categoryIds)) {
                 $sql->innerJoin('category_product', 'cp', 'p.id_product = cp.id_product');
                 $sql->where('cp.id_category IN (' . implode(',', $categoryIds) . ')');
             }
         }
 
         $results = $db->executeS($sql);
-        if (!$results) {
+
+        if (! $results) {
             return [];
         }
 
         $items = [];
+
         foreach ($results as $row) {
             $imageUrl = null;
-            if (!empty($row['id_image'])) {
-                $imageUrl = _PS_BASE_URL_ . _THEME_PROD_DIR_ . \Image::getImgFolderStatic($row['id_image']) . $row['id_image'] . '-small_default.jpg';
+
+            if (! empty($row['id_image'])) {
+                $imageUrl = _PS_BASE_URL_ . _THEME_PROD_DIR_ . Image::getImgFolderStatic($row['id_image']) . $row['id_image'] . '-small_default.jpg';
             }
 
             $items[] = [
@@ -106,8 +125,16 @@ final class RelationApiController extends FrameworkBundleAdminController
         return $items;
     }
 
-    private function searchCategories(string $query, int $langId, int $limit, int $excludeId, bool $activeOnly): array
-    {
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function searchCategories(
+        string $query,
+        int $langId,
+        int $limit,
+        int $excludeId,
+        bool $activeOnly
+    ): array {
         $db = Db::getInstance();
         $escapedQuery = pSQL($query);
 
@@ -130,11 +157,13 @@ final class RelationApiController extends FrameworkBundleAdminController
         }
 
         $results = $db->executeS($sql);
-        if (!$results) {
+
+        if (! $results) {
             return [];
         }
 
         $items = [];
+
         foreach ($results as $row) {
             $items[] = [
                 'id' => (int) $row['id_category'],
@@ -145,4 +174,3 @@ final class RelationApiController extends FrameworkBundleAdminController
         return $items;
     }
 }
-

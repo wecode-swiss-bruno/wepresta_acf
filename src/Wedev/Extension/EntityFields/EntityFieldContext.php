@@ -38,6 +38,7 @@ final class EntityFieldContext
      * @param string $entityType Entity type identifier
      * @param int $entityId Entity ID
      * @param array<string, mixed> $additional Additional context data
+     *
      * @return array<string, mixed> Context array
      */
     public static function build(string $entityType, int $entityId, array $additional = []): array
@@ -60,6 +61,7 @@ final class EntityFieldContext
      * @param EntityFieldRegistry $registry Registry instance
      * @param string $entityType Entity type identifier
      * @param int $entityId Entity ID
+     *
      * @return array<string, mixed> Context array
      */
     public static function buildFromProvider(
@@ -68,6 +70,7 @@ final class EntityFieldContext
         int $entityId
     ): array {
         $provider = $registry->getEntityType($entityType);
+
         if ($provider === null) {
             // Fallback to basic context
             return self::build($entityType, $entityId);
@@ -76,4 +79,3 @@ final class EntityFieldContext
         return $provider->buildContext($entityId);
     }
 }
-

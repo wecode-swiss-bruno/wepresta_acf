@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -19,10 +19,12 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\FieldType;
 
+use DateTimeInterface;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Tools;
 
 /**
- * Date field type
+ * Date field type.
  *
  * Stores dates as Unix timestamps, displays using PrestaShop date format.
  */
@@ -65,12 +67,13 @@ final class DateField extends AbstractFieldType
         }
 
         // DateTime object
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return (string) $value->getTimestamp();
         }
 
         // Parse date string (Y-m-d or other formats)
         $timestamp = strtotime((string) $value);
+
         if ($timestamp === false) {
             return null;
         }
@@ -90,17 +93,18 @@ final class DateField extends AbstractFieldType
         }
 
         // DateTime object - format to string
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return $value->format('Y-m-d');
         }
 
         // Already a string in correct format
-        if (is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+        if (\is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
             return $value;
         }
 
         // Try to parse and format
         $timestamp = strtotime((string) $value);
+
         if ($timestamp !== false) {
             return date('Y-m-d', $timestamp);
         }
@@ -123,7 +127,7 @@ final class DateField extends AbstractFieldType
 
         // Get timestamp
         $timestamp = is_numeric($actualValue) ? (int) $actualValue : (
-            $actualValue instanceof \DateTimeInterface ? $actualValue->getTimestamp() : strtotime((string) $actualValue)
+            $actualValue instanceof DateTimeInterface ? $actualValue->getTimestamp() : strtotime((string) $actualValue)
         );
 
         if ($timestamp === false || $timestamp === 0) {
@@ -131,8 +135,8 @@ final class DateField extends AbstractFieldType
         }
 
         // Use PrestaShop's date formatting
-        if (function_exists('Tools::displayDate')) {
-            $formatted = \Tools::displayDate(date('Y-m-d', $timestamp));
+        if (\function_exists('Tools::displayDate')) {
+            $formatted = Tools::displayDate(date('Y-m-d', $timestamp));
         } else {
             // Fallback to standard format
             $format = $this->getConfigValue($fieldConfig, 'displayFormat', 'd/m/Y');
@@ -171,21 +175,25 @@ final class DateField extends AbstractFieldType
 
         // Validate min date
         $minDate = $this->getConfigValue($fieldConfig, 'minDate');
+
         if ($minDate) {
             $minTimestamp = strtotime($minDate);
             $valueTimestamp = is_numeric($value) ? (int) $value : strtotime((string) $value);
+
             if ($minTimestamp && $valueTimestamp && $valueTimestamp < $minTimestamp) {
-                $errors[] = sprintf('Date must be on or after %s.', $minDate);
+                $errors[] = \sprintf('Date must be on or after %s.', $minDate);
             }
         }
 
         // Validate max date
         $maxDate = $this->getConfigValue($fieldConfig, 'maxDate');
+
         if ($maxDate) {
             $maxTimestamp = strtotime($maxDate);
             $valueTimestamp = is_numeric($value) ? (int) $value : strtotime((string) $value);
+
             if ($maxTimestamp && $valueTimestamp && $valueTimestamp > $maxTimestamp) {
-                $errors[] = sprintf('Date must be on or before %s.', $maxDate);
+                $errors[] = \sprintf('Date must be on or before %s.', $maxDate);
             }
         }
 
@@ -234,9 +242,6 @@ final class DateField extends AbstractFieldType
         return 'calendar_today';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -251,14 +256,11 @@ final class DateField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<input type="date" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="{value}">',
             $this->escapeAttr($slug)
         );

@@ -31,7 +31,7 @@ final class EntityHooksConfig
 
     /**
      * Configuration des hooks ADMIN (back-office).
-     * Structure: entity => ['display' => hook, 'save' => [hooks], 'symfony' => [hooks]]
+     * Structure: entity => ['display' => hook, 'save' => [hooks], 'symfony' => [hooks]].
      *
      * Note: En PrestaShop 8/9, les entités utilisent Symfony Forms.
      * - 'symfony' contient les hooks FormBuilderModifier et FormHandler
@@ -84,7 +84,6 @@ final class EntityHooksConfig
         ],
     ];
 
-
     /**
      * Hooks système (toujours actifs, indépendants des entités).
      *
@@ -100,7 +99,7 @@ final class EntityHooksConfig
      */
     public static function isEnabled(string $entity): bool
     {
-        return in_array($entity, self::ENABLED_ENTITIES, true);
+        return \in_array($entity, self::ENABLED_ENTITIES, true);
     }
 
     /**
@@ -120,9 +119,9 @@ final class EntityHooksConfig
         foreach (self::ADMIN_HOOKS as $config) {
             $hooks[] = $config['display'];
             $hooks = array_merge($hooks, $config['save']);
-            
+
             // Ajouter les hooks Symfony si présents
-            if (isset($config['symfony']) && is_array($config['symfony'])) {
+            if (isset($config['symfony']) && \is_array($config['symfony'])) {
                 $hooks[] = $config['symfony']['form_builder'];
                 $hooks = array_merge($hooks, $config['symfony']['form_handlers']);
             }
@@ -169,7 +168,7 @@ final class EntityHooksConfig
 
     /**
      * Retourne le nom du paramètre ID pour une entité.
-     * Ex: 'product' => 'id_product', 'category' => 'id_category'
+     * Ex: 'product' => 'id_product', 'category' => 'id_category'.
      */
     public static function getIdParam(string $entity): string
     {
@@ -196,12 +195,10 @@ final class EntityHooksConfig
     /**
      * Retourne la configuration d'une entité.
      * Backward compatibility avec l'ancienne structure.
-     *
-     * @return array|null
      */
     public static function getEntityConfig(string $entityType): ?array
     {
-        if (!self::isEnabled($entityType)) {
+        if (! self::isEnabled($entityType)) {
             return null;
         }
 
@@ -235,6 +232,7 @@ final class EntityHooksConfig
             if (strtolower($config['display']) === $hookNameLower) {
                 return $entity;
             }
+
             foreach ($config['save'] as $saveHook) {
                 if (strtolower($saveHook) === $hookNameLower) {
                     return $entity;

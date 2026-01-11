@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 
 /**
- * Files field type - Multiple file uploads with reordering
+ * Files field type - Multiple file uploads with reordering.
  *
  * Stores array of file metadata as JSON:
  * [
@@ -43,9 +43,7 @@ use Symfony\Component\Form\Extension\Core\Type\FileType;
  */
 final class FilesField extends AbstractFieldType
 {
-    /**
-     * Default allowed MIME types for file uploads
-     */
+    /** Default allowed MIME types for file uploads */
     private const DEFAULT_ALLOWED_MIMES = [
         'application/pdf',
         'application/msword',
@@ -80,16 +78,19 @@ final class FilesField extends AbstractFieldType
         }
 
         // If already JSON string, validate and return
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
-                if (count($decoded) === 0) {
+
+            if (\is_array($decoded)) {
+                if (\count($decoded) === 0) {
                     return null;
                 }
+
                 // Check if it's already a list (numeric array)
                 if (isset($decoded[0])) {
                     return $value;
                 }
+
                 // Single item - wrap in array
                 return json_encode([$decoded]);
             }
@@ -98,7 +99,7 @@ final class FilesField extends AbstractFieldType
         }
 
         // If array, encode to JSON
-        if (is_array($value)) {
+        if (\is_array($value)) {
             if (empty($value)) {
                 return null;
             }
@@ -116,19 +117,20 @@ final class FilesField extends AbstractFieldType
         }
 
         // Parse JSON to array
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
+
+            if (\is_array($decoded)) {
                 // Sort by position
-                usort($decoded, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+                usort($decoded, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
                 return $decoded;
             }
         }
 
         // Already an array
-        if (is_array($value)) {
-            usort($value, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        if (\is_array($value)) {
+            usort($value, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
             return $value;
         }
@@ -147,7 +149,7 @@ final class FilesField extends AbstractFieldType
         $html = '<ul class="acf-files-list">';
 
         foreach ($items as $item) {
-            if (!isset($item['url'])) {
+            if (! isset($item['url'])) {
                 continue;
             }
 
@@ -155,7 +157,7 @@ final class FilesField extends AbstractFieldType
             $name = htmlspecialchars($item['title'] ?? $item['original_name'] ?? 'File', ENT_QUOTES, 'UTF-8');
             $size = isset($item['size']) ? $this->formatFileSize((int) $item['size']) : '';
 
-            $html .= sprintf(
+            $html .= \sprintf(
                 '<li class="acf-file-item"><a href="%s" target="_blank" download>%s</a>%s</li>',
                 $url,
                 $name,
@@ -177,6 +179,7 @@ final class FilesField extends AbstractFieldType
         }
 
         $names = [];
+
         foreach ($items as $item) {
             $names[] = $item['title'] ?? $item['original_name'] ?? '';
         }
@@ -197,12 +200,12 @@ final class FilesField extends AbstractFieldType
         $minItems = $fieldConfig['minItems'] ?? null;
         $maxItems = $fieldConfig['maxItems'] ?? null;
 
-        if ($minItems !== null && count($items) < $minItems) {
-            $errors[] = sprintf('Minimum %d files required.', $minItems);
+        if ($minItems !== null && \count($items) < $minItems) {
+            $errors[] = \sprintf('Minimum %d files required.', $minItems);
         }
 
-        if ($maxItems !== null && count($items) > $maxItems) {
-            $errors[] = sprintf('Maximum %d files allowed.', $maxItems);
+        if ($maxItems !== null && \count($items) > $maxItems) {
+            $errors[] = \sprintf('Maximum %d files allowed.', $maxItems);
         }
 
         return $errors;
@@ -299,7 +302,7 @@ final class FilesField extends AbstractFieldType
     }
 
     /**
-     * Get allowed MIME types from config
+     * Get allowed MIME types from config.
      *
      * @return array<string>
      */
@@ -308,39 +311,6 @@ final class FilesField extends AbstractFieldType
         return $fieldConfig['allowedMimes'] ?? self::DEFAULT_ALLOWED_MIMES;
     }
 
-    /**
-     * Format file size for display
-     */
-    private function formatFileSize(int $bytes): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $i = 0;
-        while ($bytes >= 1024 && $i < count($units) - 1) {
-            $bytes /= 1024;
-            ++$i;
-        }
-
-        return round($bytes, 2) . ' ' . $units[$i];
-    }
-
-    /**
-     * Get file icon based on mime type
-     */
-    private function getFileIcon(string $mime): string
-    {
-        return match (true) {
-            str_contains($mime, 'pdf') => 'picture_as_pdf',
-            str_contains($mime, 'word') || str_contains($mime, 'document') => 'description',
-            str_contains($mime, 'excel') || str_contains($mime, 'spreadsheet') => 'table_chart',
-            str_contains($mime, 'zip') || str_contains($mime, 'archive') => 'folder_zip',
-            str_contains($mime, 'text') => 'article',
-            default => 'insert_drive_file',
-        };
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -355,14 +325,11 @@ final class FilesField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<div class="acf-files-field acf-files-compact" data-slug="%s">' .
             '<input type="hidden" class="acf-subfield-input acf-files-value" data-subfield="%s" value="{value}">' .
             '<div class="acf-files-list"></div>' .
@@ -374,5 +341,36 @@ final class FilesField extends AbstractFieldType
             $this->escapeAttr($slug),
             $this->escapeAttr($slug)
         );
+    }
+
+    /**
+     * Format file size for display.
+     */
+    private function formatFileSize(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = 0;
+
+        while ($bytes >= 1024 && $i < \count($units) - 1) {
+            $bytes /= 1024;
+            ++$i;
+        }
+
+        return round($bytes, 2) . ' ' . $units[$i];
+    }
+
+    /**
+     * Get file icon based on mime type.
+     */
+    private function getFileIcon(string $mime): string
+    {
+        return match (true) {
+            str_contains($mime, 'pdf') => 'picture_as_pdf',
+            str_contains($mime, 'word') || str_contains($mime, 'document') => 'description',
+            str_contains($mime, 'excel') || str_contains($mime, 'spreadsheet') => 'table_chart',
+            str_contains($mime, 'zip') || str_contains($mime, 'archive') => 'folder_zip',
+            str_contains($mime, 'text') => 'article',
+            default => 'insert_drive_file',
+        };
     }
 }

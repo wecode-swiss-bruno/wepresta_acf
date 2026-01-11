@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -19,10 +19,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\FieldType;
 
+use DateTimeInterface;
 use Symfony\Component\Form\Extension\Core\Type\TimeType;
 
 /**
- * Time field type
+ * Time field type.
  *
  * Stores time as HH:MM string, supports 12h/24h display.
  */
@@ -60,17 +61,18 @@ final class TimeField extends AbstractFieldType
         }
 
         // DateTime object - extract time
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return $value->format('H:i');
         }
 
         // Already in HH:MM format
-        if (is_string($value) && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $value)) {
+        if (\is_string($value) && preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $value)) {
             return substr($value, 0, 5); // Normalize to HH:MM
         }
 
         // Try to parse
         $timestamp = strtotime($value);
+
         if ($timestamp !== false) {
             return date('H:i', $timestamp);
         }
@@ -85,12 +87,12 @@ final class TimeField extends AbstractFieldType
         }
 
         // Already a DateTime
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             return $value;
         }
 
         // Parse HH:MM string
-        if (is_string($value) && preg_match('/^(\d{2}):(\d{2})/', $value, $matches)) {
+        if (\is_string($value) && preg_match('/^(\d{2}):(\d{2})/', $value, $matches)) {
             return $value; // Keep as string for HTML5 time input
         }
 
@@ -110,7 +112,7 @@ final class TimeField extends AbstractFieldType
             return '';
         }
 
-        $timeStr = $actualValue instanceof \DateTimeInterface
+        $timeStr = $actualValue instanceof DateTimeInterface
             ? $actualValue->format('H:i')
             : (string) $actualValue;
 
@@ -123,7 +125,7 @@ final class TimeField extends AbstractFieldType
             $ampm = $hour >= 12 ? 'PM' : 'AM';
             $hour12 = $hour % 12 ?: 12;
 
-            $formatted = sprintf('%d:%s %s', $hour12, $minute, $ampm);
+            $formatted = \sprintf('%d:%s %s', $hour12, $minute, $ampm);
         } else {
             $formatted = htmlspecialchars($timeStr, ENT_QUOTES, 'UTF-8');
         }
@@ -192,9 +194,6 @@ final class TimeField extends AbstractFieldType
         return 'schedule';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -209,14 +208,11 @@ final class TimeField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<input type="time" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="{value}">',
             $this->escapeAttr($slug)
         );

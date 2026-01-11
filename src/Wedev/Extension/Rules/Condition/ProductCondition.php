@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Condition;
 
-use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
+use InvalidArgumentException;
 use Product;
+use StockAvailable;
+use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 
 /**
  * Condition basée sur un produit.
@@ -53,8 +55,8 @@ final class ProductCondition extends AbstractCondition
         private readonly string $operator,
         private readonly mixed $value
     ) {
-        if (!in_array($this->field, self::SUPPORTED_FIELDS, true)) {
-            throw new \InvalidArgumentException(sprintf(
+        if (! \in_array($this->field, self::SUPPORTED_FIELDS, true)) {
+            throw new InvalidArgumentException(\sprintf(
                 'Unsupported product field: "%s". Supported: %s',
                 $this->field,
                 implode(', ', self::SUPPORTED_FIELDS)
@@ -67,7 +69,7 @@ final class ProductCondition extends AbstractCondition
         // Récupérer le produit depuis le contexte personnalisé
         $product = $context->get('product');
 
-        if (!$product instanceof Product) {
+        if (! $product instanceof Product) {
             return false;
         }
 
@@ -91,7 +93,7 @@ final class ProductCondition extends AbstractCondition
             'supplier' => (int) $product->id_supplier,
             'price' => (float) $product->getPrice(true),
             'price_without_tax' => (float) $product->getPrice(false),
-            'stock' => (int) \StockAvailable::getQuantityAvailableByProduct($product->id),
+            'stock' => (int) StockAvailable::getQuantityAvailableByProduct($product->id),
             'weight' => (float) $product->weight,
             'on_sale' => (bool) $product->on_sale,
             'is_new' => (bool) $product->isNew(),
@@ -102,4 +104,3 @@ final class ProductCondition extends AbstractCondition
         };
     }
 }
-

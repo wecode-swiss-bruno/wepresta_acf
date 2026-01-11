@@ -29,7 +29,7 @@ namespace WeprestaAcf\Wedev\Extension\Events;
 final class DomainEventDispatcher
 {
     /**
-     * Registered listeners: event name => [[callable, priority], ...]
+     * Registered listeners: event name => [[callable, priority], ...].
      *
      * @var array<string, array<array{0: callable, 1: int}>>
      */
@@ -62,9 +62,9 @@ final class DomainEventDispatcher
     /**
      * Adds a listener for a specific event.
      *
-     * @param string   $eventName The event name (supports wildcards like 'order.*')
-     * @param callable $listener  The listener callback
-     * @param int      $priority  Higher priority = called first (default: 0)
+     * @param string $eventName The event name (supports wildcards like 'order.*')
+     * @param callable $listener The listener callback
+     * @param int $priority Higher priority = called first (default: 0)
      */
     public function addListener(string $eventName, callable $listener, int $priority = 0): void
     {
@@ -91,7 +91,7 @@ final class DomainEventDispatcher
      */
     public function removeListener(string $eventName, callable $listener): void
     {
-        if (!isset($this->listeners[$eventName])) {
+        if (! isset($this->listeners[$eventName])) {
             return;
         }
 
@@ -99,6 +99,7 @@ final class DomainEventDispatcher
             if ($registered[0] === $listener) {
                 unset($this->listeners[$eventName][$index]);
                 $this->listeners[$eventName] = array_values($this->listeners[$eventName]);
+
                 break;
             }
         }
@@ -109,7 +110,7 @@ final class DomainEventDispatcher
      */
     public function hasListeners(string $eventName): bool
     {
-        return !empty($this->getListenersForEvent($eventName));
+        return ! empty($this->getListenersForEvent($eventName));
     }
 
     /**
@@ -124,6 +125,7 @@ final class DomainEventDispatcher
         // Exact match
         if (isset($this->listeners[$eventName])) {
             $this->sortListeners($eventName);
+
             foreach ($this->listeners[$eventName] as [$listener, $priority]) {
                 $listeners[] = [$listener, $priority];
             }
@@ -137,6 +139,7 @@ final class DomainEventDispatcher
 
             if ($this->matchesWildcard($pattern, $eventName)) {
                 $this->sortListeners($pattern);
+
                 foreach ($patternListeners as [$listener, $priority]) {
                     $listeners[] = [$listener, $priority];
                 }
@@ -144,7 +147,7 @@ final class DomainEventDispatcher
         }
 
         // Sort all collected listeners by priority
-        usort($listeners, fn($a, $b) => $b[1] <=> $a[1]);
+        usort($listeners, fn ($a, $b) => $b[1] <=> $a[1]);
 
         return array_column($listeners, 0);
     }
@@ -175,7 +178,7 @@ final class DomainEventDispatcher
      */
     private function matchesWildcard(string $pattern, string $eventName): bool
     {
-        if (!str_ends_with($pattern, '*')) {
+        if (! str_ends_with($pattern, '*')) {
             return false;
         }
 
@@ -195,10 +198,9 @@ final class DomainEventDispatcher
 
         usort(
             $this->listeners[$eventName],
-            fn($a, $b) => $b[1] <=> $a[1]
+            fn ($a, $b) => $b[1] <=> $a[1]
         );
 
         $this->sorted[$eventName] = true;
     }
 }
-

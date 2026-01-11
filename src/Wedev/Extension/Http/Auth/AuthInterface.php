@@ -34,4 +34,3 @@ interface AuthInterface
      */
     public function getHeaders(): array;
 }
-

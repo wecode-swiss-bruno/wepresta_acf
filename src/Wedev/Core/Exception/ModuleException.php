@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - ModuleException
+ * WEDEV Core - ModuleException.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -22,19 +23,13 @@ use Throwable;
  */
 class ModuleException extends RuntimeException
 {
-    /**
-     * Code d'erreur pour les erreurs de configuration.
-     */
+    /** Code d'erreur pour les erreurs de configuration. */
     protected const CODE_CONFIGURATION = 1000;
 
-    /**
-     * Code d'erreur pour les erreurs de validation.
-     */
+    /** Code d'erreur pour les erreurs de validation. */
     protected const CODE_VALIDATION = 1100;
 
-    /**
-     * Code d'erreur pour les entités non trouvées.
-     */
+    /** Code d'erreur pour les entités non trouvées. */
     protected const CODE_NOT_FOUND = 1200;
 
     protected array $context = [];
@@ -65,4 +60,3 @@ class ModuleException extends RuntimeException
         return new self($message, 0, null, $context);
     }
 }
-

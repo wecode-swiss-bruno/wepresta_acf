@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 
 /**
- * Rich Text (WYSIWYG) field type
+ * Rich Text (WYSIWYG) field type.
  *
  * Uses TinyMCE for HTML editing, sanitizes content on save.
  */
@@ -62,7 +62,7 @@ final class RichTextField extends AbstractFieldType
         }
 
         // Handle arrays/objects (empty objects from JS become empty arrays)
-        if (is_array($value) || is_object($value)) {
+        if (\is_array($value) || \is_object($value)) {
             return null;
         }
 
@@ -73,7 +73,7 @@ final class RichTextField extends AbstractFieldType
 
         // Remove slashes if PrestaShop added them (addslashes)
         // PrestaShop may add slashes to POST data, so we remove them first
-        if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
+        if (\function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
             $html = stripslashes($html);
         } else {
             // Even if magic quotes are off, PrestaShop might still add slashes
@@ -126,6 +126,7 @@ final class RichTextField extends AbstractFieldType
 
         // Convert to string and handle empty values
         $stringValue = (string) $actualValue;
+
         if ($stringValue === '') {
             return '';
         }
@@ -160,10 +161,11 @@ final class RichTextField extends AbstractFieldType
         }
 
         // Check max length if configured (based on stripped text)
-        if (!empty($validation['maxLength'])) {
+        if (! empty($validation['maxLength'])) {
             $textContent = strip_tags((string) $value);
+
             if (mb_strlen($textContent) > (int) $validation['maxLength']) {
-                $errors[] = sprintf('Content exceeds maximum length of %d characters.', $validation['maxLength']);
+                $errors[] = \sprintf('Content exceeds maximum length of %d characters.', $validation['maxLength']);
             }
         }
 
@@ -218,9 +220,6 @@ final class RichTextField extends AbstractFieldType
         return 'article';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -234,15 +233,12 @@ final class RichTextField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
         // Note: TinyMCE in repeaters requires special initialization
-        return sprintf(
+        return \sprintf(
             '<textarea class="form-control acf-subfield-input acf-richtext-input" data-subfield="%s" rows="5">{value}</textarea>',
             $this->escapeAttr($slug)
         );

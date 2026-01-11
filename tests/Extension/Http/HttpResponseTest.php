@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Http;
 
-use WeprestaAcf\Extension\Http\HttpResponse;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Extension\Http\HttpResponse;
 
 class HttpResponseTest extends TestCase
 {
@@ -100,4 +100,3 @@ class HttpResponseTest extends TestCase
         $this->assertEquals($data, $response->jsonOrNull());
     }
 }
-

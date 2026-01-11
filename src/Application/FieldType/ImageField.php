@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -20,17 +20,16 @@ declare(strict_types=1);
 namespace WeprestaAcf\Application\FieldType;
 
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Tools;
 
 /**
- * Image upload field type
+ * Image upload field type.
  *
  * Stores image metadata as JSON (same format as FileField)
  */
 final class ImageField extends AbstractFieldType
 {
-    /**
-     * Allowed MIME types for image uploads
-     */
+    /** Allowed MIME types for image uploads */
     private const ALLOWED_IMAGE_MIMES = [
         'image/jpeg',
         'image/png',
@@ -60,10 +59,11 @@ final class ImageField extends AbstractFieldType
         }
 
         // If already JSON string, validate and return
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
+
             // Valid image data has either filename (uploaded) or url (external link)
-            if (is_array($decoded) && (isset($decoded['filename']) || isset($decoded['url']))) {
+            if (\is_array($decoded) && (isset($decoded['filename']) || isset($decoded['url']))) {
                 return $value;
             }
 
@@ -71,7 +71,7 @@ final class ImageField extends AbstractFieldType
         }
 
         // If array (from upload or external link), encode to JSON
-        if (is_array($value) && (isset($value['filename']) || isset($value['url']))) {
+        if (\is_array($value) && (isset($value['filename']) || isset($value['url']))) {
             return json_encode($value);
         }
 
@@ -85,15 +85,16 @@ final class ImageField extends AbstractFieldType
         }
 
         // Parse JSON to array
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
+
+            if (\is_array($decoded)) {
                 return $decoded;
             }
         }
 
         // Already an array
-        if (is_array($value)) {
+        if (\is_array($value)) {
             return $value;
         }
 
@@ -104,14 +105,14 @@ final class ImageField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (!is_array($data) || !isset($data['url'])) {
+        if (! \is_array($data) || ! isset($data['url'])) {
             return '';
         }
 
         $url = htmlspecialchars($data['url'], ENT_QUOTES, 'UTF-8');
         $alt = htmlspecialchars($data['original_name'] ?? 'Image', ENT_QUOTES, 'UTF-8');
 
-        return sprintf(
+        return \sprintf(
             '<img src="%s" alt="%s" class="acf-image" loading="lazy">',
             $url,
             $alt
@@ -122,7 +123,7 @@ final class ImageField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (!is_array($data)) {
+        if (! \is_array($data)) {
             return null;
         }
 
@@ -140,7 +141,7 @@ final class ImageField extends AbstractFieldType
         $data = $this->denormalizeValue($value, $fieldConfig);
 
         // Valid image data has either filename (uploaded) or url (external link)
-        if (!is_array($data) || (!isset($data['filename']) && !isset($data['url']))) {
+        if (! \is_array($data) || (! isset($data['filename']) && ! isset($data['url']))) {
             $errors[] = 'Invalid image data.';
         }
 
@@ -209,7 +210,7 @@ final class ImageField extends AbstractFieldType
     }
 
     /**
-     * Get allowed MIME types from config
+     * Get allowed MIME types from config.
      *
      * @return array<string>
      */
@@ -225,8 +226,10 @@ final class ImageField extends AbstractFieldType
         ];
 
         $mimes = [];
+
         foreach ($formats as $format) {
             $format = strtolower($format);
+
             if (isset($mimeMap[$format])) {
                 $mimes[] = $mimeMap[$format];
             }
@@ -235,9 +238,6 @@ final class ImageField extends AbstractFieldType
         return array_unique($mimes) ?: self::ALLOWED_IMAGE_MIMES;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -249,20 +249,17 @@ final class ImageField extends AbstractFieldType
             'prefix' => $context['prefix'] ?? 'acf_',
             'value' => $data,
             'context' => $context,
-            'base_url' => $context['base_url'] ?? \Tools::getShopDomainSsl(true) . __PS_BASE_URI__,
+            'base_url' => $context['base_url'] ?? Tools::getShopDomainSsl(true) . __PS_BASE_URI__,
             'product_link' => $context['product_link'] ?? '',
             'product_attachments' => $context['product_attachments'] ?? [],
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<div class="acf-image-field acf-image-compact" data-slug="%s">' .
             '<input type="hidden" class="acf-subfield-input acf-image-value" data-subfield="%s" value="{value}">' .
             '<div class="acf-image-preview" style="display: none;"><img src="" alt="" style="width: 50px; height: 50px; object-fit: contain;"><div class="acf-image-actions"><button type="button" class="btn btn-sm btn-link text-danger acf-image-remove"><i class="material-icons">delete</i></button></div></div>' .

@@ -59,4 +59,3 @@ interface SubPluginInterface extends PluginInterface
      */
     public function getAuthor(): string;
 }
-

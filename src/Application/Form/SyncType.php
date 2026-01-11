@@ -1,6 +1,7 @@
 <?php
+
 /**
- * SyncType - Auto-sync configuration form
+ * SyncType - Auto-sync configuration form.
  */
 
 declare(strict_types=1);

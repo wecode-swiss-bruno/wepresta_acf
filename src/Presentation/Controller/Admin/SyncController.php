@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Presentation\Controller\Admin;
 
+use Configuration;
+use Exception;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,8 +43,8 @@ class SyncController extends FrameworkBundleAdminController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-            $enabled = !empty($data['auto_sync_enabled']) ? 1 : 0;
-            \Configuration::updateValue('WEPRESTA_ACF_AUTO_SYNC_ENABLED', $enabled);
+            $enabled = ! empty($data['auto_sync_enabled']) ? 1 : 0;
+            Configuration::updateValue('WEPRESTA_ACF_AUTO_SYNC_ENABLED', $enabled);
 
             $this->addFlash('success', $this->trans('Settings saved successfully.', 'Admin.Notifications.Success'));
 
@@ -120,7 +122,7 @@ class SyncController extends FrameworkBundleAdminController
             $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -135,6 +137,7 @@ class SyncController extends FrameworkBundleAdminController
     {
         try {
             $data = $this->exportImportService->exportGroup($groupId);
+
             if ($data === null) {
                 return new JsonResponse([
                     'success' => false,
@@ -153,7 +156,7 @@ class SyncController extends FrameworkBundleAdminController
             $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
 
             return $response;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -168,7 +171,8 @@ class SyncController extends FrameworkBundleAdminController
     {
         try {
             $uploadedFile = $request->files->get('file');
-            if (!$uploadedFile) {
+
+            if (! $uploadedFile) {
                 return new JsonResponse([
                     'success' => false,
                     'error' => 'No file uploaded',
@@ -185,6 +189,7 @@ class SyncController extends FrameworkBundleAdminController
 
             // Read and parse JSON
             $content = file_get_contents($uploadedFile->getPathname());
+
             if ($content === false) {
                 return new JsonResponse([
                     'success' => false,
@@ -193,6 +198,7 @@ class SyncController extends FrameworkBundleAdminController
             }
 
             $data = json_decode($content, true);
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return new JsonResponse([
                     'success' => false,
@@ -202,7 +208,8 @@ class SyncController extends FrameworkBundleAdminController
 
             // Validate structure
             $validation = $this->exportImportService->validateImportData($data);
-            if (!$validation['valid']) {
+
+            if (! $validation['valid']) {
                 return new JsonResponse([
                     'success' => false,
                     'error' => 'Validation failed',
@@ -212,23 +219,25 @@ class SyncController extends FrameworkBundleAdminController
 
             // Count groups and fields for preview
             $groups = $data['groups'] ?? [];
+
             if (empty($groups) && isset($data['group'])) {
                 $groups = [$data['group']];
             }
 
             $totalFields = 0;
+
             foreach ($groups as $group) {
-                $totalFields += count($group['fields'] ?? []);
+                $totalFields += \count($group['fields'] ?? []);
             }
 
             return new JsonResponse([
                 'success' => true,
                 'data' => [
-                    'groups_count' => count($groups),
+                    'groups_count' => \count($groups),
                     'fields_count' => $totalFields,
                 ],
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -243,7 +252,8 @@ class SyncController extends FrameworkBundleAdminController
     {
         try {
             $uploadedFile = $request->files->get('file');
-            if (!$uploadedFile) {
+
+            if (! $uploadedFile) {
                 return new JsonResponse([
                     'success' => false,
                     'error' => 'No file uploaded',
@@ -251,7 +261,8 @@ class SyncController extends FrameworkBundleAdminController
             }
 
             $mode = $request->request->get('mode', 'merge');
-            if (!in_array($mode, ['replace', 'merge'], true)) {
+
+            if (! \in_array($mode, ['replace', 'merge'], true)) {
                 return new JsonResponse([
                     'success' => false,
                     'error' => 'Invalid mode. Must be "replace" or "merge"',
@@ -260,6 +271,7 @@ class SyncController extends FrameworkBundleAdminController
 
             // Read and parse JSON
             $content = file_get_contents($uploadedFile->getPathname());
+
             if ($content === false) {
                 return new JsonResponse([
                     'success' => false,
@@ -268,6 +280,7 @@ class SyncController extends FrameworkBundleAdminController
             }
 
             $data = json_decode($content, true);
+
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return new JsonResponse([
                     'success' => false,
@@ -281,40 +294,11 @@ class SyncController extends FrameworkBundleAdminController
                 : $this->exportImportService->importMerge($data);
 
             return new JsonResponse($result->toArray());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
             ], 500);
-        }
-    }
-
-    /**
-     * Extract entity type from location rules.
-     */
-    private function extractEntityType(string $locationRulesJson): string
-    {
-        try {
-            $rules = json_decode($locationRulesJson, true);
-            if (!is_array($rules)) {
-                return 'unknown';
-            }
-
-            // Try to find entity_type in location rules
-            if (isset($rules['and']) && is_array($rules['and'])) {
-                foreach ($rules['and'] as $rule) {
-                    if (isset($rule['==']) && is_array($rule['=='])) {
-                        $var = $rule['=='][0] ?? null;
-                        if (isset($var['var']) && $var['var'] === 'entity_type') {
-                            return $rule['=='][1] ?? 'unknown';
-                        }
-                    }
-                }
-            }
-
-            return 'unknown';
-        } catch (\Exception $e) {
-            return 'unknown';
         }
     }
 
@@ -325,7 +309,7 @@ class SyncController extends FrameworkBundleAdminController
     {
         try {
             $enabled = (bool) $request->request->get('enabled', false);
-            \Configuration::updateValue('WEPRESTA_ACF_AUTO_SYNC_ENABLED', $enabled ? 1 : 0);
+            Configuration::updateValue('WEPRESTA_ACF_AUTO_SYNC_ENABLED', $enabled ? 1 : 0);
 
             return new JsonResponse([
                 'success' => true,
@@ -334,7 +318,7 @@ class SyncController extends FrameworkBundleAdminController
                     ? $this->trans('Auto-sync enabled', 'Modules.Weprestaacf.Admin')
                     : $this->trans('Auto-sync disabled', 'Modules.Weprestaacf.Admin'),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -356,7 +340,7 @@ class SyncController extends FrameworkBundleAdminController
                 'message' => $this->trans('Configuration exported successfully', 'Modules.Weprestaacf.Admin'),
                 'fileInfo' => $fileInfo,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -374,7 +358,7 @@ class SyncController extends FrameworkBundleAdminController
             $result = $this->autoSyncService->importFromFile($merge);
 
             return new JsonResponse($result->toArray());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -394,7 +378,7 @@ class SyncController extends FrameworkBundleAdminController
                 'success' => true,
                 'message' => $this->trans('Notification dismissed', 'Modules.Weprestaacf.Admin'),
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -408,7 +392,7 @@ class SyncController extends FrameworkBundleAdminController
     public function syncNow(Request $request): JsonResponse
     {
         try {
-            if (!$this->autoSyncService->isEnabled()) {
+            if (! $this->autoSyncService->isEnabled()) {
                 return new JsonResponse([
                     'success' => false,
                     'error' => $this->trans('Auto-sync is disabled', 'Modules.Weprestaacf.Admin'),
@@ -428,11 +412,42 @@ class SyncController extends FrameworkBundleAdminController
                 'success' => false,
                 'error' => $result->getMessage() ?: $this->trans('Synchronization failed', 'Modules.Weprestaacf.Admin'),
             ], 500);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'success' => false,
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Extract entity type from location rules.
+     */
+    private function extractEntityType(string $locationRulesJson): string
+    {
+        try {
+            $rules = json_decode($locationRulesJson, true);
+
+            if (! \is_array($rules)) {
+                return 'unknown';
+            }
+
+            // Try to find entity_type in location rules
+            if (isset($rules['and']) && \is_array($rules['and'])) {
+                foreach ($rules['and'] as $rule) {
+                    if (isset($rule['==']) && \is_array($rule['=='])) {
+                        $var = $rule['=='][0] ?? null;
+
+                        if (isset($var['var']) && $var['var'] === 'entity_type') {
+                            return $rule['=='][1] ?? 'unknown';
+                        }
+                    }
+                }
+            }
+
+            return 'unknown';
+        } catch (Exception $e) {
+            return 'unknown';
         }
     }
 }

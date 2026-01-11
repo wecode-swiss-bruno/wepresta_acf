@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Brick;
 
-
 /**
  * Discovers ACF bricks from installed modules.
  *
@@ -149,7 +148,7 @@ final class AcfBrickDiscovery
      */
     private function loadBrickFromFile(string $file): void
     {
-        if (!file_exists($file)) {
+        if (! file_exists($file)) {
             return;
         }
 
@@ -157,28 +156,28 @@ final class AcfBrickDiscovery
         $content = file_get_contents($file);
 
         // Find namespace
-        if (!preg_match('/namespace\s+([^;]+);/', $content, $nsMatch)) {
+        if (! preg_match('/namespace\s+([^;]+);/', $content, $nsMatch)) {
             return;
         }
 
         // Find class name
-        if (!preg_match('/class\s+(\w+)/', $content, $classMatch)) {
+        if (! preg_match('/class\s+(\w+)/', $content, $classMatch)) {
             return;
         }
 
         $className = $nsMatch[1] . '\\' . $classMatch[1];
 
         // Require the file if class doesn't exist
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             require_once $file;
         }
 
-        if (!class_exists($className)) {
+        if (! class_exists($className)) {
             return;
         }
 
         // Check if it implements BrickInterface
-        if (!is_subclass_of($className, BrickInterface::class)) {
+        if (! is_subclass_of($className, BrickInterface::class)) {
             return;
         }
 
@@ -187,4 +186,3 @@ final class AcfBrickDiscovery
         $this->bricks[$brick::getName()] = $brick;
     }
 }
-

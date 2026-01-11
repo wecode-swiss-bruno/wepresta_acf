@@ -5,6 +5,7 @@ import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
 import type { AcfField } from '@/types'
 import FieldTypeSelector from '@/components/FieldTypeSelector.vue'
+import SubfieldItem from '@/components/SubfieldItem.vue'
 
 const store = useBuilderStore()
 const { t } = useTranslations()
@@ -170,12 +171,14 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
           </button>
         </div>
         
-        <!-- Subfields for repeaters -->
+        <!-- Subfields for repeaters - Using recursive SubfieldItem component -->
         <div 
           v-if="field.type === 'repeater' && isRepeaterExpanded(field.uuid)" 
           class="acfps-subfields"
         >
+          <!-- Subfields draggable list (only show if has children) -->
           <VueDraggable
+            v-if="getSubfields(field).length > 0"
             :model-value="getSubfields(field)"
             :animation="200"
             handle=".drag-handle"
@@ -184,28 +187,21 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
             class="subfield-list"
             @update:model-value="reorderSubfields(field, $event)"
           >
-            <div
+            <SubfieldItem
               v-for="subfield in getSubfields(field)"
               :key="subfield.uuid"
-              class="acfps-field-item acfps-subfield-item"
-              :class="{ active: store.selectedField?.uuid === subfield.uuid }"
-              @click.stop="store.selectField(subfield)"
-            >
-              <span class="drag-handle material-icons">drag_indicator</span>
-              <span class="field-icon material-icons">{{ getFieldIcon(subfield.type) }}</span>
-              <div class="field-info">
-                <span class="field-title">{{ subfield.title || t('untitled') }}</span>
-                <span class="field-type">{{ subfield.type }}</span>
-              </div>
-              <span class="field-slug">{{ subfield.slug }}</span>
-              <button 
-                class="btn btn-link btn-sm text-danger"
-                @click.stop="confirmDelete(subfield, field)"
-              >
-                <span class="material-icons">delete</span>
-              </button>
-            </div>
+              :field="subfield"
+              :parent-field="field"
+              :depth="0"
+              @delete="(f, p) => confirmDelete(f, p)"
+              @addSubfield="(parent, type) => { addingSubfieldTo = parent; showTypeSelector = true }"
+            />
           </VueDraggable>
+
+          <!-- Empty state for repeater -->
+          <div v-else class="alert alert-info mb-3">
+            <small>{{ t('noSubfields') || 'No subfields yet. Click the button below to add one.' }}</small>
+          </div>
           
           <!-- Add subfield button -->
           <button 
@@ -234,6 +230,7 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
     <!-- Field type selector modal -->
     <FieldTypeSelector
       :show="showTypeSelector"
+      :disabled-field-types="addingSubfieldTo?.type === 'repeater' ? ['repeater'] : undefined"
       @close="showTypeSelector = false; addingSubfieldTo = null"
       @select="addFieldType"
     />

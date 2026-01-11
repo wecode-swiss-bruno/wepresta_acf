@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -20,7 +20,7 @@ declare(strict_types=1);
 namespace WeprestaAcf\Application\FieldType;
 
 /**
- * Interface for all ACF field types
+ * Interface for all ACF field types.
  *
  * This interface defines the contract that all field types must implement.
  * Field types handle:
@@ -32,7 +32,7 @@ namespace WeprestaAcf\Application\FieldType;
 interface FieldTypeInterface
 {
     /**
-     * Get the unique type identifier
+     * Get the unique type identifier.
      *
      * This is used in the database and for registration.
      * Examples: 'text', 'number', 'select', 'richtext'
@@ -40,21 +40,21 @@ interface FieldTypeInterface
     public function getType(): string;
 
     /**
-     * Get human-readable label for this field type
+     * Get human-readable label for this field type.
      *
      * Used in the admin UI when selecting field types.
      */
     public function getLabel(): string;
 
     /**
-     * Get the Symfony form type class for this field
+     * Get the Symfony form type class for this field.
      *
      * @return class-string The fully qualified class name of the form type
      */
     public function getFormType(): string;
 
     /**
-     * Get form options for Symfony form building
+     * Get form options for Symfony form building.
      *
      * @param array<string, mixed> $fieldConfig Field configuration from database
      * @param array<string, mixed> $validation Validation rules from database
@@ -64,7 +64,7 @@ interface FieldTypeInterface
     public function getFormOptions(array $fieldConfig, array $validation = []): array;
 
     /**
-     * Normalize value before storing in database
+     * Normalize value before storing in database.
      *
      * Convert form input to storage format.
      * Examples:
@@ -80,7 +80,7 @@ interface FieldTypeInterface
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed;
 
     /**
-     * Denormalize value after loading from database
+     * Denormalize value after loading from database.
      *
      * Convert stored value back to usable format.
      *
@@ -92,7 +92,7 @@ interface FieldTypeInterface
     public function denormalizeValue(mixed $value, array $fieldConfig = []): mixed;
 
     /**
-     * Render value for front-office display
+     * Render value for front-office display.
      *
      * @param mixed $value The field value
      * @param array<string, mixed> $fieldConfig Field configuration
@@ -103,7 +103,7 @@ interface FieldTypeInterface
     public function renderValue(mixed $value, array $fieldConfig = [], array $renderOptions = []): string;
 
     /**
-     * Get value for search indexing
+     * Get value for search indexing.
      *
      * Return a simplified string value for the value_index column.
      * Used for searching and sorting.
@@ -116,7 +116,7 @@ interface FieldTypeInterface
     public function getIndexValue(mixed $value, array $fieldConfig = []): ?string;
 
     /**
-     * Get default configuration for this field type
+     * Get default configuration for this field type.
      *
      * Used when creating new fields of this type.
      *
@@ -125,7 +125,7 @@ interface FieldTypeInterface
     public function getDefaultConfig(): array;
 
     /**
-     * Get available configuration schema
+     * Get available configuration schema.
      *
      * Describes what options can be configured for this field type.
      * Used by the admin UI to build the field configuration form.
@@ -135,7 +135,7 @@ interface FieldTypeInterface
     public function getConfigSchema(): array;
 
     /**
-     * Validate a value according to field rules
+     * Validate a value according to field rules.
      *
      * @param mixed $value Value to validate
      * @param array<string, mixed> $fieldConfig Field configuration
@@ -146,12 +146,12 @@ interface FieldTypeInterface
     public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array;
 
     /**
-     * Check if this field type supports translation
+     * Check if this field type supports translation.
      */
     public function supportsTranslation(): bool;
 
     /**
-     * Get the category/group for this field type
+     * Get the category/group for this field type.
      *
      * Used for organizing field types in the admin UI.
      * Examples: 'basic', 'content', 'choice', 'relational', 'layout'
@@ -159,14 +159,14 @@ interface FieldTypeInterface
     public function getCategory(): string;
 
     /**
-     * Get icon identifier for this field type
+     * Get icon identifier for this field type.
      *
      * Used in the admin UI. Can be a Material Icons name or custom icon class.
      */
     public function getIcon(): string;
 
     /**
-     * Render the admin input HTML for this field
+     * Render the admin input HTML for this field.
      *
      * This method generates the complete HTML input element(s) for
      * the back-office product form. Centralizes rendering logic
@@ -175,17 +175,17 @@ interface FieldTypeInterface
      * @param array<string, mixed> $field Complete field data (slug, title, config, etc.)
      * @param mixed $value Current field value
      * @param array<string, mixed> $context Rendering context:
-     *   - 'size': 'sm' for compact inputs (table mode)
-     *   - 'prefix': name prefix (default 'acf_')
-     *   - 'dataSubfield': bool, use data-subfield instead of name attr
-     *   - 'idPrefix': custom ID prefix
+     *                                      - 'size': 'sm' for compact inputs (table mode)
+     *                                      - 'prefix': name prefix (default 'acf_')
+     *                                      - 'dataSubfield': bool, use data-subfield instead of name attr
+     *                                      - 'idPrefix': custom ID prefix
      *
      * @return string HTML output (already escaped)
      */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string;
 
     /**
-     * Get JavaScript template for dynamic row creation in repeaters
+     * Get JavaScript template for dynamic row creation in repeaters.
      *
      * Returns an HTML template string with {value} placeholder that will
      * be replaced by JavaScript when creating new repeater rows.

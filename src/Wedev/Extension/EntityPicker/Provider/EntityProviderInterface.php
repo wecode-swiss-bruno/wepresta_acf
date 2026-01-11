@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Extension - EntityPicker
+ * WEDEV Extension - EntityPicker.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -49,4 +50,3 @@ interface EntityProviderInterface
      */
     public function getEntityLabel(): string;
 }
-

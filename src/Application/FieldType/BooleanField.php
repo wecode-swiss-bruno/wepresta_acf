@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 /**
- * Boolean field type
+ * Boolean field type.
  *
  * Simple true/false toggle switch.
  */
@@ -65,15 +65,15 @@ final class BooleanField extends AbstractFieldType
         if ($value === null || $value === '' || $value === false) {
             return false;
         }
-        
+
         if ($value === true || $value === '1' || $value === 1) {
             return true;
         }
-        
+
         if ($value === '0' || $value === 0) {
             return false;
         }
-        
+
         // Default: convert to boolean
         return (bool) $value;
     }
@@ -104,7 +104,7 @@ final class BooleanField extends AbstractFieldType
         // And "required" for boolean means "must be true"
         $errors = [];
 
-        if (!empty($validation['required']) && !$this->denormalizeValue($value, $fieldConfig)) {
+        if (! empty($validation['required']) && ! $this->denormalizeValue($value, $fieldConfig)) {
             $errors[] = 'This field must be checked.';
         }
 
@@ -159,14 +159,11 @@ final class BooleanField extends AbstractFieldType
         return 'toggle_on';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
         $boolValue = $this->denormalizeValue($value, $config);
-        
+
         // Pass as integer (1 or 0) for Smarty compatibility
         $smartyValue = $boolValue ? 1 : 0;
 
@@ -179,14 +176,11 @@ final class BooleanField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<div class="custom-control custom-switch"><input type="checkbox" class="custom-control-input acf-subfield-input" data-subfield="%s" id="rep_{rowId}_%s"><label class="custom-control-label" for="rep_{rowId}_%s"></label></div>',
             $this->escapeAttr($slug),
             $slug,

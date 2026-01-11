@@ -117,7 +117,6 @@ async function addRule(event?: Event): Promise<void> {
   savingRule.value = true
   try {
     await store.saveGroup()
-    console.log(`✅ Rule "${ruleOperator} ${ruleType}" saved automatically`)
   } catch (error) {
     console.error('❌ Failed to save location rule:', error)
     // Remove the rule from local state if save failed
@@ -142,7 +141,6 @@ async function removeRule(index: number): Promise<void> {
   // Auto-save after removal
   try {
     await store.saveGroup()
-    console.log('✅ Rule removed and saved')
   } catch (error) {
     console.error('❌ Failed to save after rule removal:', error)
   }

@@ -9,6 +9,17 @@
     {assign var="inputName" value="{$inputName}[]"}
 {/if}
 {assign var="choices" value=$fieldConfig.choices|default:[]}
+
+{* Function to get translated choice label *}
+{function getChoiceLabel choice=[] currentLangId=''}
+    {if isset($choice.translations) && isset($choice.translations[$currentLangId]) && !empty($choice.translations[$currentLangId])}
+        {$choice.translations[$currentLangId]|escape:'htmlall':'UTF-8'}
+    {elseif !empty($choice.label)}
+        {$choice.label|escape:'htmlall':'UTF-8'}
+    {else}
+        {$choice.value|escape:'htmlall':'UTF-8'}
+    {/if}
+{/function}
 {* Decode JSON value if it's a string (for multiple selections) *}
 {assign var="displayValue" value=$value}
 {if isset($fieldConfig.allowMultiple) && $fieldConfig.allowMultiple && is_string($value) && $value}
@@ -22,7 +33,8 @@
             data-subfield="{$field.slug|escape:'htmlall':'UTF-8'}"
         {else}
             name="{$inputName|escape:'htmlall':'UTF-8'}"
-        {/if}>
+        {/if}
+        {if isset($context.dataLangId) && $context.dataLangId}data-lang-id="{$context.dataLangId|escape:'htmlall':'UTF-8'}"{/if}>
     <option value="">-- {l s='Select' mod='wepresta_acf'} --</option>
     {if is_array($choices)}
         {foreach $choices as $choice}
@@ -39,7 +51,7 @@
             {/if}
             <option value="{$choice.value|escape:'htmlall':'UTF-8'}"
                     {if $isSelected}selected{/if}>
-                {$choice.label|escape:'htmlall':'UTF-8'}
+                {getChoiceLabel choice=$choice currentLangId=$currentLangId}
             </option>
         {/foreach}
     {/if}

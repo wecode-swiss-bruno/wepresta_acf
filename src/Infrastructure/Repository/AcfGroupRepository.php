@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Repository;
 
+use Db;
 use DbQuery;
+use Shop;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use WeprestaAcf\Wedev\Core\Repository\AbstractRepository;
 
@@ -13,17 +15,47 @@ use WeprestaAcf\Wedev\Core\Repository\AbstractRepository;
  */
 final class AcfGroupRepository extends AbstractRepository implements AcfGroupRepositoryInterface
 {
+    // =========================================================================
+    // Constants
+    // =========================================================================
+
     private const TABLE_SHOP = 'wepresta_acf_group_shop';
+    private const TABLE_LANG = 'wepresta_acf_group_lang';
 
-    protected function getTableName(): string
+    /**
+     * Field configuration: camelCase => [snake_case, transformer, default]
+     */
+    private const FIELD_MAP = [
+        'uuid'              => ['uuid', null, ''],
+        'title'             => ['title', null, ''],
+        'slug'              => ['slug', null, ''],
+        'description'       => ['description', null, ''],
+        'locationRules'     => ['location_rules', 'json', []],
+        'placementTab'      => ['placement_tab', null, 'description'],
+        'placementPosition' => ['placement_position', null, ''],
+        'priority'          => ['priority', 'int', 10],
+        'boOptions'         => ['bo_options', 'json', []],
+        'foOptions'         => ['fo_options', 'json', []],
+        'active'            => ['active', 'int', 1],
+    ];
+
+    // =========================================================================
+    // CRUD Operations
+    // =========================================================================
+
+    public function create(array $data): int
     {
-        return 'wepresta_acf_group';
+        return $this->insert($this->mapDataForInsert($data));
     }
 
-    protected function getPrimaryKey(): string
+    public function update(int $id, array $data): bool
     {
-        return 'id_wepresta_acf_group';
+        return parent::update($id, $this->mapDataForUpdate($data));
     }
+
+    // =========================================================================
+    // Query Methods
+    // =========================================================================
 
     public function findBySlug(string $slug): ?array
     {
@@ -49,9 +81,6 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
         return $this->db->executeS($sql) ?: [];
     }
 
-    /**
-     * @return array[]
-     */
     public function findAll(?int $limit = null, ?int $offset = null): array
     {
         $sql = new DbQuery();
@@ -66,30 +95,10 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
         return $this->db->executeS($sql) ?: [];
     }
 
-    /**
-     * Create a new group with mapped data.
-     */
-    public function create(array $data): int
-    {
-        $mapped = $this->mapDataForInsert($data);
-
-        return $this->insert($mapped);
-    }
-
-    /**
-     * Update a group with mapped data.
-     */
-    public function update(int $id, array $data): bool
-    {
-        $mapped = $this->mapDataForUpdate($data);
-
-        return parent::update($id, $mapped);
-    }
-
     public function slugExists(string $slug, ?int $excludeId = null): bool
     {
         $sql = new DbQuery();
-        $sql->select('COUNT(*)')
+        $sql->select('1')
             ->from($this->getTableName())
             ->where("slug = '" . pSQL($slug) . "'");
 
@@ -97,15 +106,13 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
             $sql->where($this->getPrimaryKey() . ' != ' . (int) $excludeId);
         }
 
-        return (int) $this->db->getValue($sql) > 0;
+        return (bool) $this->db->getValue($sql);
     }
 
-    /**
-     * Get shop IDs associated with a group.
-     *
-     * @param int $groupId Group ID
-     * @return array<int> Array of shop IDs
-     */
+    // =========================================================================
+    // Shop Associations
+    // =========================================================================
+
     public function getShopIds(int $groupId): array
     {
         $sql = new DbQuery();
@@ -114,30 +121,20 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
             ->where($this->getPrimaryKey() . ' = ' . (int) $groupId);
 
         $results = $this->db->executeS($sql);
-        if (!$results) {
-            return [];
-        }
 
-        return array_map(static fn(array $row): int => (int) $row['id_shop'], $results);
+        return $results
+            ? array_column($results, 'id_shop')
+            : [];
     }
 
-    /**
-     * Associate a group with a shop.
-     */
     public function addShopAssociation(int $groupId, int $shopId): bool
     {
         return $this->db->insert(self::TABLE_SHOP, [
-            $this->getPrimaryKey() => (int) $groupId,
-            'id_shop' => (int) $shopId,
-        ], false, true, \Db::ON_DUPLICATE_KEY);
+            $this->getPrimaryKey() => $groupId,
+            'id_shop' => $shopId,
+        ], false, true, Db::ON_DUPLICATE_KEY);
     }
 
-    /**
-     * Remove all shop associations for a group.
-     *
-     * @param int $groupId Group ID
-     * @return bool Success
-     */
     public function removeAllShopAssociations(int $groupId): bool
     {
         return $this->db->delete(
@@ -146,105 +143,52 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
         );
     }
 
-    /**
-     * Associate a group with all active shops.
-     */
     public function addAllShopAssociations(int $groupId): void
     {
-        $shops = \Shop::getShops(true);
-        foreach ($shops as $shop) {
+        foreach (Shop::getShops(true) as $shop) {
             $this->addShopAssociation($groupId, (int) $shop['id_shop']);
         }
     }
 
-    /**
-     * Map input data to database columns for insert.
-     */
-    private function mapDataForInsert(array $data): array
-    {
-        return [
-            'uuid' => $data['uuid'] ?? '',
-            'title' => $data['title'] ?? '',
-            'slug' => $data['slug'] ?? '',
-            'description' => $data['description'] ?? '',
-            'location_rules' => json_encode($data['locationRules'] ?? [], JSON_THROW_ON_ERROR),
-            'placement_tab' => $data['placementTab'] ?? 'description',
-            'placement_position' => $data['placementPosition'] ?? '',
-            'priority' => (int) ($data['priority'] ?? 10),
-            'bo_options' => json_encode($data['boOptions'] ?? [], JSON_THROW_ON_ERROR),
-            'fo_options' => json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR),
-            'active' => (int) ($data['active'] ?? 1),
-        ];
-    }
+    // =========================================================================
+    // Translations
+    // =========================================================================
 
-    /**
-     * Map input data to database columns for update.
-     */
-    private function mapDataForUpdate(array $data): array
-    {
-        return [
-            'title' => $data['title'] ?? '',
-            'slug' => $data['slug'] ?? '',
-            'description' => $data['description'] ?? '',
-            'location_rules' => json_encode($data['locationRules'] ?? [], JSON_THROW_ON_ERROR),
-            'placement_tab' => $data['placementTab'] ?? 'description',
-            'placement_position' => $data['placementPosition'] ?? '',
-            'priority' => (int) ($data['priority'] ?? 10),
-            'bo_options' => json_encode($data['boOptions'] ?? [], JSON_THROW_ON_ERROR),
-            'fo_options' => json_encode($data['foOptions'] ?? [], JSON_THROW_ON_ERROR),
-            'active' => (int) ($data['active'] ?? 1),
-        ];
-    }
-
-    /**
-     * Save group translations (multilingual metadata: title, description)
-     *
-     * @param int $groupId
-     * @param array $translations Format: ['en' => ['title' => ..., 'description' => ...], 'fr' => [...]]
-     *
-     * @return bool
-     */
     public function saveGroupTranslations(int $groupId, array $translations): bool
     {
         foreach ($translations as $langIdOrCode => $data) {
-            // Support both lang ID and lang code
-            $langId = is_numeric($langIdOrCode) ? (int) $langIdOrCode : $this->getLangIdByCode((string) $langIdOrCode);
+            $langId = is_numeric($langIdOrCode)
+                ? (int) $langIdOrCode
+                : $this->getLangIdByCode((string) $langIdOrCode);
 
             if ($langId <= 0) {
                 continue;
             }
 
             $this->db->insert(
-                'wepresta_acf_group_lang',
+                self::TABLE_LANG,
                 [
-                    'id_wepresta_acf_group' => $groupId,
+                    $this->getPrimaryKey() => $groupId,
                     'id_lang' => $langId,
                     'title' => pSQL($data['title'] ?? ''),
                     'description' => pSQL($data['description'] ?? ''),
                 ],
                 false,
                 true,
-                \Db::REPLACE
+                Db::REPLACE
             );
         }
 
         return true;
     }
 
-    /**
-     * Get group translations for all languages
-     *
-     * @param int $groupId
-     *
-     * @return array Format: ['en' => ['title' => ..., 'description' => ...], 'fr' => [...]]
-     */
     public function getGroupTranslations(int $groupId): array
     {
         $sql = new DbQuery();
-        $sql->select('gl.*, l.iso_code')
-            ->from('wepresta_acf_group_lang', 'gl')
+        $sql->select('gl.title, gl.description, l.iso_code')
+            ->from(self::TABLE_LANG, 'gl')
             ->leftJoin('lang', 'l', 'l.id_lang = gl.id_lang')
-            ->where('gl.id_wepresta_acf_group = ' . (int) $groupId);
+            ->where('gl.' . $this->getPrimaryKey() . ' = ' . (int) $groupId);
 
         $results = $this->db->executeS($sql);
 
@@ -252,20 +196,68 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
             return [];
         }
 
-        $translations = [];
-        foreach ($results as $row) {
-            $translations[$row['iso_code']] = [
+        return array_combine(
+            array_column($results, 'iso_code'),
+            array_map(static fn (array $row): array => [
                 'title' => $row['title'],
                 'description' => $row['description'],
-            ];
-        }
-
-        return $translations;
+            ], $results)
+        );
     }
 
-    /**
-     * Helper: get lang ID by ISO code
-     */
+    // =========================================================================
+    // Configuration
+    // =========================================================================
+
+    protected function getTableName(): string
+    {
+        return 'wepresta_acf_group';
+    }
+
+    protected function getPrimaryKey(): string
+    {
+        return 'id_wepresta_acf_group';
+    }
+
+    // =========================================================================
+    // Private Helpers
+    // =========================================================================
+
+    private function mapDataForInsert(array $data): array
+    {
+        return $this->mapData($data, array_keys(self::FIELD_MAP));
+    }
+
+    private function mapDataForUpdate(array $data): array
+    {
+        $fields = array_diff(array_keys(self::FIELD_MAP), ['uuid', 'slug']);
+        $mapped = $this->mapData($data, $fields);
+
+        if (isset($data['slug'])) {
+            $mapped['slug'] = $data['slug'];
+        }
+
+        return $mapped;
+    }
+
+    private function mapData(array $data, array $fields): array
+    {
+        $mapped = [];
+
+        foreach ($fields as $source) {
+            [$target, $transformer, $default] = self::FIELD_MAP[$source];
+            $value = $data[$source] ?? $default;
+
+            $mapped[$target] = match ($transformer) {
+                'json' => json_encode($value, JSON_THROW_ON_ERROR),
+                'int' => (int) $value,
+                default => $value,
+            };
+        }
+
+        return $mapped;
+    }
+
     private function getLangIdByCode(string $code): int
     {
         $sql = new DbQuery();

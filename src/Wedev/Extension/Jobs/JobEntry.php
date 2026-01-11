@@ -4,23 +4,34 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Jobs;
 
+use DateTimeImmutable;
+
 /**
  * Représente une entrée de job dans la file d'attente.
  */
 final class JobEntry
 {
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_RUNNING = 'running';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
 
     private ?int $id = null;
+
     private string $status = self::STATUS_PENDING;
+
     private int $attempts = 0;
+
     private ?string $lastError = null;
-    private ?\DateTimeImmutable $startedAt = null;
-    private ?\DateTimeImmutable $completedAt = null;
-    private \DateTimeImmutable $createdAt;
+
+    private ?DateTimeImmutable $startedAt = null;
+
+    private ?DateTimeImmutable $completedAt = null;
+
+    private DateTimeImmutable $createdAt;
 
     /**
      * @param class-string<AbstractJob> $jobClass
@@ -32,9 +43,9 @@ final class JobEntry
         private readonly int $maxAttempts,
         private readonly int $retryDelay,
         private readonly int $timeout,
-        private \DateTimeImmutable $scheduledAt
+        private DateTimeImmutable $scheduledAt
     ) {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     // -------------------------------------------------------------------------
@@ -87,7 +98,7 @@ final class JobEntry
         return $this->timeout;
     }
 
-    public function getScheduledAt(): \DateTimeImmutable
+    public function getScheduledAt(): DateTimeImmutable
     {
         return $this->scheduledAt;
     }
@@ -97,17 +108,17 @@ final class JobEntry
         return $this->lastError;
     }
 
-    public function getStartedAt(): ?\DateTimeImmutable
+    public function getStartedAt(): ?DateTimeImmutable
     {
         return $this->startedAt;
     }
 
-    public function getCompletedAt(): ?\DateTimeImmutable
+    public function getCompletedAt(): ?DateTimeImmutable
     {
         return $this->completedAt;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -144,21 +155,21 @@ final class JobEntry
         return $this;
     }
 
-    public function setStartedAt(?\DateTimeImmutable $date): self
+    public function setStartedAt(?DateTimeImmutable $date): self
     {
         $this->startedAt = $date;
 
         return $this;
     }
 
-    public function setCompletedAt(?\DateTimeImmutable $date): self
+    public function setCompletedAt(?DateTimeImmutable $date): self
     {
         $this->completedAt = $date;
 
         return $this;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $date): self
+    public function setCreatedAt(DateTimeImmutable $date): self
     {
         $this->createdAt = $date;
 
@@ -172,27 +183,27 @@ final class JobEntry
     public function markAsRunning(): void
     {
         $this->status = self::STATUS_RUNNING;
-        $this->startedAt = new \DateTimeImmutable();
+        $this->startedAt = new DateTimeImmutable();
     }
 
     public function markAsCompleted(): void
     {
         $this->status = self::STATUS_COMPLETED;
-        $this->completedAt = new \DateTimeImmutable();
+        $this->completedAt = new DateTimeImmutable();
     }
 
     public function markAsFailed(): void
     {
         $this->status = self::STATUS_FAILED;
-        $this->completedAt = new \DateTimeImmutable();
+        $this->completedAt = new DateTimeImmutable();
     }
 
     public function incrementAttempt(): void
     {
-        $this->attempts++;
+        ++$this->attempts;
     }
 
-    public function reschedule(\DateTimeImmutable $scheduledAt): void
+    public function reschedule(DateTimeImmutable $scheduledAt): void
     {
         $this->status = self::STATUS_PENDING;
         $this->scheduledAt = $scheduledAt;
@@ -208,7 +219,6 @@ final class JobEntry
             return false;
         }
 
-        return $this->scheduledAt <= new \DateTimeImmutable();
+        return $this->scheduledAt <= new DateTimeImmutable();
     }
 }
-

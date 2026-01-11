@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Import;
 
-use WeprestaAcf\Extension\Import\Parser\CsvParser;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Extension\Import\Parser\CsvParser;
 
 class CsvParserTest extends TestCase
 {
@@ -23,6 +23,7 @@ class CsvParserTest extends TestCase
         parent::tearDown();
         // Nettoyer
         $files = glob($this->tempDir . '/*');
+
         foreach ($files as $file) {
             unlink($file);
         }
@@ -116,4 +117,3 @@ class CsvParserTest extends TestCase
         $this->assertEquals('csv', $parser->getFileExtension());
     }
 }
-

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 
 /**
- * Gallery field type - Multiple images with reorderable gallery
+ * Gallery field type - Multiple images with reorderable gallery.
  *
  * Stores array of image metadata as JSON:
  * [
@@ -43,9 +43,7 @@ use Symfony\Component\Form\Extension\Core\Type\FileType;
  */
 final class GalleryField extends AbstractFieldType
 {
-    /**
-     * Allowed MIME types for image uploads
-     */
+    /** Allowed MIME types for image uploads */
     private const ALLOWED_IMAGE_MIMES = [
         'image/jpeg',
         'image/png',
@@ -75,17 +73,20 @@ final class GalleryField extends AbstractFieldType
         }
 
         // If already JSON string, validate and return
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
+
+            if (\is_array($decoded)) {
                 // Ensure it's an array of items (not a single item)
-                if (count($decoded) === 0) {
+                if (\count($decoded) === 0) {
                     return null;
                 }
+
                 // Check if it's already a list (numeric array of arrays)
                 if (isset($decoded[0])) {
                     return $value;
                 }
+
                 // Single item - wrap in array
                 return json_encode([$decoded]);
             }
@@ -94,7 +95,7 @@ final class GalleryField extends AbstractFieldType
         }
 
         // If array, encode to JSON
-        if (is_array($value)) {
+        if (\is_array($value)) {
             if (empty($value)) {
                 return null;
             }
@@ -112,19 +113,20 @@ final class GalleryField extends AbstractFieldType
         }
 
         // Parse JSON to array
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
+
+            if (\is_array($decoded)) {
                 // Sort by position
-                usort($decoded, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+                usort($decoded, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
                 return $decoded;
             }
         }
 
         // Already an array
-        if (is_array($value)) {
-            usort($value, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+        if (\is_array($value)) {
+            usort($value, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
             return $value;
         }
@@ -143,14 +145,14 @@ final class GalleryField extends AbstractFieldType
         $html = '<div class="acf-gallery">';
 
         foreach ($items as $item) {
-            if (!isset($item['url'])) {
+            if (! isset($item['url'])) {
                 continue;
             }
 
             $url = htmlspecialchars($item['url'], ENT_QUOTES, 'UTF-8');
             $alt = htmlspecialchars($item['title'] ?? $item['original_name'] ?? 'Image', ENT_QUOTES, 'UTF-8');
 
-            $html .= sprintf(
+            $html .= \sprintf(
                 '<figure class="acf-gallery-item"><img src="%s" alt="%s" class="img-fluid" loading="lazy"></figure>',
                 $url,
                 $alt
@@ -172,6 +174,7 @@ final class GalleryField extends AbstractFieldType
 
         // Return comma-separated titles/names
         $names = [];
+
         foreach ($items as $item) {
             $names[] = $item['title'] ?? $item['original_name'] ?? '';
         }
@@ -192,12 +195,12 @@ final class GalleryField extends AbstractFieldType
         $minItems = $fieldConfig['minItems'] ?? null;
         $maxItems = $fieldConfig['maxItems'] ?? null;
 
-        if ($minItems !== null && count($items) < $minItems) {
-            $errors[] = sprintf('Minimum %d images required.', $minItems);
+        if ($minItems !== null && \count($items) < $minItems) {
+            $errors[] = \sprintf('Minimum %d images required.', $minItems);
         }
 
-        if ($maxItems !== null && count($items) > $maxItems) {
-            $errors[] = sprintf('Maximum %d images allowed.', $maxItems);
+        if ($maxItems !== null && \count($items) > $maxItems) {
+            $errors[] = \sprintf('Maximum %d images allowed.', $maxItems);
         }
 
         return $errors;
@@ -290,7 +293,7 @@ final class GalleryField extends AbstractFieldType
     }
 
     /**
-     * Get allowed MIME types from config
+     * Get allowed MIME types from config.
      *
      * @return array<string>
      */
@@ -306,8 +309,10 @@ final class GalleryField extends AbstractFieldType
         ];
 
         $mimes = [];
+
         foreach ($formats as $format) {
             $format = strtolower($format);
+
             if (isset($mimeMap[$format])) {
                 $mimes[] = $mimeMap[$format];
             }
@@ -316,9 +321,6 @@ final class GalleryField extends AbstractFieldType
         return array_unique($mimes) ?: self::ALLOWED_IMAGE_MIMES;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -333,14 +335,11 @@ final class GalleryField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<div class="acf-gallery-field acf-gallery-compact" data-slug="%s">' .
             '<input type="hidden" class="acf-subfield-input acf-gallery-value" data-subfield="%s" value="{value}">' .
             '<div class="acf-gallery-items"></div>' .

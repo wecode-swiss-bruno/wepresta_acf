@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Jobs;
 
+use DateTimeImmutable;
 use Db;
 
 /**
@@ -42,7 +43,7 @@ final class JobRepository
             PRIMARY KEY (`id_job`),
             INDEX `idx_status_scheduled` (`status`, `scheduled_at`),
             INDEX `idx_job_class` (`job_class`)
-        ) ENGINE=" . _MYSQL_ENGINE_ . " DEFAULT CHARSET=utf8mb4;";
+        ) ENGINE=" . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
 
         return (bool) Db::getInstance()->execute($sql);
     }
@@ -117,7 +118,7 @@ final class JobRepository
 
         $results = Db::getInstance()->executeS($sql);
 
-        if (!$results) {
+        if (! $results) {
             return [];
         }
 
@@ -132,7 +133,7 @@ final class JobRepository
         $sql = "SELECT * FROM `{$this->table}` WHERE `id_job` = " . (int) $id;
         $result = Db::getInstance()->getRow($sql);
 
-        if (!$result) {
+        if (! $result) {
             return null;
         }
 
@@ -170,7 +171,7 @@ final class JobRepository
     {
         $sql = "DELETE FROM `{$this->table}`
                 WHERE `status` IN ('completed', 'failed')
-                AND `completed_at` < DATE_SUB(NOW(), INTERVAL " . (int) $daysToKeep . " DAY)";
+                AND `completed_at` < DATE_SUB(NOW(), INTERVAL " . (int) $daysToKeep . ' DAY)';
 
         Db::getInstance()->execute($sql);
 
@@ -209,24 +210,23 @@ final class JobRepository
             maxAttempts: (int) $data['max_attempts'],
             retryDelay: (int) $data['retry_delay'],
             timeout: (int) $data['timeout'],
-            scheduledAt: new \DateTimeImmutable($data['scheduled_at'])
+            scheduledAt: new DateTimeImmutable($data['scheduled_at'])
         );
 
         $entry->setId((int) $data['id_job']);
         $entry->setStatus($data['status']);
         $entry->setAttempts((int) $data['attempts']);
         $entry->setLastError($data['last_error']);
-        $entry->setCreatedAt(new \DateTimeImmutable($data['created_at']));
+        $entry->setCreatedAt(new DateTimeImmutable($data['created_at']));
 
-        if (!empty($data['started_at'])) {
-            $entry->setStartedAt(new \DateTimeImmutable($data['started_at']));
+        if (! empty($data['started_at'])) {
+            $entry->setStartedAt(new DateTimeImmutable($data['started_at']));
         }
 
-        if (!empty($data['completed_at'])) {
-            $entry->setCompletedAt(new \DateTimeImmutable($data['completed_at']));
+        if (! empty($data['completed_at'])) {
+            $entry->setCompletedAt(new DateTimeImmutable($data['completed_at']));
         }
 
         return $entry;
     }
 }
-

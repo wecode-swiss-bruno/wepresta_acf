@@ -19,9 +19,9 @@ namespace WeprestaAcf\Wedev\Extension\Notifications;
 final class Notification implements NotificationInterface
 {
     /**
-     * @param array<string>        $recipients
+     * @param array<string> $recipients
      * @param array<string, mixed> $data
-     * @param array<string>        $channels
+     * @param array<string> $channels
      */
     public function __construct(
         private readonly array $recipients,
@@ -61,7 +61,7 @@ final class Notification implements NotificationInterface
      * Crée une notification pour un seul destinataire.
      *
      * @param array<string, mixed> $data
-     * @param array<string>        $channels
+     * @param array<string> $channels
      */
     public static function to(
         string $recipient,
@@ -76,9 +76,9 @@ final class Notification implements NotificationInterface
     /**
      * Crée une notification pour plusieurs destinataires.
      *
-     * @param array<string>        $recipients
+     * @param array<string> $recipients
      * @param array<string, mixed> $data
-     * @param array<string>        $channels
+     * @param array<string> $channels
      */
     public static function toMany(
         array $recipients,
@@ -90,4 +90,3 @@ final class Notification implements NotificationInterface
         return new self($recipients, $subject, $content, $data, $channels);
     }
 }
-

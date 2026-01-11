@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Audit;
 
+use DateTimeImmutable;
 use Db;
 
 /**
@@ -44,7 +45,7 @@ final class AuditRepository
             INDEX `idx_action` (`action`),
             INDEX `idx_created` (`created_at`),
             INDEX `idx_shop` (`id_shop`)
-        ) ENGINE=" . _MYSQL_ENGINE_ . " DEFAULT CHARSET=utf8mb4;";
+        ) ENGINE=" . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
 
         return (bool) Db::getInstance()->execute($sql);
     }
@@ -69,9 +70,9 @@ final class AuditRepository
             'user_id' => $entry->getUserId(),
             'user_name' => $entry->getUserName() !== null ? pSQL($entry->getUserName()) : null,
             'ip_address' => pSQL($entry->getIpAddress()),
-            'old_values' => !empty($entry->getOldValues()) ? pSQL(json_encode($entry->getOldValues())) : null,
-            'new_values' => !empty($entry->getNewValues()) ? pSQL(json_encode($entry->getNewValues())) : null,
-            'context' => !empty($entry->getContext()) ? pSQL(json_encode($entry->getContext())) : null,
+            'old_values' => ! empty($entry->getOldValues()) ? pSQL(json_encode($entry->getOldValues())) : null,
+            'new_values' => ! empty($entry->getNewValues()) ? pSQL(json_encode($entry->getNewValues())) : null,
+            'context' => ! empty($entry->getContext()) ? pSQL(json_encode($entry->getContext())) : null,
             'id_shop' => (int) $entry->getShopId(),
             'created_at' => pSQL($entry->getCreatedAt()->format('Y-m-d H:i:s')),
         ];
@@ -92,36 +93,36 @@ final class AuditRepository
     {
         $where = ['1 = 1'];
 
-        if (!empty($filters['action'])) {
+        if (! empty($filters['action'])) {
             $where[] = "`action` = '" . pSQL($filters['action']) . "'";
         }
 
-        if (!empty($filters['entity_type'])) {
+        if (! empty($filters['entity_type'])) {
             $where[] = "`entity_type` = '" . pSQL($filters['entity_type']) . "'";
         }
 
-        if (!empty($filters['entity_id'])) {
+        if (! empty($filters['entity_id'])) {
             $where[] = '`entity_id` = ' . (int) $filters['entity_id'];
         }
 
-        if (!empty($filters['user_id'])) {
+        if (! empty($filters['user_id'])) {
             $where[] = '`user_id` = ' . (int) $filters['user_id'];
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $where[] = "`created_at` >= '" . pSQL($filters['date_from']) . "'";
         }
 
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $where[] = "`created_at` <= '" . pSQL($filters['date_to']) . "'";
         }
 
-        if (!empty($filters['shop_id'])) {
+        if (! empty($filters['shop_id'])) {
             $where[] = '`id_shop` = ' . (int) $filters['shop_id'];
         }
 
-        $sql = sprintf(
-            "SELECT * FROM `%s` WHERE %s ORDER BY `created_at` DESC LIMIT %d OFFSET %d",
+        $sql = \sprintf(
+            'SELECT * FROM `%s` WHERE %s ORDER BY `created_at` DESC LIMIT %d OFFSET %d',
             $this->table,
             implode(' AND ', $where),
             (int) $limit,
@@ -130,7 +131,7 @@ final class AuditRepository
 
         $results = Db::getInstance()->executeS($sql);
 
-        if (!$results) {
+        if (! $results) {
             return [];
         }
 
@@ -169,16 +170,16 @@ final class AuditRepository
     {
         $where = ['1 = 1'];
 
-        if (!empty($filters['action'])) {
+        if (! empty($filters['action'])) {
             $where[] = "`action` = '" . pSQL($filters['action']) . "'";
         }
 
-        if (!empty($filters['entity_type'])) {
+        if (! empty($filters['entity_type'])) {
             $where[] = "`entity_type` = '" . pSQL($filters['entity_type']) . "'";
         }
 
-        $sql = sprintf(
-            "SELECT COUNT(*) FROM `%s` WHERE %s",
+        $sql = \sprintf(
+            'SELECT COUNT(*) FROM `%s` WHERE %s',
             $this->table,
             implode(' AND ', $where)
         );
@@ -191,8 +192,8 @@ final class AuditRepository
      */
     public function deleteOldEntries(int $daysToKeep): int
     {
-        $sql = sprintf(
-            "DELETE FROM `%s` WHERE `created_at` < DATE_SUB(NOW(), INTERVAL %d DAY)",
+        $sql = \sprintf(
+            'DELETE FROM `%s` WHERE `created_at` < DATE_SUB(NOW(), INTERVAL %d DAY)',
             $this->table,
             (int) $daysToKeep
         );
@@ -216,16 +217,15 @@ final class AuditRepository
             userId: $data['user_id'] !== null ? (int) $data['user_id'] : null,
             userName: $data['user_name'],
             ipAddress: $data['ip_address'],
-            oldValues: !empty($data['old_values']) ? json_decode($data['old_values'], true) ?: [] : [],
-            newValues: !empty($data['new_values']) ? json_decode($data['new_values'], true) ?: [] : [],
-            context: !empty($data['context']) ? json_decode($data['context'], true) ?: [] : [],
+            oldValues: ! empty($data['old_values']) ? json_decode($data['old_values'], true) ?: [] : [],
+            newValues: ! empty($data['new_values']) ? json_decode($data['new_values'], true) ?: [] : [],
+            context: ! empty($data['context']) ? json_decode($data['context'], true) ?: [] : [],
             shopId: (int) $data['id_shop']
         );
 
         $entry->setId((int) $data['id_audit']);
-        $entry->setCreatedAt(new \DateTimeImmutable($data['created_at']));
+        $entry->setCreatedAt(new DateTimeImmutable($data['created_at']));
 
         return $entry;
     }
 }
-

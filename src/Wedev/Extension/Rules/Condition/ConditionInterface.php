@@ -16,4 +16,3 @@ interface ConditionInterface
      */
     public function evaluate(RuleContext $context): bool;
 }
-

@@ -6,6 +6,7 @@ import { fieldTypeCategories, type FieldTypeDefinition } from '@/types'
 
 const props = defineProps<{
   show: boolean
+  disabledFieldTypes?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -69,13 +70,16 @@ const recentlyUsedTypes = computed(() => {
 const groupedTypes = computed(() => {
   const query = searchQuery.value.toLowerCase()
   const groups: Record<string, FieldTypeDefinition[]> = {}
+  const disabledTypes = props.disabledFieldTypes || []
 
-  // Filter types based on search query
+  // Filter types based on search query and disabled list
   const filteredTypes = store.fieldTypes.filter(type =>
-    !query ||
-    type.label.toLowerCase().includes(query) ||
-    type.type.toLowerCase().includes(query) ||
-    fieldTypeCategories[type.category as keyof typeof fieldTypeCategories]?.toLowerCase().includes(query)
+    !disabledTypes.includes(type.type) && (
+      !query ||
+      type.label.toLowerCase().includes(query) ||
+      type.type.toLowerCase().includes(query) ||
+      fieldTypeCategories[type.category as keyof typeof fieldTypeCategories]?.toLowerCase().includes(query)
+    )
   )
 
   // Group filtered types by category

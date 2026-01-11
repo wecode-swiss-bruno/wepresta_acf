@@ -55,4 +55,3 @@ final class Rule implements RuleInterface
         return $this->priority;
     }
 }
-

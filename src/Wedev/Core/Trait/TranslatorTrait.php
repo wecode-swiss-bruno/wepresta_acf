@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - TranslatorTrait
+ * WEDEV Core - TranslatorTrait.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -20,6 +21,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 trait TranslatorTrait
 {
     protected ?TranslatorInterface $translator = null;
+
     protected string $translationDomain = 'Modules.Modulestarter.Admin';
 
     /**
@@ -46,6 +48,7 @@ trait TranslatorTrait
         if ($this->translator === null) {
             // Fallback: retourner l'ID avec les paramètres remplacés
             $translation = $id;
+
             foreach ($parameters as $key => $value) {
                 $translation = str_replace($key, (string) $value, $translation);
             }
@@ -94,4 +97,3 @@ trait TranslatorTrait
         return $this->trans($id, $parameters, 'Admin.Notifications.Success');
     }
 }
-

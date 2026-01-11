@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Helper;
 
+use Context;
 use WeprestaAcf\Infrastructure\Repository\AcfFieldRepository;
 use WeprestaAcf\Infrastructure\Repository\AcfFieldValueRepository;
 
@@ -27,15 +28,16 @@ use WeprestaAcf\Infrastructure\Repository\AcfFieldValueRepository;
 final class AcfHelper
 {
     private static ?AcfFieldValueRepository $valueRepository = null;
+
     private static ?AcfFieldRepository $fieldRepository = null;
 
     /**
      * Gets a single field value.
      *
-     * @param string   $slug       The field slug
-     * @param int      $objectId   The object ID (product ID, category ID, etc.)
-     * @param string   $objectType The object type (product, category, cms, etc.)
-     * @param int|null $langId     Language ID (defaults to current context language)
+     * @param string $slug The field slug
+     * @param int $objectId The object ID (product ID, category ID, etc.)
+     * @param string $objectType The object type (product, category, cms, etc.)
+     * @param int|null $langId Language ID (defaults to current context language)
      *
      * @return mixed The field value or null if not found
      */
@@ -45,7 +47,7 @@ final class AcfHelper
         string $objectType = 'product',
         ?int $langId = null
     ): mixed {
-        $langId ??= (int) \Context::getContext()->language->id;
+        $langId ??= (int) Context::getContext()->language->id;
 
         return self::getValueRepository()->getValue(
             $slug,
@@ -58,9 +60,9 @@ final class AcfHelper
     /**
      * Gets all field values for an object.
      *
-     * @param int      $objectId   The object ID
-     * @param string   $objectType The object type
-     * @param int|null $langId     Language ID
+     * @param int $objectId The object ID
+     * @param string $objectType The object type
+     * @param int|null $langId Language ID
      *
      * @return array<string, mixed> Map of slug => value
      */
@@ -69,7 +71,7 @@ final class AcfHelper
         string $objectType = 'product',
         ?int $langId = null
     ): array {
-        $langId ??= (int) \Context::getContext()->language->id;
+        $langId ??= (int) Context::getContext()->language->id;
 
         return self::getValueRepository()->getValuesForObject(
             $objectId,
@@ -81,8 +83,8 @@ final class AcfHelper
     /**
      * Checks if an object has a specific field value.
      *
-     * @param string $slug       The field slug
-     * @param int    $objectId   The object ID
+     * @param string $slug The field slug
+     * @param int $objectId The object ID
      * @param string $objectType The object type
      *
      * @return bool True if the field has a non-null value
@@ -98,11 +100,11 @@ final class AcfHelper
     /**
      * Gets a field value with a default fallback.
      *
-     * @param string   $slug       The field slug
-     * @param int      $objectId   The object ID
-     * @param mixed    $default    Default value if field is empty
-     * @param string   $objectType The object type
-     * @param int|null $langId     Language ID
+     * @param string $slug The field slug
+     * @param int $objectId The object ID
+     * @param mixed $default Default value if field is empty
+     * @param string $objectType The object type
+     * @param int|null $langId Language ID
      *
      * @return mixed The field value or default
      */
@@ -121,10 +123,10 @@ final class AcfHelper
     /**
      * Gets multiple field values at once.
      *
-     * @param array<string> $slugs      List of field slugs
-     * @param int           $objectId   The object ID
-     * @param string        $objectType The object type
-     * @param int|null      $langId     Language ID
+     * @param array<string> $slugs List of field slugs
+     * @param int $objectId The object ID
+     * @param string $objectType The object type
+     * @param int|null $langId Language ID
      *
      * @return array<string, mixed> Map of slug => value
      */
@@ -182,4 +184,3 @@ final class AcfHelper
         return self::$fieldRepository;
     }
 }
-

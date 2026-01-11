@@ -35,9 +35,9 @@ use WeprestaAcf\Wedev\Extension\Events\AbstractDomainEvent;
 final class EntityCreatedEvent extends AbstractDomainEvent
 {
     /**
-     * @param string              $entityType The type of entity (e.g., 'group', 'product', 'order')
-     * @param int|string          $entityId   The entity's identifier
-     * @param array<string,mixed> $data       Additional data about the created entity
+     * @param string $entityType The type of entity (e.g., 'group', 'product', 'order')
+     * @param int|string $entityId The entity's identifier
+     * @param array<string,mixed> $data Additional data about the created entity
      */
     public function __construct(
         public readonly string $entityType,
@@ -59,7 +59,6 @@ final class EntityCreatedEvent extends AbstractDomainEvent
      */
     public function getSpecificEventName(): string
     {
-        return sprintf('%s.created', $this->entityType);
+        return \sprintf('%s.created', $this->entityType);
     }
 }
-

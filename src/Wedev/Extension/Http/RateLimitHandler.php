@@ -55,7 +55,7 @@ final class RateLimitHandler
         );
 
         // Si on a atteint la limite, attendre
-        if (count($this->requestTimes) >= $this->maxRequests) {
+        if (\count($this->requestTimes) >= $this->maxRequests) {
             $oldestRequest = min($this->requestTimes);
             $waitTime = ($oldestRequest + $this->perSeconds - $now);
 
@@ -77,7 +77,7 @@ final class RateLimitHandler
         $now = microtime(true);
         $windowStart = $now - $this->perSeconds;
 
-        $recentRequests = count(array_filter(
+        $recentRequests = \count(array_filter(
             $this->requestTimes,
             static fn (float $time): bool => $time > $windowStart
         ));
@@ -116,4 +116,3 @@ final class RateLimitHandler
         $this->requestTimes = [];
     }
 }
-

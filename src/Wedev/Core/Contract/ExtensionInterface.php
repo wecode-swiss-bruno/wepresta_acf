@@ -70,4 +70,3 @@ interface ExtensionInterface
      */
     public static function getDependencies(): array;
 }
-

@@ -5,6 +5,17 @@
 {assign var="inputId" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
 {assign var="inputName" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
 {assign var="choices" value=$fieldConfig.choices|default:[]}
+
+{* Function to get translated choice label *}
+{function getChoiceLabel choice=[] currentLangId=''}
+    {if isset($choice.translations) && isset($choice.translations[$currentLangId]) && !empty($choice.translations[$currentLangId])}
+        {$choice.translations[$currentLangId]|escape:'htmlall':'UTF-8'}
+    {elseif !empty($choice.label)}
+        {$choice.label|escape:'htmlall':'UTF-8'}
+    {else}
+        {$choice.value|escape:'htmlall':'UTF-8'}
+    {/if}
+{/function}
 {assign var="selectedValues" value=$value}
 {if !is_array($selectedValues)}
     {assign var="selectedValues" value=[]}
@@ -37,7 +48,7 @@
                            {if in_array($choice.value, $selectedValues)}checked{/if}>
                 {/if}
                 <label class="form-check-label" for="{$choiceId|escape:'htmlall':'UTF-8'}">
-                    {$choice.label|escape:'htmlall':'UTF-8'}
+                    {getChoiceLabel choice=$choice currentLangId=$currentLangId}
                 </label>
             </div>
         {/foreach}

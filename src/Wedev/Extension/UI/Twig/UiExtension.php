@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace WeprestaAcf\Wedev\Extension\UI\Twig;
 
 use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
 use Twig\TwigFilter;
+use Twig\TwigFunction;
 
 /**
- * WEDEV UI Extension - Fonctions Twig pour le back-office PrestaShop 9
+ * WEDEV UI Extension - Fonctions Twig pour le back-office PrestaShop 9.
  *
  * Fournit des helpers pour générer des composants UI natifs PrestaShop.
  * Utilise exclusivement les classes Bootstrap 4 / UIKit PS9.
@@ -41,7 +41,7 @@ class UiExtension extends AbstractExtension
     }
 
     /**
-     * Render Material Icon
+     * Render Material Icon.
      *
      * @param string $name Icon name (e.g., 'settings', 'check_circle')
      * @param string $size Size: 'sm' (16px), 'md' (20px), 'lg' (24px), 'xl' (32px)
@@ -59,7 +59,7 @@ class UiExtension extends AbstractExtension
         $fontSize = $sizes[$size] ?? '20';
         $classAttr = $class ? ' ' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') : '';
 
-        return sprintf(
+        return \sprintf(
             '<i class="material-icons%s" style="font-size: %spx; vertical-align: middle;">%s</i>',
             $classAttr,
             $fontSize,
@@ -68,7 +68,7 @@ class UiExtension extends AbstractExtension
     }
 
     /**
-     * Render Bootstrap Alert
+     * Render Bootstrap Alert.
      *
      * @param string $message Alert message
      * @param string $type Alert type: 'success', 'info', 'warning', 'danger'
@@ -82,7 +82,7 @@ class UiExtension extends AbstractExtension
         ?string $icon = null
     ): string {
         $validTypes = ['success', 'info', 'warning', 'danger', 'primary', 'secondary'];
-        $type = in_array($type, $validTypes, true) ? $type : 'info';
+        $type = \in_array($type, $validTypes, true) ? $type : 'info';
 
         $dismissClass = $dismissible ? ' alert-dismissible fade show' : '';
         $dismissButton = $dismissible
@@ -93,7 +93,7 @@ class UiExtension extends AbstractExtension
             ? $this->renderIcon($icon, 'md', 'mr-2') . ' '
             : '';
 
-        return sprintf(
+        return \sprintf(
             '<div class="alert alert-%s%s" role="alert">%s%s%s</div>',
             htmlspecialchars($type, ENT_QUOTES, 'UTF-8'),
             $dismissClass,
@@ -104,7 +104,7 @@ class UiExtension extends AbstractExtension
     }
 
     /**
-     * Render Bootstrap Badge
+     * Render Bootstrap Badge.
      *
      * @param string $text Badge text
      * @param string $variant Badge variant: 'primary', 'secondary', 'success', 'danger', 'warning', 'info'
@@ -113,11 +113,11 @@ class UiExtension extends AbstractExtension
     public function renderBadge(string $text, string $variant = 'primary', bool $pill = false): string
     {
         $validVariants = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark'];
-        $variant = in_array($variant, $validVariants, true) ? $variant : 'primary';
+        $variant = \in_array($variant, $validVariants, true) ? $variant : 'primary';
 
         $pillClass = $pill ? ' badge-pill' : '';
 
-        return sprintf(
+        return \sprintf(
             '<span class="badge badge-%s%s">%s</span>',
             htmlspecialchars($variant, ENT_QUOTES, 'UTF-8'),
             $pillClass,
@@ -126,7 +126,7 @@ class UiExtension extends AbstractExtension
     }
 
     /**
-     * Render Bootstrap Button
+     * Render Bootstrap Button.
      *
      * @param string $label Button label
      * @param string $type Button type: 'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'outline-*'
@@ -152,15 +152,16 @@ class UiExtension extends AbstractExtension
             : '';
 
         $attrsHtml = '';
+
         foreach ($attrs as $key => $value) {
-            $attrsHtml .= sprintf(
+            $attrsHtml .= \sprintf(
                 ' %s="%s"',
                 htmlspecialchars($key, ENT_QUOTES, 'UTF-8'),
                 htmlspecialchars($value, ENT_QUOTES, 'UTF-8')
             );
         }
 
-        return sprintf(
+        return \sprintf(
             '<button type="button" class="btn btn-%s%s"%s>%s%s</button>',
             htmlspecialchars($type, ENT_QUOTES, 'UTF-8'),
             $sizeClass,
@@ -171,7 +172,7 @@ class UiExtension extends AbstractExtension
     }
 
     /**
-     * Render Bootstrap Spinner
+     * Render Bootstrap Spinner.
      *
      * @param string $type Spinner type: 'border', 'grow'
      * @param string $size Size: 'sm', 'md'
@@ -182,7 +183,7 @@ class UiExtension extends AbstractExtension
         $type = $type === 'grow' ? 'grow' : 'border';
         $sizeClass = $size === 'sm' ? ' spinner-' . $type . '-sm' : '';
 
-        return sprintf(
+        return \sprintf(
             '<div class="spinner-%s text-%s%s" role="status"><span class="sr-only">Loading...</span></div>',
             $type,
             htmlspecialchars($variant, ENT_QUOTES, 'UTF-8'),
@@ -191,7 +192,7 @@ class UiExtension extends AbstractExtension
     }
 
     /**
-     * Format boolean status as badge
+     * Format boolean status as badge.
      *
      * @param bool $status Status value
      * @param array{true?: string, false?: string} $labels Custom labels
@@ -207,7 +208,7 @@ class UiExtension extends AbstractExtension
     }
 
     /**
-     * Truncate text with ellipsis
+     * Truncate text with ellipsis.
      */
     public function truncate(string $text, int $length = 50, string $suffix = '...'): string
     {
@@ -218,8 +219,3 @@ class UiExtension extends AbstractExtension
         return mb_substr($text, 0, $length - mb_strlen($suffix)) . $suffix;
     }
 }
-
-
-
-
-

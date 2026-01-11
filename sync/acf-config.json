@@ -1,11 +1,11 @@
 {
     "version": "1.0",
-    "exported_at": "2026-01-08T15:03:24+01:00",
+    "exported_at": "2026-01-10T15:32:29+01:00",
     "module_version": "1.2.1",
     "prestashop_version": "9.0.2",
     "groups": [
         {
-            "uuid": "6fedfed1-b0f7-4e26-9b90-ba97f8598ecb",
+            "uuid": "5d7c8409-f608-4d8b-b6f3-e205aa6a93e2",
             "title": "test",
             "slug": "test",
             "description": "",
@@ -17,14 +17,6 @@
                         },
                         "product"
                     ]
-                },
-                {
-                    "==": [
-                        {
-                            "var": "entity_type"
-                        },
-                        "category"
-                    ]
                 }
             ],
             "placement_tab": "extra",
@@ -33,16 +25,17 @@
             "priority": 10,
             "active": true,
             "bo_options": [],
+            "fo_options": [],
             "shop_ids": [
                 1
             ],
             "fields": [
                 {
-                    "uuid": "2bdecb79-265c-4fc0-9c6c-1eecc35ba7fa",
+                    "uuid": "377b098d-0f9f-43f7-9e9f-ae15d50deff6",
                     "id_parent": null,
                     "type": "text",
-                    "title": "Text Field",
-                    "slug": "text_field",
+                    "title": "Text Fields",
+                    "slug": "text_fields",
                     "instructions": "",
                     "position": 0,
                     "required": false,
@@ -51,25 +44,13 @@
                     "config": [],
                     "validation": [],
                     "conditions": [],
-                    "wrapper": {
-                        "width": "100"
-                    },
+                    "wrapper": [],
+                    "fo_options": []
                 }
             ],
-            "field_values": [
-                {
-                    "field_slug": "text_field",
-                    "entity_type": "product",
-                    "entity_id": 0,
-                    "id_product": null,
-                    "id_shop": 1,
-                    "id_lang": null,
-                    "value": "TEST PRODUCT / CAT",
-                    "value_index": "TEST PRODUCT / CAT"
-                }
-            ]
+            "field_values": []
         }
     ],
-    "timestamp": 1767881004,
-    "updated_at": "2026-01-08T15:03:24+01:00"
+    "timestamp": 1768055549,
+    "updated_at": "2026-01-10T15:32:29+01:00"
 }

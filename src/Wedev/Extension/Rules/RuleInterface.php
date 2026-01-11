@@ -39,4 +39,3 @@ interface RuleInterface
      */
     public function getPriority(): int;
 }
-

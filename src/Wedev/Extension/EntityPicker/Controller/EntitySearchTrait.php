@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Extension - EntityPicker
+ * WEDEV Extension - EntityPicker.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -12,9 +13,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\EntityPicker\Controller;
 
-use WeprestaAcf\Wedev\Extension\EntityPicker\Provider\EntityProviderInterface;
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use WeprestaAcf\Wedev\Extension\EntityPicker\Provider\EntityProviderInterface;
 
 /**
  * Trait pour les contrôleurs admin qui implémentent des endpoints de recherche.
@@ -57,7 +59,7 @@ trait EntitySearchTrait
     ): JsonResponse {
         $query = trim((string) $request->query->get('q', ''));
 
-        if (strlen($query) < $minChars) {
+        if (\strlen($query) < $minChars) {
             return new JsonResponse([]);
         }
 
@@ -65,7 +67,7 @@ trait EntitySearchTrait
             $results = $provider->search($query, $limit);
 
             return new JsonResponse($results);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => true,
                 'message' => $e->getMessage(),
@@ -86,7 +88,7 @@ trait EntitySearchTrait
     ): JsonResponse {
         $query = trim($query);
 
-        if (strlen($query) < $minChars) {
+        if (\strlen($query) < $minChars) {
             return new JsonResponse([]);
         }
 
@@ -94,7 +96,7 @@ trait EntitySearchTrait
             $results = $provider->search($query, $limit);
 
             return new JsonResponse($results);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => true,
                 'message' => $e->getMessage(),
@@ -117,7 +119,7 @@ trait EntitySearchTrait
 
             $ids = $data['ids'] ?? [];
 
-            if (!is_array($ids) || empty($ids)) {
+            if (! \is_array($ids) || empty($ids)) {
                 return new JsonResponse([]);
             }
 
@@ -125,7 +127,7 @@ trait EntitySearchTrait
             $results = $provider->getByIds($ids);
 
             return new JsonResponse($results);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => true,
                 'message' => $e->getMessage(),
@@ -150,7 +152,7 @@ trait EntitySearchTrait
             }
 
             $ids = array_map('intval', explode(',', $idsParam));
-            $ids = array_filter($ids, fn($id) => $id > 0);
+            $ids = array_filter($ids, fn ($id) => $id > 0);
 
             if (empty($ids)) {
                 return new JsonResponse([]);
@@ -159,7 +161,7 @@ trait EntitySearchTrait
             $results = $provider->getByIds($ids);
 
             return new JsonResponse($results);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return new JsonResponse([
                 'error' => true,
                 'message' => $e->getMessage(),
@@ -167,4 +169,3 @@ trait EntitySearchTrait
         }
     }
 }
-

@@ -44,4 +44,3 @@ final class StateEntityFieldProvider implements EntityFieldProviderInterface
         return 'State';
     }
 }
-

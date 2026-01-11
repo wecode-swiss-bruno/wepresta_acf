@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Jobs;
 
+use Throwable;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 
 /**
@@ -53,7 +54,9 @@ abstract class AbstractJob implements JobInterface
     use LoggerTrait;
 
     protected int $maxAttempts = 3;
+
     protected int $retryDelay = 60;  // 1 minute
+
     protected int $timeout = 300;    // 5 minutes
 
     /**
@@ -83,9 +86,9 @@ abstract class AbstractJob implements JobInterface
     /**
      * Callback appelé en cas d'échec définitif.
      */
-    public function onFailed(\Throwable $exception): void
+    public function onFailed(Throwable $exception): void
     {
-        $this->log('error', sprintf(
+        $this->log('error', \sprintf(
             'Job %s failed after %d attempts: %s',
             static::class,
             $this->maxAttempts,
@@ -107,4 +110,3 @@ abstract class AbstractJob implements JobInterface
      */
     abstract public static function deserialize(array $data): self;
 }
-

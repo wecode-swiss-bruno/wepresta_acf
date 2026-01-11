@@ -50,4 +50,3 @@ interface InstallableInterface
      */
     public function isInstalled(): bool;
 }
-

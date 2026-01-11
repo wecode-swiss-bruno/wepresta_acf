@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Core;
 
-use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
+use Configuration;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 
 class ConfigurationAdapterTest extends TestCase
 {
@@ -14,7 +15,7 @@ class ConfigurationAdapterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        \Configuration::reset();
+        Configuration::reset();
         $this->adapter = new ConfigurationAdapter();
     }
 
@@ -78,4 +79,3 @@ class ConfigurationAdapterTest extends TestCase
         $this->assertFalse($this->adapter->hasKey('NOT_EXISTS'));
     }
 }
-

@@ -52,4 +52,3 @@ interface EventSubscriberInterface
      */
     public static function getSubscribedEvents(): array;
 }
-

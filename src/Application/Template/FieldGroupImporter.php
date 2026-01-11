@@ -4,36 +4,47 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Template;
 
+use Exception;
+use JsonException;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 
 /**
- * Imports field groups from JSON format
+ * Imports field groups from JSON format.
  */
 final class FieldGroupImporter
 {
     public const STRATEGY_SKIP = 'skip';
+
     public const STRATEGY_REPLACE = 'replace';
+
     public const STRATEGY_MERGE = 'merge';
+
     public const STRATEGY_RENAME = 'rename';
 
     public function __construct(
         private readonly AcfGroupRepositoryInterface $groupRepository,
         private readonly AcfFieldRepositoryInterface $fieldRepository
-    ) {}
+    ) {
+    }
 
-    /** @param array<string, mixed> $options */
+    /**
+     * @param array<string, mixed> $options
+     */
     public function importJson(string $json, array $options = []): ImportResult
     {
         try {
             $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             return new ImportResult(false, 'Invalid JSON: ' . $e->getMessage());
         }
+
         return $this->import($data, $options);
     }
 
-    /** @param array<string, mixed> $data @param array<string, mixed> $options */
+    /**
+     * @param array<string, mixed> $data @param array<string, mixed> $options
+     */
     public function import(array $data, array $options = []): ImportResult
     {
         $strategy = $options['strategy'] ?? self::STRATEGY_SKIP;
@@ -45,15 +56,17 @@ final class FieldGroupImporter
         $result->setSource($data['source'] ?? 'unknown');
 
         $groups = $data['groups'] ?? [];
+
         if (empty($groups)) {
             $result->addWarning('No groups to import');
+
             return $result;
         }
 
         foreach ($groups as $groupData) {
             try {
                 $this->importGroup($groupData, $strategy, $dryRun, $prefix, $result);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $result->addError($groupData['slug'] ?? 'unknown', $e->getMessage());
             }
         }
@@ -61,12 +74,24 @@ final class FieldGroupImporter
         return $result;
     }
 
-    /** @param array<string, mixed> $groupData */
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function validate(array $data): ImportResult
+    {
+        return $this->import($data, ['dry_run' => true]);
+    }
+
+    /**
+     * @param array<string, mixed> $groupData
+     */
     private function importGroup(array $groupData, string $strategy, bool $dryRun, string $prefix, ImportResult $result): void
     {
         $slug = $prefix . ($groupData['slug'] ?? '');
+
         if (empty($slug)) {
             $result->addError('unknown', 'Group slug is required');
+
             return;
         }
 
@@ -77,23 +102,29 @@ final class FieldGroupImporter
             switch ($strategy) {
                 case self::STRATEGY_SKIP:
                     $result->addSkipped($slug, 'Group already exists');
+
                     return;
+
                 case self::STRATEGY_RENAME:
                     $slug = $this->generateUniqueSlug($slug);
                     $existingId = null;
+
                     break;
+
                 case self::STRATEGY_REPLACE:
-                    if (!$dryRun) {
+                    if (! $dryRun) {
                         $this->fieldRepository->deleteByGroup($existingId);
                         $this->groupRepository->delete($existingId);
                     }
                     $existingId = null;
+
                     break;
             }
         }
 
         if ($dryRun) {
             $existingId !== null ? $result->addUpdated($slug) : $result->addCreated($slug);
+
             return;
         }
 
@@ -118,10 +149,13 @@ final class FieldGroupImporter
         $this->importFields($groupId, $groupData['fields'] ?? [], $existingId !== null && $strategy === self::STRATEGY_MERGE, $result);
     }
 
-    /** @param array<array<string, mixed>> $fields */
+    /**
+     * @param array<array<string, mixed>> $fields
+     */
     private function importFields(int $groupId, array $fields, bool $merge, ImportResult $result): void
     {
         $existingFields = [];
+
         if ($merge) {
             foreach ($this->fieldRepository->findByGroup($groupId) as $field) {
                 $existingFields[$field['slug']] = $field;
@@ -130,7 +164,10 @@ final class FieldGroupImporter
 
         foreach ($fields as $fieldData) {
             $fieldSlug = $fieldData['slug'] ?? '';
-            if (empty($fieldSlug)) { continue; }
+
+            if (empty($fieldSlug)) {
+                continue;
+            }
 
             $fieldToSave = [
                 'id_wepresta_acf_group' => $groupId,
@@ -150,23 +187,18 @@ final class FieldGroupImporter
             }
         }
 
-        $result->addFieldsImported(count($fields));
+        $result->addFieldsImported(\count($fields));
     }
 
     private function generateUniqueSlug(string $baseSlug): string
     {
         $slug = $baseSlug;
         $counter = 1;
+
         while ($this->groupRepository->findBySlug($slug) !== null) {
             $slug = $baseSlug . '_' . $counter++;
         }
+
         return $slug;
     }
-
-    /** @param array<string, mixed> $data */
-    public function validate(array $data): ImportResult
-    {
-        return $this->import($data, ['dry_run' => true]);
-    }
 }
-

@@ -77,4 +77,3 @@ interface AssetProviderInterface
      */
     public function getFrontCssAssets(): array;
 }
-

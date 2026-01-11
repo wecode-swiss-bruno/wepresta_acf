@@ -28,9 +28,13 @@ use WeprestaAcf\Wedev\Core\Exception\ModuleException;
 final class HttpException extends ModuleException
 {
     private const CODE_REQUEST_FAILED = 3000;
+
     private const CODE_TIMEOUT = 3001;
+
     private const CODE_RATE_LIMIT = 3002;
+
     private const CODE_INVALID_RESPONSE = 3003;
+
     private const CODE_CONNECTION = 3004;
 
     /**
@@ -47,7 +51,7 @@ final class HttpException extends ModuleException
     public static function timeout(int $seconds): self
     {
         return new self(
-            sprintf('Request timed out after %d seconds', $seconds),
+            \sprintf('Request timed out after %d seconds', $seconds),
             self::CODE_TIMEOUT
         );
     }
@@ -58,8 +62,9 @@ final class HttpException extends ModuleException
     public static function rateLimit(?int $retryAfter = null): self
     {
         $message = 'Rate limit exceeded';
+
         if ($retryAfter !== null) {
-            $message .= sprintf('. Retry after %d seconds', $retryAfter);
+            $message .= \sprintf('. Retry after %d seconds', $retryAfter);
         }
 
         return new self($message, self::CODE_RATE_LIMIT);
@@ -79,7 +84,7 @@ final class HttpException extends ModuleException
     public static function connectionFailed(string $host): self
     {
         return new self(
-            sprintf('Failed to connect to %s', $host),
+            \sprintf('Failed to connect to %s', $host),
             self::CODE_CONNECTION
         );
     }
@@ -116,4 +121,3 @@ final class HttpException extends ModuleException
         return $this->getCode() === self::CODE_CONNECTION;
     }
 }
-

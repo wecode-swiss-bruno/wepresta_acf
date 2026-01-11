@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Action;
 
-use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 use PrestaShopLogger;
+use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 
 /**
  * Action qui log un message.
@@ -16,8 +16,8 @@ use PrestaShopLogger;
 final class LogAction implements ActionInterface
 {
     /**
-     * @param string $message  Message à logger
-     * @param int    $severity Niveau de sévérité (1=info, 2=warning, 3=error)
+     * @param string $message Message à logger
+     * @param int $severity Niveau de sévérité (1=info, 2=warning, 3=error)
      */
     public function __construct(
         private readonly string $message,
@@ -57,4 +57,3 @@ final class LogAction implements ActionInterface
         );
     }
 }
-

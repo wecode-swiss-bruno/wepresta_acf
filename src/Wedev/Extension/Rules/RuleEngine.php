@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules;
 
+use Throwable;
+use Traversable;
 use WeprestaAcf\Wedev\Core\Contract\ExtensionInterface;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 
@@ -64,7 +66,7 @@ final class RuleEngine implements ExtensionInterface
      */
     public function evaluate(RuleInterface $rule, RuleContext $context): bool
     {
-        if (!$rule->isEnabled()) {
+        if (! $rule->isEnabled()) {
             return false;
         }
 
@@ -72,15 +74,15 @@ final class RuleEngine implements ExtensionInterface
             $condition = $rule->getCondition();
             $result = $condition->evaluate($context);
 
-            $this->log('debug', sprintf(
+            $this->log('debug', \sprintf(
                 'Rule "%s" evaluated to %s',
                 $rule->getName(),
                 $result ? 'TRUE' : 'FALSE'
             ));
 
             return $result;
-        } catch (\Throwable $e) {
-            $this->log('error', sprintf(
+        } catch (Throwable $e) {
+            $this->log('error', \sprintf(
                 'Rule "%s" evaluation failed: %s',
                 $rule->getName(),
                 $e->getMessage()
@@ -146,8 +148,9 @@ final class RuleEngine implements ExtensionInterface
         }
 
         $action = $rule->getAction();
+
         if ($action !== null) {
-            $this->log('info', sprintf('Executing action for rule "%s"', $rule->getName()));
+            $this->log('info', \sprintf('Executing action for rule "%s"', $rule->getName()));
             $action->execute($context);
         }
 
@@ -167,10 +170,11 @@ final class RuleEngine implements ExtensionInterface
 
         foreach ($this->evaluateAll($rules, $context) as $rule) {
             $action = $rule->getAction();
+
             if ($action !== null) {
-                $this->log('info', sprintf('Executing action for rule "%s"', $rule->getName()));
+                $this->log('info', \sprintf('Executing action for rule "%s"', $rule->getName()));
                 $action->execute($context);
-                $executed++;
+                ++$executed;
             }
         }
 
@@ -186,7 +190,7 @@ final class RuleEngine implements ExtensionInterface
      */
     private function sortByPriority(iterable $rules): array
     {
-        $rulesArray = $rules instanceof \Traversable
+        $rulesArray = $rules instanceof Traversable
             ? iterator_to_array($rules)
             : (array) $rules;
 
@@ -195,4 +199,3 @@ final class RuleEngine implements ExtensionInterface
         return $rulesArray;
     }
 }
-

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -19,10 +19,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\FieldType;
 
+use Configuration;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 /**
- * Checkbox field type
+ * Checkbox field type.
  *
  * Multiple checkboxes for multi-select options.
  */
@@ -64,12 +65,12 @@ final class CheckboxField extends AbstractFieldType
         }
 
         // Ensure it's an array
-        if (!is_array($value)) {
+        if (! \is_array($value)) {
             $value = [$value];
         }
 
         // Filter out empty values
-        $value = array_filter($value, fn($v) => $v !== null && $v !== '');
+        $value = array_filter($value, fn ($v) => $v !== null && $v !== '');
 
         if (empty($value)) {
             return null;
@@ -86,11 +87,11 @@ final class CheckboxField extends AbstractFieldType
         }
 
         // Parse JSON if stored as string
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            $result = is_array($decoded) ? $decoded : [];
+            $result = \is_array($decoded) ? $decoded : [];
         } else {
-            $result = is_array($value) ? $value : [];
+            $result = \is_array($value) ? $value : [];
         }
 
         // Remove duplicates (can happen if form submitted values twice)
@@ -110,10 +111,12 @@ final class CheckboxField extends AbstractFieldType
 
         // Get labels for selected values
         $choices = $fieldConfig['choices'] ?? [];
+
         if (\is_string($choices)) {
             $choices = json_decode($choices, true) ?: [];
         }
-        if (!\is_array($choices)) {
+
+        if (! \is_array($choices)) {
             $choices = [];
         }
         $labels = [];
@@ -121,7 +124,9 @@ final class CheckboxField extends AbstractFieldType
         foreach ($values as $val) {
             foreach ($choices as $choice) {
                 if (($choice['value'] ?? '') === $val) {
-                    $labels[] = htmlspecialchars($choice['label'] ?? $val, ENT_QUOTES, 'UTF-8');
+                    $translatedLabel = $this->getTranslatedChoiceLabel($choice, $renderOptions);
+                    $labels[] = htmlspecialchars($translatedLabel ?: $val, ENT_QUOTES, 'UTF-8');
+
                     break;
                 }
             }
@@ -155,18 +160,19 @@ final class CheckboxField extends AbstractFieldType
         // For checkbox, empty array is "empty"
         $values = $this->denormalizeValue($value, $fieldConfig);
 
-        if (!empty($validation['required']) && empty($values)) {
+        if (! empty($validation['required']) && empty($values)) {
             // Remove the default required error and add our own
-            $errors = array_filter($errors, fn($e) => $e !== 'This field is required.');
+            $errors = array_filter($errors, fn ($e) => $e !== 'This field is required.');
             $errors[] = 'Please select at least one option.';
         }
 
         // Validate that selected values exist in choices
-        if (!empty($values)) {
+        if (! empty($values)) {
             $validValues = array_column($fieldConfig['choices'] ?? [], 'value');
+
             foreach ($values as $val) {
-                if (!in_array($val, $validValues, true)) {
-                    $errors[] = sprintf('Invalid option: %s', $val);
+                if (! \in_array($val, $validValues, true)) {
+                    $errors[] = \sprintf('Invalid option: %s', $val);
                 }
             }
         }
@@ -197,7 +203,7 @@ final class CheckboxField extends AbstractFieldType
 
     public function supportsTranslation(): bool
     {
-        // Labels could be translated but values typically not
+        // Choice labels can be translated
         return false;
     }
 
@@ -211,53 +217,32 @@ final class CheckboxField extends AbstractFieldType
         return 'check_box';
     }
 
-    /**
-     * Build Symfony choices array from config
-     *
-     * @param array<int, array{value: string, label: string}> $choices
-     *
-     * @return array<string, string> Label => Value format for Symfony
-     */
-    private function buildChoices(array $choices): array
-    {
-        $result = [];
-        foreach ($choices as $choice) {
-            $label = $choice['label'] ?? $choice['value'] ?? '';
-            $value = $choice['value'] ?? '';
-            if ($value !== '') {
-                $result[$label] = $value;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
+
+        // Pass current language ID for template translation
+        $currentLangId = $this->getCurrentLanguageId();
+
         $selectedValues = $this->denormalizeValue($value, $config);
 
         return $this->renderPartial('checkbox.tpl', [
             'field' => $field,
-            'fieldConfig' => $config,
+            'fieldConfig' => $config,  // Original choices for Symfony validation
+            'currentLangId' => $currentLangId,  // For template translation
             'prefix' => $context['prefix'] ?? 'acf_',
             'value' => $selectedValues,
             'context' => $context,
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
         $config = $this->getFieldConfig($field);
         $choices = $config['choices'] ?? [];
-        if (!\is_array($choices)) {
+
+        if (! \is_array($choices)) {
             $choices = [];
         }
 
@@ -265,8 +250,10 @@ final class CheckboxField extends AbstractFieldType
 
         foreach ($choices as $choice) {
             $choiceValue = $this->escapeAttr($choice['value'] ?? '');
-            $choiceLabel = addslashes($choice['label'] ?? '');
-            $html .= sprintf(
+            // Use same label resolution as buildChoices
+            $choiceLabel = $this->getChoiceLabelForValidation($choice);
+            $choiceLabel = addslashes($choiceLabel);
+            $html .= \sprintf(
                 '<label class="acf-checkbox-label"><input type="checkbox" class="acf-subfield-checkbox" data-subfield="%s" value="%s"> %s</label>',
                 $this->escapeAttr($slug),
                 $choiceValue,
@@ -277,5 +264,137 @@ final class CheckboxField extends AbstractFieldType
         $html .= '</div>';
 
         return $html;
+    }
+
+    /**
+     * Get translated label for a choice based on current language.
+     */
+    private function getTranslatedChoiceLabel(array $choice, array $renderOptions = []): string
+    {
+        // Get current language ID from context or render options
+        $currentLangId = $renderOptions['langId'] ?? $this->getCurrentLanguageId();
+
+        // Check if choice has translations and current language translation exists
+        if (isset($choice['translations']) && isset($choice['translations'][$currentLangId])) {
+            $translated = $choice['translations'][$currentLangId];
+
+            if (! empty($translated)) {
+                return $translated;
+            }
+        }
+
+        // Fallback to default label
+        return $choice['label'] ?? '';
+    }
+
+    /**
+     * Get current language ID from context.
+     */
+    private function getCurrentLanguageId(): string
+    {
+        // Try to get from PrestaShop context
+        if (isset($this->context) && method_exists($this->context, 'getLanguage')) {
+            $language = $this->context->getLanguage();
+
+            if ($language && isset($language->id)) {
+                return (string) $language->id;
+            }
+        }
+
+        // Fallback to default language (usually 1 for English)
+        return '1';
+    }
+
+    /**
+     * Translate choices for admin display using back-office language.
+     */
+    private function translateChoicesForAdmin(array $choices): array
+    {
+        $currentLangId = $this->getCurrentLanguageId();
+
+        return array_map(function ($choice) use ($currentLangId) {
+            if (! \is_array($choice) || ! isset($choice['label'])) {
+                return $choice;
+            }
+
+            // Check if choice has translations for current back-office language
+            if (isset($choice['translations']) && isset($choice['translations'][$currentLangId])) {
+                $translated = $choice['translations'][$currentLangId];
+
+                if (! empty($translated)) {
+                    $choice['label'] = $translated;
+                }
+            }
+
+            return $choice;
+        }, $choices);
+    }
+
+    /**
+     * Build Symfony choices array from config.
+     *
+     * @param array<int, array{value: string, label: string, translations?: array}> $choices
+     *
+     * @return array<string, string> Label => Value format for Symfony
+     */
+    private function buildChoices(array $choices): array
+    {
+        $result = [];
+
+        foreach ($choices as $choice) {
+            $value = $choice['value'] ?? '';
+
+            if ($value === '') {
+                continue;
+            }
+
+            // Get label: try translations first, then label, then value
+            $label = $this->getChoiceLabelForValidation($choice);
+            $result[$label] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get the best available label for a choice (for Symfony validation).
+     * Priority: translation of default language > main label > value.
+     */
+    private function getChoiceLabelForValidation(array $choice): string
+    {
+        // 1. Try translations (default language first, then any available)
+        if (! empty($choice['translations']) && \is_array($choice['translations'])) {
+            // Try default language
+            $defaultLangId = $this->getDefaultLanguageId();
+
+            if (isset($choice['translations'][$defaultLangId]) && ! empty($choice['translations'][$defaultLangId])) {
+                return $choice['translations'][$defaultLangId];
+            }
+
+            // Try any available translation
+            foreach ($choice['translations'] as $langId => $label) {
+                if (! empty($label)) {
+                    return $label;
+                }
+            }
+        }
+
+        // 2. Fallback to main label
+        if (! empty($choice['label'])) {
+            return $choice['label'];
+        }
+
+        // 3. Last resort: use value as label
+        return $choice['value'] ?? '';
+    }
+
+    /**
+     * Get the default language ID.
+     */
+    private function getDefaultLanguageId(): string
+    {
+        $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
+
+        return (string) $defaultLangId;
     }
 }

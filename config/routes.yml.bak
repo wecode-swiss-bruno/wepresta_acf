@@ -21,6 +21,114 @@ wepresta_acf_configuration:
         _legacy_link: AdminWeprestaAcfConfiguration
 
 # =========================================================================
+# Sync (Export/Import)
+# =========================================================================
+
+wepresta_acf_sync:
+    path: /modules/wepresta_acf/sync
+    methods: [GET, POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::index'
+        _legacy_controller: AdminWeprestaAcfSync
+        _legacy_link: AdminWeprestaAcfSync
+
+wepresta_acf_sync_export:
+    path: /modules/wepresta_acf/sync/export
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::export'
+        _legacy_controller: AdminWeprestaAcfSync
+        _legacy_link: AdminWeprestaAcfSync
+
+wepresta_acf_sync_import:
+    path: /modules/wepresta_acf/sync/import
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::import'
+        _legacy_controller: AdminWeprestaAcfSync
+        _legacy_link: AdminWeprestaAcfSync
+
+wepresta_acf_api_export_all:
+    path: /api/export/all
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportAll'
+
+wepresta_acf_api_export_group:
+    path: /api/export/group/{groupId}
+    methods: [GET]
+    requirements:
+        groupId: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportGroup'
+
+wepresta_acf_api_import_validate:
+    path: /api/import/validate
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::validateFile'
+
+wepresta_acf_api_import:
+    path: /api/import
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::importFile'
+
+# =========================================================================
+# API - Sync Status
+# =========================================================================
+
+wepresta_acf_api_sync_status:
+    path: /api/sync/status
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\SyncApiController::status'
+
+# =========================================================================
+# API - Auto-Sync
+# =========================================================================
+
+wepresta_acf_api_auto_sync_toggle:
+    path: /api/auto-sync/toggle
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::toggleAutoSync'
+
+wepresta_acf_api_auto_sync_export_now:
+    path: /api/auto-sync/export-now
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportNow'
+
+wepresta_acf_api_auto_sync_import:
+    path: /api/auto-sync/import
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::importFromSync'
+
+wepresta_acf_api_auto_sync_dismiss:
+    path: /api/auto-sync/dismiss
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::dismissSyncNotification'
+
+wepresta_acf_api_auto_sync_now:
+    path: /api/auto-sync/sync-now
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfSync
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::syncNow'
+
+# =========================================================================
 # API - Groups
 # =========================================================================
 
@@ -28,13 +136,15 @@ wepresta_acf_api_groups_list:
     path: /api/groups
     methods: [GET]
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::list'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\GroupApiController::list'
 
 wepresta_acf_api_groups_create:
     path: /api/groups
     methods: [POST]
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::create'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\GroupApiController::create'
 
 wepresta_acf_api_groups_show:
     path: /api/groups/{id}
@@ -42,7 +152,8 @@ wepresta_acf_api_groups_show:
     requirements:
         id: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::show'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\GroupApiController::show'
 
 wepresta_acf_api_groups_update:
     path: /api/groups/{id}
@@ -50,7 +161,8 @@ wepresta_acf_api_groups_update:
     requirements:
         id: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::update'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\GroupApiController::update'
 
 wepresta_acf_api_groups_delete:
     path: /api/groups/{id}
@@ -58,7 +170,8 @@ wepresta_acf_api_groups_delete:
     requirements:
         id: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::delete'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\GroupApiController::delete'
 
 wepresta_acf_api_groups_duplicate:
     path: /api/groups/{id}/duplicate
@@ -66,7 +179,26 @@ wepresta_acf_api_groups_duplicate:
     requirements:
         id: \d+
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::duplicate'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\GroupApiController::duplicate'
+
+wepresta_acf_api_groups_global_values_get:
+    path: /api/groups/{id}/global-values
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\GroupApiController::getGlobalValues'
+
+wepresta_acf_api_groups_global_values_save:
+    path: /api/groups/{id}/global-values
+    methods: [POST, PUT]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\Controller\GroupApiController::saveGlobalValues'
 
 # =========================================================================
 # API - Fields
@@ -78,6 +210,7 @@ wepresta_acf_api_fields_create:
     requirements:
         groupId: \d+
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::create'
 
 wepresta_acf_api_fields_update:
@@ -86,6 +219,7 @@ wepresta_acf_api_fields_update:
     requirements:
         id: \d+
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::update'
 
 wepresta_acf_api_fields_delete:
@@ -94,6 +228,7 @@ wepresta_acf_api_fields_delete:
     requirements:
         id: \d+
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::delete'
 
 wepresta_acf_api_fields_reorder:
@@ -102,6 +237,7 @@ wepresta_acf_api_fields_reorder:
     requirements:
         groupId: \d+
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::reorder'
 
 # =========================================================================
@@ -112,6 +248,7 @@ wepresta_acf_api_values_save:
     path: /api/values
     methods: [POST]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\ValueApiController::save'
 
 wepresta_acf_api_values_get:
@@ -120,6 +257,7 @@ wepresta_acf_api_values_get:
     requirements:
         productId: \d+
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\ValueApiController::show'
 
 # =========================================================================
@@ -130,83 +268,36 @@ wepresta_acf_api_field_types:
     path: /api/field-types
     methods: [GET]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::fieldTypes'
 
 wepresta_acf_api_field_types_grouped:
     path: /api/field-types/grouped
     methods: [GET]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::fieldTypesGrouped'
 
 wepresta_acf_api_slugify:
     path: /api/slugify
     methods: [POST]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::slugify'
-
-wepresta_acf_api_seed:
-    path: /api/seed
-    methods: [POST]
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::seed'
 
 wepresta_acf_api_force_upgrade:
     path: /api/force-upgrade
     methods: [POST]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::forceUpgrade'
 
-# =========================================================================
-# API - Sync
-# =========================================================================
-
-wepresta_acf_api_sync_status:
-    path: /api/sync/status
-    methods: [GET]
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::status'
-
-wepresta_acf_api_sync_group_status:
-    path: /api/sync/status/{groupId}
-    methods: [GET]
-    requirements:
-        groupId: \d+
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::groupStatus'
-
-wepresta_acf_api_sync_push:
-    path: /api/sync/push/{groupId}
-    methods: [POST]
-    requirements:
-        groupId: \d+
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::push'
-
-wepresta_acf_api_sync_pull:
-    path: /api/sync/pull/{slug}
+wepresta_acf_api_upload_file:
+    path: /api/upload-file
     methods: [POST]
     defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::pull'
-
-wepresta_acf_api_sync_push_all:
-    path: /api/sync/push-all
-    methods: [POST]
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::pushAll'
-
-wepresta_acf_api_sync_pull_all:
-    path: /api/sync/pull-all
-    methods: [POST]
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::pullAll'
-
-wepresta_acf_api_sync_export:
-    path: /api/sync/export/{groupId}
-    methods: [GET]
-    requirements:
-        groupId: \d+
-    defaults:
-        _controller: 'WeprestaAcf\Infrastructure\Api\SyncApiController::export'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::uploadFile'
 
 # =========================================================================
 # API - Field Types Management
@@ -216,30 +307,35 @@ wepresta_acf_api_fieldtypes_list:
     path: /api/field-types/list
     methods: [GET]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::list'
 
 wepresta_acf_api_fieldtypes_show:
     path: /api/field-types/{type}
     methods: [GET]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::show'
 
 wepresta_acf_api_fieldtypes_upload:
     path: /api/field-types/upload
     methods: [POST]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::upload'
 
 wepresta_acf_api_fieldtypes_delete:
     path: /api/field-types/{type}
     methods: [DELETE]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::remove'
 
 wepresta_acf_api_fieldtypes_paths:
     path: /api/field-types/paths
     methods: [GET]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::paths'
 
 # =========================================================================
@@ -250,4 +346,6 @@ wepresta_acf_api_relation_search:
     path: /api/relation/search
     methods: [GET]
     defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\RelationApiController::search'
+

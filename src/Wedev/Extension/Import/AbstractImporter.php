@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Import;
 
+use InvalidArgumentException;
+use Throwable;
 use WeprestaAcf\Wedev\Core\Contract\ExtensionInterface;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 use WeprestaAcf\Wedev\Extension\Import\Parser\ParserInterface;
@@ -44,11 +46,13 @@ abstract class AbstractImporter implements ExtensionInterface
     use LoggerTrait;
 
     protected ImportResult $result;
+
     protected int $batchSize = 100;
+
     protected bool $dryRun = false;
 
     /** @var callable|null */
-    protected $progressCallback = null;
+    protected $progressCallback;
 
     public function __construct(
         protected readonly ParserInterface $parser
@@ -118,7 +122,7 @@ abstract class AbstractImporter implements ExtensionInterface
     {
         $this->result = new ImportResult();
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             $this->result->addError(0, 'File not found: ' . $filePath);
 
             return $this->result;
@@ -128,10 +132,10 @@ abstract class AbstractImporter implements ExtensionInterface
 
         // Parser le fichier
         $rows = $this->parser->parse($filePath);
-        $total = count($rows);
+        $total = \count($rows);
 
         // Valider les colonnes
-        if (!$this->validateColumns($rows)) {
+        if (! $this->validateColumns($rows)) {
             return $this->result;
         }
 
@@ -139,13 +143,13 @@ abstract class AbstractImporter implements ExtensionInterface
         $lineNumber = 1; // 1-based pour les messages (header = 0)
 
         foreach ($rows as $row) {
-            $lineNumber++;
+            ++$lineNumber;
 
             try {
                 $this->result->incrementProcessed();
                 $this->processRow($row, $lineNumber);
                 $this->reportProgress($this->result->getProcessed(), $total);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->result->addError($lineNumber, $e->getMessage());
             }
         }
@@ -209,7 +213,7 @@ abstract class AbstractImporter implements ExtensionInterface
         $required = $this->getRequiredColumns();
         $missing = array_diff($required, $columns);
 
-        if (!empty($missing)) {
+        if (! empty($missing)) {
             $this->result->addError(0, 'Missing columns: ' . implode(', ', $missing));
 
             return false;
@@ -222,17 +226,17 @@ abstract class AbstractImporter implements ExtensionInterface
      * Valide une ligne.
      *
      * @param array<string, mixed> $row
-     * @param array<string>        $requiredFields
+     * @param array<string> $requiredFields
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function validateRow(array $row, int $lineNumber, array $requiredFields = []): void
     {
         $fields = $requiredFields ?: $this->getRequiredColumns();
 
         foreach ($fields as $field) {
-            if (!isset($row[$field]) || $row[$field] === '') {
-                throw new \InvalidArgumentException("Missing required field: {$field}");
+            if (! isset($row[$field]) || $row[$field] === '') {
+                throw new InvalidArgumentException("Missing required field: {$field}");
             }
         }
     }
@@ -248,4 +252,3 @@ abstract class AbstractImporter implements ExtensionInterface
         }
     }
 }
-

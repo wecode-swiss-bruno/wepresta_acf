@@ -63,7 +63,7 @@ final class ExtensionLoader
             self::$availabilityCache = [];
         }
 
-        if (!isset(self::$availabilityCache[$extension])) {
+        if (! isset(self::$availabilityCache[$extension])) {
             self::$availabilityCache[$extension] = self::checkAvailability($extension);
         }
 
@@ -77,7 +77,7 @@ final class ExtensionLoader
      */
     public static function require(string $extension): void
     {
-        if (!self::isAvailable($extension)) {
+        if (! self::isAvailable($extension)) {
             throw DependencyException::extensionNotFound($extension);
         }
 
@@ -105,7 +105,7 @@ final class ExtensionLoader
      */
     public static function getExtensionInfo(string $extension): ?array
     {
-        if (!self::isAvailable($extension)) {
+        if (! self::isAvailable($extension)) {
             return null;
         }
 
@@ -150,11 +150,11 @@ final class ExtensionLoader
      */
     public static function checkDependencies(string $extension): void
     {
-        if (!isset(self::EXTENSIONS[$extension])) {
+        if (! isset(self::EXTENSIONS[$extension])) {
             return;
         }
 
-        if (!class_exists(self::EXTENSIONS[$extension])) {
+        if (! class_exists(self::EXTENSIONS[$extension])) {
             return;
         }
 
@@ -162,7 +162,7 @@ final class ExtensionLoader
         $dependencies = $class::getDependencies();
 
         foreach ($dependencies as $dependency) {
-            if (!self::isAvailable($dependency)) {
+            if (! self::isAvailable($dependency)) {
                 throw DependencyException::missingExtensionDependency($extension, $dependency);
             }
         }
@@ -181,11 +181,10 @@ final class ExtensionLoader
      */
     private static function checkAvailability(string $extension): bool
     {
-        if (!isset(self::EXTENSIONS[$extension])) {
+        if (! isset(self::EXTENSIONS[$extension])) {
             return false;
         }
 
         return class_exists(self::EXTENSIONS[$extension]);
     }
 }
-

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Condition;
 
+use InvalidArgumentException;
+
 /**
  * Classe de base pour les conditions.
  *
@@ -11,9 +13,7 @@ namespace WeprestaAcf\Wedev\Extension\Rules\Condition;
  */
 abstract class AbstractCondition implements ConditionInterface
 {
-    /**
-     * Opérateurs de comparaison supportés.
-     */
+    /** Opérateurs de comparaison supportés. */
     protected const OPERATORS = ['=', '!=', '>', '<', '>=', '<=', 'in', 'not_in', 'contains', 'starts_with', 'ends_with'];
 
     /**
@@ -23,17 +23,17 @@ abstract class AbstractCondition implements ConditionInterface
     {
         return match ($operator) {
             '=', '==' => $this->equals($actual, $expected),
-            '!=' => !$this->equals($actual, $expected),
+            '!=' => ! $this->equals($actual, $expected),
             '>' => $this->toFloat($actual) > $this->toFloat($expected),
             '<' => $this->toFloat($actual) < $this->toFloat($expected),
             '>=' => $this->toFloat($actual) >= $this->toFloat($expected),
             '<=' => $this->toFloat($actual) <= $this->toFloat($expected),
             'in' => $this->in($actual, $expected),
-            'not_in' => !$this->in($actual, $expected),
+            'not_in' => ! $this->in($actual, $expected),
             'contains' => $this->contains($actual, $expected),
             'starts_with' => $this->startsWith($actual, $expected),
             'ends_with' => $this->endsWith($actual, $expected),
-            default => throw new \InvalidArgumentException("Unknown operator: {$operator}"),
+            default => throw new InvalidArgumentException("Unknown operator: {$operator}"),
         };
     }
 
@@ -48,12 +48,12 @@ abstract class AbstractCondition implements ConditionInterface
         }
 
         // Si les deux sont des tableaux, comparer les éléments
-        if (is_array($a) && is_array($b)) {
+        if (\is_array($a) && \is_array($b)) {
             return $a === $b;
         }
 
         // Comparaison stricte pour les booléens
-        if (is_bool($a) || is_bool($b)) {
+        if (\is_bool($a) || \is_bool($b)) {
             return (bool) $a === (bool) $b;
         }
 
@@ -66,16 +66,16 @@ abstract class AbstractCondition implements ConditionInterface
      */
     private function in(mixed $value, mixed $list): bool
     {
-        if (!is_array($list)) {
+        if (! \is_array($list)) {
             return false;
         }
 
         // Si $value est un tableau, vérifier l'intersection
-        if (is_array($value)) {
-            return count(array_intersect($value, $list)) > 0;
+        if (\is_array($value)) {
+            return \count(array_intersect($value, $list)) > 0;
         }
 
-        return in_array($value, $list, false);
+        return \in_array($value, $list, false);
     }
 
     /**
@@ -83,7 +83,7 @@ abstract class AbstractCondition implements ConditionInterface
      */
     private function contains(mixed $haystack, mixed $needle): bool
     {
-        if (!is_string($haystack) || !is_string($needle)) {
+        if (! \is_string($haystack) || ! \is_string($needle)) {
             return false;
         }
 
@@ -95,7 +95,7 @@ abstract class AbstractCondition implements ConditionInterface
      */
     private function startsWith(mixed $haystack, mixed $needle): bool
     {
-        if (!is_string($haystack) || !is_string($needle)) {
+        if (! \is_string($haystack) || ! \is_string($needle)) {
             return false;
         }
 
@@ -107,7 +107,7 @@ abstract class AbstractCondition implements ConditionInterface
      */
     private function endsWith(mixed $haystack, mixed $needle): bool
     {
-        if (!is_string($haystack) || !is_string($needle)) {
+        if (! \is_string($haystack) || ! \is_string($needle)) {
             return false;
         }
 
@@ -126,4 +126,3 @@ abstract class AbstractCondition implements ConditionInterface
         return 0.0;
     }
 }
-

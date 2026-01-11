@@ -16,4 +16,3 @@ interface ActionInterface
      */
     public function execute(RuleContext $context): void;
 }
-

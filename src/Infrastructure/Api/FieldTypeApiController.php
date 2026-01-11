@@ -1,19 +1,20 @@
 <?php
-/**
- * FieldTypeApiController - API endpoints for field type management
- */
 
 declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api;
 
-use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 use WeprestaAcf\Application\Service\FieldTypeLoader;
 use WeprestaAcf\Application\Service\FieldTypeRegistry;
 
-class FieldTypeApiController extends FrameworkBundleAdminController
+/**
+ * FieldType API Controller - Manages field types.
+ */
+final class FieldTypeApiController extends AbstractApiController
 {
     public function __construct(
         private readonly FieldTypeRegistry $registry,
@@ -33,19 +34,13 @@ class FieldTypeApiController extends FrameworkBundleAdminController
             $types = $this->loader->getLoadedTypesInfo();
             $paths = $this->loader->getDiscoveryPaths();
 
-            return new JsonResponse([
-                'success' => true,
-                'data' => [
-                    'types' => array_values($types),
-                    'paths' => $paths,
-                    'total' => count($types),
-                ],
+            return $this->jsonSuccess([
+                'types' => array_values($types),
+                'paths' => $paths,
+                'total' => \count($types),
             ]);
-        } catch (\Throwable $e) {
-            return new JsonResponse([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+        } catch (Throwable $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 
@@ -56,30 +51,22 @@ class FieldTypeApiController extends FrameworkBundleAdminController
     {
         try {
             $fieldType = $this->registry->getOrNull($type);
+
             if ($fieldType === null) {
-                return new JsonResponse([
-                    'success' => false,
-                    'error' => 'Field type not found',
-                ], 404);
+                return $this->jsonNotFound('Field type');
             }
 
-            return new JsonResponse([
-                'success' => true,
-                'data' => [
-                    'type' => $type,
-                    'label' => $fieldType->getLabel(),
-                    'category' => $fieldType->getCategory(),
-                    'icon' => $fieldType->getIcon(),
-                    'supportsTranslation' => $fieldType->supportsTranslation(),
-                    'defaultConfig' => $fieldType->getDefaultConfig(),
-                    'configSchema' => $fieldType->getConfigSchema(),
-                ],
+            return $this->jsonSuccess([
+                'type' => $type,
+                'label' => $fieldType->getLabel(),
+                'category' => $fieldType->getCategory(),
+                'icon' => $fieldType->getIcon(),
+                'supportsTranslation' => $fieldType->supportsTranslation(),
+                'defaultConfig' => $fieldType->getDefaultConfig(),
+                'configSchema' => $fieldType->getConfigSchema(),
             ]);
-        } catch (\Throwable $e) {
-            return new JsonResponse([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+        } catch (Throwable $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 
@@ -90,11 +77,9 @@ class FieldTypeApiController extends FrameworkBundleAdminController
     {
         try {
             $file = $request->files->get('file');
+
             if ($file === null) {
-                return new JsonResponse([
-                    'success' => false,
-                    'error' => 'No file uploaded',
-                ], 400);
+                return $this->jsonError('No file uploaded', Response::HTTP_BAD_REQUEST);
             }
 
             $filename = $file->getClientOriginalName();
@@ -102,23 +87,17 @@ class FieldTypeApiController extends FrameworkBundleAdminController
 
             // Validate file extension
             if ($file->getClientOriginalExtension() !== 'php') {
-                return new JsonResponse([
-                    'success' => false,
-                    'error' => 'Only PHP files are allowed',
-                ], 400);
+                return $this->jsonError('Only PHP files are allowed', Response::HTTP_BAD_REQUEST);
             }
 
             $result = $this->loader->uploadFieldType($tmpPath, $filename);
 
-            return new JsonResponse([
-                'success' => $result['success'],
-                'data' => $result,
-            ], $result['success'] ? 201 : 400);
-        } catch (\Throwable $e) {
-            return new JsonResponse([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+            return $this->json(
+                ['success' => $result['success'], 'data' => $result],
+                $result['success'] ? Response::HTTP_CREATED : Response::HTTP_BAD_REQUEST
+            );
+        } catch (Throwable $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 
@@ -130,15 +109,12 @@ class FieldTypeApiController extends FrameworkBundleAdminController
         try {
             $result = $this->loader->deleteFieldType($type);
 
-            return new JsonResponse([
-                'success' => $result['success'],
-                'data' => $result,
-            ], $result['success'] ? 200 : 400);
-        } catch (\Throwable $e) {
-            return new JsonResponse([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+            return $this->json(
+                ['success' => $result['success'], 'data' => $result],
+                $result['success'] ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST
+            );
+        } catch (Throwable $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 
@@ -150,16 +126,9 @@ class FieldTypeApiController extends FrameworkBundleAdminController
         try {
             $paths = $this->loader->getDiscoveryPaths();
 
-            return new JsonResponse([
-                'success' => true,
-                'data' => $paths,
-            ]);
-        } catch (\Throwable $e) {
-            return new JsonResponse([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+            return $this->jsonSuccess($paths);
+        } catch (Throwable $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 }
-

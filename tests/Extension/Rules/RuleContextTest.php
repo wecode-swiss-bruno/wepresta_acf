@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Rules;
 
-use WeprestaAcf\Extension\Rules\RuleContext;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Extension\Rules\RuleContext;
 
 class RuleContextTest extends TestCase
 {
@@ -80,4 +80,3 @@ class RuleContextTest extends TestCase
         $this->assertEquals(123, $context->get('key2'));
     }
 }
-

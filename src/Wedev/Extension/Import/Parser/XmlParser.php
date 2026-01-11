@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Import\Parser;
 
+use RuntimeException;
+use SimpleXMLElement;
+
 /**
  * Parser XML.
  *
@@ -34,7 +37,7 @@ final class XmlParser implements ParserInterface
         $content = file_get_contents($filePath);
 
         if ($content === false) {
-            throw new \RuntimeException('Cannot read file: ' . $filePath);
+            throw new RuntimeException('Cannot read file: ' . $filePath);
         }
 
         libxml_use_internal_errors(true);
@@ -43,9 +46,9 @@ final class XmlParser implements ParserInterface
         if ($xml === false) {
             $errors = libxml_get_errors();
             libxml_clear_errors();
-            $message = !empty($errors) ? $errors[0]->message : 'Unknown error';
+            $message = ! empty($errors) ? $errors[0]->message : 'Unknown error';
 
-            throw new \RuntimeException('Invalid XML: ' . trim($message));
+            throw new RuntimeException('Invalid XML: ' . trim($message));
         }
 
         $rows = [];
@@ -59,6 +62,7 @@ final class XmlParser implements ParserInterface
 
         foreach ($elements as $element) {
             $row = [];
+
             foreach ($element->children() as $child) {
                 $row[$child->getName()] = (string) $child;
             }
@@ -68,7 +72,7 @@ final class XmlParser implements ParserInterface
                 $row['@' . $name] = (string) $value;
             }
 
-            if (!empty($row)) {
+            if (! empty($row)) {
                 $rows[] = $row;
             }
         }
@@ -78,7 +82,7 @@ final class XmlParser implements ParserInterface
 
     public function write(string $filePath, array $data, array $columns): void
     {
-        $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><' . $this->rootElement . '/>');
+        $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><' . $this->rootElement . '/>');
 
         foreach ($data as $row) {
             $element = $xml->addChild($this->rowElement);
@@ -93,7 +97,7 @@ final class XmlParser implements ParserInterface
         $result = $xml->asXML($filePath);
 
         if ($result === false) {
-            throw new \RuntimeException('Cannot write XML file: ' . $filePath);
+            throw new RuntimeException('Cannot write XML file: ' . $filePath);
         }
     }
 
@@ -107,4 +111,3 @@ final class XmlParser implements ParserInterface
         return 'xml';
     }
 }
-

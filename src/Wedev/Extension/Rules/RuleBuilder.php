@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules;
 
+use InvalidArgumentException;
 use WeprestaAcf\Wedev\Extension\Rules\Action\ActionInterface;
 use WeprestaAcf\Wedev\Extension\Rules\Condition\AndCondition;
 use WeprestaAcf\Wedev\Extension\Rules\Condition\ConditionInterface;
@@ -37,9 +38,13 @@ use WeprestaAcf\Wedev\Extension\Rules\Condition\OrCondition;
 final class RuleBuilder
 {
     private string $name;
+
     private ?ConditionInterface $condition = null;
+
     private ?ActionInterface $action = null;
+
     private bool $enabled = true;
+
     private int $priority = 0;
 
     /** @var array<ConditionInterface> */
@@ -134,12 +139,12 @@ final class RuleBuilder
     /**
      * Construit la règle.
      *
-     * @throws \InvalidArgumentException Si aucune condition n'est définie
+     * @throws InvalidArgumentException Si aucune condition n'est définie
      */
     public function build(): Rule
     {
         if ($this->condition === null) {
-            throw new \InvalidArgumentException('Rule must have at least one condition. Use when() to add one.');
+            throw new InvalidArgumentException('Rule must have at least one condition. Use when() to add one.');
         }
 
         $finalCondition = $this->buildCondition();
@@ -161,13 +166,13 @@ final class RuleBuilder
         $condition = $this->condition;
 
         // Combiner avec AND
-        if (!empty($this->andConditions)) {
+        if (! empty($this->andConditions)) {
             $allConditions = array_merge([$condition], $this->andConditions);
             $condition = new AndCondition($allConditions);
         }
 
         // Combiner avec OR
-        if (!empty($this->orConditions)) {
+        if (! empty($this->orConditions)) {
             $allConditions = array_merge([$condition], $this->orConditions);
             $condition = new OrCondition($allConditions);
         }
@@ -175,4 +180,3 @@ final class RuleBuilder
         return $condition;
     }
 }
-

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\ColorType;
 
 /**
- * Color picker field type
+ * Color picker field type.
  *
  * Stores colors as #RRGGBB hex values.
  */
@@ -50,19 +50,19 @@ final class ColorField extends AbstractFieldType
         }
 
         // Handle arrays/objects (empty objects from JS become empty arrays)
-        if (is_array($value) || is_object($value)) {
+        if (\is_array($value) || \is_object($value)) {
             return null;
         }
 
         $color = trim((string) $value);
 
         // Ensure # prefix
-        if (!str_starts_with($color, '#')) {
+        if (! str_starts_with($color, '#')) {
             $color = '#' . $color;
         }
 
         // Validate hex format
-        if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
+        if (! preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
             // Try to expand short hex (#RGB -> #RRGGBB)
             if (preg_match('/^#([0-9A-Fa-f])([0-9A-Fa-f])([0-9A-Fa-f])$/', $color, $matches)) {
                 $color = '#' . $matches[1] . $matches[1] . $matches[2] . $matches[2] . $matches[3] . $matches[3];
@@ -85,6 +85,7 @@ final class ColorField extends AbstractFieldType
 
         // Convert to string and handle empty values
         $stringValue = (string) $actualValue;
+
         if ($stringValue === '') {
             return '';
         }
@@ -92,13 +93,13 @@ final class ColorField extends AbstractFieldType
         $color = htmlspecialchars($stringValue, ENT_QUOTES, 'UTF-8');
         $showHex = $this->getConfigValue($fieldConfig, 'showHex', true);
 
-        $html = sprintf(
+        $html = \sprintf(
             '<span class="acf-color-swatch" style="display:inline-block;width:20px;height:20px;background-color:%s;border:1px solid #ccc;border-radius:3px;vertical-align:middle;"></span>',
             $color
         );
 
         if ($showHex) {
-            $html .= sprintf(' <span class="acf-color-hex">%s</span>', $color);
+            $html .= \sprintf(' <span class="acf-color-hex">%s</span>', $color);
         }
 
         // Add prefix/suffix for display
@@ -125,12 +126,13 @@ final class ColorField extends AbstractFieldType
         }
 
         $color = trim((string) $value);
-        if (!str_starts_with($color, '#')) {
+
+        if (! str_starts_with($color, '#')) {
             $color = '#' . $color;
         }
 
         // Validate hex format (6 or 3 digits)
-        if (!preg_match('/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/', $color)) {
+        if (! preg_match('/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/', $color)) {
             $errors[] = 'Please enter a valid hex color (e.g., #FF5733).';
         }
 
@@ -177,9 +179,6 @@ final class ColorField extends AbstractFieldType
         return 'palette';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -194,16 +193,13 @@ final class ColorField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
         $config = $this->getFieldConfig($field);
         $defaultValue = $config['defaultValue'] ?? '#000000';
 
-        return sprintf(
+        return \sprintf(
             '<input type="color" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="%s" style="width: 60px; padding: 2px;">',
             $this->escapeAttr($slug),
             $this->escapeAttr($defaultValue)

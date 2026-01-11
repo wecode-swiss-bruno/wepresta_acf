@@ -29,9 +29,9 @@ use WeprestaAcf\Wedev\Extension\Events\AbstractDomainEvent;
 final class EntityDeletedEvent extends AbstractDomainEvent
 {
     /**
-     * @param string              $entityType The type of entity that was deleted
-     * @param int|string          $entityId   The entity's identifier
-     * @param array<string,mixed> $data       Snapshot of the entity's data before deletion
+     * @param string $entityType The type of entity that was deleted
+     * @param int|string $entityId The entity's identifier
+     * @param array<string,mixed> $data Snapshot of the entity's data before deletion
      */
     public function __construct(
         public readonly string $entityType,
@@ -51,7 +51,7 @@ final class EntityDeletedEvent extends AbstractDomainEvent
      */
     public function getSpecificEventName(): string
     {
-        return sprintf('%s.deleted', $this->entityType);
+        return \sprintf('%s.deleted', $this->entityType);
     }
 
     /**
@@ -59,7 +59,7 @@ final class EntityDeletedEvent extends AbstractDomainEvent
      */
     public function hasData(): bool
     {
-        return !empty($this->data);
+        return ! empty($this->data);
     }
 
     /**
@@ -70,4 +70,3 @@ final class EntityDeletedEvent extends AbstractDomainEvent
         return $this->data[$field] ?? null;
     }
 }
-

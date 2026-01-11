@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Notifications\Channel;
 
+use Configuration;
+use Context;
 use Mail;
+use Throwable;
 use WeprestaAcf\Wedev\Extension\Notifications\NotificationInterface;
 use WeprestaAcf\Wedev\Extension\Notifications\TemplateNotification;
 
@@ -18,7 +21,9 @@ use WeprestaAcf\Wedev\Extension\Notifications\TemplateNotification;
 final class EmailChannel implements ChannelInterface
 {
     private ?int $langId = null;
+
     private ?int $shopId = null;
+
     private ?string $moduleName = null;
 
     public function __construct(
@@ -34,19 +39,19 @@ final class EmailChannel implements ChannelInterface
     public function send(NotificationInterface $notification): int
     {
         $sent = 0;
-        $langId = $this->langId ?? (int) \Configuration::get('PS_LANG_DEFAULT');
-        $shopId = $this->shopId ?? (int) \Context::getContext()->shop->id;
+        $langId = $this->langId ?? (int) Configuration::get('PS_LANG_DEFAULT');
+        $shopId = $this->shopId ?? (int) Context::getContext()->shop->id;
 
         foreach ($notification->getRecipients() as $recipient) {
             // Ignorer si ce n'est pas un email
-            if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+            if (! filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
                 continue;
             }
 
             $result = $this->sendMail($notification, $recipient, $langId, $shopId);
 
             if ($result) {
-                $sent++;
+                ++$sent;
             }
         }
 
@@ -55,7 +60,7 @@ final class EmailChannel implements ChannelInterface
 
     public function isConfigured(): bool
     {
-        return (bool) \Configuration::get('PS_MAIL_METHOD');
+        return (bool) Configuration::get('PS_MAIL_METHOD');
     }
 
     /**
@@ -71,7 +76,7 @@ final class EmailChannel implements ChannelInterface
         $templateVars = $notification->getData();
 
         // Ajouter le contenu si c'est une notification simple
-        if (!$notification instanceof TemplateNotification && !empty($notification->getContent())) {
+        if (! $notification instanceof TemplateNotification && ! empty($notification->getContent())) {
             $templateVars['{content}'] = $notification->getContent();
         }
 
@@ -103,9 +108,8 @@ final class EmailChannel implements ChannelInterface
             );
 
             return (bool) $result;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }
 }
-

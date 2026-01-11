@@ -347,7 +347,6 @@
         initClipboard();
         initDeleteToggle();
         initSortable();
-        console.log('ACF Admin JS initialized');
     }
 
     function setupMutationObserver() {

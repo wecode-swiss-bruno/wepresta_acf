@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - ContextAdapter
+ * WEDEV Core - ContextAdapter.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -13,6 +14,7 @@ declare(strict_types=1);
 namespace WeprestaAcf\Wedev\Core\Adapter;
 
 use Cart;
+use Configuration;
 use Context;
 use Controller;
 use Cookie;
@@ -151,8 +153,8 @@ class ContextAdapter
 
     public function getCustomerGroups(): array
     {
-        if (!$this->isCustomerLogged()) {
-            return [(int) \Configuration::get('PS_UNIDENTIFIED_GROUP')];
+        if (! $this->isCustomerLogged()) {
+            return [(int) Configuration::get('PS_UNIDENTIFIED_GROUP')];
         }
 
         return $this->getCustomer()->getGroups();
@@ -212,12 +214,12 @@ class ContextAdapter
 
     public function isAdminContext(): bool
     {
-        return defined('_PS_ADMIN_DIR_');
+        return \defined('_PS_ADMIN_DIR_');
     }
 
     public function isFrontContext(): bool
     {
-        return !$this->isAdminContext();
+        return ! $this->isAdminContext();
     }
 
     // =========================================================================
@@ -249,4 +251,3 @@ class ContextAdapter
         $this->getSmarty()->assign($variables);
     }
 }
-

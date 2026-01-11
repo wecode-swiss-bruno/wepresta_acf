@@ -45,4 +45,3 @@ final class CustomerAddressEntityFieldProvider implements EntityFieldProviderInt
         return 'Customer Address';
     }
 }
-

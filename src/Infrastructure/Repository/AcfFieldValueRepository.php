@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Repository;
 
+use Configuration;
 use Context;
 use DbQuery;
 use WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface;
@@ -14,23 +15,21 @@ use WeprestaAcf\Wedev\Core\Repository\AbstractRepository;
  */
 final class AcfFieldValueRepository extends AbstractRepository implements AcfFieldValueRepositoryInterface
 {
-    private const FIELD_TABLE = 'wepresta_acf_field';
-    private const FIELD_FK = 'id_wepresta_acf_field';
-    private const GROUP_TABLE = 'wepresta_acf_group';
+    // =========================================================================
+    // Constants
+    // =========================================================================
 
-    protected function getTableName(): string
-    {
-        return 'wepresta_acf_field_value';
-    }
+    private const TABLE_FIELD = 'wepresta_acf_field';
+    private const TABLE_GROUP = 'wepresta_acf_group';
+    private const FK_FIELD = 'id_wepresta_acf_field';
+    private const FK_GROUP = 'id_wepresta_acf_group';
 
-    protected function getPrimaryKey(): string
-    {
-        return 'id_wepresta_acf_field_value';
-    }
+    // =========================================================================
+    // Legacy Product Methods (Backward Compatibility)
+    // =========================================================================
 
     public function findByProductWithMeta(int $productId, ?int $shopId = null, ?int $langId = null): array
     {
-        // Use generic method for backward compatibility
         return $this->findByEntityWithMeta('product', $productId, $shopId, $langId);
     }
 
@@ -43,97 +42,72 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         ?bool $isTranslatable = null,
         ?string $indexValue = null
     ): bool {
-        // Use generic method for backward compatibility
         return $this->saveEntity($fieldId, 'product', $productId, $value, $shopId, $langId, $isTranslatable, $indexValue);
     }
 
     public function deleteByProduct(int $productId, ?int $shopId = null): bool
     {
-        // Use generic method for backward compatibility
         return $this->deleteByEntity('product', $productId, $shopId);
     }
 
     public function deleteByFieldAndProduct(int $fieldId, int $productId, ?int $shopId = null, ?int $langId = null): bool
     {
-        // Use generic method for backward compatibility
         return $this->deleteByFieldAndEntity($fieldId, 'product', $productId, $shopId, $langId);
     }
 
+    // =========================================================================
+    // Field Deletion
+    // =========================================================================
+
     public function deleteByField(int $fieldId): bool
     {
-        return $this->deleteBy([self::FIELD_FK => $fieldId]) >= 0;
+        return $this->deleteBy([self::FK_FIELD => $fieldId]) >= 0;
     }
 
     public function deleteTranslatableValuesByField(int $fieldId): bool
     {
-        $where = self::FIELD_FK . ' = ' . (int) $fieldId . ' AND id_lang IS NOT NULL';
-        return $this->db->delete($this->getTableName(), $where);
+        $sql = 'DELETE fvl FROM `' . $this->dbPrefix . $this->getLangTableName() . '` AS fvl
+                INNER JOIN `' . $this->dbPrefix . $this->getTableName() . '` AS fv 
+                    ON fvl.' . $this->getPrimaryKey() . ' = fv.' . $this->getPrimaryKey() . '
+                WHERE fv.' . self::FK_FIELD . ' = ' . (int) $fieldId;
+
+        return $this->db->execute($sql);
     }
 
     // =========================================================================
-    // NEW GENERIC ENTITY METHODS
+    // Generic Entity Query Methods
     // =========================================================================
 
     public function findByEntity(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
     {
-        $shopId ??= (int) Context::getContext()->shop->id;
-        $langId ??= (int) Context::getContext()->language->id;
+        [$shopId, $langId] = $this->resolveContext($shopId, $langId);
 
-        // Get the latest value for each field without complex MAX subquery
-        // This handles NULL id_lang correctly
         $sql = new DbQuery();
-        $sql->select('fv.value, f.slug, f.' . self::FIELD_FK . ', fv.' . $this->getPrimaryKey())
+        $sql->select('fv.value, f.slug, f.' . self::FK_FIELD . ', f.value_translatable, fv.' . $this->getPrimaryKey())
             ->from($this->getTableName(), 'fv')
-            ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
-            ->where('fv.entity_type = "' . pSQL($entityType) . '"')
-            ->where('fv.entity_id = ' . (int) $entityId)
-            ->where('fv.id_shop = ' . (int) $shopId)
-            ->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)')
-            ->orderBy('fv.' . $this->getPrimaryKey() . ' DESC');
-        
-        // Get all results and group by field, keeping only the latest
-        $allResults = $this->db->executeS($sql);
-        
-        // Group by field ID and keep only the latest value for each field
-        $results = [];
-        $seenFields = [];
-        if ($allResults) {
-            foreach ($allResults as $row) {
-                $fieldId = (int) $row[self::FIELD_FK];
-                if (!isset($seenFields[$fieldId])) {
-                    $seenFields[$fieldId] = true;
-                    $results[] = $row;
-                }
-            }
-        }
-        
+            ->innerJoin(self::TABLE_FIELD, 'f', 'fv.' . self::FK_FIELD . ' = f.' . self::FK_FIELD)
+            ->where($this->buildEntityWhere($entityType, $entityId, $shopId));
+
+        $results = $this->db->executeS($sql);
+
         if (!$results) {
             return [];
         }
 
         $values = [];
+
         foreach ($results as $row) {
             $value = $row['value'];
-            $slug = $row['slug'];
-            
-            if ($value === null) {
-                $values[$slug] = null;
-                continue;
+
+            // For translatable fields, try to get translation
+            if ((bool) ($row['value_translatable'] ?? false)) {
+                $langValue = $this->getLangValue((int) $row[$this->getPrimaryKey()], $langId);
+                if ($langValue !== null) {
+                    $value = $langValue;
+                }
             }
-            
-            $decoded = json_decode($value, true);
-            
-            // If JSON decode failed or returned null, use original value
-            // For relation fields, a single integer should be kept as-is (will be converted to array in getRawIds)
-            if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
-                // Not valid JSON, use as-is
-                $finalValue = $value;
-            } else {
-                // Valid JSON or null
-                $finalValue = $decoded !== null ? $decoded : $value;
-            }
-            
-            $values[$slug] = $finalValue;
+
+            $values[$row['slug']] = $this->decodeValue($value);
         }
 
         return $values;
@@ -141,75 +115,271 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
     /**
      * Find all field values for an entity, including ALL languages for translatable fields.
-     * Returns: [slug => value] for non-translatable, [slug => [langId => value]] for translatable
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed> [slug => value] for non-translatable, [slug => [langId => value]] for translatable
      */
     public function findByEntityAllLanguages(string $entityType, int $entityId, ?int $shopId = null): array
     {
-        $shopId ??= (int) Context::getContext()->shop->id;
+        $shopId ??= $this->getContextShopId();
 
-        // Get ALL values including all languages
         $sql = new DbQuery();
-        $sql->select('fv.value, fv.id_lang, f.slug, f.value_translatable, f.' . self::FIELD_FK . ', fv.' . $this->getPrimaryKey())
+        $sql->select('fv.value, f.slug, f.value_translatable, f.' . self::FK_FIELD . ', fv.' . $this->getPrimaryKey())
             ->from($this->getTableName(), 'fv')
-            ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
-            ->where('fv.entity_type = "' . pSQL($entityType) . '"')
-            ->where('fv.entity_id = ' . (int) $entityId)
-            ->where('fv.id_shop = ' . (int) $shopId)
-            ->orderBy('f.slug ASC, fv.id_lang ASC');
+            ->innerJoin(self::TABLE_FIELD, 'f', 'fv.' . self::FK_FIELD . ' = f.' . self::FK_FIELD)
+            ->where($this->buildEntityWhere($entityType, $entityId, $shopId))
+            ->orderBy('f.slug ASC');
 
-        $allResults = $this->db->executeS($sql);
+        $results = $this->db->executeS($sql);
 
-        if (!$allResults) {
+        if (!$results) {
             return [];
         }
 
         $values = [];
-        foreach ($allResults as $row) {
+        $defaultLangId = $this->getDefaultLangId();
+
+        foreach ($results as $row) {
             $slug = $row['slug'];
-            $value = $row['value'];
-            $langId = $row['id_lang'];
-            $isTranslatable = (bool) $row['value_translatable'];
+            $mainValue = $this->decodeValue($row['value']);
+            $isTranslatable = (bool) ($row['value_translatable'] ?? false);
 
-            // Decode JSON values
-            if ($value !== null) {
-                $decoded = json_decode($value, true);
-                if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
-                    $finalValue = $value;
-                } else {
-                    $finalValue = $decoded !== null ? $decoded : $value;
-                }
-            } else {
-                $finalValue = null;
+            if (!$isTranslatable) {
+                $values[$slug] = $mainValue;
+                continue;
             }
 
-            if ($isTranslatable && $langId !== null) {
-                // Translatable field: group by language
-                if (!isset($values[$slug]) || !is_array($values[$slug])) {
-                    $values[$slug] = [];
-                }
-                $values[$slug][(int) $langId] = $finalValue;
-            } else {
-                // Non-translatable field: simple value
-                $values[$slug] = $finalValue;
+            // Build translations array
+            $translations = [$defaultLangId => $mainValue];
+            $langResults = $this->getAllLangValues((int) $row[$this->getPrimaryKey()]);
+
+            foreach ($langResults as $langRow) {
+                $translations[(int) $langRow['id_lang']] = $this->decodeValue($langRow['value']);
             }
+
+            $values[$slug] = $translations;
         }
 
         return $values;
     }
 
-
     public function findByEntityWithMeta(string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): array
     {
-        // Fallback: get all fields without hook filtering
-        $shopId ??= (int) Context::getContext()->shop->id;
-        $langId ??= (int) Context::getContext()->language->id;
+        [$shopId, $langId] = $this->resolveContext($shopId, $langId);
 
         $sql = new DbQuery();
-        $sql->select('
-            fv.id_wepresta_acf_field_value,
-            fv.id_wepresta_acf_field,
+        $sql->select($this->getMetaSelectFields())
+            ->from($this->getTableName(), 'fv')
+            ->innerJoin(self::TABLE_FIELD, 'f', 'fv.' . self::FK_FIELD . ' = f.' . self::FK_FIELD)
+            ->innerJoin(self::TABLE_GROUP, 'g', 'f.' . self::FK_GROUP . ' = g.' . self::FK_GROUP)
+            ->where($this->buildEntityWhere($entityType, $entityId, $shopId))
+            ->where('(fv.id_lang = ' . $langId . ' OR fv.id_lang IS NULL)')
+            ->where('f.active = 1')
+            ->where('g.active = 1')
+            ->orderBy('f.position ASC');
+
+        $results = $this->db->executeS($sql);
+
+        if (!$results) {
+            return [];
+        }
+
+        return array_map([$this, 'decodeMetaRow'], $results);
+    }
+
+    public function findByFieldAndEntity(
+        int $fieldId,
+        string $entityType,
+        int $entityId,
+        ?int $shopId = null,
+        ?int $langId = null
+    ): ?string {
+        [$shopId, $langId] = $this->resolveContext($shopId, $langId);
+
+        $sql = new DbQuery();
+        $sql->select('value')
+            ->from($this->getTableName())
+            ->where(self::FK_FIELD . ' = ' . (int) $fieldId)
+            ->where($this->buildEntityWhere($entityType, $entityId, $shopId))
+            ->where('(id_lang = ' . $langId . ' OR id_lang IS NULL)');
+
+        $result = $this->db->getValue($sql);
+
+        return $result ?: null;
+    }
+
+    /**
+     * @return array<int>
+     */
+    public function findEntitiesByFieldValue(int $fieldId, string $value, string $entityType, ?int $shopId = null): array
+    {
+        $sql = new DbQuery();
+        $sql->select('DISTINCT entity_id')
+            ->from($this->getTableName())
+            ->where(self::FK_FIELD . ' = ' . (int) $fieldId)
+            ->where('entity_type = "' . pSQL($entityType) . '"')
+            ->where('value_index = "' . pSQL($value) . '"');
+
+        if ($shopId !== null) {
+            $sql->where('id_shop = ' . (int) $shopId);
+        }
+
+        $results = $this->db->executeS($sql);
+
+        return $results
+            ? array_column($results, 'entity_id')
+            : [];
+    }
+
+    public function findAllByGroup(int $groupId): array
+    {
+        $sql = new DbQuery();
+        $sql->select('fv.*')
+            ->from($this->getTableName(), 'fv')
+            ->innerJoin(self::TABLE_FIELD, 'f', 'fv.' . self::FK_FIELD . ' = f.' . self::FK_FIELD)
+            ->where('f.' . self::FK_GROUP . ' = ' . (int) $groupId)
+            ->orderBy('fv.' . $this->getPrimaryKey() . ' ASC');
+
+        return $this->db->executeS($sql) ?: [];
+    }
+
+    // =========================================================================
+    // Save Operations
+    // =========================================================================
+
+    public function saveEntity(
+        int $fieldId,
+        string $entityType,
+        int $entityId,
+        ?string $value,
+        ?int $shopId = null,
+        ?int $langId = null,
+        ?bool $isTranslatable = null,
+        ?string $indexValue = null
+    ): bool {
+        $shopId ??= $this->getContextShopId();
+        $defaultLangId = $this->getDefaultLangId();
+        $isTranslatable ??= $this->isFieldTranslatable($fieldId);
+        $indexValue ??= $value !== null ? substr($value, 0, 255) : null;
+
+        // For translatable fields with non-default language
+        if ($isTranslatable && $langId !== null && $langId !== $defaultLangId) {
+            return $this->saveTranslation($fieldId, $entityType, $entityId, $shopId, $langId, $value, $indexValue);
+        }
+
+        // For non-translatable fields OR default language of translatable field
+        return $this->saveMainValue($fieldId, $entityType, $entityId, $shopId, $value, $indexValue, $isTranslatable, $langId);
+    }
+
+    // =========================================================================
+    // Delete Operations
+    // =========================================================================
+
+    public function deleteByEntity(string $entityType, int $entityId, ?int $shopId = null): bool
+    {
+        $where = 'entity_type = "' . pSQL($entityType) . '" AND entity_id = ' . (int) $entityId;
+
+        if ($shopId !== null) {
+            $where .= ' AND id_shop = ' . (int) $shopId;
+        }
+
+        return $this->db->delete($this->getTableName(), $where);
+    }
+
+    public function deleteByFieldAndEntity(
+        int $fieldId,
+        string $entityType,
+        int $entityId,
+        ?int $shopId = null,
+        ?int $langId = null
+    ): bool {
+        $where = $this->buildFieldEntityWhere($fieldId, $entityType, $entityId, $shopId);
+
+        // Delete from lang table if langId specified
+        if ($langId !== null) {
+            $this->deleteLangValuesByWhere($where, $langId);
+        }
+
+        return $this->db->delete($this->getTableName(), $where);
+    }
+
+    // =========================================================================
+    // Configuration
+    // =========================================================================
+
+    protected function getTableName(): string
+    {
+        return 'wepresta_acf_field_value';
+    }
+
+    protected function getPrimaryKey(): string
+    {
+        return 'id_wepresta_acf_field_value';
+    }
+
+    private function getLangTableName(): string
+    {
+        return $this->getTableName() . '_lang';
+    }
+
+    // =========================================================================
+    // Private Helpers - Context
+    // =========================================================================
+
+    /**
+     * @return array{int, int} [shopId, langId]
+     */
+    private function resolveContext(?int $shopId, ?int $langId): array
+    {
+        return [
+            $shopId ?? $this->getContextShopId(),
+            $langId ?? $this->getContextLangId(),
+        ];
+    }
+
+    private function getContextShopId(): int
+    {
+        return (int) Context::getContext()->shop->id;
+    }
+
+    private function getContextLangId(): int
+    {
+        return (int) Context::getContext()->language->id;
+    }
+
+    private function getDefaultLangId(): int
+    {
+        return (int) Configuration::get('PS_LANG_DEFAULT');
+    }
+
+    // =========================================================================
+    // Private Helpers - Query Building
+    // =========================================================================
+
+    private function buildEntityWhere(string $entityType, int $entityId, int $shopId): string
+    {
+        return 'fv.entity_type = "' . pSQL($entityType) . '"'
+            . ' AND fv.entity_id = ' . $entityId
+            . ' AND fv.id_shop = ' . $shopId;
+    }
+
+    private function buildFieldEntityWhere(int $fieldId, string $entityType, int $entityId, ?int $shopId): string
+    {
+        $where = self::FK_FIELD . ' = ' . $fieldId
+            . ' AND entity_type = "' . pSQL($entityType) . '"'
+            . ' AND entity_id = ' . $entityId;
+
+        if ($shopId !== null) {
+            $where .= ' AND id_shop = ' . $shopId;
+        }
+
+        return $where;
+    }
+
+    private function getMetaSelectFields(): string
+    {
+        return '
+            fv.' . $this->getPrimaryKey() . ',
+            fv.' . self::FK_FIELD . ',
             fv.entity_type,
             fv.entity_id,
             fv.id_shop,
@@ -230,180 +400,196 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             g.uuid as group_uuid,
             g.title as group_title,
             g.bo_options as group_bo_options
-        ');
-        $sql->from('wepresta_acf_field_value', 'fv');
-        $sql->innerJoin('wepresta_acf_field', 'f', 'fv.id_wepresta_acf_field = f.id_wepresta_acf_field');
-        $sql->innerJoin('wepresta_acf_group', 'g', 'f.id_wepresta_acf_group = g.id_wepresta_acf_group');
-        
-        // Filter by entity
-        $sql->where('fv.entity_type = "' . pSQL($entityType) . '"');
-        $sql->where('fv.entity_id = ' . (int) $entityId);
-        $sql->where('fv.id_shop = ' . (int) $shopId);
-        $sql->where('(fv.id_lang = ' . (int) $langId . ' OR fv.id_lang IS NULL)');
-        
-        // Only active fields and groups
-        $sql->where('f.active = 1');
-        $sql->where('g.active = 1');
-        
-        $sql->orderBy('f.position ASC');
-
-        $results = $this->db->executeS($sql);
-        
-        if (!$results) {
-            return [];
-        }
-
-        $processedResults = [];
-        foreach ($results as $row) {
-            // Decode JSON fields
-            $row['field_config'] = json_decode($row['field_config'] ?: '[]', true);
-            $row['field_validation'] = json_decode($row['field_validation'] ?: '[]', true);
-            $row['field_conditions'] = json_decode($row['field_conditions'] ?: '[]', true);
-            $row['field_wrapper'] = json_decode($row['field_wrapper'] ?: '{}', true);
-            $row['group_bo_options'] = json_decode($row['group_bo_options'] ?: '{}', true);
-            
-            $processedResults[] = $row;
-        }
-
-        return $processedResults;
+        ';
     }
 
-    public function findByFieldAndEntity(int $fieldId, string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): ?string
+    // =========================================================================
+    // Private Helpers - Value Processing
+    // =========================================================================
+
+    private function decodeValue(?string $value): mixed
     {
-        $shopId ??= (int) Context::getContext()->shop->id;
-        $langId ??= (int) Context::getContext()->language->id;
+        if ($value === null) {
+            return null;
+        }
 
-        $sql = new DbQuery();
-        $sql->select('value')
-            ->from($this->getTableName())
-            ->where(self::FIELD_FK . ' = ' . (int) $fieldId)
-            ->where('entity_type = "' . pSQL($entityType) . '"')
-            ->where('entity_id = ' . (int) $entityId)
-            ->where('id_shop = ' . (int) $shopId)
-            ->where('(id_lang = ' . (int) $langId . ' OR id_lang IS NULL)');
+        $decoded = json_decode($value, true);
 
-        $result = $this->db->getValue($sql);
+        // Return original if JSON decode failed
+        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+            return $value;
+        }
 
-        return $result ?: null;
+        return $decoded ?? $value;
     }
 
-    public function saveEntity(
-        int $fieldId,
-        string $entityType,
-        int $entityId,
-        ?string $value,
-        ?int $shopId = null,
-        ?int $langId = null,
-        ?bool $isTranslatable = null,
-        ?string $indexValue = null
-    ): bool {
-        $shopId ??= (int) Context::getContext()->shop->id;
+    private function decodeMetaRow(array $row): array
+    {
+        $jsonFields = ['field_config', 'field_validation', 'field_conditions', 'field_wrapper', 'group_bo_options'];
+        $defaults = ['field_config' => [], 'field_validation' => [], 'field_conditions' => [], 'field_wrapper' => [], 'group_bo_options' => []];
 
-        if ($isTranslatable === null) {
-            $fieldRepo = new AcfFieldRepository();
-            $field = $fieldRepo->findById($fieldId);
-            $isTranslatable = $field && (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
+        foreach ($jsonFields as $field) {
+            $row[$field] = json_decode($row[$field] ?: '[]', true) ?? $defaults[$field];
         }
 
-        $effectiveLangId = $isTranslatable ? ($langId ?? (int) Context::getContext()->language->id) : null;
-        if ($indexValue === null && $value !== null) {
-            $indexValue = substr($value, 0, 255);
-        }
+        return $row;
+    }
 
-        $now = date('Y-m-d H:i:s');
+    private function isFieldTranslatable(int $fieldId): bool
+    {
+        $fieldRepo = new AcfFieldRepository();
+        $field = $fieldRepo->findById($fieldId);
 
-        // MySQL NULL != NULL workaround for non-translatable fields
-        if ($effectiveLangId === null) {
-            $deleteWhere = self::FIELD_FK . ' = ' . (int) $fieldId
-                . ' AND entity_type = "' . pSQL($entityType) . '"'
-                . ' AND entity_id = ' . (int) $entityId
-                . ' AND id_shop = ' . (int) $shopId
-                . ' AND id_lang IS NULL';
-            $this->db->delete($this->getTableName(), $deleteWhere);
+        return $field && (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
+    }
 
-            $insert = [
-                self::FIELD_FK => (int) $fieldId,
-                'entity_type' => pSQL($entityType),
-                'entity_id' => (int) $entityId,
-                'id_shop' => (int) $shopId,
-                'value' => $value !== null ? pSQL($value) : null,
-                'value_index' => $indexValue !== null ? pSQL(substr($indexValue, 0, 255)) : null,
-                'date_add' => $now,
-                'date_upd' => $now,
-            ];
+    // =========================================================================
+    // Private Helpers - Lang Table Operations
+    // =========================================================================
 
-            return $this->db->insert($this->getTableName(), $insert);
-        }
+    private function getLangValue(int $valueId, int $langId): ?string
+    {
+        $sql = 'SELECT value FROM `' . $this->dbPrefix . $this->getLangTableName() . '`
+                WHERE ' . $this->getPrimaryKey() . ' = ' . $valueId . ' AND id_lang = ' . $langId;
 
-        // For translatable fields, use upsert
+        $result = $this->db->getRow($sql);
+
+        return $result['value'] ?? null;
+    }
+
+    private function getAllLangValues(int $valueId): array
+    {
+        $sql = 'SELECT id_lang, value FROM `' . $this->dbPrefix . $this->getLangTableName() . '`
+                WHERE ' . $this->getPrimaryKey() . ' = ' . $valueId;
+
+        return $this->db->executeS($sql) ?: [];
+    }
+
+    private function saveLangValue(int $valueId, int $langId, ?string $value, ?string $indexValue): bool
+    {
         $valueSql = $value !== null ? "'" . pSQL($value) . "'" : 'NULL';
-        $valueIndexSql = $indexValue !== null ? "'" . pSQL($indexValue) . "'" : 'NULL';
+        $indexSql = $indexValue !== null ? "'" . pSQL($indexValue) . "'" : 'NULL';
 
-        $sql = 'INSERT INTO `' . $this->dbPrefix . $this->getTableName() . "`
-                (`" . self::FIELD_FK . "`, `entity_type`, `entity_id`, `id_shop`, `id_lang`, `value`, `value_index`, `date_add`, `date_upd`)
-                VALUES (" . (int) $fieldId . ', "' . pSQL($entityType) . '", ' . (int) $entityId . ', ' . (int) $shopId . ', ' . (int) $effectiveLangId . ', ' . $valueSql . ', ' . $valueIndexSql . ", '" . $now . "', '" . $now . "')
-                ON DUPLICATE KEY UPDATE `value` = " . $valueSql . ', `value_index` = ' . $valueIndexSql . ", `date_upd` = '" . $now . "'";
+        $sql = 'INSERT INTO `' . $this->dbPrefix . $this->getLangTableName() . '`
+                (`' . $this->getPrimaryKey() . '`, `id_lang`, `value`, `value_index`)
+                VALUES (' . $valueId . ', ' . $langId . ', ' . $valueSql . ', ' . $indexSql . ')
+                ON DUPLICATE KEY UPDATE `value` = ' . $valueSql . ', `value_index` = ' . $indexSql;
 
         return $this->db->execute($sql);
     }
 
-    public function deleteByEntity(string $entityType, int $entityId, ?int $shopId = null): bool
+    private function deleteLangValuesByWhere(string $mainWhere, int $langId): void
     {
-        $where = 'entity_type = "' . pSQL($entityType) . '" AND entity_id = ' . (int) $entityId;
-        if ($shopId !== null) {
-            $where .= ' AND id_shop = ' . (int) $shopId;
+        $values = $this->db->executeS(
+            'SELECT ' . $this->getPrimaryKey() . ' FROM `' . $this->dbPrefix . $this->getTableName() . '` WHERE ' . $mainWhere
+        );
+
+        if (!$values) {
+            return;
         }
 
-        return $this->db->delete($this->getTableName(), $where);
+        $valueIds = array_column($values, $this->getPrimaryKey());
+        $langWhere = $this->getPrimaryKey() . ' IN (' . implode(',', $valueIds) . ') AND id_lang = ' . $langId;
+
+        $this->db->delete($this->getLangTableName(), $langWhere);
     }
 
-    public function deleteByFieldAndEntity(int $fieldId, string $entityType, int $entityId, ?int $shopId = null, ?int $langId = null): bool
-    {
-        $where = self::FIELD_FK . ' = ' . (int) $fieldId
-            . ' AND entity_type = "' . pSQL($entityType) . '"'
-            . ' AND entity_id = ' . (int) $entityId;
-        if ($shopId !== null) {
-            $where .= ' AND id_shop = ' . (int) $shopId;
-        }
-        if ($langId !== null) {
-            $where .= ' AND id_lang = ' . (int) $langId;
-        }
+    // =========================================================================
+    // Private Helpers - Save Logic
+    // =========================================================================
 
-        return $this->db->delete($this->getTableName(), $where);
+    private function saveTranslation(
+        int $fieldId,
+        string $entityType,
+        int $entityId,
+        int $shopId,
+        int $langId,
+        ?string $value,
+        ?string $indexValue
+    ): bool {
+        $valueId = $this->getOrCreateMainValueId($fieldId, $entityType, $entityId, $shopId);
+
+        return $this->saveLangValue($valueId, $langId, $value, $indexValue);
     }
 
-    /** @return array<int> */
-    public function findEntitiesByFieldValue(int $fieldId, string $value, string $entityType, ?int $shopId = null): array
-    {
-        $sql = new DbQuery();
-        $sql->select('DISTINCT entity_id')
-            ->from($this->getTableName())
-            ->where(self::FIELD_FK . ' = ' . (int) $fieldId)
-            ->where('entity_type = "' . pSQL($entityType) . '"')
-            ->where('value_index = "' . pSQL($value) . '"');
+    private function saveMainValue(
+        int $fieldId,
+        string $entityType,
+        int $entityId,
+        int $shopId,
+        ?string $value,
+        ?string $indexValue,
+        bool $isTranslatable,
+        ?int $langId
+    ): bool {
+        $now = date('Y-m-d H:i:s');
+        $where = $this->buildFieldEntityWhere($fieldId, $entityType, $entityId, $shopId);
 
-        if ($shopId !== null) {
-            $sql->where('id_shop = ' . (int) $shopId);
+        $existing = $this->db->getRow(
+            'SELECT ' . $this->getPrimaryKey() . ' FROM `' . $this->dbPrefix . $this->getTableName() . '` WHERE ' . $where
+        );
+
+        if ($existing) {
+            $valueId = (int) $existing[$this->getPrimaryKey()];
+            $this->db->update($this->getTableName(), [
+                'value' => $value !== null ? pSQL($value) : null,
+                'value_index' => $indexValue !== null ? pSQL(substr($indexValue, 0, 255)) : null,
+                'date_upd' => $now,
+            ], $where);
+        } else {
+            $success = $this->db->insert($this->getTableName(), [
+                self::FK_FIELD => $fieldId,
+                'entity_type' => pSQL($entityType),
+                'entity_id' => $entityId,
+                'id_shop' => $shopId,
+                'value' => $value !== null ? pSQL($value) : null,
+                'value_index' => $indexValue !== null ? pSQL(substr($indexValue, 0, 255)) : null,
+                'date_add' => $now,
+                'date_upd' => $now,
+            ]);
+
+            if (!$success) {
+                return false;
+            }
+
+            $valueId = (int) $this->db->Insert_ID();
         }
 
-        $results = $this->db->executeS($sql);
-        return $results ? array_map(fn($r) => (int) $r['entity_id'], $results) : [];
+        // For translatable fields, also save to lang table
+        if ($isTranslatable) {
+            $effectiveLangId = $langId ?? $this->getDefaultLangId();
+
+            return $this->saveLangValue($valueId, $effectiveLangId, $value, $indexValue);
+        }
+
+        return true;
     }
 
-    /**
-     * Find all field values for all fields in a group.
-     * Used for export functionality.
-     */
-    public function findAllByGroup(int $groupId): array
+    private function getOrCreateMainValueId(int $fieldId, string $entityType, int $entityId, int $shopId): int
     {
-        $sql = new DbQuery();
-        $sql->select('fv.*')
-            ->from($this->getTableName(), 'fv')
-            ->innerJoin(self::FIELD_TABLE, 'f', 'fv.' . self::FIELD_FK . ' = f.' . self::FIELD_FK)
-            ->where('f.id_wepresta_acf_group = ' . (int) $groupId)
-            ->orderBy('fv.' . $this->getPrimaryKey() . ' ASC');
+        $where = $this->buildFieldEntityWhere($fieldId, $entityType, $entityId, $shopId);
 
-        $results = $this->db->executeS($sql);
-        return $results ?: [];
+        $existing = $this->db->getRow(
+            'SELECT ' . $this->getPrimaryKey() . ' FROM `' . $this->dbPrefix . $this->getTableName() . '` WHERE ' . $where
+        );
+
+        if ($existing) {
+            return (int) $existing[$this->getPrimaryKey()];
+        }
+
+        $now = date('Y-m-d H:i:s');
+
+        $this->db->insert($this->getTableName(), [
+            self::FK_FIELD => $fieldId,
+            'entity_type' => pSQL($entityType),
+            'entity_id' => $entityId,
+            'id_shop' => $shopId,
+            'value' => null,
+            'value_index' => null,
+            'date_add' => $now,
+            'date_upd' => $now,
+        ]);
+
+        return (int) $this->db->Insert_ID();
     }
 }

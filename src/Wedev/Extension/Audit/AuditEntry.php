@@ -4,28 +4,41 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Audit;
 
+use Context;
+use DateTimeImmutable;
+use Tools;
+
 /**
  * Représente une entrée de journal d'audit.
  */
 final class AuditEntry
 {
     public const ACTION_CREATE = 'create';
+
     public const ACTION_UPDATE = 'update';
+
     public const ACTION_DELETE = 'delete';
+
     public const ACTION_VIEW = 'view';
+
     public const ACTION_EXPORT = 'export';
+
     public const ACTION_IMPORT = 'import';
+
     public const ACTION_LOGIN = 'login';
+
     public const ACTION_LOGOUT = 'logout';
+
     public const ACTION_CUSTOM = 'custom';
 
     private ?int $id = null;
-    private \DateTimeImmutable $createdAt;
+
+    private DateTimeImmutable $createdAt;
 
     /**
      * @param array<string, mixed> $oldValues Valeurs avant modification
      * @param array<string, mixed> $newValues Valeurs après modification
-     * @param array<string, mixed> $context   Contexte additionnel
+     * @param array<string, mixed> $context Contexte additionnel
      */
     public function __construct(
         private readonly string $action,
@@ -39,7 +52,7 @@ final class AuditEntry
         private readonly array $context = [],
         private readonly int $shopId = 0
     ) {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
     }
 
     // -------------------------------------------------------------------------
@@ -81,7 +94,7 @@ final class AuditEntry
     /**
      * Crée une entrée pour une suppression.
      *
-     * @param array<string, mixed> $values  Valeurs avant suppression
+     * @param array<string, mixed> $values Valeurs avant suppression
      * @param array<string, mixed> $context
      */
     public static function delete(
@@ -91,62 +104,6 @@ final class AuditEntry
         array $context = []
     ): self {
         return self::fromContext(self::ACTION_DELETE, $entityType, $entityId, $values, [], $context);
-    }
-
-    /**
-     * Crée une entrée depuis le contexte PrestaShop actuel.
-     *
-     * @param array<string, mixed> $oldValues
-     * @param array<string, mixed> $newValues
-     * @param array<string, mixed> $context
-     */
-    private static function fromContext(
-        string $action,
-        string $entityType,
-        ?int $entityId,
-        array $oldValues,
-        array $newValues,
-        array $context
-    ): self {
-        $psContext = \Context::getContext();
-
-        $userId = null;
-        $userName = null;
-
-        // Essayer d'obtenir l'employé (back-office)
-        if (isset($psContext->employee) && $psContext->employee->id) {
-            $userId = (int) $psContext->employee->id;
-            $userName = sprintf(
-                '%s %s (employee)',
-                $psContext->employee->firstname,
-                $psContext->employee->lastname
-            );
-        }
-        // Sinon le client (front-office)
-        elseif (isset($psContext->customer) && $psContext->customer->id) {
-            $userId = (int) $psContext->customer->id;
-            $userName = sprintf(
-                '%s %s (customer)',
-                $psContext->customer->firstname,
-                $psContext->customer->lastname
-            );
-        }
-
-        $ipAddress = \Tools::getRemoteAddr() ?: 'unknown';
-        $shopId = isset($psContext->shop) ? (int) $psContext->shop->id : 0;
-
-        return new self(
-            action: $action,
-            entityType: $entityType,
-            entityId: $entityId,
-            userId: $userId,
-            userName: $userName,
-            ipAddress: $ipAddress,
-            oldValues: $oldValues,
-            newValues: $newValues,
-            context: $context,
-            shopId: $shopId
-        );
     }
 
     // -------------------------------------------------------------------------
@@ -217,7 +174,7 @@ final class AuditEntry
         return $this->shopId;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
@@ -233,7 +190,7 @@ final class AuditEntry
         return $this;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $date): self
+    public function setCreatedAt(DateTimeImmutable $date): self
     {
         $this->createdAt = $date;
 
@@ -256,6 +213,7 @@ final class AuditEntry
         // Champs modifiés
         foreach ($this->newValues as $key => $newValue) {
             $oldValue = $this->oldValues[$key] ?? null;
+
             if ($oldValue !== $newValue) {
                 $changes[$key] = ['old' => $oldValue, 'new' => $newValue];
             }
@@ -263,7 +221,7 @@ final class AuditEntry
 
         // Champs supprimés
         foreach ($this->oldValues as $key => $oldValue) {
-            if (!array_key_exists($key, $this->newValues)) {
+            if (! \array_key_exists($key, $this->newValues)) {
                 $changes[$key] = ['old' => $oldValue, 'new' => null];
             }
         }
@@ -276,7 +234,62 @@ final class AuditEntry
      */
     public function hasChanged(string $field): bool
     {
-        return array_key_exists($field, $this->getChanges());
+        return \array_key_exists($field, $this->getChanges());
+    }
+
+    /**
+     * Crée une entrée depuis le contexte PrestaShop actuel.
+     *
+     * @param array<string, mixed> $oldValues
+     * @param array<string, mixed> $newValues
+     * @param array<string, mixed> $context
+     */
+    private static function fromContext(
+        string $action,
+        string $entityType,
+        ?int $entityId,
+        array $oldValues,
+        array $newValues,
+        array $context
+    ): self {
+        $psContext = Context::getContext();
+
+        $userId = null;
+        $userName = null;
+
+        // Essayer d'obtenir l'employé (back-office)
+        if (isset($psContext->employee) && $psContext->employee->id) {
+            $userId = (int) $psContext->employee->id;
+            $userName = \sprintf(
+                '%s %s (employee)',
+                $psContext->employee->firstname,
+                $psContext->employee->lastname
+            );
+        }
+        // Sinon le client (front-office)
+        elseif (isset($psContext->customer) && $psContext->customer->id) {
+            $userId = (int) $psContext->customer->id;
+            $userName = \sprintf(
+                '%s %s (customer)',
+                $psContext->customer->firstname,
+                $psContext->customer->lastname
+            );
+        }
+
+        $ipAddress = Tools::getRemoteAddr() ?: 'unknown';
+        $shopId = isset($psContext->shop) ? (int) $psContext->shop->id : 0;
+
+        return new self(
+            action: $action,
+            entityType: $entityType,
+            entityId: $entityId,
+            userId: $userId,
+            userName: $userName,
+            ipAddress: $ipAddress,
+            oldValues: $oldValues,
+            newValues: $newValues,
+            context: $context,
+            shopId: $shopId
+        );
     }
 }
-

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Http;
 
+use PHPUnit\Framework\TestCase;
 use WeprestaAcf\Extension\Http\Auth\ApiKeyAuth;
 use WeprestaAcf\Extension\Http\Auth\BasicAuth;
 use WeprestaAcf\Extension\Http\Auth\BearerAuth;
-use PHPUnit\Framework\TestCase;
 
 class AuthTest extends TestCase
 {
@@ -58,4 +58,3 @@ class AuthTest extends TestCase
         $this->assertEquals($expected, $headers['Authorization']);
     }
 }
-

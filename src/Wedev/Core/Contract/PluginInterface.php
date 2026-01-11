@@ -103,4 +103,3 @@ interface PluginInterface
      */
     public function getServices(): array;
 }
-

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use Exception;
+use JsonException;
 use Module;
 use WeprestaAcf\Application\Template\ImportResult;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
@@ -61,11 +63,13 @@ final class ExportImportService
      * Export a single group to JSON format.
      *
      * @param int $groupId Group ID
+     *
      * @return array<string, mixed>|null Export data structure or null if group not found
      */
     public function exportGroup(int $groupId): ?array
     {
         $group = $this->groupRepository->findById($groupId);
+
         if ($group === null) {
             return null;
         }
@@ -90,6 +94,7 @@ final class ExportImportService
      * Import groups with replace mode (delete all existing, then import).
      *
      * @param array<string, mixed> $data Import data
+     *
      * @return ImportResult Import result with details
      */
     public function importReplace(array $data): ImportResult
@@ -99,16 +104,20 @@ final class ExportImportService
 
         // Validate data first
         $validation = $this->validateImportData($data);
-        if (!$validation['valid']) {
+
+        if (! $validation['valid']) {
             $result = new ImportResult(false, $validation['error']);
+
             foreach ($validation['errors'] as $error) {
                 $result->addError('validation', $error);
             }
+
             return $result;
         }
 
         // Get groups to import
         $groupsToImport = $data['groups'] ?? [];
+
         if (empty($groupsToImport) && isset($data['group'])) {
             $groupsToImport = [$data['group']];
         }
@@ -120,11 +129,13 @@ final class ExportImportService
         // Delete all existing groups
         $allGroups = $this->groupRepository->findAll();
         $deletedCount = 0;
+
         foreach ($allGroups as $group) {
             $groupId = (int) $group['id_wepresta_acf_group'];
             $this->fieldRepository->deleteByGroup($groupId);
+
             if ($this->groupRepository->delete($groupId)) {
-                $deletedCount++;
+                ++$deletedCount;
             }
         }
 
@@ -134,7 +145,7 @@ final class ExportImportService
         foreach ($groupsToImport as $groupData) {
             try {
                 $this->importGroup($groupData, $result);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $result->addError($groupData['slug'] ?? 'unknown', $e->getMessage());
                 $this->logError('Import group failed', [
                     'slug' => $groupData['slug'] ?? 'unknown',
@@ -144,13 +155,14 @@ final class ExportImportService
         }
 
         // Check if at least one group was successfully imported
-        $importedCount = count($result->getCreated());
-        if ($importedCount === 0 && !empty($groupsToImport)) {
+        $importedCount = \count($result->getCreated());
+
+        if ($importedCount === 0 && ! empty($groupsToImport)) {
             // No groups were imported but we had groups to import - this is a failure
             $result->addError('import', 'No groups were successfully imported');
             $result->setMessage('Import failed: No groups were imported');
         } else {
-            $result->setMessage(sprintf(
+            $result->setMessage(\sprintf(
                 '%d groups imported',
                 $importedCount
             ));
@@ -163,6 +175,7 @@ final class ExportImportService
      * Import groups with merge mode (add/update without deleting existing).
      *
      * @param array<string, mixed> $data Import data
+     *
      * @return ImportResult Import result with details
      */
     public function importMerge(array $data): ImportResult
@@ -172,16 +185,20 @@ final class ExportImportService
 
         // Validate data first
         $validation = $this->validateImportData($data);
-        if (!$validation['valid']) {
+
+        if (! $validation['valid']) {
             $result = new ImportResult(false, $validation['error']);
+
             foreach ($validation['errors'] as $error) {
                 $result->addError('validation', $error);
             }
+
             return $result;
         }
 
         // Get groups to import
         $groupsToImport = $data['groups'] ?? [];
+
         if (empty($groupsToImport) && isset($data['group'])) {
             $groupsToImport = [$data['group']];
         }
@@ -194,12 +211,15 @@ final class ExportImportService
         foreach ($groupsToImport as $groupData) {
             try {
                 $slug = $groupData['slug'] ?? '';
+
                 if (empty($slug)) {
                     $result->addError('unknown', 'Group slug is required');
+
                     continue;
                 }
 
                 $existing = $this->groupRepository->findBySlug($slug);
+
                 if ($existing !== null) {
                     // Update existing group
                     $this->updateGroup((int) $existing['id_wepresta_acf_group'], $groupData, $result);
@@ -207,7 +227,7 @@ final class ExportImportService
                     // Create new group
                     $this->createGroup($groupData, $result);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $result->addError($groupData['slug'] ?? 'unknown', $e->getMessage());
                 $this->logError('Import group failed', [
                     'slug' => $groupData['slug'] ?? 'unknown',
@@ -216,10 +236,10 @@ final class ExportImportService
             }
         }
 
-        $createdCount = count($result->getCreated());
-        $updatedCount = count($result->getUpdated());
+        $createdCount = \count($result->getCreated());
+        $updatedCount = \count($result->getUpdated());
 
-        $result->setMessage(sprintf(
+        $result->setMessage(\sprintf(
             '%d groups created, %d groups updated',
             $createdCount,
             $updatedCount
@@ -232,6 +252,7 @@ final class ExportImportService
      * Validate import data structure.
      *
      * @param array<string, mixed> $data Import data
+     *
      * @return array{valid: bool, error?: string, errors: array<string>} Validation result
      */
     public function validateImportData(array $data): array
@@ -239,54 +260,62 @@ final class ExportImportService
         $errors = [];
 
         // Check version
-        if (!isset($data['version'])) {
+        if (! isset($data['version'])) {
             $errors[] = 'Missing required field: version';
         }
 
         // Check groups or group
-        if (!isset($data['groups']) && !isset($data['group'])) {
+        if (! isset($data['groups']) && ! isset($data['group'])) {
             $errors[] = 'Missing required field: groups or group';
         }
 
         $groupsToValidate = $data['groups'] ?? [];
+
         if (empty($groupsToValidate) && isset($data['group'])) {
             $groupsToValidate = [$data['group']];
         }
 
         // Validate each group
         foreach ($groupsToValidate as $index => $group) {
-            if (!is_array($group)) {
-                $errors[] = sprintf('Group at index %d is not an array', $index);
+            if (! \is_array($group)) {
+                $errors[] = \sprintf('Group at index %d is not an array', $index);
+
                 continue;
             }
 
             // Required fields
             if (empty($group['title'])) {
-                $errors[] = sprintf('Group at index %d: missing required field "title"', $index);
+                $errors[] = \sprintf('Group at index %d: missing required field "title"', $index);
             }
+
             if (empty($group['slug'])) {
-                $errors[] = sprintf('Group at index %d: missing required field "slug"', $index);
+                $errors[] = \sprintf('Group at index %d: missing required field "slug"', $index);
             }
-            if (!isset($group['fields']) || !is_array($group['fields'])) {
-                $errors[] = sprintf('Group at index %d: missing required field "fields" (array)', $index);
+
+            if (! isset($group['fields']) || ! \is_array($group['fields'])) {
+                $errors[] = \sprintf('Group at index %d: missing required field "fields" (array)', $index);
+
                 continue;
             }
 
             // Validate fields
             foreach ($group['fields'] as $fieldIndex => $field) {
-                if (!is_array($field)) {
-                    $errors[] = sprintf('Group "%s", field at index %d: not an array', $group['slug'] ?? 'unknown', $fieldIndex);
+                if (! \is_array($field)) {
+                    $errors[] = \sprintf('Group "%s", field at index %d: not an array', $group['slug'] ?? 'unknown', $fieldIndex);
+
                     continue;
                 }
 
                 if (empty($field['type'])) {
-                    $errors[] = sprintf('Group "%s", field at index %d: missing required field "type"', $group['slug'] ?? 'unknown', $fieldIndex);
+                    $errors[] = \sprintf('Group "%s", field at index %d: missing required field "type"', $group['slug'] ?? 'unknown', $fieldIndex);
                 }
+
                 if (empty($field['title'])) {
-                    $errors[] = sprintf('Group "%s", field at index %d: missing required field "title"', $group['slug'] ?? 'unknown', $fieldIndex);
+                    $errors[] = \sprintf('Group "%s", field at index %d: missing required field "title"', $group['slug'] ?? 'unknown', $fieldIndex);
                 }
+
                 if (empty($field['slug'])) {
-                    $errors[] = sprintf('Group "%s", field at index %d: missing required field "slug"', $group['slug'] ?? 'unknown', $fieldIndex);
+                    $errors[] = \sprintf('Group "%s", field at index %d: missing required field "slug"', $group['slug'] ?? 'unknown', $fieldIndex);
                 }
             }
         }
@@ -299,21 +328,35 @@ final class ExportImportService
     }
 
     /**
+     * Get field count for a group.
+     *
+     * @param int $groupId Group ID
+     *
+     * @return int Field count
+     */
+    public function getFieldCount(int $groupId): int
+    {
+        return $this->fieldRepository->countByGroup($groupId);
+    }
+
+    /**
      * Format a group and its fields for export.
      *
      * @param array<string, mixed> $group Group data from repository
      * @param array<array<string, mixed>> $fields Fields data from repository
      * @param array<array<string, mixed>> $fieldValues Field values data from repository
+     *
      * @return array<string, mixed> Formatted group data
      */
     private function formatGroupForExport(array $group, array $fields, array $fieldValues = []): array
     {
         $groupId = (int) $group['id_wepresta_acf_group'];
-        
+
         // Get shop associations for this group
         $shopIds = $this->groupRepository->getShopIds($groupId);
 
         $exportedFields = [];
+
         foreach ($fields as $field) {
             $exportedFields[] = [
                 'uuid' => $field['uuid'] ?? null,
@@ -335,19 +378,22 @@ final class ExportImportService
         }
 
         // Sort fields by position
-        usort($exportedFields, fn($a, $b) => $a['position'] <=> $b['position']);
+        usort($exportedFields, fn ($a, $b) => $a['position'] <=> $b['position']);
 
         // Format field values for export
         // Create a map of field IDs to slugs for quick lookup
         $fieldIdToSlug = [];
+
         foreach ($fields as $field) {
             $fieldIdToSlug[(int) $field['id_wepresta_acf_field']] = $field['slug'];
         }
 
         $exportedValues = [];
+
         foreach ($fieldValues as $value) {
             $fieldId = (int) $value['id_wepresta_acf_field'];
             $fieldSlug = $fieldIdToSlug[$fieldId] ?? null;
+
             if ($fieldSlug === null) {
                 continue; // Skip if field not found
             }
@@ -387,22 +433,25 @@ final class ExportImportService
      * Encode array to JSON string for database storage.
      *
      * @param mixed $data Data to encode
+     *
      * @return string JSON string
      */
     private function encodeJson(mixed $data): string
     {
-        if (is_string($data)) {
+        if (\is_string($data)) {
             // If already a JSON string, try to validate it
             $decoded = json_decode($data, true);
+
             if (json_last_error() === JSON_ERROR_NONE) {
                 // Valid JSON string, re-encode it properly
                 return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             }
+
             // Not valid JSON, return as is (shouldn't happen)
             return $data;
         }
 
-        if (is_array($data) || is_object($data)) {
+        if (\is_array($data) || \is_object($data)) {
             return json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
@@ -421,6 +470,7 @@ final class ExportImportService
 
         // Try to decode as JSON
         $decoded = json_decode($value, true);
+
         if (json_last_error() === JSON_ERROR_NONE) {
             return $decoded;
         }
@@ -452,10 +502,10 @@ final class ExportImportService
         ];
 
         $groupId = $this->groupRepository->create($groupToSave);
-        
+
         // Import shop associations
         $this->importShopAssociations($groupId, $groupData['shop_ids'] ?? []);
-        
+
         $fieldIdMap = $this->importFields($groupId, $groupData['fields'] ?? [], $result);
         $this->importFieldValues($groupId, $fieldIdMap, $groupData['field_values'] ?? [], $result);
 
@@ -505,6 +555,7 @@ final class ExportImportService
      * @param int $groupId Group ID
      * @param array<array<string, mixed>> $fields Fields data from JSON
      * @param ImportResult $result Result object to update
+     *
      * @return array<string, int> Map of field slug => field ID
      */
     private function importFields(int $groupId, array $fields, ImportResult $result): array
@@ -534,7 +585,8 @@ final class ExportImportService
             $fieldIdMap[$fieldData['slug']] = $fieldId;
         }
 
-        $result->addFieldsImported(count($fields));
+        $result->addFieldsImported(\count($fields));
+
         return $fieldIdMap;
     }
 
@@ -552,7 +604,8 @@ final class ExportImportService
 
         foreach ($fieldValues as $valueData) {
             $fieldSlug = $valueData['field_slug'] ?? null;
-            if ($fieldSlug === null || !isset($fieldIdMap[$fieldSlug])) {
+
+            if ($fieldSlug === null || ! isset($fieldIdMap[$fieldSlug])) {
                 continue; // Skip if field not found
             }
 
@@ -562,7 +615,8 @@ final class ExportImportService
 
             // Encode value if it's an array/object
             $value = $valueData['value'] ?? null;
-            if (is_array($value) || is_object($value)) {
+
+            if (\is_array($value) || \is_object($value)) {
                 $value = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             } elseif ($value !== null) {
                 $value = (string) $value;
@@ -579,7 +633,7 @@ final class ExportImportService
                 $valueData['value_index'] ?? null
             );
 
-            $importedCount++;
+            ++$importedCount;
         }
 
         $this->logInfo('Field values imported', ['group_id' => $groupId, 'count' => $importedCount]);
@@ -600,23 +654,14 @@ final class ExportImportService
      * Check if a field is required based on validation rules.
      *
      * @param array<string, mixed> $field Field data
+     *
      * @return bool True if field is required
      */
     private function isFieldRequired(array $field): bool
     {
         $validation = $this->decodeJson($field['validation'] ?? '{}');
-        return (bool) ($validation['required'] ?? false);
-    }
 
-    /**
-     * Get field count for a group.
-     *
-     * @param int $groupId Group ID
-     * @return int Field count
-     */
-    public function getFieldCount(int $groupId): int
-    {
-        return $this->fieldRepository->countByGroup($groupId);
+        return (bool) ($validation['required'] ?? false);
     }
 
     /**
@@ -630,6 +675,7 @@ final class ExportImportService
         if (empty($shopIds)) {
             // If no shop IDs provided, associate with all active shops (default behavior)
             $this->groupRepository->addAllShopAssociations($groupId);
+
             return;
         }
 
@@ -645,12 +691,13 @@ final class ExportImportService
      * Handles both JSON strings and already-decoded arrays.
      *
      * @param string|array|null $json JSON string, array, or null
+     *
      * @return array<string, mixed> Decoded array
      */
     private function decodeJson(string|array|null $json): array
     {
         // If already an array, return it
-        if (is_array($json)) {
+        if (\is_array($json)) {
             return $json;
         }
 
@@ -661,21 +708,25 @@ final class ExportImportService
 
         // Handle string representations of empty arrays/objects
         $trimmed = trim($json);
+
         if ($trimmed === '' || $trimmed === '{}' || $trimmed === '[]' || $trimmed === 'null') {
             return [];
         }
 
         // Handle quoted JSON strings like "[]" or "{}"
-        if (($trimmed[0] === '"' && $trimmed[strlen($trimmed) - 1] === '"')) {
+        if ($trimmed[0] === '"' && $trimmed[\strlen($trimmed) - 1] === '"') {
             $unquoted = substr($trimmed, 1, -1);
+
             if ($unquoted === '[]' || $unquoted === '{}' || $unquoted === '') {
                 return [];
             }
+
             // Try to decode the unquoted string
             try {
                 $data = json_decode($unquoted, true, 512, JSON_THROW_ON_ERROR);
-                return is_array($data) ? $data : [];
-            } catch (\JsonException $e) {
+
+                return \is_array($data) ? $data : [];
+            } catch (JsonException $e) {
                 // Fall through to try decoding the original
             }
         }
@@ -683,8 +734,9 @@ final class ExportImportService
         // Try to decode as JSON
         try {
             $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-            return is_array($data) ? $data : [];
-        } catch (\JsonException $e) {
+
+            return \is_array($data) ? $data : [];
+        } catch (JsonException $e) {
             return [];
         }
     }

@@ -23,4 +23,3 @@ interface ChannelInterface
      */
     public function isConfigured(): bool;
 }
-

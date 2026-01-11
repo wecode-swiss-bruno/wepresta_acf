@@ -1,6 +1,7 @@
 <?php
+
 /**
- * Rector Configuration
+ * Rector Configuration.
  *
  * Modernise automatiquement le code PHP
  *
@@ -13,8 +14,6 @@ use Rector\Config\RectorConfig;
 use Rector\Php81\Rector\Array_\FirstClassCallableRector;
 use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
 use Rector\Php81\Rector\Property\ReadOnlyPropertyRector;
-use Rector\Set\ValueObject\LevelSetList;
-use Rector\Set\ValueObject\SetList;
 use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromReturnNewRector;
 use Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictTypedPropertyRector;
@@ -59,4 +58,3 @@ return RectorConfig::configure()
         NullToStrictStringFuncCallArgRector::class,
     ])
     ->withImportNames(removeUnusedImports: true);
-

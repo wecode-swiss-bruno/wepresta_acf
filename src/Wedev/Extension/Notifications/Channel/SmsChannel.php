@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Notifications\Channel;
 
-use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
+use InvalidArgumentException;
+use RuntimeException;
 use WeprestaAcf\Wedev\Extension\Http\HttpClient;
-use WeprestaAcf\Wedev\Extension\Http\Auth\BearerAuth;
 use WeprestaAcf\Wedev\Extension\Notifications\NotificationInterface;
 
 /**
@@ -41,8 +41,8 @@ final class SmsChannel implements ChannelInterface
         private readonly string $provider = 'twilio',
         array $config = []
     ) {
-        if (!in_array($this->provider, self::PROVIDERS, true)) {
-            throw new \InvalidArgumentException(sprintf(
+        if (! \in_array($this->provider, self::PROVIDERS, true)) {
+            throw new InvalidArgumentException(\sprintf(
                 'Unsupported SMS provider: %s. Supported: %s',
                 $this->provider,
                 implode(', ', self::PROVIDERS)
@@ -54,22 +54,22 @@ final class SmsChannel implements ChannelInterface
 
     public function send(NotificationInterface $notification): int
     {
-        if (!$this->isConfigured()) {
-            throw new \RuntimeException('SMS channel not configured');
+        if (! $this->isConfigured()) {
+            throw new RuntimeException('SMS channel not configured');
         }
 
         $sent = 0;
 
         foreach ($notification->getRecipients() as $recipient) {
             // Ignorer si ce n'est pas un numéro de téléphone
-            if (!$this->isPhoneNumber($recipient)) {
+            if (! $this->isPhoneNumber($recipient)) {
                 continue;
             }
 
             $result = $this->sendSms($recipient, $notification->getContent());
 
             if ($result) {
-                $sent++;
+                ++$sent;
             }
         }
 
@@ -79,14 +79,14 @@ final class SmsChannel implements ChannelInterface
     public function isConfigured(): bool
     {
         return match ($this->provider) {
-            'twilio' => !empty($this->config['account_sid'])
-                && !empty($this->config['auth_token'])
-                && !empty($this->config['from']),
-            'ovh' => !empty($this->config['application_key'])
-                && !empty($this->config['application_secret'])
-                && !empty($this->config['consumer_key']),
-            'vonage' => !empty($this->config['api_key'])
-                && !empty($this->config['api_secret']),
+            'twilio' => ! empty($this->config['account_sid'])
+                && ! empty($this->config['auth_token'])
+                && ! empty($this->config['from']),
+            'ovh' => ! empty($this->config['application_key'])
+                && ! empty($this->config['application_secret'])
+                && ! empty($this->config['consumer_key']),
+            'vonage' => ! empty($this->config['api_key'])
+                && ! empty($this->config['api_secret']),
             default => false,
         };
     }
@@ -120,7 +120,7 @@ final class SmsChannel implements ChannelInterface
     {
         $client = new HttpClient();
 
-        $url = sprintf(
+        $url = \sprintf(
             'https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json',
             $this->config['account_sid']
         );
@@ -164,7 +164,7 @@ final class SmsChannel implements ChannelInterface
             'text' => $message,
         ]);
 
-        if (!$response->isSuccess()) {
+        if (! $response->isSuccess()) {
             return false;
         }
 
@@ -174,4 +174,3 @@ final class SmsChannel implements ChannelInterface
             && $data['messages'][0]['status'] === '0';
     }
 }
-

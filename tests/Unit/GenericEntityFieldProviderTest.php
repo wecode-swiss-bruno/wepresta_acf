@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace WeprestaAcf\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use WeprestaAcf\Application\Provider\EntityField\GenericSymfonyEntityFieldProvider;
-use WeprestaAcf\Application\Provider\EntityField\GenericLegacyEntityFieldProvider;
 use WeprestaAcf\Application\Config\EntityHooksConfig;
+use WeprestaAcf\Application\Provider\EntityField\GenericLegacyEntityFieldProvider;
+use WeprestaAcf\Application\Provider\EntityField\GenericSymfonyEntityFieldProvider;
 
 /**
  * Tests for GenericSymfonyEntityFieldProvider and GenericLegacyEntityFieldProvider.
@@ -280,9 +280,11 @@ class GenericEntityFieldProviderTest extends TestCase
     public static function provideAllSymfonyEntities(): array
     {
         $entities = [];
+
         foreach (array_keys(EntityHooksConfig::SYMFONY_ENTITIES) as $entityType) {
             $entities[$entityType] = [$entityType];
         }
+
         return $entities;
     }
 
@@ -305,10 +307,11 @@ class GenericEntityFieldProviderTest extends TestCase
     public static function provideAllLegacyEntities(): array
     {
         $entities = [];
+
         foreach (array_keys(EntityHooksConfig::LEGACY_ENTITIES) as $entityType) {
             $entities[$entityType] = [$entityType];
         }
+
         return $entities;
     }
 }
-

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 
 /**
- * URL field type
+ * URL field type.
  *
  * URL input with validation and link rendering.
  */
@@ -50,7 +50,7 @@ final class UrlField extends AbstractFieldType
         }
 
         // Handle arrays/objects (empty objects from JS become empty arrays)
-        if (is_array($value) || is_object($value)) {
+        if (\is_array($value) || \is_object($value)) {
             return null;
         }
 
@@ -61,7 +61,7 @@ final class UrlField extends AbstractFieldType
         }
 
         // Add protocol if missing
-        if (!preg_match('#^https?://#i', $value)) {
+        if (! preg_match('#^https?://#i', $value)) {
             $value = 'https://' . $value;
         }
 
@@ -79,6 +79,7 @@ final class UrlField extends AbstractFieldType
 
         // Convert to string and handle empty values
         $stringValue = (string) $actualValue;
+
         if ($stringValue === '') {
             return '';
         }
@@ -103,7 +104,7 @@ final class UrlField extends AbstractFieldType
         }
 
         // Render as clickable link
-        return sprintf(
+        return \sprintf(
             '<a href="%s" target="%s" rel="noopener noreferrer">%s</a>',
             $url,
             htmlspecialchars($target, ENT_QUOTES, 'UTF-8'),
@@ -122,12 +123,12 @@ final class UrlField extends AbstractFieldType
         $stringValue = (string) $value;
 
         // Add protocol for validation if missing
-        if (!preg_match('#^https?://#i', $stringValue)) {
+        if (! preg_match('#^https?://#i', $stringValue)) {
             $stringValue = 'https://' . $stringValue;
         }
 
         // URL format validation
-        if (!filter_var($stringValue, FILTER_VALIDATE_URL)) {
+        if (! filter_var($stringValue, FILTER_VALIDATE_URL)) {
             $errors[] = 'Please enter a valid URL.';
         }
 
@@ -175,9 +176,6 @@ final class UrlField extends AbstractFieldType
         return 'link';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -191,16 +189,13 @@ final class UrlField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
         $config = $this->getFieldConfig($field);
         $placeholder = addslashes($config['placeholder'] ?? 'https://example.com');
 
-        return sprintf(
+        return \sprintf(
             '<input type="url" class="form-control form-control-sm acf-subfield-input" data-subfield="%s" value="{value}" placeholder="%s">',
             $this->escapeAttr($slug),
             $placeholder

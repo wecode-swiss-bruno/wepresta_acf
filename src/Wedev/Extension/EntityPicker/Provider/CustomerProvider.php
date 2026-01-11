@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Extension - EntityPicker
+ * WEDEV Extension - EntityPicker.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -29,12 +30,9 @@ final class CustomerProvider extends AbstractEntityProvider
         return 'Clients';
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function search(string $term, int $limit = 20): array
     {
-        if (strlen($term) < 2) {
+        if (\strlen($term) < 2) {
             return [];
         }
 
@@ -61,16 +59,13 @@ final class CustomerProvider extends AbstractEntityProvider
 
         $rows = $this->db->executeS($query);
 
-        if (!$rows) {
+        if (! $rows) {
             return [];
         }
 
         return $this->formatRows($rows);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getByIds(array $ids): array
     {
         if (empty($ids)) {
@@ -85,7 +80,7 @@ final class CustomerProvider extends AbstractEntityProvider
 
         $rows = $this->db->executeS($query);
 
-        if (!$rows) {
+        if (! $rows) {
             return [];
         }
 
@@ -107,7 +102,7 @@ final class CustomerProvider extends AbstractEntityProvider
             $customerId = (int) $row['id_customer'];
             $name = $row['firstname'] . ' ' . $row['lastname'];
 
-            if (!empty($row['company'])) {
+            if (! empty($row['company'])) {
                 $name .= ' (' . $row['company'] . ')';
             }
 
@@ -133,4 +128,3 @@ final class CustomerProvider extends AbstractEntityProvider
         return 'https://www.gravatar.com/avatar/' . $hash . '?d=mp&s=50';
     }
 }
-

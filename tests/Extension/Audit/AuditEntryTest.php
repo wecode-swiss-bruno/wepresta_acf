@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Audit;
 
-use WeprestaAcf\Extension\Audit\AuditEntry;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Extension\Audit\AuditEntry;
 
 class AuditEntryTest extends TestCase
 {
@@ -104,4 +104,3 @@ class AuditEntryTest extends TestCase
         $this->assertEquals('New Name', $changes['name']['new']);
     }
 }
-

@@ -50,4 +50,3 @@ final class CartEntityFieldProvider implements EntityFieldProviderInterface
         return 'Cart';
     }
 }
-

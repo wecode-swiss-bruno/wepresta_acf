@@ -29,22 +29,22 @@ final class ImportResult
 
     public function incrementProcessed(): void
     {
-        $this->processed++;
+        ++$this->processed;
     }
 
     public function incrementCreated(): void
     {
-        $this->created++;
+        ++$this->created;
     }
 
     public function incrementUpdated(): void
     {
-        $this->updated++;
+        ++$this->updated;
     }
 
     public function incrementSkipped(): void
     {
-        $this->skipped++;
+        ++$this->skipped;
     }
 
     public function addError(int $line, string $message): void
@@ -99,12 +99,12 @@ final class ImportResult
 
     public function getErrorCount(): int
     {
-        return count($this->errors);
+        return \count($this->errors);
     }
 
     public function getWarningCount(): int
     {
-        return count($this->warnings);
+        return \count($this->warnings);
     }
 
     public function hasErrors(): bool
@@ -114,7 +114,7 @@ final class ImportResult
 
     public function isSuccess(): bool
     {
-        return !$this->hasErrors();
+        return ! $this->hasErrors();
     }
 
     /**
@@ -139,7 +139,7 @@ final class ImportResult
      */
     public function getSummary(): string
     {
-        return sprintf(
+        return \sprintf(
             'Processed: %d | Created: %d | Updated: %d | Skipped: %d | Errors: %d',
             $this->processed,
             $this->created,
@@ -149,4 +149,3 @@ final class ImportResult
         );
     }
 }
-

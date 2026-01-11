@@ -51,11 +51,15 @@ final class HttpClient implements ExtensionInterface
     use LoggerTrait;
 
     private const DEFAULT_TIMEOUT = 30;
+
     private const DEFAULT_USER_AGENT = 'WEDEV-Module/1.0';
 
     private ?AuthInterface $auth = null;
+
     private ?RetryStrategy $retryStrategy = null;
+
     private ?RateLimitHandler $rateLimitHandler = null;
+
     private int $timeout = self::DEFAULT_TIMEOUT;
 
     /** @var array<string, string> */
@@ -94,7 +98,7 @@ final class HttpClient implements ExtensionInterface
     /**
      * Active le retry automatique avec backoff exponentiel.
      *
-     * @param int  $maxAttempts       Nombre maximum de tentatives (1-10)
+     * @param int $maxAttempts Nombre maximum de tentatives (1-10)
      * @param bool $exponentialBackoff Utiliser le backoff exponentiel
      */
     public function withRetry(int $maxAttempts = 3, bool $exponentialBackoff = true): self
@@ -112,7 +116,7 @@ final class HttpClient implements ExtensionInterface
      * Configure le rate limiting côté client.
      *
      * @param int $maxRequests Nombre maximum de requêtes
-     * @param int $perSeconds  Période en secondes
+     * @param int $perSeconds Période en secondes
      */
     public function withRateLimit(int $maxRequests, int $perSeconds): self
     {
@@ -170,7 +174,7 @@ final class HttpClient implements ExtensionInterface
      */
     public function get(string $url, array $queryParams = []): HttpResponse
     {
-        if (!empty($queryParams)) {
+        if (! empty($queryParams)) {
             $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($queryParams);
         }
 
@@ -233,7 +237,7 @@ final class HttpClient implements ExtensionInterface
      * Effectue une requête HTTP.
      *
      * @param array<string, mixed> $data Données à envoyer
-     * @param bool                 $json Envoyer en JSON
+     * @param bool $json Envoyer en JSON
      */
     private function request(
         string $method,
@@ -249,7 +253,7 @@ final class HttpClient implements ExtensionInterface
         $lastException = null;
 
         while ($attempt < $maxAttempts) {
-            $attempt++;
+            ++$attempt;
 
             try {
                 $response = $this->doRequest($method, $url, $data, $json);
@@ -257,7 +261,7 @@ final class HttpClient implements ExtensionInterface
                 // Retry on retriable errors
                 if ($this->retryStrategy?->shouldRetry($response->getStatusCode()) && $attempt < $maxAttempts) {
                     $delay = (int) $this->retryStrategy->getDelay($attempt);
-                    $this->logInfo(sprintf(
+                    $this->logInfo(\sprintf(
                         'HTTP %s %s returned %d, retrying in %dms (%d/%d)',
                         $method,
                         $url,
@@ -280,7 +284,7 @@ final class HttpClient implements ExtensionInterface
                 }
 
                 $delay = (int) ($this->retryStrategy?->getDelay($attempt) ?? 1000);
-                $this->logWarning(sprintf(
+                $this->logWarning(\sprintf(
                     'HTTP %s %s failed: %s, retrying in %dms (%d/%d)',
                     $method,
                     $url,
@@ -316,7 +320,7 @@ final class HttpClient implements ExtensionInterface
             ],
         ];
 
-        if (!empty($data)) {
+        if (! empty($data)) {
             $options['http']['content'] = $json
                 ? json_encode($data, JSON_THROW_ON_ERROR)
                 : http_build_query($data);
@@ -324,19 +328,20 @@ final class HttpClient implements ExtensionInterface
 
         $context = stream_context_create($options);
 
-        $this->logDebug(sprintf('HTTP %s %s', $method, $url));
+        $this->logDebug(\sprintf('HTTP %s %s', $method, $url));
 
         $body = @file_get_contents($url, false, $context);
 
         if ($body === false) {
             $error = error_get_last();
+
             throw HttpException::requestFailed($error['message'] ?? 'Unknown error');
         }
 
         $statusCode = $this->extractStatusCode($http_response_header ?? []);
         $responseHeaders = $this->parseHeaders($http_response_header ?? []);
 
-        $this->logDebug(sprintf('HTTP %s %s -> %d', $method, $url, $statusCode));
+        $this->logDebug(\sprintf('HTTP %s %s -> %d', $method, $url, $statusCode));
 
         return new HttpResponse($statusCode, $body, $responseHeaders);
     }
@@ -420,4 +425,3 @@ final class HttpClient implements ExtensionInterface
         return $headers;
     }
 }
-

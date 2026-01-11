@@ -4,68 +4,68 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api;
 
-use WeprestaAcf\Application\Service\ValueHandler;
-use WeprestaAcf\Application\Service\ValueProvider;
-use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use WeprestaAcf\Application\Service\ValueHandler;
+use WeprestaAcf\Application\Service\ValueProvider;
+use WeprestaAcf\Infrastructure\Api\Request\SaveValuesRequest;
 
-class ValueApiController extends FrameworkBundleAdminController
+/**
+ * Value API Controller - Handles field values save/retrieval.
+ */
+final class ValueApiController extends AbstractApiController
 {
     public function __construct(
         private readonly ValueHandler $valueHandler,
-        private readonly ValueProvider $valueProvider,
-    ) {}
+        private readonly ValueProvider $valueProvider
+    ) {
+    }
 
+    /**
+     * Save field values for an entity.
+     */
     public function save(Request $request): JsonResponse
     {
         try {
+            // Parse and validate request
             $data = $this->getJsonPayload($request);
+            $saveRequest = SaveValuesRequest::fromArray($data);
 
-            // Support both legacy (productId) and generic (entityType/entityId) formats
-            $entityType = $data['entityType'] ?? 'product';
-            $entityId = $data['productId'] ?? $data['entityId'] ?? null;
+            $errors = $saveRequest->validate();
 
-            if (empty($entityId) || !isset($data['values'])) {
-                return $this->jsonError(
-                    'entityId (or productId) and values are required',
-                    Response::HTTP_BAD_REQUEST
-                );
+            if (! empty($errors)) {
+                return $this->jsonValidationError($errors);
             }
 
             // Validate field values
-            $errors = $this->valueHandler->validateProductFieldValues($data['values']);
-            if (!empty($errors)) {
-                return $this->json(
-                    [
-                        'success' => false,
-                        'errors' => $errors,
-                    ],
-                    Response::HTTP_BAD_REQUEST
-                );
+            $fieldErrors = $this->valueHandler->validateProductFieldValues($saveRequest->values);
+
+            if (! empty($fieldErrors)) {
+                return $this->jsonValidationError($fieldErrors, 'Field validation failed');
             }
 
-            // Save using the generic entity method
+            // Save values
             $this->valueHandler->saveEntityFieldValues(
-                $entityType,
-                (int) $entityId,
-                $data['values'],
-                $data['shopId'] ?? null,
-                $data['langId'] ?? null
+                $saveRequest->entityType,
+                $saveRequest->entityId,
+                $saveRequest->values,
+                $saveRequest->shopId,
+                $saveRequest->langId
             );
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Values saved successfully',
-                'entityType' => $entityType,
-                'entityId' => $entityId,
-            ]);
-        } catch (\Exception $e) {
+            return $this->jsonSuccess([
+                'entityType' => $saveRequest->entityType,
+                'entityId' => $saveRequest->entityId,
+            ], 'Values saved successfully');
+        } catch (Exception $e) {
             return $this->jsonError($e->getMessage());
         }
     }
 
+    /**
+     * Get field values for a product.
+     */
     public function show(int $productId, Request $request): JsonResponse
     {
         try {
@@ -77,23 +77,9 @@ class ValueApiController extends FrameworkBundleAdminController
                 ? $this->valueProvider->getProductFieldValuesWithMeta($productId, $shopId, $langId)
                 : $this->valueProvider->getProductFieldValues($productId, $shopId, $langId);
 
-            return $this->json(['success' => true, 'data' => $values]);
-        } catch (\Exception $e) { return $this->jsonError($e->getMessage()); }
-    }
-
-    /** @return array<string, mixed> */
-    private function getJsonPayload(Request $request): array
-    {
-        $content = $request->getContent();
-        if (empty($content)) { return []; }
-        $data = json_decode($content, true);
-        if (json_last_error() !== JSON_ERROR_NONE) { throw new \InvalidArgumentException('Invalid JSON payload'); }
-        return $data;
-    }
-
-    private function jsonError(string $message, int $status = Response::HTTP_INTERNAL_SERVER_ERROR): JsonResponse
-    {
-        return $this->json(['success' => false, 'error' => $message], $status);
+            return $this->jsonSuccess($values);
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
     }
 }
-

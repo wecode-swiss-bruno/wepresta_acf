@@ -40,7 +40,7 @@ final readonly class PluginInfo
      */
     public function dependsOn(string $dependency): bool
     {
-        return in_array($dependency, $this->dependencies, true);
+        return \in_array($dependency, $this->dependencies, true);
     }
 
     /**
@@ -48,7 +48,7 @@ final readonly class PluginInfo
      */
     public function requiresExtension(string $extension): bool
     {
-        return in_array('ext:' . $extension, $this->dependencies, true);
+        return \in_array('ext:' . $extension, $this->dependencies, true);
     }
 
     /**
@@ -67,4 +67,3 @@ final readonly class PluginInfo
         ];
     }
 }
-

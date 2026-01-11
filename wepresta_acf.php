@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WePresta ACF - Advanced Custom Fields for PrestaShop 8.x / 9.x
+ * WePresta ACF - Advanced Custom Fields for PrestaShop 8.x / 9.x.
  *
  * ACF-style custom fields for products, categories, and other entities.
  * Features:
@@ -17,7 +18,7 @@
 
 declare(strict_types=1);
 
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
@@ -28,12 +29,12 @@ use WeprestaAcf\Application\Hook\EntityFieldHooksTrait;
 use WeprestaAcf\Application\Installer\ModuleInstaller;
 use WeprestaAcf\Application\Installer\ModuleUninstaller;
 use WeprestaAcf\Application\Service\AcfServiceContainer;
-use WeprestaAcf\Application\Service\FormModifierService;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 
-class WeprestaAcf extends Module 
+class WeprestaAcf extends Module
 {
     use EntityFieldHooksTrait;
+
     public const VERSION = '1.2.1';
 
     public const DEFAULT_CONFIG = [
@@ -76,11 +77,141 @@ class WeprestaAcf extends Module
         try {
             $installer = new ModuleInstaller($this, Db::getInstance());
             $hooks = $this->getAllHooks();
+
             return parent::install() && $this->registerHook($hooks) && $installer->install();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->_errors[] = $e->getMessage();
+
             return false;
         }
+    }
+
+    public function uninstall(): bool
+    {
+        try {
+            $uninstaller = new ModuleUninstaller($this, Db::getInstance());
+
+            return $uninstaller->uninstall() && parent::uninstall();
+        } catch (Exception $e) {
+            $this->_errors[] = $e->getMessage();
+
+            return false;
+        }
+    }
+
+    // =========================================================================
+    // CONFIGURATION
+    // =========================================================================
+
+    public function getContent(): string
+    {
+        try {
+            $router = $this->getContainer()->get('router');
+            Tools::redirectAdmin($router->generate('wepresta_acf_builder'));
+        } catch (Exception $e) {
+            return '<div class="alert alert-danger">Configuration error: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+
+        return '';
+    }
+
+    public function hookActionAdminControllerSetMedia(array $params): void
+    {
+        $controller = Tools::getValue('controller');
+
+        // ACF Builder and Configuration pages - load Vue.js builder assets
+        if (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'], true)) {
+            if (file_exists($this->getLocalPath() . 'views/dist/admin.css')) {
+                $this->context->controller->addCSS($this->_path . 'views/dist/admin.css');
+            }
+
+            if (file_exists($this->getLocalPath() . 'views/dist/admin.js')) {
+                $this->context->controller->addJS($this->_path . 'views/dist/admin.js');
+            }
+        }
+
+        // Load ACF field assets on ALL admin pages
+        // The JS only activates if #acf-entity-fields is present on the page
+        $this->context->controller->addCSS($this->_path . 'views/css/admin-fields.css');
+        $this->context->controller->addJS($this->_path . 'views/js/acf-fields.js');
+    }
+
+    // =========================================================================
+    // FRONT-OFFICE HOOKS
+    // =========================================================================
+
+    public function hookActionFrontControllerSetMedia(array $params): void
+    {
+        if (! $this->isActive()) {
+            return;
+        }
+
+        $controller = Tools::getValue('controller');
+        // Register JS for V1 entity pages (product, category)
+        $v1Controllers = ['product', 'category'];
+
+        if (in_array($controller, $v1Controllers, true)) {
+            $this->context->controller->registerJavascript('wepresta_acf-front', 'modules/' . $this->name . '/views/js/front.js', ['position' => 'bottom', 'priority' => 150]);
+        }
+    }
+
+    public function isActive(): bool
+    {
+        return (bool) $this->active;
+    }
+
+    public function getConfig(): ConfigurationAdapter
+    {
+        return $this->config ??= new ConfigurationAdapter();
+    }
+
+    public function getService(string $serviceId): ?object
+    {
+        try {
+            $container = $this->getContainer();
+
+            if ($container && $container->has($serviceId)) {
+                return $container->get($serviceId);
+            }
+
+            return null;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Alias for getService() for compatibility.
+     *
+     * @template T of object
+     *
+     * @param class-string<T> $serviceId
+     *
+     * @return T|null
+     */
+    public function get(string $serviceId): ?object
+    {
+        return $this->getService($serviceId);
+    }
+
+    public function log(string $message, int $severity = 1, array $context = []): void
+    {
+        $msg = '[' . $this->name . '] ' . $message;
+
+        if (! empty($context)) {
+            $msg .= ' | ' . json_encode($context);
+        }
+        PrestaShopLogger::addLog($msg, $severity, null, 'Module', $this->id);
+    }
+
+    public function clearModuleCache(): void
+    {
+        $this->_clearCache('*');
+    }
+
+    public function getModulePath(): string
+    {
+        return $this->getLocalPath();
     }
 
     /**
@@ -98,32 +229,6 @@ class WeprestaAcf extends Module
         return EntityHooksConfig::getAllHooks();
     }
 
-    public function uninstall(): bool
-    {
-        try {
-            $uninstaller = new ModuleUninstaller($this, Db::getInstance());
-            return $uninstaller->uninstall() && parent::uninstall();
-        } catch (\Exception $e) {
-            $this->_errors[] = $e->getMessage();
-            return false;
-        }
-    }
-
-    // =========================================================================
-    // CONFIGURATION
-    // =========================================================================
-
-    public function getContent(): string
-    {
-        try {
-            $router = $this->getContainer()->get('router');
-            Tools::redirectAdmin($router->generate('wepresta_acf_builder'));
-        } catch (\Exception $e) {
-            return '<div class="alert alert-danger">Configuration error: ' . htmlspecialchars($e->getMessage()) . '</div>';
-        }
-        return '';
-    }
-
     // =========================================================================
     // ENTITY HOOKS - Managed by EntityFieldHooksTrait
     // =========================================================================
@@ -135,10 +240,15 @@ class WeprestaAcf extends Module
 
     private function saveProductFields(array $params): void
     {
-        if (!$this->isActive()) { return; }
+        if (! $this->isActive()) {
+            return;
+        }
 
         $productId = (int) ($params['id_product'] ?? $params['object']?->id ?? 0);
-        if ($productId <= 0) { return; }
+
+        if ($productId <= 0) {
+            return;
+        }
 
         try {
             AcfServiceContainer::loadCustomFieldTypes();
@@ -168,29 +278,39 @@ class WeprestaAcf extends Module
             // 3. Process simple file uploads (single file input)
             // =========================================================================
             foreach ($_FILES as $key => $file) {
-                if (!str_starts_with($key, 'acf_')) { continue; }
+                if (! str_starts_with($key, 'acf_')) {
+                    continue;
+                }
                 $slug = substr($key, 4);
 
                 // Skip if already processed or if it's a special suffix (e.g., _new, _alt, _poster)
-                if (isset($processedSlugs[$slug]) || preg_match('/_(?:new|alt|poster|replace)$/i', $key)) { continue; }
+                if (isset($processedSlugs[$slug]) || preg_match('/_(?:new|alt|poster|replace)$/i', $key)) {
+                    continue;
+                }
 
                 // Check for upload error - handle both single files and arrays
                 $hasFile = is_array($file['error'])
-                    ? !empty(array_filter($file['error'], fn($e) => $e === UPLOAD_ERR_OK))
+                    ? ! empty(array_filter($file['error'], fn ($e) => $e === UPLOAD_ERR_OK))
                     : $file['error'] === UPLOAD_ERR_OK;
-                if (!$hasFile) { continue; }
+
+                if (! $hasFile) {
+                    continue;
+                }
 
                 $field = $fieldRepository->findBySlug($slug);
-                if (!$field) { continue; }
+
+                if (! $field) {
+                    continue;
+                }
 
                 $fieldId = (int) $field['id_wepresta_acf_field'];
-                $type = in_array($field['type'], ['image', 'gallery']) ? 'images' : 'files';
+                $type = in_array($field['type'], ['image', 'gallery'], true) ? 'images' : 'files';
 
                 try {
                     $uploadResult = $fileUploadService->upload($file, $fieldId, $productId, $shopId, $type);
                     $values[$slug] = $uploadResult;
                     $processedSlugs[$slug] = true;
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->log('File upload failed for ' . $slug . ': ' . $e->getMessage(), 2);
                 }
             }
@@ -199,7 +319,9 @@ class WeprestaAcf extends Module
             // 4. Process regular POST values (text, select, etc.)
             // =========================================================================
             foreach ($_POST as $key => $value) {
-                if (!str_starts_with($key, 'acf_')) { continue; }
+                if (! str_starts_with($key, 'acf_')) {
+                    continue;
+                }
 
                 $keyWithoutPrefix = substr($key, 4);
 
@@ -209,6 +331,7 @@ class WeprestaAcf extends Module
                 if (preg_match('/_(items|new_\d+|title|delete|link_url|url_mode|link_mode|attachment|alt|poster|poster_url|url_alt|replace|delete_alt|delete_poster)(?:\[\d*\])?$/i', $key)) {
                     continue;
                 }
+
                 // Skip media URL import inputs (acf_fieldslug_url with _url_mode sibling)
                 if (preg_match('/_url$/i', $key) && isset($_POST[$key . '_mode'])) {
                     continue;
@@ -221,6 +344,7 @@ class WeprestaAcf extends Module
 
                     if (in_array($langId, $langIds, true)) {
                         $field = $fieldRepository->findBySlug($slug);
+
                         if ($field && (bool) $field['translatable']) {
                             // For richtext translatable fields, get raw HTML from POST
                             if ($field['type'] === 'richtext') {
@@ -229,16 +353,20 @@ class WeprestaAcf extends Module
                             } else {
                                 $translatableValues[$slug][$langId] = $value;
                             }
+
                             continue;
                         }
                     }
                 }
 
                 // Skip if already processed (gallery, files, image, video)
-                if (isset($processedSlugs[$keyWithoutPrefix])) { continue; }
+                if (isset($processedSlugs[$keyWithoutPrefix])) {
+                    continue;
+                }
 
                 // For richtext fields, preserve raw HTML - don't let PrestaShop clean it
                 $field = $fieldRepository->findBySlug($keyWithoutPrefix);
+
                 if ($field && $field['type'] === 'richtext') {
                     // Get raw value from POST to avoid any PrestaShop cleaning
                     $rawValue = $_POST[$key] ?? $value;
@@ -258,26 +386,34 @@ class WeprestaAcf extends Module
                     $valueHandler->saveFieldValue($productId, $slug, $value, $shopId, $langId);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->log('Error saving product fields: ' . $e->getMessage(), 3);
         }
     }
 
     /**
-     * Process Gallery & Files fields (multi-item with existing + new uploads)
+     * Process Gallery & Files fields (multi-item with existing + new uploads).
      */
     private function processMultiMediaFields(array $post, array $files, $fieldRepository, $fileUploadService, int $productId, int $shopId, array &$values, array &$processedSlugs): void
     {
         // Find all _items[] keys to identify gallery/files fields
         foreach ($post as $key => $val) {
-            if (!str_starts_with($key, 'acf_') || !str_ends_with($key, '_items')) { continue; }
+            if (! str_starts_with($key, 'acf_') || ! str_ends_with($key, '_items')) {
+                continue;
+            }
 
             // Extract slug: acf_{slug}_items -> {slug}
             $slug = substr($key, 4, -6);
-            if (isset($processedSlugs[$slug])) { continue; }
+
+            if (isset($processedSlugs[$slug])) {
+                continue;
+            }
 
             $field = $fieldRepository->findBySlug($slug);
-            if (!$field || !in_array($field['type'], ['gallery', 'files'], true)) { continue; }
+
+            if (! $field || ! in_array($field['type'], ['gallery', 'files'], true)) {
+                continue;
+            }
 
             $fieldId = (int) $field['id_wepresta_acf_field'];
             $type = $field['type'] === 'gallery' ? 'images' : 'files';
@@ -285,16 +421,22 @@ class WeprestaAcf extends Module
 
             // 1. Parse existing items from hidden JSON inputs
             $existingItems = $post[$key] ?? [];
+
             if (is_array($existingItems)) {
                 foreach ($existingItems as $idx => $jsonItem) {
                     $item = is_string($jsonItem) ? json_decode($jsonItem, true) : $jsonItem;
-                    if (!is_array($item) || empty($item['url'])) { continue; }
+
+                    if (! is_array($item) || empty($item['url'])) {
+                        continue;
+                    }
                     // Update title/description if provided
                     $titleKey = 'acf_' . $slug . '_title';
+
                     if (isset($post[$titleKey][$idx])) {
                         $item['title'] = $post[$titleKey][$idx];
                     }
                     $descKey = 'acf_' . $slug . '_desc';
+
                     if (isset($post[$descKey][$idx])) {
                         $item['description'] = $post[$descKey][$idx];
                     }
@@ -305,10 +447,14 @@ class WeprestaAcf extends Module
 
             // 2. Upload new files
             $newFilesKey = 'acf_' . $slug . '_new';
+
             if (isset($files[$newFilesKey]) && is_array($files[$newFilesKey]['name'])) {
                 $count = count($files[$newFilesKey]['name']);
-                for ($i = 0; $i < $count; $i++) {
-                    if ($files[$newFilesKey]['error'][$i] !== UPLOAD_ERR_OK) { continue; }
+
+                for ($i = 0; $i < $count; ++$i) {
+                    if ($files[$newFilesKey]['error'][$i] !== UPLOAD_ERR_OK) {
+                        continue;
+                    }
 
                     $singleFile = [
                         'name' => $files[$newFilesKey]['name'][$i],
@@ -322,19 +468,19 @@ class WeprestaAcf extends Module
                         $uploaded = $fileUploadService->upload($singleFile, $fieldId, $productId, $shopId, $type);
                         $uploaded['position'] = count($items);
                         $items[] = $uploaded;
-                    } catch (\Exception $e) {
+                    } catch (Exception $e) {
                         $this->log('Gallery upload failed: ' . $e->getMessage(), 2);
                     }
                 }
             }
 
-            $values[$slug] = !empty($items) ? $items : null;
+            $values[$slug] = ! empty($items) ? $items : null;
             $processedSlugs[$slug] = true;
         }
     }
 
     /**
-     * Process Image & Video fields (single item with multiple sub-inputs)
+     * Process Image & Video fields (single item with multiple sub-inputs).
      */
     private function processSingleMediaFields(array $post, array $files, $fieldRepository, $fileUploadService, int $productId, int $shopId, array &$values, array &$processedSlugs): void
     {
@@ -344,11 +490,15 @@ class WeprestaAcf extends Module
 
         // Check POST keys for suffixed inputs
         foreach (array_keys($post) as $key) {
-            if (!str_starts_with($key, 'acf_')) { continue; }
+            if (! str_starts_with($key, 'acf_')) {
+                continue;
+            }
+
             foreach ($suffixes as $suffix) {
                 if (str_ends_with($key, $suffix)) {
                     $slug = substr($key, 4, -strlen($suffix));
                     $mediaFields[$slug] = true;
+
                     break;
                 }
             }
@@ -356,37 +506,58 @@ class WeprestaAcf extends Module
 
         // Also check FILES for direct uploads (acf_{slug} without suffix)
         foreach (array_keys($files) as $key) {
-            if (!str_starts_with($key, 'acf_')) { continue; }
+            if (! str_starts_with($key, 'acf_')) {
+                continue;
+            }
+
             // Skip multi-media fields (handled elsewhere)
-            if (str_ends_with($key, '_new')) { continue; }
+            if (str_ends_with($key, '_new')) {
+                continue;
+            }
             // Skip suffixed keys
             $hasSuffix = false;
+
             foreach ($suffixes as $suffix) {
-                if (str_ends_with($key, $suffix)) { $hasSuffix = true; break; }
+                if (str_ends_with($key, $suffix)) {
+                    $hasSuffix = true;
+
+                    break;
+                }
             }
-            if ($hasSuffix) { continue; }
+
+            if ($hasSuffix) {
+                continue;
+            }
 
             $slug = substr($key, 4);
             $field = $fieldRepository->findBySlug($slug);
+
             if ($field && in_array($field['type'], ['image', 'video', 'file'], true)) {
                 $mediaFields[$slug] = true;
             }
         }
 
         foreach (array_keys($mediaFields) as $slug) {
-            if (isset($processedSlugs[$slug])) { continue; }
+            if (isset($processedSlugs[$slug])) {
+                continue;
+            }
 
             $field = $fieldRepository->findBySlug($slug);
-            if (!$field || !in_array($field['type'], ['image', 'video', 'file'], true)) { continue; }
+
+            if (! $field || ! in_array($field['type'], ['image', 'video', 'file'], true)) {
+                continue;
+            }
 
             $fieldId = (int) $field['id_wepresta_acf_field'];
             $prefix = 'acf_' . $slug;
 
             // Check for delete flag
             $deleteKey = $prefix . '_delete';
-            if (!empty($post[$deleteKey]) && $post[$deleteKey] === '1') {
+
+            if (! empty($post[$deleteKey]) && $post[$deleteKey] === '1') {
                 $values[$slug] = null;
                 $processedSlugs[$slug] = true;
+
                 continue;
             }
 
@@ -416,22 +587,24 @@ class WeprestaAcf extends Module
         if (isset($files[$key]) && $files[$key]['error'] === UPLOAD_ERR_OK) {
             try {
                 $result = $fileUploadService->upload($files[$key], $fieldId, $productId, $shopId, 'files');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->log('File upload failed: ' . $e->getMessage(), 2);
             }
         }
 
         // Update title/description if provided
         $titleKey = $prefix . '_title';
-        if (isset($post[$titleKey]) && !empty($result)) {
+
+        if (isset($post[$titleKey]) && ! empty($result)) {
             $result['title'] = $post[$titleKey];
         }
         $descKey = $prefix . '_description';
-        if (isset($post[$descKey]) && !empty($result)) {
+
+        if (isset($post[$descKey]) && ! empty($result)) {
             $result['description'] = $post[$descKey];
         }
 
-        return !empty($result) ? $result : null;
+        return ! empty($result) ? $result : null;
     }
 
     private function processImageField(string $prefix, array $post, array $files, int $fieldId, int $productId, int $shopId, $fileUploadService, mixed $existing): ?array
@@ -443,7 +616,7 @@ class WeprestaAcf extends Module
         if (isset($files[$key]) && $files[$key]['error'] === UPLOAD_ERR_OK) {
             try {
                 $result = $fileUploadService->upload($files[$key], $fieldId, $productId, $shopId, 'images');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->log('Image upload failed: ' . $e->getMessage(), 2);
             }
         }
@@ -451,10 +624,11 @@ class WeprestaAcf extends Module
         // 2. Handle URL import (downloads to server)
         $urlKey = $prefix . '_url';
         $urlModeKey = $prefix . '_url_mode';
-        if (!empty($post[$urlKey]) && ($post[$urlModeKey] ?? '') === 'import') {
+
+        if (! empty($post[$urlKey]) && ($post[$urlModeKey] ?? '') === 'import') {
             try {
                 $result = $fileUploadService->downloadFromUrl($post[$urlKey], $fieldId, $productId, $shopId, 'images');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->log('Image URL import failed: ' . $e->getMessage(), 2);
             }
         }
@@ -462,7 +636,8 @@ class WeprestaAcf extends Module
         // 3. Handle external link (stores URL as-is)
         $linkKey = $prefix . '_link_url';
         $linkModeKey = $prefix . '_link_mode';
-        if (!empty($post[$linkKey]) && ($post[$linkModeKey] ?? '') === 'link') {
+
+        if (! empty($post[$linkKey]) && ($post[$linkModeKey] ?? '') === 'link') {
             $result = [
                 'url' => $post[$linkKey],
                 'external' => true,
@@ -472,12 +647,15 @@ class WeprestaAcf extends Module
 
         // 4. Handle attachment selection
         $attachKey = $prefix . '_attachment';
-        if (!empty($post[$attachKey])) {
+
+        if (! empty($post[$attachKey])) {
             $attachId = (int) $post[$attachKey];
-            /** @var \Attachment $attachment */
-            $attachment = new \Attachment($attachId);
-            if (\Validate::isLoadedObject($attachment)) {
-                $link = $this->context->link ?? \Context::getContext()->link;
+
+            /** @var Attachment $attachment */
+            $attachment = new Attachment($attachId);
+
+            if (Validate::isLoadedObject($attachment)) {
+                $link = $this->context->link ?? Context::getContext()->link;
                 $baseUrl = $link->getBaseLink();
                 $result = [
                     'url' => $baseUrl . 'download?id_attachment=' . $attachId,
@@ -490,11 +668,12 @@ class WeprestaAcf extends Module
 
         // 5. Update title if provided
         $titleKey = $prefix . '_title';
-        if (isset($post[$titleKey]) && !empty($result)) {
+
+        if (isset($post[$titleKey]) && ! empty($result)) {
             $result['title'] = $post[$titleKey];
         }
 
-        return !empty($result) ? $result : null;
+        return ! empty($result) ? $result : null;
     }
 
     private function processVideoField(string $prefix, array $post, array $files, int $fieldId, int $productId, int $shopId, $fileUploadService, mixed $existing): ?array
@@ -502,10 +681,11 @@ class WeprestaAcf extends Module
         $result = is_array($existing) ? $existing : [];
 
         // Check delete flags for sub-parts
-        if (!empty($post[$prefix . '_delete_alt']) && $post[$prefix . '_delete_alt'] === '1') {
+        if (! empty($post[$prefix . '_delete_alt']) && $post[$prefix . '_delete_alt'] === '1') {
             unset($result['sources']);
         }
-        if (!empty($post[$prefix . '_delete_poster']) && $post[$prefix . '_delete_poster'] === '1') {
+
+        if (! empty($post[$prefix . '_delete_poster']) && $post[$prefix . '_delete_poster'] === '1') {
             unset($result['poster_url']);
         }
 
@@ -518,38 +698,41 @@ class WeprestaAcf extends Module
             try {
                 $uploaded = $fileUploadService->upload($files[$fileKeyToUse], $fieldId, $productId, $shopId, 'videos');
                 $result = array_merge($result, $uploaded, ['source' => 'upload']);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->log('Video upload failed: ' . $e->getMessage(), 2);
             }
         }
 
         // 2. Handle alt video upload (WebM/Ogg)
         $altKey = $prefix . '_alt';
+
         if (isset($files[$altKey]) && $files[$altKey]['error'] === UPLOAD_ERR_OK) {
             try {
                 $altUploaded = $fileUploadService->upload($files[$altKey], $fieldId, $productId, $shopId, 'videos');
                 $result['sources'] = [
                     ['url' => $altUploaded['url'], 'mime' => $altUploaded['mime'] ?? 'video/webm'],
                 ];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->log('Alt video upload failed: ' . $e->getMessage(), 2);
             }
         }
 
         // 3. Handle poster image upload
         $posterKey = $prefix . '_poster';
+
         if (isset($files[$posterKey]) && $files[$posterKey]['error'] === UPLOAD_ERR_OK) {
             try {
                 $posterUploaded = $fileUploadService->upload($files[$posterKey], $fieldId, $productId, $shopId, 'images');
                 $result['poster_url'] = $posterUploaded['url'];
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->log('Poster upload failed: ' . $e->getMessage(), 2);
             }
         }
 
         // 4. Handle external video URL (YouTube/Vimeo/direct)
         $urlKey = $prefix . '_url';
-        if (!empty($post[$urlKey]) && empty($result['url'])) {
+
+        if (! empty($post[$urlKey]) && empty($result['url'])) {
             $url = $post[$urlKey];
 
             // Parse YouTube
@@ -578,7 +761,8 @@ class WeprestaAcf extends Module
 
         // 5. Handle alt URL
         $urlAltKey = $prefix . '_url_alt';
-        if (!empty($post[$urlAltKey])) {
+
+        if (! empty($post[$urlAltKey])) {
             $result['sources'] = [
                 ['url' => $post[$urlAltKey], 'mime' => $this->getMimeFromUrl($post[$urlAltKey])],
             ];
@@ -586,7 +770,8 @@ class WeprestaAcf extends Module
 
         // 6. Handle poster URL
         $posterUrlKey = $prefix . '_poster_url';
-        if (!empty($post[$posterUrlKey])) {
+
+        if (! empty($post[$posterUrlKey])) {
             $result['poster_url'] = $post[$posterUrlKey];
         }
 
@@ -594,16 +779,18 @@ class WeprestaAcf extends Module
         if (isset($post[$prefix . '_title'])) {
             $result['title'] = $post[$prefix . '_title'];
         }
+
         if (isset($post[$prefix . '_description'])) {
             $result['description'] = $post[$prefix . '_description'];
         }
 
-        return !empty($result) ? $result : null;
+        return ! empty($result) ? $result : null;
     }
 
     private function getMimeFromUrl(string $url): string
     {
         $ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?: '', PATHINFO_EXTENSION));
+
         return match ($ext) {
             'mp4' => 'video/mp4',
             'webm' => 'video/webm',
@@ -613,64 +800,25 @@ class WeprestaAcf extends Module
         };
     }
 
-    public function hookActionAdminControllerSetMedia(array $params): void
-    {
-        $controller = Tools::getValue('controller');
-
-        // ACF Builder and Configuration pages - load Vue.js builder assets
-        if (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'], true)) {
-            if (file_exists($this->getLocalPath() . 'views/dist/admin.css')) {
-                $this->context->controller->addCSS($this->_path . 'views/dist/admin.css');
-            }
-            if (file_exists($this->getLocalPath() . 'views/dist/admin.js')) {
-                $this->context->controller->addJS($this->_path . 'views/dist/admin.js');
-            }
-        }
-
-        // Load ACF field assets on ALL admin pages
-        // The JS only activates if #acf-entity-fields is present on the page
-        $this->context->controller->addCSS($this->_path . 'views/css/admin-fields.css');
-        $this->context->controller->addJS($this->_path . 'views/js/acf-fields.js');
-    }
-
-    // =========================================================================
-    // FRONT-OFFICE HOOKS
-    // =========================================================================
-
-
-
-
-
-    public function hookActionFrontControllerSetMedia(array $params): void
-    {
-        if (!$this->isActive()) { return; }
-
-        $controller = Tools::getValue('controller');
-        // Register JS for V1 entity pages (product, category)
-        $v1Controllers = ['product', 'category'];
-        if (in_array($controller, $v1Controllers, true)) {
-            $this->context->controller->registerJavascript('wepresta_acf-front', 'modules/' . $this->name . '/views/js/front.js', ['position' => 'bottom', 'priority' => 150]);
-        }
-    }
-
-
     private function handleFileDownload(): void
     {
         $path = Tools::getValue('acf_download');
         $file = $this->getLocalPath() . 'uploads/' . pSQL($path);
 
-        if (!file_exists($file) || !is_readable($file)) {
+        if (! file_exists($file) || ! is_readable($file)) {
             header('HTTP/1.0 404 Not Found');
+
             exit('File not found');
         }
 
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mimeType = $finfo->file($file) ?: 'application/octet-stream';
 
         header('Content-Type: ' . $mimeType);
         header('Content-Disposition: attachment; filename="' . basename($file) . '"');
         header('Content-Length: ' . filesize($file));
         readfile($file);
+
         exit;
     }
 
@@ -679,21 +827,23 @@ class WeprestaAcf extends Module
     // =========================================================================
 
     /**
-     * Get the base URL for API endpoints (Symfony routes)
+     * Get the base URL for API endpoints (Symfony routes).
      */
     private function getAdminApiBaseUrl(): string
     {
         // Try to use Symfony router
         try {
             $container = $this->getContainer();
+
             if ($container && $container->has('router')) {
                 $router = $container->get('router');
                 // Generate URL to a known route and extract base
                 $url = $router->generate('wepresta_acf_api_relation_search');
+
                 // Remove the /relation/search part to get base URL
                 return preg_replace('/\/relation\/search$/', '', $url);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback
         }
 
@@ -707,44 +857,8 @@ class WeprestaAcf extends Module
 
         return rtrim($baseAdmin, '/') . '/modules/wepresta_acf/api';
     }
-
-    public function isActive(): bool { return (bool) $this->active; }
-    public function getConfig(): ConfigurationAdapter { return $this->config ??= new ConfigurationAdapter(); }
-
-    public function getService(string $serviceId): ?object
-    {
-        try {
-            $container = $this->getContainer();
-            if ($container && $container->has($serviceId)) {
-                return $container->get($serviceId);
-            }
-            return null;
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
-
-    /**
-     * Alias for getService() for compatibility.
-     *
-     * @template T of object
-     * @param class-string<T> $serviceId
-     * @return T|null
-     */
-    public function get(string $serviceId): ?object
-    {
-        return $this->getService($serviceId);
-    }
-
-    public function log(string $message, int $severity = 1, array $context = []): void
-    {
-        $msg = '[' . $this->name . '] ' . $message;
-        if (!empty($context)) { $msg .= ' | ' . json_encode($context); }
-        PrestaShopLogger::addLog($msg, $severity, null, 'Module', $this->id);
-    }
-
-    public function clearModuleCache(): void { $this->_clearCache('*'); }
-    public function getModulePath(): string { return $this->getLocalPath(); }
 }
 
-if (!class_exists('wepresta_acf', false)) { class_alias('WeprestaAcf', 'wepresta_acf'); }
+if (! class_exists('wepresta_acf', false)) {
+    class_alias('WeprestaAcf', 'wepresta_acf');
+}

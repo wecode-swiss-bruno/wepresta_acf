@@ -20,15 +20,12 @@ declare(strict_types=1);
  *   - class (string): Classes CSS additionnelles
  * =============================================================================
  */
-
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
 /**
  * @param array<string, mixed> $params
- * @param Smarty_Internal_Template $template
- * @return string
  */
 function smarty_function_wedev_alert(array $params, Smarty_Internal_Template $template): string
 {
@@ -45,7 +42,8 @@ function smarty_function_wedev_alert(array $params, Smarty_Internal_Template $te
 
     // Validation du type
     $validTypes = ['success', 'info', 'warning', 'danger', 'primary', 'secondary', 'light', 'dark'];
-    if (!in_array($type, $validTypes, true)) {
+
+    if (! in_array($type, $validTypes, true)) {
         $type = 'info';
     }
 
@@ -61,7 +59,7 @@ function smarty_function_wedev_alert(array $params, Smarty_Internal_Template $te
     }
 
     // Icône automatique si non spécifiée
-    if (!$icon) {
+    if (! $icon) {
         $iconMap = [
             'success' => 'check_circle',
             'info' => 'info',
@@ -75,6 +73,7 @@ function smarty_function_wedev_alert(array $params, Smarty_Internal_Template $te
 
     // Génération de l'icône
     $iconHtml = '';
+
     if ($icon) {
         $iconHtml = sprintf(
             '<i class="material-icons mr-2" style="font-size: 20px; vertical-align: middle;">%s</i>',
@@ -84,6 +83,7 @@ function smarty_function_wedev_alert(array $params, Smarty_Internal_Template $te
 
     // Bouton de fermeture
     $dismissButton = '';
+
     if ($dismissible) {
         $dismissButton = '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'
             . '<span aria-hidden="true">&times;</span>'
@@ -101,8 +101,3 @@ function smarty_function_wedev_alert(array $params, Smarty_Internal_Template $te
         $dismissButton
     );
 }
-
-
-
-
-

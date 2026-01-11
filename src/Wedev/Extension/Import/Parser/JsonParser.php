@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Import\Parser;
 
+use JsonException;
+use RuntimeException;
+
 /**
  * Parser JSON.
  *
@@ -32,29 +35,29 @@ final class JsonParser implements ParserInterface
         $content = file_get_contents($filePath);
 
         if ($content === false) {
-            throw new \RuntimeException('Cannot read file: ' . $filePath);
+            throw new RuntimeException('Cannot read file: ' . $filePath);
         }
 
         try {
             $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
-            throw new \RuntimeException('Invalid JSON: ' . $e->getMessage());
+        } catch (JsonException $e) {
+            throw new RuntimeException('Invalid JSON: ' . $e->getMessage());
         }
 
         // Extraire les données si clé spécifiée
         if ($this->dataKey !== null) {
-            if (!isset($data[$this->dataKey])) {
-                throw new \RuntimeException("Key '{$this->dataKey}' not found in JSON");
+            if (! isset($data[$this->dataKey])) {
+                throw new RuntimeException("Key '{$this->dataKey}' not found in JSON");
             }
             $data = $data[$this->dataKey];
         }
 
-        if (!is_array($data)) {
-            throw new \RuntimeException('JSON must contain an array of objects');
+        if (! \is_array($data)) {
+            throw new RuntimeException('JSON must contain an array of objects');
         }
 
         // Vérifier que c'est un tableau de tableaux
-        if (empty($data) || !is_array(reset($data))) {
+        if (empty($data) || ! \is_array(reset($data))) {
             return [];
         }
 
@@ -66,6 +69,7 @@ final class JsonParser implements ParserInterface
         // Filtrer les colonnes
         $filteredData = array_map(function (array $row) use ($columns): array {
             $filtered = [];
+
             foreach ($columns as $column) {
                 $filtered[$column] = $row[$column] ?? null;
             }
@@ -79,6 +83,7 @@ final class JsonParser implements ParserInterface
             : $filteredData;
 
         $flags = JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE;
+
         if ($this->prettyPrint) {
             $flags |= JSON_PRETTY_PRINT;
         }
@@ -86,7 +91,7 @@ final class JsonParser implements ParserInterface
         $json = json_encode($output, $flags);
 
         if (file_put_contents($filePath, $json) === false) {
-            throw new \RuntimeException('Cannot write file: ' . $filePath);
+            throw new RuntimeException('Cannot write file: ' . $filePath);
         }
     }
 
@@ -100,4 +105,3 @@ final class JsonParser implements ParserInterface
         return 'json';
     }
 }
-

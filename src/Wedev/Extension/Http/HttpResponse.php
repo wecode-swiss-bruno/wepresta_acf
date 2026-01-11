@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Http;
 
+use JsonException;
+
 /**
  * Réponse HTTP typée avec helpers.
  *
@@ -40,6 +42,18 @@ final class HttpResponse
         private readonly string $body,
         private readonly array $headers = []
     ) {
+    }
+
+    /**
+     * Retourne une représentation pour le debug.
+     */
+    public function __toString(): string
+    {
+        return \sprintf(
+            'HttpResponse[%d] %s',
+            $this->statusCode,
+            substr($this->body, 0, 100)
+        );
     }
 
     /**
@@ -169,9 +183,9 @@ final class HttpResponse
     /**
      * Parse le corps comme JSON.
      *
-     * @return array<string, mixed>
-     *
      * @throws HttpException Si le JSON est invalide
+     *
+     * @return array<string, mixed>
      */
     public function json(): array
     {
@@ -182,8 +196,8 @@ final class HttpResponse
         try {
             $data = json_decode($this->body, true, 512, JSON_THROW_ON_ERROR);
 
-            return is_array($data) ? $data : [];
-        } catch (\JsonException $e) {
+            return \is_array($data) ? $data : [];
+        } catch (JsonException $e) {
             throw HttpException::invalidResponse('Invalid JSON: ' . $e->getMessage());
         }
     }
@@ -220,10 +234,11 @@ final class HttpResponse
     public function throw(): self
     {
         if ($this->isError()) {
-            $message = sprintf('HTTP Error %d', $this->statusCode);
+            $message = \sprintf('HTTP Error %d', $this->statusCode);
 
             // Essayer d'extraire un message d'erreur du JSON
             $json = $this->jsonOrNull();
+
             if ($json !== null) {
                 $message = $json['message']
                     ?? $json['error']
@@ -236,17 +251,4 @@ final class HttpResponse
 
         return $this;
     }
-
-    /**
-     * Retourne une représentation pour le debug.
-     */
-    public function __toString(): string
-    {
-        return sprintf(
-            'HttpResponse[%d] %s',
-            $this->statusCode,
-            substr($this->body, 0, 100)
-        );
-    }
 }
-

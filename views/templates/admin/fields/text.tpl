@@ -27,6 +27,7 @@
        {else}
            name="{$inputName|escape:'htmlall':'UTF-8'}"
        {/if}
+       {if isset($context.dataLangId) && $context.dataLangId}data-lang-id="{$context.dataLangId|escape:'htmlall':'UTF-8'}"{/if}
        value="{$value|escape:'htmlall':'UTF-8'}"
        {if isset($fieldConfig.placeholder) && $fieldConfig.placeholder}placeholder="{$fieldConfig.placeholder|escape:'htmlall':'UTF-8'}"{/if}
        {if isset($fieldConfig.maxLength) && $fieldConfig.maxLength}maxlength="{$fieldConfig.maxLength|intval}"{/if}>

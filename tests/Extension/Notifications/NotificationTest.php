@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Notifications;
 
-use WeprestaAcf\Extension\Notifications\Notification;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Extension\Notifications\Notification;
 
 class NotificationTest extends TestCase
 {
@@ -78,4 +78,3 @@ class NotificationTest extends TestCase
         $this->assertEquals(['email'], $notification->getChannels());
     }
 }
-

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Condition;
 
+use Cart;
+use InvalidArgumentException;
 use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 
 /**
@@ -44,8 +46,8 @@ final class CartCondition extends AbstractCondition
         private readonly string $operator,
         private readonly mixed $value
     ) {
-        if (!in_array($this->field, self::SUPPORTED_FIELDS, true)) {
-            throw new \InvalidArgumentException(sprintf(
+        if (! \in_array($this->field, self::SUPPORTED_FIELDS, true)) {
+            throw new InvalidArgumentException(\sprintf(
                 'Unsupported cart field: "%s". Supported: %s',
                 $this->field,
                 implode(', ', self::SUPPORTED_FIELDS)
@@ -56,6 +58,7 @@ final class CartCondition extends AbstractCondition
     public function evaluate(RuleContext $context): bool
     {
         $cart = $context->getCart();
+
         if ($cart === null) {
             return false;
         }
@@ -68,7 +71,7 @@ final class CartCondition extends AbstractCondition
     /**
      * Extrait la valeur du panier pour le champ demandé.
      */
-    private function getCartValue(\Cart $cart): mixed
+    private function getCartValue(Cart $cart): mixed
     {
         return match ($this->field) {
             'total' => (float) $cart->getOrderTotal(true),
@@ -87,7 +90,7 @@ final class CartCondition extends AbstractCondition
     /**
      * @return array<int>
      */
-    private function getProductIds(\Cart $cart): array
+    private function getProductIds(Cart $cart): array
     {
         $products = $cart->getProducts();
 
@@ -100,7 +103,7 @@ final class CartCondition extends AbstractCondition
     /**
      * @return array<int>
      */
-    private function getCategoryIds(\Cart $cart): array
+    private function getCategoryIds(Cart $cart): array
     {
         $products = $cart->getProducts();
 
@@ -113,7 +116,7 @@ final class CartCondition extends AbstractCondition
     /**
      * @return array<int>
      */
-    private function getManufacturerIds(\Cart $cart): array
+    private function getManufacturerIds(Cart $cart): array
     {
         $products = $cart->getProducts();
 
@@ -123,4 +126,3 @@ final class CartCondition extends AbstractCondition
         )));
     }
 }
-

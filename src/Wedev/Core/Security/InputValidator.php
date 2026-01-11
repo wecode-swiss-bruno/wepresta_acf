@@ -29,19 +29,13 @@ use WeprestaAcf\Wedev\Core\Exception\ValidationException;
  */
 final class InputValidator
 {
-    /**
-     * Characters allowed in slugs.
-     */
+    /** Characters allowed in slugs. */
     private const SLUG_PATTERN = '/[^a-z0-9_-]/';
 
-    /**
-     * Maximum slug length.
-     */
+    /** Maximum slug length. */
     private const SLUG_MAX_LENGTH = 255;
 
-    /**
-     * Dangerous HTML tags to strip.
-     */
+    /** Dangerous HTML tags to strip. */
     private const DANGEROUS_TAGS = [
         'script',
         'iframe',
@@ -58,9 +52,7 @@ final class InputValidator
         'base',
     ];
 
-    /**
-     * Dangerous HTML attributes to strip.
-     */
+    /** Dangerous HTML attributes to strip. */
     private const DANGEROUS_ATTRIBUTES = [
         'onclick',
         'ondblclick',
@@ -92,8 +84,10 @@ final class InputValidator
      *
      * @param string $value The input value
      * @param bool $allowEmpty Whether to allow empty slugs
-     * @return string The sanitized slug
+     *
      * @throws ValidationException If slug is empty and not allowed
+     *
+     * @return string The sanitized slug
      */
     public static function slug(string $value, bool $allowEmpty = false): string
     {
@@ -119,13 +113,13 @@ final class InputValidator
         $slug = trim($slug, '-');
 
         // Limit length
-        if (strlen($slug) > self::SLUG_MAX_LENGTH) {
+        if (\strlen($slug) > self::SLUG_MAX_LENGTH) {
             $slug = substr($slug, 0, self::SLUG_MAX_LENGTH);
             $slug = rtrim($slug, '-');
         }
 
         // Check if empty
-        if (!$allowEmpty && $slug === '') {
+        if (! $allowEmpty && $slug === '') {
             throw ValidationException::forField('slug', 'Slug cannot be empty');
         }
 
@@ -139,6 +133,7 @@ final class InputValidator
      *
      * @param string $value The HTML content
      * @param array<string> $allowedTags Additional tags to allow (e.g., ['div', 'span'])
+     *
      * @return string The sanitized HTML
      */
     public static function html(string $value, array $allowedTags = []): string
@@ -148,7 +143,7 @@ final class InputValidator
 
         // Remove dangerous tags
         foreach (self::DANGEROUS_TAGS as $tag) {
-            if (!in_array($tag, $allowedTags, true)) {
+            if (! \in_array($tag, $allowedTags, true)) {
                 $html = preg_replace(
                     '/<' . $tag . '[^>]*>.*?<\/' . $tag . '>/is',
                     '',
@@ -180,6 +175,7 @@ final class InputValidator
      * Validates an email address.
      *
      * @param string $value The email to validate
+     *
      * @return bool True if valid email
      */
     public static function isEmail(string $value): bool
@@ -191,14 +187,16 @@ final class InputValidator
      * Validates an email address and throws if invalid.
      *
      * @param string $value The email to validate
-     * @return string The validated email
+     *
      * @throws ValidationException If email is invalid
+     *
+     * @return string The validated email
      */
     public static function email(string $value): string
     {
         $email = trim($value);
 
-        if (!self::isEmail($email)) {
+        if (! self::isEmail($email)) {
             throw ValidationException::forField('email', 'Invalid email format');
         }
 
@@ -210,6 +208,7 @@ final class InputValidator
      *
      * @param string $value The URL to validate
      * @param array<string> $allowedSchemes Allowed URL schemes (default: http, https)
+     *
      * @return bool True if valid URL
      */
     public static function isUrl(string $value, array $allowedSchemes = ['http', 'https']): bool
@@ -222,7 +221,7 @@ final class InputValidator
 
         $scheme = parse_url($url, PHP_URL_SCHEME);
 
-        return $scheme !== null && in_array(strtolower($scheme), $allowedSchemes, true);
+        return $scheme !== null && \in_array(strtolower($scheme), $allowedSchemes, true);
     }
 
     /**
@@ -230,14 +229,16 @@ final class InputValidator
      *
      * @param string $value The URL to validate
      * @param array<string> $allowedSchemes Allowed URL schemes
-     * @return string The validated URL
+     *
      * @throws ValidationException If URL is invalid
+     *
+     * @return string The validated URL
      */
     public static function url(string $value, array $allowedSchemes = ['http', 'https']): string
     {
         $url = trim($value);
 
-        if (!self::isUrl($url, $allowedSchemes)) {
+        if (! self::isUrl($url, $allowedSchemes)) {
             throw ValidationException::forField('url', 'Invalid URL format');
         }
 
@@ -250,6 +251,7 @@ final class InputValidator
      * Removes path traversal attempts and dangerous characters.
      *
      * @param string $value The filename
+     *
      * @return string The sanitized filename
      */
     public static function filename(string $value): string
@@ -282,8 +284,10 @@ final class InputValidator
      * @param int $min Minimum allowed value
      * @param int $max Maximum allowed value
      * @param int|null $default Default value if invalid (null throws exception)
-     * @return int The validated integer
+     *
      * @throws ValidationException If value is invalid and no default
+     *
+     * @return int The validated integer
      */
     public static function integer(
         mixed $value,
@@ -291,10 +295,11 @@ final class InputValidator
         int $max = PHP_INT_MAX,
         ?int $default = null
     ): int {
-        if (!is_numeric($value)) {
+        if (! is_numeric($value)) {
             if ($default !== null) {
                 return max($min, min($max, $default));
             }
+
             throw ValidationException::forField('integer', 'Value must be numeric');
         }
 
@@ -309,8 +314,10 @@ final class InputValidator
      *
      * @param mixed $value The value to validate
      * @param int $max Maximum allowed value
-     * @return int The validated positive integer
+     *
      * @throws ValidationException If value is not a positive integer
+     *
+     * @return int The validated positive integer
      */
     public static function positiveInteger(mixed $value, int $max = PHP_INT_MAX): int
     {
@@ -322,8 +329,10 @@ final class InputValidator
      *
      * @param mixed $value The value to validate
      * @param int $max Maximum allowed value
-     * @return int The validated non-negative integer
+     *
      * @throws ValidationException If value is negative
+     *
+     * @return int The validated non-negative integer
      */
     public static function nonNegativeInteger(mixed $value, int $max = PHP_INT_MAX): int
     {
@@ -336,15 +345,17 @@ final class InputValidator
      * @param mixed $value The value to validate
      * @param float $min Minimum allowed value
      * @param float $max Maximum allowed value
-     * @return float The validated float
+     *
      * @throws ValidationException If value is not numeric
+     *
+     * @return float The validated float
      */
     public static function float(
         mixed $value,
         float $min = -PHP_FLOAT_MAX,
         float $max = PHP_FLOAT_MAX
     ): float {
-        if (!is_numeric($value)) {
+        if (! is_numeric($value)) {
             throw ValidationException::forField('float', 'Value must be numeric');
         }
 
@@ -360,26 +371,27 @@ final class InputValidator
      *
      * @param mixed $value The value to validate
      * @param bool $default Default value if not a valid boolean
+     *
      * @return bool The validated boolean
      */
     public static function boolean(mixed $value, bool $default = false): bool
     {
-        if (is_bool($value)) {
+        if (\is_bool($value)) {
             return $value;
         }
 
-        if (is_int($value)) {
+        if (\is_int($value)) {
             return $value !== 0;
         }
 
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $lower = strtolower(trim($value));
 
-            if (in_array($lower, ['true', '1', 'yes', 'on'], true)) {
+            if (\in_array($lower, ['true', '1', 'yes', 'on'], true)) {
                 return true;
             }
 
-            if (in_array($lower, ['false', '0', 'no', 'off', ''], true)) {
+            if (\in_array($lower, ['false', '0', 'no', 'off', ''], true)) {
                 return false;
             }
         }
@@ -393,12 +405,14 @@ final class InputValidator
      * @param mixed $value The value to check
      * @param array<mixed> $allowed List of allowed values
      * @param mixed $default Default value if not in list (null throws exception)
-     * @return mixed The validated value
+     *
      * @throws ValidationException If value not in list and no default
+     *
+     * @return mixed The validated value
      */
     public static function inArray(mixed $value, array $allowed, mixed $default = null): mixed
     {
-        if (in_array($value, $allowed, true)) {
+        if (\in_array($value, $allowed, true)) {
             return $value;
         }
 
@@ -408,7 +422,7 @@ final class InputValidator
 
         throw ValidationException::forField(
             'value',
-            sprintf('Value must be one of: %s', implode(', ', array_map('strval', $allowed)))
+            \sprintf('Value must be one of: %s', implode(', ', array_map('strval', $allowed)))
         );
     }
 
@@ -419,8 +433,10 @@ final class InputValidator
      * @param int $min Minimum length
      * @param int $max Maximum length
      * @param bool $trim Whether to trim the string first
-     * @return string The validated string
+     *
      * @throws ValidationException If length is out of bounds
+     *
+     * @return string The validated string
      */
     public static function stringLength(
         string $value,
@@ -434,14 +450,14 @@ final class InputValidator
         if ($length < $min) {
             throw ValidationException::forField(
                 'string',
-                sprintf('String must be at least %d characters', $min)
+                \sprintf('String must be at least %d characters', $min)
             );
         }
 
         if ($length > $max) {
             throw ValidationException::forField(
                 'string',
-                sprintf('String must not exceed %d characters', $max)
+                \sprintf('String must not exceed %d characters', $max)
             );
         }
 
@@ -453,8 +469,10 @@ final class InputValidator
      *
      * @param string $value The JSON string
      * @param bool $assoc Return associative array instead of object
-     * @return array<mixed>|object The decoded JSON
+     *
      * @throws ValidationException If JSON is invalid
+     *
+     * @return array<mixed>|object The decoded JSON
      */
     public static function json(string $value, bool $assoc = true): array|object
     {
@@ -491,4 +509,3 @@ final class InputValidator
         return strtr($string, $accents);
     }
 }
-

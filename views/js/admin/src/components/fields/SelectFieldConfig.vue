@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
-import type { FieldConfig } from '@/types'
+import { ref, watch, nextTick, computed } from 'vue'
+import type { FieldConfig, FieldChoice } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
 import { useFieldConfig } from '@/composables/useFieldConfig'
 import PsSwitch from '@/components/ui/PsSwitch.vue'
-import ChoicesEditor, { type Choice } from './ChoicesEditor.vue'
+import ChoicesEditor from './ChoicesEditor.vue'
 
 const props = defineProps<{
   config: FieldConfig
@@ -17,19 +17,45 @@ const emit = defineEmits<{
 const { t } = useTranslations()
 const { updateConfig, createBooleanRef } = useFieldConfig(props, emit)
 
-// Parse choices from various formats
-function parseChoices(input: unknown): Choice[] {
+// Access global languages config
+const languages = computed(() => window.acfConfig?.languages || [])
+
+/**
+ * Parse choices from various formats while preserving all data.
+ * Supports: Array of FieldChoice objects, Array of strings, Newline-separated string
+ */
+function parseChoices(input: unknown): FieldChoice[] {
   if (!input) return []
-  
+
   if (Array.isArray(input)) {
     return input.map((item) => {
       if (typeof item === 'object' && item !== null) {
-        return { value: item.value || '', label: item.label || '' }
+        // Preserve ALL properties including translations
+        const choice: FieldChoice = {
+          value: item.value || '',
+          label: item.label || '',
+          translations: item.translations || {}
+        }
+
+        // Fix: Ensure label is synced with default language translation if empty
+        const defaultLang = languages.value.find((l: any) => l.is_default)
+        if (defaultLang && !choice.label && choice.translations[defaultLang.id]) {
+          choice.label = choice.translations[defaultLang.id]
+        }
+
+        // Fix: Ensure default language translation is synced with label if empty
+        if (defaultLang && choice.label && !choice.translations[defaultLang.id]) {
+          choice.translations[defaultLang.id] = choice.label
+        }
+
+        return choice
       }
-      return { value: String(item), label: String(item) }
+      // Simple string value
+      return { value: String(item), label: String(item), translations: {} }
     })
   }
-  
+
+  // Legacy: string format "value : Label" per line
   if (typeof input === 'string') {
     return input.split('\n')
       .map((line) => line.trim())
@@ -38,16 +64,17 @@ function parseChoices(input: unknown): Choice[] {
         const parts = line.split(':').map((p) => p.trim())
         return {
           value: parts[0] || '',
-          label: parts[1] || parts[0] || ''
+          label: parts[1] || parts[0] || '',
+          translations: {}
         }
       })
   }
-  
+
   return []
 }
 
 // Choices with v-model on ChoicesEditor
-const choices = ref<Choice[]>(parseChoices(props.config.choices))
+const choices = ref<FieldChoice[]>(parseChoices(props.config.choices))
 const isUpdatingChoices = ref(false)
 
 watch(() => props.config.choices, (newChoices) => {

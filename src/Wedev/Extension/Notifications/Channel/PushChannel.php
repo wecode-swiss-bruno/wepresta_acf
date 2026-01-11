@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Notifications\Channel;
 
-use WeprestaAcf\Wedev\Extension\Http\HttpClient;
+use InvalidArgumentException;
+use RuntimeException;
 use WeprestaAcf\Wedev\Extension\Http\Auth\BearerAuth;
+use WeprestaAcf\Wedev\Extension\Http\HttpClient;
 use WeprestaAcf\Wedev\Extension\Notifications\NotificationInterface;
 
 /**
@@ -33,8 +35,8 @@ final class PushChannel implements ChannelInterface
         private readonly string $provider = 'firebase',
         array $config = []
     ) {
-        if (!in_array($this->provider, self::PROVIDERS, true)) {
-            throw new \InvalidArgumentException(sprintf(
+        if (! \in_array($this->provider, self::PROVIDERS, true)) {
+            throw new InvalidArgumentException(\sprintf(
                 'Unsupported push provider: %s. Supported: %s',
                 $this->provider,
                 implode(', ', self::PROVIDERS)
@@ -46,8 +48,8 @@ final class PushChannel implements ChannelInterface
 
     public function send(NotificationInterface $notification): int
     {
-        if (!$this->isConfigured()) {
-            throw new \RuntimeException('Push channel not configured');
+        if (! $this->isConfigured()) {
+            throw new RuntimeException('Push channel not configured');
         }
 
         // Les recipients sont des tokens push
@@ -67,9 +69,9 @@ final class PushChannel implements ChannelInterface
     public function isConfigured(): bool
     {
         return match ($this->provider) {
-            'firebase' => !empty($this->config['server_key']),
-            'onesignal' => !empty($this->config['app_id'])
-                && !empty($this->config['api_key']),
+            'firebase' => ! empty($this->config['server_key']),
+            'onesignal' => ! empty($this->config['app_id'])
+                && ! empty($this->config['api_key']),
             default => false,
         };
     }
@@ -97,7 +99,7 @@ final class PushChannel implements ChannelInterface
             ->withHeader('Content-Type', 'application/json')
             ->postJson('https://fcm.googleapis.com/fcm/send', $payload);
 
-        if (!$response->isSuccess()) {
+        if (! $response->isSuccess()) {
             return 0;
         }
 
@@ -127,7 +129,7 @@ final class PushChannel implements ChannelInterface
             ->withAuth(new BearerAuth($this->config['api_key']))
             ->postJson('https://onesignal.com/api/v1/notifications', $payload);
 
-        if (!$response->isSuccess()) {
+        if (! $response->isSuccess()) {
             return 0;
         }
 
@@ -136,4 +138,3 @@ final class PushChannel implements ChannelInterface
         return $data['recipients'] ?? 0;
     }
 }
-

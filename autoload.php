@@ -1,6 +1,7 @@
 <?php
+
 /**
- * Module autoloader - PrestaShop compatible
+ * Module autoloader - PrestaShop compatible.
  *
  * This autoloader handles two contexts:
  * 1. PrestaShop context: Registers only the module's PSR-4 autoloader (no dev dependencies)
@@ -16,7 +17,7 @@ declare(strict_types=1);
 // In PrestaShop context, register only the module's PSR-4 autoloader
 // This avoids conflicts with dev dependencies that have different Symfony versions
 if (defined('_PS_VERSION_')) {
-    if (!isset($GLOBALS['wepresta_acf_autoloader_registered'])) {
+    if (! isset($GLOBALS['wepresta_acf_autoloader_registered'])) {
         $GLOBALS['wepresta_acf_autoloader_registered'] = true;
         $moduleDir = __DIR__;
 
@@ -34,19 +35,20 @@ if (defined('_PS_VERSION_')) {
 
             if (file_exists($file)) {
                 require_once $file;
+
                 return true;
             }
 
             return false;
         }, true, true);
     }
+
     return;
 }
 
 // Outside PrestaShop (CLI for dev tools): load full Composer autoloader
 $vendorAutoload = __DIR__ . '/vendor/autoload.php';
+
 if (file_exists($vendorAutoload)) {
     require_once $vendorAutoload;
 }
-
-

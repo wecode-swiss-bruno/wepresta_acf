@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Condition;
 
+use InvalidArgumentException;
 use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 
 /**
@@ -28,7 +29,7 @@ final class OrCondition implements ConditionInterface
     public function __construct(array $conditions)
     {
         if (empty($conditions)) {
-            throw new \InvalidArgumentException('OrCondition requires at least one condition.');
+            throw new InvalidArgumentException('OrCondition requires at least one condition.');
         }
 
         $this->conditions = $conditions;
@@ -45,4 +46,3 @@ final class OrCondition implements ConditionInterface
         return false;
     }
 }
-

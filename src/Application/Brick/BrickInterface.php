@@ -49,4 +49,3 @@ interface BrickInterface extends SubPluginInterface
     // - getFieldTypes(): array
     // - getServices(): array
 }
-

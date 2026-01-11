@@ -6,15 +6,13 @@ namespace WeprestaAcf\Wedev\Core\Util;
 
 /**
  * File utility helpers.
- * 
+ *
  * Provides static methods for common file operations like formatting
  * file sizes, determining file icons from MIME types, and extracting extensions.
  */
 final class FileHelper
 {
-    /**
-     * Material Icons mapping for common MIME types.
-     */
+    /** Material Icons mapping for common MIME types. */
     private const MIME_ICONS = [
         // Images
         'image/' => 'image',
@@ -56,6 +54,7 @@ final class FileHelper
      *
      * @param int $bytes File size in bytes
      * @param int $decimals Number of decimal places (default: 1)
+     *
      * @return string Formatted size (e.g., "1.5 MB", "256 KB")
      */
     public static function formatSize(int $bytes, int $decimals = 1): string
@@ -67,9 +66,9 @@ final class FileHelper
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $factor = 0;
 
-        while ($bytes >= 1024 && $factor < count($units) - 1) {
+        while ($bytes >= 1024 && $factor < \count($units) - 1) {
             $bytes /= 1024;
-            $factor++;
+            ++$factor;
         }
 
         // No decimals for bytes
@@ -84,6 +83,7 @@ final class FileHelper
      * Get Material Icon name for a MIME type.
      *
      * @param string $mimeType MIME type (e.g., "image/jpeg", "application/pdf")
+     *
      * @return string Material Icon name (e.g., "image", "picture_as_pdf")
      */
     public static function getMimeIcon(string $mimeType): string
@@ -100,6 +100,7 @@ final class FileHelper
             if (str_ends_with($pattern, '/') && str_starts_with($mimeType, $pattern)) {
                 return $icon;
             }
+
             if (str_contains($mimeType, $pattern)) {
                 return $icon;
             }
@@ -112,11 +113,13 @@ final class FileHelper
      * Get file extension from filename.
      *
      * @param string $filename Filename or path
+     *
      * @return string Lowercase extension without dot (e.g., "pdf", "jpg")
      */
     public static function getExtension(string $filename): string
     {
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
+
         return strtolower($ext);
     }
 
@@ -151,13 +154,13 @@ final class FileHelper
     {
         $mimeType = strtolower($mimeType);
         $docTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats', 'application/vnd.ms-'];
-        
+
         foreach ($docTypes as $type) {
             if (str_contains($mimeType, $type)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -165,25 +168,25 @@ final class FileHelper
      * Get safe filename by removing unsafe characters.
      *
      * @param string $filename Original filename
+     *
      * @return string Sanitized filename
      */
     public static function sanitizeFilename(string $filename): string
     {
         // Remove any path components
         $filename = basename($filename);
-        
+
         // Replace spaces with underscores
         $filename = str_replace(' ', '_', $filename);
-        
+
         // Remove special characters except dots, dashes, underscores
         $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
-        
+
         // Ensure not empty
         if (empty($filename)) {
             $filename = 'file_' . time();
         }
-        
+
         return $filename;
     }
 }
-

@@ -43,4 +43,3 @@ final class CmsPageEntityFieldProvider implements EntityFieldProviderInterface
         return 'CMS Page';
     }
 }
-

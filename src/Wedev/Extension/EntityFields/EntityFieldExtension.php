@@ -36,4 +36,3 @@ final class EntityFieldExtension implements ExtensionInterface
         return [];
     }
 }
-

@@ -24,7 +24,6 @@ final class NotCondition implements ConditionInterface
 
     public function evaluate(RuleContext $context): bool
     {
-        return !$this->condition->evaluate($context);
+        return ! $this->condition->evaluate($context);
     }
 }
-

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Jobs;
 
+use DateTimeImmutable;
+use RuntimeException;
+use Throwable;
 use WeprestaAcf\Wedev\Core\Contract\ExtensionInterface;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 
@@ -58,7 +61,7 @@ final class JobDispatcher implements ExtensionInterface
      */
     public function dispatch(AbstractJob $job, int $delay = 0): int
     {
-        $scheduledAt = new \DateTimeImmutable('+' . $delay . ' seconds');
+        $scheduledAt = new DateTimeImmutable('+' . $delay . ' seconds');
 
         $entry = new JobEntry(
             jobClass: $job::class,
@@ -71,7 +74,7 @@ final class JobDispatcher implements ExtensionInterface
 
         $id = $this->repository->save($entry);
 
-        $this->log('info', sprintf(
+        $this->log('info', \sprintf(
             'Job %s dispatched (ID: %d, scheduled: %s)',
             $job::class,
             $id,
@@ -93,98 +96,10 @@ final class JobDispatcher implements ExtensionInterface
 
         foreach ($jobs as $entry) {
             $this->processJob($entry);
-            $processed++;
+            ++$processed;
         }
 
         return $processed;
-    }
-
-    /**
-     * Traite un job spécifique.
-     */
-    private function processJob(JobEntry $entry): void
-    {
-        $this->log('debug', sprintf('Processing job %s (ID: %d)', $entry->getJobClass(), $entry->getId()));
-
-        // Marquer comme en cours
-        $entry->markAsRunning();
-        $this->repository->update($entry);
-
-        try {
-            $job = $this->instantiateJob($entry);
-            $job->handle();
-
-            // Succès
-            $entry->markAsCompleted();
-            $this->repository->update($entry);
-
-            $this->log('info', sprintf('Job %s completed (ID: %d)', $entry->getJobClass(), $entry->getId()));
-        } catch (\Throwable $e) {
-            $this->handleJobFailure($entry, $e);
-        }
-    }
-
-    /**
-     * Instancie un job depuis son entrée.
-     */
-    private function instantiateJob(JobEntry $entry): AbstractJob
-    {
-        $class = $entry->getJobClass();
-
-        if (!class_exists($class)) {
-            throw new \RuntimeException(sprintf('Job class %s not found', $class));
-        }
-
-        if (!is_subclass_of($class, AbstractJob::class)) {
-            throw new \RuntimeException(sprintf('Job class %s must extend AbstractJob', $class));
-        }
-
-        return $class::deserialize($entry->getPayload());
-    }
-
-    /**
-     * Gère l'échec d'un job.
-     */
-    private function handleJobFailure(JobEntry $entry, \Throwable $exception): void
-    {
-        $entry->incrementAttempt();
-        $entry->setLastError($exception->getMessage());
-
-        if ($entry->getAttempts() >= $entry->getMaxAttempts()) {
-            // Échec définitif
-            $entry->markAsFailed();
-            $this->repository->update($entry);
-
-            $this->log('error', sprintf(
-                'Job %s failed permanently (ID: %d): %s',
-                $entry->getJobClass(),
-                $entry->getId(),
-                $exception->getMessage()
-            ));
-
-            // Appeler le callback onFailed
-            try {
-                $job = $this->instantiateJob($entry);
-                $job->onFailed($exception);
-            } catch (\Throwable) {
-                // Ignorer les erreurs du callback
-            }
-        } else {
-            // Replanifier
-            $nextRun = new \DateTimeImmutable('+' . $entry->getRetryDelay() . ' seconds');
-            $entry->reschedule($nextRun);
-            $this->repository->update($entry);
-
-            $this->log('warning', sprintf(
-                'Job %s failed (ID: %d, attempt %d/%d), rescheduled to %s: %s',
-                $entry->getJobClass(),
-                $entry->getId(),
-                $entry->getAttempts(),
-                $entry->getMaxAttempts(),
-                $nextRun->format('Y-m-d H:i:s'),
-                $exception->getMessage()
-            ));
-        }
     }
 
     /**
@@ -204,5 +119,92 @@ final class JobDispatcher implements ExtensionInterface
     {
         return $this->repository->deleteOldCompletedJobs($daysToKeep);
     }
-}
 
+    /**
+     * Traite un job spécifique.
+     */
+    private function processJob(JobEntry $entry): void
+    {
+        $this->log('debug', \sprintf('Processing job %s (ID: %d)', $entry->getJobClass(), $entry->getId()));
+
+        // Marquer comme en cours
+        $entry->markAsRunning();
+        $this->repository->update($entry);
+
+        try {
+            $job = $this->instantiateJob($entry);
+            $job->handle();
+
+            // Succès
+            $entry->markAsCompleted();
+            $this->repository->update($entry);
+
+            $this->log('info', \sprintf('Job %s completed (ID: %d)', $entry->getJobClass(), $entry->getId()));
+        } catch (Throwable $e) {
+            $this->handleJobFailure($entry, $e);
+        }
+    }
+
+    /**
+     * Instancie un job depuis son entrée.
+     */
+    private function instantiateJob(JobEntry $entry): AbstractJob
+    {
+        $class = $entry->getJobClass();
+
+        if (! class_exists($class)) {
+            throw new RuntimeException(\sprintf('Job class %s not found', $class));
+        }
+
+        if (! is_subclass_of($class, AbstractJob::class)) {
+            throw new RuntimeException(\sprintf('Job class %s must extend AbstractJob', $class));
+        }
+
+        return $class::deserialize($entry->getPayload());
+    }
+
+    /**
+     * Gère l'échec d'un job.
+     */
+    private function handleJobFailure(JobEntry $entry, Throwable $exception): void
+    {
+        $entry->incrementAttempt();
+        $entry->setLastError($exception->getMessage());
+
+        if ($entry->getAttempts() >= $entry->getMaxAttempts()) {
+            // Échec définitif
+            $entry->markAsFailed();
+            $this->repository->update($entry);
+
+            $this->log('error', \sprintf(
+                'Job %s failed permanently (ID: %d): %s',
+                $entry->getJobClass(),
+                $entry->getId(),
+                $exception->getMessage()
+            ));
+
+            // Appeler le callback onFailed
+            try {
+                $job = $this->instantiateJob($entry);
+                $job->onFailed($exception);
+            } catch (Throwable) {
+                // Ignorer les erreurs du callback
+            }
+        } else {
+            // Replanifier
+            $nextRun = new DateTimeImmutable('+' . $entry->getRetryDelay() . ' seconds');
+            $entry->reschedule($nextRun);
+            $this->repository->update($entry);
+
+            $this->log('warning', \sprintf(
+                'Job %s failed (ID: %d, attempt %d/%d), rescheduled to %s: %s',
+                $entry->getJobClass(),
+                $entry->getId(),
+                $entry->getAttempts(),
+                $entry->getMaxAttempts(),
+                $nextRun->format('Y-m-d H:i:s'),
+                $exception->getMessage()
+            ));
+        }
+    }
+}

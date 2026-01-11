@@ -62,7 +62,7 @@ export const useBuilderStore = defineStore('builder', () => {
       const loadedGroups = await api.getGroups()
       groups.value = loadedGroups.map(normalizeGroup)
     } catch (e) {
-      error.value = (e as Error).message
+      error.value = (e as Error).message || 'Failed to load groups'
     } finally {
       loading.value = false
     }
@@ -275,6 +275,27 @@ export const useBuilderStore = defineStore('builder', () => {
     selectedField.value = field
   }
 
+  // Génère un slug unique en évitant les conflits avec les slugs existants
+  function generateUniqueSlug(baseSlug: string, excludeUuid?: string): string {
+    const existingSlugs = currentGroup.value?.fields
+      ?.filter(f => f.uuid !== excludeUuid && f.slug)
+      ?.map(f => f.slug) || []
+
+    // Si le slug de base n'existe pas, le retourner tel quel
+    if (!existingSlugs.includes(baseSlug)) {
+      return baseSlug
+    }
+
+    // Sinon, trouver le prochain numéro disponible
+    const similarSlugs = existingSlugs
+      .filter(s => s.startsWith(`${baseSlug}_`))
+      .map(s => parseInt(s.split('_').pop() || '0', 10))
+      .filter(n => !isNaN(n))
+
+    const nextNumber = similarSlugs.length > 0 ? Math.max(...similarSlugs) + 1 : 2
+    return `${baseSlug}_${nextNumber}`
+  }
+
   function addField(type: string, parentField?: AcfField): void {
     if (!currentGroup.value) return
 
@@ -304,11 +325,15 @@ export const useBuilderStore = defineStore('builder', () => {
       repeater: 'Repeater Field',
     }
 
+    // Générer le slug de base à partir du titre par défaut
+    const defaultTitle = defaultTitles[type] || 'New Field'
+    const baseSlug = defaultTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+
     const newField: AcfField = {
       uuid: crypto.randomUUID(),
       type,
-      title: defaultTitles[type] || 'New Field',
-      slug: '',
+      title: defaultTitle,
+      slug: generateUniqueSlug(baseSlug), // Générer le slug unique dès la création
       parentId: parentField?.id || null,
       config: {},
       validation: {},

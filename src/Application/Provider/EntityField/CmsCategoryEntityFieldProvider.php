@@ -43,4 +43,3 @@ final class CmsCategoryEntityFieldProvider implements EntityFieldProviderInterfa
         return 'CMS Category';
     }
 }
-

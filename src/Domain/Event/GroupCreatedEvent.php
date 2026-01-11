@@ -24,4 +24,3 @@ final class GroupCreatedEvent extends AbstractDomainEvent
         return 'acf.group.created';
     }
 }
-

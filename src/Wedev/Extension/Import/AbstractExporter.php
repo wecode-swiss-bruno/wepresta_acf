@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Import;
 
+use Configuration;
+use Context;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 use WeprestaAcf\Wedev\Extension\Import\Parser\ParserInterface;
 
@@ -43,16 +45,17 @@ abstract class AbstractExporter
     use LoggerTrait;
 
     protected int $langId;
+
     protected int $shopId;
 
     /** @var callable|null */
-    protected $progressCallback = null;
+    protected $progressCallback;
 
     public function __construct(
         protected readonly ParserInterface $parser
     ) {
-        $this->langId = (int) \Configuration::get('PS_LANG_DEFAULT');
-        $this->shopId = (int) \Context::getContext()->shop->id;
+        $this->langId = (int) Configuration::get('PS_LANG_DEFAULT');
+        $this->shopId = (int) Context::getContext()->shop->id;
     }
 
     /**
@@ -97,11 +100,11 @@ abstract class AbstractExporter
         $this->log('info', 'Starting export to: ' . basename($filePath));
 
         $data = iterator_to_array($this->getData());
-        $count = count($data);
+        $count = \count($data);
 
         $this->parser->write($filePath, $data, $this->getColumns());
 
-        $this->log('info', sprintf('Export completed: %d rows', $count));
+        $this->log('info', \sprintf('Export completed: %d rows', $count));
 
         return $count;
     }
@@ -156,4 +159,3 @@ abstract class AbstractExporter
      */
     abstract protected function getData(): iterable;
 }
-

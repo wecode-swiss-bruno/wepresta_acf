@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 /**
- * Video field type with multi-source support
+ * Video field type with multi-source support.
  *
  * Supports:
  * - YouTube URLs (embedded player)
@@ -47,9 +47,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
  */
 final class VideoField extends AbstractFieldType
 {
-    /**
-     * Allowed MIME types for video uploads
-     */
+    /** Allowed MIME types for video uploads */
     private const ALLOWED_VIDEO_MIMES = [
         'video/mp4',
         'video/webm',
@@ -79,10 +77,11 @@ final class VideoField extends AbstractFieldType
         }
 
         // If already JSON string, validate and return
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
+
             // Valid video data has source and either video_id, url, or filename
-            if (is_array($decoded) && isset($decoded['source'])) {
+            if (\is_array($decoded) && isset($decoded['source'])) {
                 return $value;
             }
 
@@ -90,7 +89,7 @@ final class VideoField extends AbstractFieldType
         }
 
         // If array (from form), encode to JSON
-        if (is_array($value) && isset($value['source'])) {
+        if (\is_array($value) && isset($value['source'])) {
             return json_encode($value);
         }
 
@@ -104,15 +103,16 @@ final class VideoField extends AbstractFieldType
         }
 
         // Parse JSON to array
-        if (is_string($value)) {
+        if (\is_string($value)) {
             $decoded = json_decode($value, true);
-            if (is_array($decoded)) {
+
+            if (\is_array($decoded)) {
                 return $decoded;
             }
         }
 
         // Already an array
-        if (is_array($value)) {
+        if (\is_array($value)) {
             return $value;
         }
 
@@ -123,7 +123,7 @@ final class VideoField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (!is_array($data) || !isset($data['source'])) {
+        if (! \is_array($data) || ! isset($data['source'])) {
             return '';
         }
 
@@ -136,54 +136,11 @@ final class VideoField extends AbstractFieldType
         };
     }
 
-    private function renderYouTube(array $data): string
-    {
-        $videoId = htmlspecialchars($data['video_id'] ?? '', ENT_QUOTES, 'UTF-8');
-        if (empty($videoId)) {
-            return '';
-        }
-
-        return sprintf(
-            '<div class="acf-video acf-video-youtube"><iframe src="https://www.youtube.com/embed/%s" frameborder="0" allowfullscreen loading="lazy"></iframe></div>',
-            $videoId
-        );
-    }
-
-    private function renderVimeo(array $data): string
-    {
-        $videoId = htmlspecialchars($data['video_id'] ?? '', ENT_QUOTES, 'UTF-8');
-        if (empty($videoId)) {
-            return '';
-        }
-
-        return sprintf(
-            '<div class="acf-video acf-video-vimeo"><iframe src="https://player.vimeo.com/video/%s" frameborder="0" allowfullscreen loading="lazy"></iframe></div>',
-            $videoId
-        );
-    }
-
-    private function renderVideoFile(array $data): string
-    {
-        $url = htmlspecialchars($data['url'] ?? '', ENT_QUOTES, 'UTF-8');
-        if (empty($url)) {
-            return '';
-        }
-
-        $poster = isset($data['thumbnail_url']) ? htmlspecialchars($data['thumbnail_url'], ENT_QUOTES, 'UTF-8') : '';
-        $posterAttr = $poster ? ' poster="' . $poster . '"' : '';
-
-        return sprintf(
-            '<div class="acf-video acf-video-file"><video src="%s" controls%s></video></div>',
-            $url,
-            $posterAttr
-        );
-    }
-
     public function getIndexValue(mixed $value, array $fieldConfig = []): ?string
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (!is_array($data)) {
+        if (! \is_array($data)) {
             return null;
         }
 
@@ -200,7 +157,7 @@ final class VideoField extends AbstractFieldType
 
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (!is_array($data) || !isset($data['source'])) {
+        if (! \is_array($data) || ! isset($data['source'])) {
             $errors[] = 'Invalid video data.';
         }
 
@@ -268,7 +225,7 @@ final class VideoField extends AbstractFieldType
     }
 
     /**
-     * Get allowed MIME types for video uploads
+     * Get allowed MIME types for video uploads.
      *
      * @return array<string>
      */
@@ -278,7 +235,7 @@ final class VideoField extends AbstractFieldType
     }
 
     /**
-     * Parse a video URL and detect the source
+     * Parse a video URL and detect the source.
      *
      * @return array{source: string, video_id: string|null, url: string, thumbnail_url: string|null}
      */
@@ -317,9 +274,6 @@ final class VideoField extends AbstractFieldType
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -334,14 +288,11 @@ final class VideoField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
 
-        return sprintf(
+        return \sprintf(
             '<div class="acf-video-field acf-video-compact" data-slug="%s">' .
             '<input type="hidden" class="acf-subfield-input acf-video-value" data-subfield="%s" value="{value}">' .
             '<div class="acf-video-preview" style="display: none;"><div class="acf-video-thumbnail"><img src="" alt=""></div><button type="button" class="btn btn-sm btn-link text-danger acf-video-remove"><i class="material-icons">delete</i></button></div>' .
@@ -349,6 +300,52 @@ final class VideoField extends AbstractFieldType
             '</div>',
             $this->escapeAttr($slug),
             $this->escapeAttr($slug)
+        );
+    }
+
+    private function renderYouTube(array $data): string
+    {
+        $videoId = htmlspecialchars($data['video_id'] ?? '', ENT_QUOTES, 'UTF-8');
+
+        if (empty($videoId)) {
+            return '';
+        }
+
+        return \sprintf(
+            '<div class="acf-video acf-video-youtube"><iframe src="https://www.youtube.com/embed/%s" frameborder="0" allowfullscreen loading="lazy"></iframe></div>',
+            $videoId
+        );
+    }
+
+    private function renderVimeo(array $data): string
+    {
+        $videoId = htmlspecialchars($data['video_id'] ?? '', ENT_QUOTES, 'UTF-8');
+
+        if (empty($videoId)) {
+            return '';
+        }
+
+        return \sprintf(
+            '<div class="acf-video acf-video-vimeo"><iframe src="https://player.vimeo.com/video/%s" frameborder="0" allowfullscreen loading="lazy"></iframe></div>',
+            $videoId
+        );
+    }
+
+    private function renderVideoFile(array $data): string
+    {
+        $url = htmlspecialchars($data['url'] ?? '', ENT_QUOTES, 'UTF-8');
+
+        if (empty($url)) {
+            return '';
+        }
+
+        $poster = isset($data['thumbnail_url']) ? htmlspecialchars($data['thumbnail_url'], ENT_QUOTES, 'UTF-8') : '';
+        $posterAttr = $poster ? ' poster="' . $poster . '"' : '';
+
+        return \sprintf(
+            '<div class="acf-video acf-video-file"><video src="%s" controls%s></video></div>',
+            $url,
+            $posterAttr
         );
     }
 }

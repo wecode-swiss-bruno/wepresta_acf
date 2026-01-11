@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Condition;
 
+use InvalidArgumentException;
 use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 
 /**
@@ -28,7 +29,7 @@ final class AndCondition implements ConditionInterface
     public function __construct(array $conditions)
     {
         if (empty($conditions)) {
-            throw new \InvalidArgumentException('AndCondition requires at least one condition.');
+            throw new InvalidArgumentException('AndCondition requires at least one condition.');
         }
 
         $this->conditions = $conditions;
@@ -37,7 +38,7 @@ final class AndCondition implements ConditionInterface
     public function evaluate(RuleContext $context): bool
     {
         foreach ($this->conditions as $condition) {
-            if (!$condition->evaluate($context)) {
+            if (! $condition->evaluate($context)) {
                 return false;
             }
         }
@@ -45,4 +46,3 @@ final class AndCondition implements ConditionInterface
         return true;
     }
 }
-

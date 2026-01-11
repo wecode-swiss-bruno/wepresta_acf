@@ -36,7 +36,7 @@ final class ProductEntityFieldProvider implements EntityFieldProviderInterface
             'entity_type' => 'product',
             'entity_id' => $entityId,
             'category_ids' => array_map('intval', $categoryIds),
-            'category_id' => !empty($categoryIds) ? (int) $categoryIds[0] : null,
+            'category_id' => ! empty($categoryIds) ? (int) $categoryIds[0] : null,
             'product_type' => $product->getType(),
             'manufacturer_id' => (int) $product->id_manufacturer,
             'supplier_id' => (int) $product->id_supplier,
@@ -48,4 +48,3 @@ final class ProductEntityFieldProvider implements EntityFieldProviderInterface
         return 'Product';
     }
 }
-

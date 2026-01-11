@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Http;
 
-use WeprestaAcf\Extension\Http\RetryStrategy;
 use PHPUnit\Framework\TestCase;
+use WeprestaAcf\Extension\Http\RetryStrategy;
 
 class RetryStrategyTest extends TestCase
 {
@@ -85,4 +85,3 @@ class RetryStrategyTest extends TestCase
         $this->assertLessThanOrEqual(60000, $delay10);
     }
 }
-

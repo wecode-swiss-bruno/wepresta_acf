@@ -25,13 +25,28 @@ export function useApi() {
       url = `${url}${separator}_token=${config.token}`
     }
     
-    const response = await fetch(url, {
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+    let response: Response
+    try {
+      response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
+        signal: controller.signal,
     })
+      clearTimeout(timeoutId)
+    } catch (error) {
+      clearTimeout(timeoutId)
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout - API server may be unavailable')
+      }
+      throw error
+    }
 
     const data = await response.json()
 

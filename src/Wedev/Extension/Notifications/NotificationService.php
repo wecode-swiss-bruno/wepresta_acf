@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Notifications;
 
+use Customer;
+use Db;
+use Throwable;
 use WeprestaAcf\Wedev\Core\Contract\ExtensionInterface;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 use WeprestaAcf\Wedev\Extension\Notifications\Channel\ChannelInterface;
@@ -103,9 +106,9 @@ final class NotificationService implements ExtensionInterface
         ];
 
         foreach ($notification->getChannels() as $channelName) {
-            if (!$this->hasChannel($channelName)) {
+            if (! $this->hasChannel($channelName)) {
                 $results['errors'][] = "Channel '{$channelName}' not registered";
-                $results['failed']++;
+                ++$results['failed'];
 
                 continue;
             }
@@ -116,20 +119,20 @@ final class NotificationService implements ExtensionInterface
                 $sent = $channel->send($notification);
                 $results['success'] += $sent;
 
-                $this->log('info', sprintf(
+                $this->log('info', \sprintf(
                     'Notification sent via %s to %d recipients',
                     $channelName,
                     $sent
                 ));
-            } catch (\Throwable $e) {
-                $results['failed']++;
-                $results['errors'][] = sprintf(
+            } catch (Throwable $e) {
+                ++$results['failed'];
+                $results['errors'][] = \sprintf(
                     '%s: %s',
                     $channelName,
                     $e->getMessage()
                 );
 
-                $this->log('error', sprintf(
+                $this->log('error', \sprintf(
                     'Notification failed via %s: %s',
                     $channelName,
                     $e->getMessage()
@@ -143,10 +146,10 @@ final class NotificationService implements ExtensionInterface
     /**
      * Envoie une notification basée sur un template.
      *
-     * @param string               $templateName Nom du template PrestaShop
-     * @param array<string>        $recipients   Destinataires
-     * @param array<string, mixed> $data         Données pour le template
-     * @param array<string>        $channels     Canaux à utiliser
+     * @param string $templateName Nom du template PrestaShop
+     * @param array<string> $recipients Destinataires
+     * @param array<string, mixed> $data Données pour le template
+     * @param array<string> $channels Canaux à utiliser
      *
      * @return array{success: int, failed: int, errors: array<string>}
      */
@@ -177,9 +180,9 @@ final class NotificationService implements ExtensionInterface
         string $content,
         array $data = []
     ): bool {
-        $customer = new \Customer($customerId);
+        $customer = new Customer($customerId);
 
-        if (!$customer->id || empty($customer->email)) {
+        if (! $customer->id || empty($customer->email)) {
             return false;
         }
 
@@ -214,7 +217,7 @@ final class NotificationService implements ExtensionInterface
                 INNER JOIN ' . _DB_PREFIX_ . 'profile p ON e.id_profile = p.id_profile
                 WHERE p.id_profile = 1 AND e.active = 1';
 
-        $employees = \Db::getInstance()->executeS($sql);
+        $employees = Db::getInstance()->executeS($sql);
 
         if (empty($employees)) {
             return 0;
@@ -228,4 +231,3 @@ final class NotificationService implements ExtensionInterface
         return $result['success'];
     }
 }
-

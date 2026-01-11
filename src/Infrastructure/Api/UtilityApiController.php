@@ -4,85 +4,102 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api;
 
-use WeprestaAcf\Application\Service\FieldTypeRegistry;
-use WeprestaAcf\Application\Service\SlugGenerator;
-use WeprestaAcf\Application\Service\FileUploadService;
-use WeprestaAcf\Application\Service\AcfServiceContainer;
-use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
-use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
-use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
+use Context;
+use Db;
+use Exception;
+use InvalidArgumentException;
+use Module;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Context;
-use Db;
-use Module;
+use WeprestaAcf\Application\Service\AcfServiceContainer;
+use WeprestaAcf\Application\Service\FieldTypeRegistry;
+use WeprestaAcf\Application\Service\SlugGenerator;
+use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 
-class UtilityApiController extends FrameworkBundleAdminController
+/**
+ * Utility API Controller - Various utility endpoints.
+ */
+final class UtilityApiController extends AbstractApiController
 {
     public function __construct(
         private readonly FieldTypeRegistry $fieldTypeRegistry,
         private readonly SlugGenerator $slugGenerator,
-        private readonly AcfGroupRepositoryInterface $groupRepository,
-        private readonly AcfFieldRepositoryInterface $fieldRepository,
-    ) {}
+        private readonly AcfFieldRepositoryInterface $fieldRepository
+    ) {
+    }
 
+    /**
+     * Get all field types.
+     */
     public function fieldTypes(): JsonResponse
     {
         try {
-            return $this->json(['success' => true, 'data' => $this->fieldTypeRegistry->toArray()]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonSuccess($this->fieldTypeRegistry->toArray());
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 
+    /**
+     * Get field types grouped by category.
+     */
     public function fieldTypesGrouped(): JsonResponse
     {
         try {
             $grouped = $this->fieldTypeRegistry->getAllGroupedByCategory();
             $result = [];
+
             foreach ($grouped as $category => $types) {
                 $result[$category] = [];
+
                 foreach ($types as $type => $fieldType) {
                     $result[$category][$type] = [
-                        'type' => $type, 'label' => $fieldType->getLabel(),
-                        'icon' => $fieldType->getIcon(), 'supportsTranslation' => $fieldType->supportsTranslation(),
+                        'type' => $type,
+                        'label' => $fieldType->getLabel(),
+                        'icon' => $fieldType->getIcon(),
+                        'supportsTranslation' => $fieldType->supportsTranslation(),
                     ];
                 }
             }
-            return $this->json(['success' => true, 'data' => $result]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
-        }
-    }
 
-    public function slugify(Request $request): JsonResponse
-    {
-        try {
-            $data = json_decode($request->getContent(), true) ?? [];
-            $text = $data['text'] ?? '';
-
-            if (empty($text)) {
-                return $this->json(['success' => false, 'error' => 'Text is required'], 400);
-            }
-
-            $slug = $this->slugGenerator->generate($text);
-
-            return $this->json(['success' => true, 'data' => ['slug' => $slug]]);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->jsonSuccess($result);
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 
     /**
-     * Force upgrade the module by resetting version and triggering upgrade.
+     * Generate a slug from text.
+     */
+    public function slugify(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->getJsonPayload($request);
+            $text = $data['text'] ?? '';
+
+            if (empty($text)) {
+                return $this->jsonError('Text is required', Response::HTTP_BAD_REQUEST);
+            }
+
+            $slug = $this->slugGenerator->generate($text);
+
+            return $this->jsonSuccess(['slug' => $slug]);
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
+    }
+
+    /**
+     * Force upgrade the module.
      */
     public function forceUpgrade(): JsonResponse
     {
         try {
             $module = Module::getInstanceByName('wepresta_acf');
-            if (!$module) {
-                return $this->json(['success' => false, 'error' => 'Module not found'], Response::HTTP_NOT_FOUND);
+
+            if (! $module) {
+                return $this->jsonNotFound('Module');
             }
 
             // Get current version from database
@@ -90,8 +107,7 @@ class UtilityApiController extends FrameworkBundleAdminController
             $targetVersion = $module::VERSION;
 
             if ($currentVersion === $targetVersion) {
-                return $this->json([
-                    'success' => true,
+                return $this->jsonSuccess([
                     'skipped' => true,
                     'message' => "Module is already at version {$targetVersion}",
                     'current_version' => $currentVersion,
@@ -107,27 +123,20 @@ class UtilityApiController extends FrameworkBundleAdminController
             $result = $module->runUpgradeModule();
 
             if ($result) {
-                return $this->json([
-                    'success' => true,
+                return $this->jsonSuccess([
                     'message' => 'Upgrade completed successfully',
                     'previous_version' => $currentVersion,
                     'new_version' => $module->version ?? $targetVersion,
                 ]);
             }
 
-            $errors = !empty($module->_errors) ? $module->_errors : ['Unknown upgrade error'];
-            return $this->json([
-                'success' => false,
-                'error' => implode(', ', $errors),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            $errors = ! empty($module->_errors) ? $module->_errors : ['Unknown upgrade error'];
+
+            return $this->jsonError(implode(', ', $errors));
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
-
 
     /**
      * Upload file for global values (entity_id = 0).
@@ -137,8 +146,9 @@ class UtilityApiController extends FrameworkBundleAdminController
         try {
             // Get uploaded file
             $uploadedFile = $request->files->get('file');
-            if (!$uploadedFile) {
-                return $this->json(['success' => false, 'error' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
+
+            if (! $uploadedFile) {
+                return $this->jsonError('No file uploaded', Response::HTTP_BAD_REQUEST);
             }
 
             // Get parameters
@@ -146,19 +156,20 @@ class UtilityApiController extends FrameworkBundleAdminController
             $entityType = $request->request->get('entity_type', 'global');
             $entityId = (int) $request->request->get('entity_id', 0);
 
-            if (!$fieldSlug) {
-                return $this->json(['success' => false, 'error' => 'field_slug is required'], Response::HTTP_BAD_REQUEST);
+            if (! $fieldSlug) {
+                return $this->jsonError('field_slug is required', Response::HTTP_BAD_REQUEST);
             }
 
             // Get field info
             $field = $this->fieldRepository->findBySlug($fieldSlug);
-            if (!$field) {
-                return $this->json(['success' => false, 'error' => 'Field not found'], Response::HTTP_NOT_FOUND);
+
+            if (! $field) {
+                return $this->jsonNotFound('Field');
             }
 
             $fieldId = (int) $field['id_wepresta_acf_field'];
             $fieldType = $field['type'];
-            $fieldConfig = json_decode($field['config'] ?? '{}', true);
+            $fieldConfig = $this->decodeJson($field['config'] ?? '{}');
 
             // Get shop ID
             $shopId = (int) Context::getContext()->shop->id;
@@ -185,6 +196,7 @@ class UtilityApiController extends FrameworkBundleAdminController
 
             // Get allowed MIME types from field config
             $allowedMimes = [];
+
             if ($fieldType === 'file' && isset($fieldConfig['allowedMimes'])) {
                 $allowedMimes = $fieldConfig['allowedMimes'];
             } elseif ($fieldType === 'image') {
@@ -198,12 +210,11 @@ class UtilityApiController extends FrameworkBundleAdminController
             $maxFileSize = $maxSizeMB * 1024 * 1024;
 
             // Upload file
-            // For global values (entity_id = 0), we still use entity_id = 0 as the identifier
             $useFixedPath = $fieldConfig['useFixedPath'] ?? false;
             $result = $uploadService->upload(
                 $fileArray,
                 $fieldId,
-                $entityId, // 0 for global
+                $entityId,
                 $shopId,
                 $fileTypeDir,
                 $allowedMimes,
@@ -212,15 +223,11 @@ class UtilityApiController extends FrameworkBundleAdminController
                 true // delete existing
             );
 
-            return $this->json([
-                'success' => true,
-                'data' => $result,
-            ]);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        } catch (\Exception $e) {
-            return $this->json(['success' => false, 'error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->jsonSuccess($result);
+        } catch (InvalidArgumentException $e) {
+            return $this->jsonError($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
         }
     }
 }
-

@@ -8,7 +8,7 @@ use WeprestaAcf\Wedev\Core\Contract\ExtensionInterface;
 
 /**
  * Media Extension.
- * 
+ *
  * Provides reusable media handling components:
  * - Dropzone file upload
  * - Image lightbox
@@ -20,25 +20,16 @@ final class MediaExtension implements ExtensionInterface
 {
     public const VERSION = '1.0.0';
 
-    /**
-     * @inheritDoc
-     */
     public static function getName(): string
     {
         return 'Media';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getVersion(): string
     {
         return self::VERSION;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getDependencies(): array
     {
         return ['UI']; // Requires UI extension for toast notifications
@@ -90,4 +81,3 @@ final class MediaExtension implements ExtensionInterface
         return [];
     }
 }
-

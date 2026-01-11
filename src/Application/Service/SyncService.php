@@ -1,6 +1,7 @@
 <?php
+
 /**
- * SyncService - JSON Sync for Field Groups
+ * SyncService - JSON Sync for Field Groups.
  *
  * Handles bidirectional synchronization between database and theme JSON files.
  * Inspired by ACF Extended JSON/PHP Sync feature.
@@ -10,9 +11,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use Configuration;
+use JsonException;
 use Module;
-use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
+use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 use WeprestaAcf\Wedev\Core\Trait\LoggerTrait;
 
@@ -21,7 +24,9 @@ final class SyncService
     use LoggerTrait;
 
     private const JSON_VERSION = '1.0';
+
     private const GROUPS_SUBDIR = 'groups';
+
     private const CHECKSUM_ALGO = 'sha256';
 
     public function __construct(
@@ -68,7 +73,8 @@ final class SyncService
     public function pushGroup(int $groupId): array
     {
         $group = $this->groupRepository->findOneBy(['id_wepresta_acf_group' => $groupId]);
-        if (!$group) {
+
+        if (! $group) {
             return ['success' => false, 'error' => 'Group not found'];
         }
 
@@ -76,7 +82,8 @@ final class SyncService
         $jsonData = $this->buildGroupJson($group, $fields);
 
         $groupsPath = $this->getGroupsPath();
-        if (!$this->ensureDirectory($groupsPath)) {
+
+        if (! $this->ensureDirectory($groupsPath)) {
             return ['success' => false, 'error' => 'Cannot create sync directory'];
         }
 
@@ -113,10 +120,11 @@ final class SyncService
 
         foreach ($groups as $group) {
             $result = $this->pushGroup((int) $group['id_wepresta_acf_group']);
+
             if ($result['success']) {
-                $results['pushed']++;
+                ++$results['pushed'];
             } else {
-                $results['failed']++;
+                ++$results['failed'];
                 $results['errors'][] = $group['slug'] . ': ' . ($result['error'] ?? 'Unknown error');
             }
         }
@@ -130,22 +138,24 @@ final class SyncService
     public function pullGroup(string $slug): array
     {
         $filePath = $this->getGroupsPath() . $slug . '.json';
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             return ['success' => false, 'error' => 'JSON file not found'];
         }
 
         $content = file_get_contents($filePath);
+
         if ($content === false) {
             return ['success' => false, 'error' => 'Cannot read JSON file'];
         }
 
         try {
             $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             return ['success' => false, 'error' => 'Invalid JSON: ' . $e->getMessage()];
         }
 
-        if (!isset($data['group']) || !isset($data['fields'])) {
+        if (! isset($data['group']) || ! isset($data['fields'])) {
             return ['success' => false, 'error' => 'Invalid JSON structure'];
         }
 
@@ -175,13 +185,13 @@ final class SyncService
         $this->logInfo('Group pulled from theme', [
             'slug' => $slug,
             'group_id' => $groupId,
-            'fields_count' => count($data['fields']),
+            'fields_count' => \count($data['fields']),
         ]);
 
         return [
             'success' => true,
             'group_id' => $groupId,
-            'fields_count' => count($data['fields']),
+            'fields_count' => \count($data['fields']),
             'action' => $existing ? 'updated' : 'created',
         ];
     }
@@ -192,7 +202,8 @@ final class SyncService
     public function pullAllGroups(): array
     {
         $groupsPath = $this->getGroupsPath();
-        if (!is_dir($groupsPath)) {
+
+        if (! is_dir($groupsPath)) {
             return ['pulled' => 0, 'failed' => 0, 'errors' => ['Sync directory does not exist']];
         }
 
@@ -204,9 +215,9 @@ final class SyncService
             $result = $this->pullGroup($slug);
 
             if ($result['success']) {
-                $results['pulled']++;
+                ++$results['pulled'];
             } else {
-                $results['failed']++;
+                ++$results['failed'];
                 $results['errors'][] = $slug . ': ' . ($result['error'] ?? 'Unknown error');
             }
         }
@@ -223,8 +234,8 @@ final class SyncService
         $themeFiles = $this->getThemeJsonFiles();
 
         $status = [
-            'db_count' => count($dbGroups),
-            'theme_count' => count($themeFiles),
+            'db_count' => \count($dbGroups),
+            'theme_count' => \count($themeFiles),
             'synced' => 0,
             'need_push' => 0,
             'need_pull' => 0,
@@ -232,7 +243,7 @@ final class SyncService
         ];
 
         $dbSlugs = array_column($dbGroups, 'slug');
-        $themeSlugs = array_map(fn($f) => pathinfo($f, PATHINFO_FILENAME), $themeFiles);
+        $themeSlugs = array_map(fn ($f) => pathinfo($f, PATHINFO_FILENAME), $themeFiles);
 
         // Check DB groups
         foreach ($dbGroups as $group) {
@@ -243,15 +254,15 @@ final class SyncService
             $dbChecksum = $this->calculateChecksum($group, $fields);
             $themeChecksum = $this->getThemeFileChecksum($slug);
 
-            if (!in_array($slug, $themeSlugs, true)) {
+            if (! \in_array($slug, $themeSlugs, true)) {
                 $groupStatus = 'need_push';
-                $status['need_push']++;
+                ++$status['need_push'];
             } elseif ($dbChecksum === $themeChecksum) {
                 $groupStatus = 'synced';
-                $status['synced']++;
+                ++$status['synced'];
             } else {
                 $groupStatus = 'modified';
-                $status['need_push']++;
+                ++$status['need_push'];
             }
 
             $status['groups'][] = [
@@ -267,8 +278,8 @@ final class SyncService
 
         // Check theme-only groups
         foreach ($themeSlugs as $slug) {
-            if (!in_array($slug, $dbSlugs, true)) {
-                $status['need_pull']++;
+            if (! \in_array($slug, $dbSlugs, true)) {
+                ++$status['need_pull'];
                 $status['groups'][] = [
                     'id' => null,
                     'slug' => $slug,
@@ -290,7 +301,8 @@ final class SyncService
     public function getGroupSyncStatus(int $groupId): ?array
     {
         $group = $this->groupRepository->findOneBy(['id_wepresta_acf_group' => $groupId]);
-        if (!$group) {
+
+        if (! $group) {
             return null;
         }
 
@@ -318,11 +330,11 @@ final class SyncService
      */
     public function autoSyncOnSave(int $groupId): void
     {
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return;
         }
 
-        if (!$this->config->getBool('WEPRESTA_ACF_AUTO_SYNC_ON_SAVE', false)) {
+        if (! $this->config->getBool('WEPRESTA_ACF_AUTO_SYNC_ON_SAVE', false)) {
             return;
         }
 
@@ -347,7 +359,7 @@ final class SyncService
             'active' => (bool) ($group['active'] ?? true),
         ];
 
-        $fieldsData = array_map(fn($f) => $this->mapFieldToJson($f), $fields);
+        $fieldsData = array_map(fn ($f) => $this->mapFieldToJson($f), $fields);
 
         $checksum = $this->calculateChecksum($group, $fields);
 
@@ -442,7 +454,7 @@ final class SyncService
                 'priority' => $group['priority'],
                 'active' => $group['active'],
             ],
-            'fields' => array_map(fn($f) => [
+            'fields' => array_map(fn ($f) => [
                 'slug' => $f['slug'],
                 'type' => $f['type'],
                 'title' => $f['title'],
@@ -462,18 +474,20 @@ final class SyncService
     private function getThemeFileChecksum(string $slug): ?string
     {
         $filePath = $this->getGroupsPath() . $slug . '.json';
-        if (!file_exists($filePath)) {
+
+        if (! file_exists($filePath)) {
             return null;
         }
 
         $content = file_get_contents($filePath);
+
         if ($content === false) {
             return null;
         }
 
         try {
             $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException) {
+        } catch (JsonException) {
             return null;
         }
 
@@ -486,7 +500,8 @@ final class SyncService
     private function getThemeJsonFiles(): array
     {
         $groupsPath = $this->getGroupsPath();
-        if (!is_dir($groupsPath)) {
+
+        if (! is_dir($groupsPath)) {
             return [];
         }
 
@@ -498,7 +513,7 @@ final class SyncService
      */
     private function getActiveThemePath(): string
     {
-        $themeName = \Configuration::get('PS_THEME_NAME') ?: 'classic';
+        $themeName = Configuration::get('PS_THEME_NAME') ?: 'classic';
 
         return _PS_THEME_DIR_ . 'acf/';
     }
@@ -509,12 +524,13 @@ final class SyncService
     private function getParentThemePath(): string
     {
         // Check if current theme has a parent
-        $themeName = \Configuration::get('PS_THEME_NAME') ?: 'classic';
+        $themeName = Configuration::get('PS_THEME_NAME') ?: 'classic';
         $themeDir = _PS_ALL_THEMES_DIR_ . $themeName . '/';
 
         if (file_exists($themeDir . 'theme.yml')) {
             $themeConfig = \Symfony\Component\Yaml\Yaml::parseFile($themeDir . 'theme.yml');
-            if (!empty($themeConfig['parent'])) {
+
+            if (! empty($themeConfig['parent'])) {
                 return _PS_ALL_THEMES_DIR_ . $themeConfig['parent'] . '/acf/';
             }
         }
@@ -529,6 +545,7 @@ final class SyncService
     private function getCustomPath(): string
     {
         $customPath = $this->config->getString('WEPRESTA_ACF_SYNC_CUSTOM_PATH');
+
         if (empty($customPath)) {
             return $this->getActiveThemePath();
         }
@@ -546,7 +563,7 @@ final class SyncService
             return true;
         }
 
-        return mkdir($path, 0755, true);
+        return mkdir($path, 0o755, true);
     }
 
     /**
@@ -555,10 +572,9 @@ final class SyncService
     private function generateUuid(): string
     {
         $data = random_bytes(16);
-        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        $data[6] = \chr(\ord($data[6]) & 0x0F | 0x40);
+        $data[8] = \chr(\ord($data[8]) & 0x3F | 0x80);
 
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 }
-

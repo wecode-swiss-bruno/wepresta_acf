@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Hook;
 
+use Context;
+use Exception;
 use Symfony\Component\Form\FormBuilderInterface;
+use Tools;
 use WeprestaAcf\Application\Config\EntityHooksConfig;
 use WeprestaAcf\Application\Service\EntityFieldService;
 use WeprestaAcf\Application\Service\FormModifierService;
@@ -86,7 +89,7 @@ trait EntityFieldHooksTrait
 
     /**
      * Injecte les champs ACF dans le formulaire Symfony Product (BO).
-     * Hook: actionProductFormBuilderModifier
+     * Hook: actionProductFormBuilderModifier.
      */
     public function hookActionProductFormBuilderModifier(array $params): void
     {
@@ -95,7 +98,7 @@ trait EntityFieldHooksTrait
 
     /**
      * Sauvegarde les champs ACF après création Product (Symfony).
-     * Hook: actionAfterCreateProductFormHandler
+     * Hook: actionAfterCreateProductFormHandler.
      */
     public function hookActionAfterCreateProductFormHandler(array $params): void
     {
@@ -104,7 +107,7 @@ trait EntityFieldHooksTrait
 
     /**
      * Sauvegarde les champs ACF après mise à jour Product (Symfony).
-     * Hook: actionAfterUpdateProductFormHandler
+     * Hook: actionAfterUpdateProductFormHandler.
      */
     public function hookActionAfterUpdateProductFormHandler(array $params): void
     {
@@ -117,7 +120,7 @@ trait EntityFieldHooksTrait
 
     /**
      * Injecte les champs ACF dans le formulaire Symfony Category (BO).
-     * Hook: actionCategoryFormBuilderModifier
+     * Hook: actionCategoryFormBuilderModifier.
      */
     public function hookActionCategoryFormBuilderModifier(array $params): void
     {
@@ -126,7 +129,7 @@ trait EntityFieldHooksTrait
 
     /**
      * Sauvegarde les champs ACF après création Category (Symfony).
-     * Hook: actionAfterCreateCategoryFormHandler
+     * Hook: actionAfterCreateCategoryFormHandler.
      */
     public function hookActionAfterCreateCategoryFormHandler(array $params): void
     {
@@ -135,14 +138,12 @@ trait EntityFieldHooksTrait
 
     /**
      * Sauvegarde les champs ACF après mise à jour Category (Symfony).
-     * Hook: actionAfterUpdateCategoryFormHandler
+     * Hook: actionAfterUpdateCategoryFormHandler.
      */
     public function hookActionAfterUpdateCategoryFormHandler(array $params): void
     {
         $this->handleSymfonyFormHandler('category', $params);
     }
-
-
 
     // =========================================================================
     // CUSTOMER HOOKS - ADMIN (Back-Office)
@@ -178,7 +179,7 @@ trait EntityFieldHooksTrait
 
     /**
      * Injecte les champs ACF dans le formulaire Symfony Customer (BO).
-     * Hook: actionCustomerFormBuilderModifier
+     * Hook: actionCustomerFormBuilderModifier.
      */
     public function hookActionCustomerFormBuilderModifier(array $params): void
     {
@@ -187,7 +188,7 @@ trait EntityFieldHooksTrait
 
     /**
      * Sauvegarde les champs ACF après création Customer (Symfony).
-     * Hook: actionAfterCreateCustomerFormHandler
+     * Hook: actionAfterCreateCustomerFormHandler.
      */
     public function hookActionAfterCreateCustomerFormHandler(array $params): void
     {
@@ -196,16 +197,12 @@ trait EntityFieldHooksTrait
 
     /**
      * Sauvegarde les champs ACF après mise à jour Customer (Symfony).
-     * Hook: actionAfterUpdateCustomerFormHandler
+     * Hook: actionAfterUpdateCustomerFormHandler.
      */
     public function hookActionAfterUpdateCustomerFormHandler(array $params): void
     {
         $this->handleSymfonyFormHandler('customer', $params);
     }
-
-
-
-
 
     // =========================================================================
     // MÉTHODES PRIVÉES - Logique commune
@@ -216,32 +213,36 @@ trait EntityFieldHooksTrait
      *
      * @param string $entity Type d'entité ('product', 'category')
      * @param array $params Paramètres du hook
+     *
      * @return string HTML généré
      */
     private function renderAdminFields(string $entity, array $params): string
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return '';
         }
 
-        if (!EntityHooksConfig::isEnabled($entity)) {
+        if (! EntityHooksConfig::isEnabled($entity)) {
             return '';
         }
 
         $entityId = $this->extractEntityId($entity, $params);
+
         if ($entityId <= 0) {
             return '';
         }
 
         try {
             $service = $this->getService(EntityFieldService::class);
+
             if ($service === null) {
                 return '';
             }
 
             return $service->renderFieldsForEntity($entity, $entityId, $this);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->log("Error rendering admin fields for {$entity}: " . $e->getMessage(), 3);
+
             return '<div class="alert alert-danger">ACF Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
@@ -254,38 +255,39 @@ trait EntityFieldHooksTrait
      */
     private function saveEntityFields(string $entity, array $params): void
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return;
         }
 
-        if (!EntityHooksConfig::isEnabled($entity)) {
+        if (! EntityHooksConfig::isEnabled($entity)) {
             return;
         }
 
         $entityId = $this->extractEntityId($entity, $params);
+
         if ($entityId <= 0) {
             return;
         }
 
         try {
             $service = $this->getService(EntityFieldService::class);
+
             if ($service === null) {
                 return;
             }
 
             $service->saveFieldsForEntity($entity, $entityId, $_POST, $_FILES, $this);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->log("Error saving fields for {$entity}: " . $e->getMessage(), 3);
         }
     }
-
-
 
     /**
      * Extrait l'ID de l'entité à partir des paramètres du hook.
      *
      * @param string $entity Type d'entité
      * @param array $params Paramètres du hook
+     *
      * @return int ID de l'entité ou 0 si non trouvé
      */
     private function extractEntityId(string $entity, array $params): int
@@ -294,18 +296,21 @@ trait EntityFieldHooksTrait
 
         // Essayer différentes sources
         $entityId = $params[$idKey] ?? null;
+
         if ($entityId !== null) {
             return (int) $entityId;
         }
 
         // Essayer 'id' générique
         $entityId = $params['id'] ?? null;
+
         if ($entityId !== null) {
             return (int) $entityId;
         }
 
         // Essayer depuis l'objet
         $object = $params['object'] ?? null;
+
         if ($object !== null && property_exists($object, 'id')) {
             return (int) $object->id;
         }
@@ -322,15 +327,15 @@ trait EntityFieldHooksTrait
      */
     private function handleSymfonyFormBuilder(string $entity, array $params): void
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return;
         }
 
-        if (!EntityHooksConfig::isEnabled($entity)) {
+        if (! EntityHooksConfig::isEnabled($entity)) {
             return;
         }
 
-        if (!isset($params['form_builder']) || !($params['form_builder'] instanceof FormBuilderInterface)) {
+        if (! isset($params['form_builder']) || ! ($params['form_builder'] instanceof FormBuilderInterface)) {
             return;
         }
 
@@ -340,12 +345,13 @@ trait EntityFieldHooksTrait
             $entityId = $this->extractEntityIdFromSymfonyParams($entity, $params);
 
             $service = $this->getService(FormModifierService::class);
+
             if ($service === null) {
                 return;
             }
 
             $service->modifyForm($formBuilder, $entity, $entityId, $data);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->log("Error in Symfony FormBuilder for {$entity}: " . $e->getMessage(), 3);
         }
     }
@@ -359,28 +365,31 @@ trait EntityFieldHooksTrait
      */
     private function handleSymfonyFormHandler(string $entity, array $params): void
     {
-        if (!$this->isActive()) {
+        if (! $this->isActive()) {
             return;
         }
 
-        if (!EntityHooksConfig::isEnabled($entity)) {
+        if (! EntityHooksConfig::isEnabled($entity)) {
             return;
         }
 
         $entityId = $this->extractEntityIdFromSymfonyParams($entity, $params);
+
         if ($entityId <= 0) {
             return;
         }
 
         try {
             $formData = $params['form_data'] ?? $params['data'] ?? [];
-            
+
             // Utiliser EntityFieldService pour gérer POST + FILES
             // (FormModifierService ne gère que les données POST simples)
             $entityService = $this->getService(EntityFieldService::class);
+
             if ($entityService !== null) {
                 $files = $_FILES ?? [];
                 $entityService->saveFieldsForEntity($entity, $entityId, $formData, $files, $this);
+
                 return;
             }
 
@@ -390,12 +399,13 @@ trait EntityFieldHooksTrait
             }
 
             $service = $this->getService(FormModifierService::class);
+
             if ($service === null) {
                 return;
             }
 
             $service->saveAcfData($entity, $entityId, $formData);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->log("Error in Symfony FormHandler for {$entity}: " . $e->getMessage(), 3);
         }
     }
@@ -405,6 +415,7 @@ trait EntityFieldHooksTrait
      *
      * @param string $entity Type d'entité
      * @param array $params Paramètres du hook
+     *
      * @return int|null ID de l'entité ou null si non trouvé
      */
     private function extractEntityIdFromSymfonyParams(string $entity, array $params): ?int
@@ -426,6 +437,7 @@ trait EntityFieldHooksTrait
 
         // Essayer avec la clé spécifique à l'entité
         $idKey = EntityHooksConfig::getIdParam($entity);
+
         if (isset($params[$idKey]) && (int) $params[$idKey] > 0) {
             return (int) $params[$idKey];
         }
@@ -437,8 +449,10 @@ trait EntityFieldHooksTrait
 
         // Utiliser FormModifierService si disponible
         $service = $this->getService(FormModifierService::class);
+
         if ($service !== null) {
             $entityId = $service->getEntityIdFromParams($entity, $params);
+
             if ($entityId !== null) {
                 return $entityId;
             }
@@ -452,6 +466,7 @@ trait EntityFieldHooksTrait
      * Gère les cas où $params['product'] peut être un array ou un objet Product.
      *
      * @param array $params Paramètres du hook
+     *
      * @return int ID du produit ou 0 si non trouvé
      */
     private function extractProductIdFromParams(array $params): int
@@ -463,13 +478,15 @@ trait EntityFieldHooksTrait
         }
 
         // Si c'est un objet Product, accéder à la propriété id ou id_product
-        if (is_object($product)) {
+        if (\is_object($product)) {
             if (property_exists($product, 'id')) {
                 return (int) $product->id;
             }
+
             if (property_exists($product, 'id_product')) {
                 return (int) $product->id_product;
             }
+
             // Essayer d'autres propriétés communes via isset (pour les propriétés dynamiques)
             if (isset($product->id_product)) {
                 return (int) $product->id_product;
@@ -477,7 +494,7 @@ trait EntityFieldHooksTrait
         }
 
         // Si c'est un array, accéder à l'index id_product
-        if (is_array($product) && isset($product['id_product'])) {
+        if (\is_array($product) && isset($product['id_product'])) {
             return (int) $product['id_product'];
         }
 
@@ -490,6 +507,7 @@ trait EntityFieldHooksTrait
      * En front-office, cherche aussi dans le contexte PrestaShop.
      *
      * @param array $params Paramètres du hook
+     *
      * @return int ID de la catégorie ou 0 si non trouvé
      */
     private function extractCategoryIdFromParams(array $params): int
@@ -499,23 +517,26 @@ trait EntityFieldHooksTrait
         // 1. Essayer depuis $params['category']
         if ($category !== null) {
             // Si c'est un objet Category, accéder à la propriété id
-            if (is_object($category)) {
+            if (\is_object($category)) {
                 if (property_exists($category, 'id')) {
                     return (int) $category->id;
                 }
+
                 if (property_exists($category, 'id_category')) {
                     return (int) $category->id_category;
                 }
+
                 if (isset($category->id)) {
                     return (int) $category->id;
                 }
             }
 
             // Si c'est un array, accéder à l'index id_category
-            if (is_array($category)) {
+            if (\is_array($category)) {
                 if (isset($category['id_category'])) {
                     return (int) $category['id_category'];
                 }
+
                 if (isset($category['id'])) {
                     return (int) $category['id'];
                 }
@@ -526,15 +547,17 @@ trait EntityFieldHooksTrait
         if (isset($params['id_category'])) {
             return (int) $params['id_category'];
         }
+
         if (isset($params['id'])) {
             return (int) $params['id'];
         }
 
         // 3. Essayer depuis le contexte PrestaShop (front-office)
-        $context = \Context::getContext();
-        
+        $context = Context::getContext();
+
         // Depuis Tools::getValue (URL parameter)
-        $idFromUrl = \Tools::getValue('id_category');
+        $idFromUrl = Tools::getValue('id_category');
+
         if ($idFromUrl && (int) $idFromUrl > 0) {
             return (int) $idFromUrl;
         }
@@ -544,16 +567,18 @@ trait EntityFieldHooksTrait
             // Essayer controller->category (objet Category)
             if (isset($context->controller->category)) {
                 $controllerCategory = $context->controller->category;
-                if (is_object($controllerCategory)) {
+
+                if (\is_object($controllerCategory)) {
                     if (property_exists($controllerCategory, 'id') || isset($controllerCategory->id)) {
                         return (int) $controllerCategory->id;
                     }
                 }
-                if (is_array($controllerCategory) && isset($controllerCategory['id_category'])) {
+
+                if (\is_array($controllerCategory) && isset($controllerCategory['id_category'])) {
                     return (int) $controllerCategory['id_category'];
                 }
             }
-            
+
             // Essayer controller->id_category (propriété directe)
             if (isset($context->controller->id_category) && (int) $context->controller->id_category > 0) {
                 return (int) $context->controller->id_category;
@@ -562,5 +587,4 @@ trait EntityFieldHooksTrait
 
         return 0;
     }
-
 }

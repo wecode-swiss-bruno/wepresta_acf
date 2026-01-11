@@ -8,7 +8,6 @@ use Cart;
 use Context;
 use Customer;
 use Order;
-use Product;
 
 /**
  * Contexte d'évaluation des règles.
@@ -63,6 +62,7 @@ final class RuleContext
     public static function fromCart(Cart $cart): self
     {
         $customer = null;
+
         if ($cart->id_customer > 0) {
             $customer = new Customer((int) $cart->id_customer);
         }
@@ -81,11 +81,13 @@ final class RuleContext
     public static function fromOrder(Order $order): self
     {
         $cart = null;
+
         if ($order->id_cart > 0) {
             $cart = new Cart((int) $order->id_cart);
         }
 
         $customer = null;
+
         if ($order->id_customer > 0) {
             $customer = new Customer((int) $order->id_customer);
         }
@@ -199,7 +201,7 @@ final class RuleContext
      */
     public function has(string $key): bool
     {
-        return array_key_exists($key, $this->data);
+        return \array_key_exists($key, $this->data);
     }
 
     /**
@@ -226,4 +228,3 @@ final class RuleContext
         return $clone;
     }
 }
-

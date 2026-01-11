@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright since 2024 WeCode
+ * Copyright since 2024 WeCode.
  *
  * NOTICE OF LICENSE
  *
@@ -22,7 +22,7 @@ namespace WeprestaAcf\Application\FieldType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 
 /**
- * Textarea field type
+ * Textarea field type.
  *
  * Multi-line text input field.
  */
@@ -52,7 +52,7 @@ final class TextareaField extends AbstractFieldType
         $options['attr']['rows'] = (int) $rows;
 
         // Add maxlength if configured
-        if (!empty($validation['maxLength'])) {
+        if (! empty($validation['maxLength'])) {
             $options['attr']['maxlength'] = (int) $validation['maxLength'];
         }
 
@@ -66,7 +66,7 @@ final class TextareaField extends AbstractFieldType
         }
 
         // Handle arrays/objects (empty objects from JS become empty arrays)
-        if (is_array($value) || is_object($value)) {
+        if (\is_array($value) || \is_object($value)) {
             return null;
         }
 
@@ -87,6 +87,7 @@ final class TextareaField extends AbstractFieldType
 
         // Convert to string and handle empty values
         $stringValue = (string) $actualValue;
+
         if ($stringValue === '') {
             return '';
         }
@@ -151,9 +152,6 @@ final class TextareaField extends AbstractFieldType
         return 'notes';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function renderAdminInput(array $field, mixed $value, array $context = []): string
     {
         $config = $this->getFieldConfig($field);
@@ -167,16 +165,13 @@ final class TextareaField extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getJsTemplate(array $field): string
     {
         $slug = $field['slug'] ?? '';
         $config = $this->getFieldConfig($field);
         $placeholder = addslashes($config['placeholder'] ?? '');
 
-        return sprintf(
+        return \sprintf(
             '<textarea class="form-control form-control-sm acf-subfield-input" data-subfield="%s" rows="2" placeholder="%s">{value}</textarea>',
             $this->escapeAttr($slug),
             $placeholder

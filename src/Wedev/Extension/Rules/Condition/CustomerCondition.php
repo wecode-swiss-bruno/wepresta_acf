@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Condition;
 
+use Customer;
+use Db;
+use InvalidArgumentException;
+use Order;
 use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 
 /**
@@ -46,8 +50,8 @@ final class CustomerCondition extends AbstractCondition
         private readonly string $operator,
         private readonly mixed $value
     ) {
-        if (!in_array($this->field, self::SUPPORTED_FIELDS, true)) {
-            throw new \InvalidArgumentException(sprintf(
+        if (! \in_array($this->field, self::SUPPORTED_FIELDS, true)) {
+            throw new InvalidArgumentException(\sprintf(
                 'Unsupported customer field: "%s". Supported: %s',
                 $this->field,
                 implode(', ', self::SUPPORTED_FIELDS)
@@ -66,11 +70,11 @@ final class CustomerCondition extends AbstractCondition
     /**
      * Extrait la valeur du client pour le champ demandé.
      */
-    private function getCustomerValue(?\Customer $customer): mixed
+    private function getCustomerValue(?Customer $customer): mixed
     {
         return match ($this->field) {
             'is_logged' => $customer !== null && $customer->isLogged(),
-            'is_guest' => $customer === null || !$customer->isLogged(),
+            'is_guest' => $customer === null || ! $customer->isLogged(),
             'group' => $customer !== null ? (int) $customer->id_default_group : 0,
             'groups' => $customer !== null ? $customer->getGroups() : [],
             'orders_count' => $this->getOrdersCount($customer),
@@ -84,23 +88,23 @@ final class CustomerCondition extends AbstractCondition
         };
     }
 
-    private function getOrdersCount(?\Customer $customer): int
+    private function getOrdersCount(?Customer $customer): int
     {
-        if ($customer === null || !$customer->id) {
+        if ($customer === null || ! $customer->id) {
             return 0;
         }
 
-        return (int) \Order::getCustomerNbOrders($customer->id);
+        return (int) Order::getCustomerNbOrders($customer->id);
     }
 
-    private function getTotalSpent(?\Customer $customer): float
+    private function getTotalSpent(?Customer $customer): float
     {
-        if ($customer === null || !$customer->id) {
+        if ($customer === null || ! $customer->id) {
             return 0.0;
         }
 
-        $spent = \Customer::$definition['fields']['id_customer'] ?? null
-            ? \Db::getInstance()->getValue(sprintf(
+        $spent = Customer::$definition['fields']['id_customer'] ?? null
+            ? Db::getInstance()->getValue(\sprintf(
                 'SELECT SUM(o.total_paid_real) FROM %sorders o WHERE o.id_customer = %d AND o.valid = 1',
                 _DB_PREFIX_,
                 (int) $customer->id
@@ -110,18 +114,19 @@ final class CustomerCondition extends AbstractCondition
         return (float) $spent;
     }
 
-    private function isNewCustomer(?\Customer $customer): bool
+    private function isNewCustomer(?Customer $customer): bool
     {
         return $this->getDaysSinceRegistration($customer) <= 30;
     }
 
-    private function getDaysSinceRegistration(?\Customer $customer): int
+    private function getDaysSinceRegistration(?Customer $customer): int
     {
         if ($customer === null || empty($customer->date_add)) {
             return 999999;
         }
 
         $registrationDate = strtotime($customer->date_add);
+
         if ($registrationDate === false) {
             return 999999;
         }
@@ -129,13 +134,13 @@ final class CustomerCondition extends AbstractCondition
         return (int) ((time() - $registrationDate) / 86400);
     }
 
-    private function getDaysSinceLastOrder(?\Customer $customer): int
+    private function getDaysSinceLastOrder(?Customer $customer): int
     {
-        if ($customer === null || !$customer->id) {
+        if ($customer === null || ! $customer->id) {
             return 999999;
         }
 
-        $lastOrderDate = \Db::getInstance()->getValue(sprintf(
+        $lastOrderDate = Db::getInstance()->getValue(\sprintf(
             'SELECT MAX(o.date_add) FROM %sorders o WHERE o.id_customer = %d AND o.valid = 1',
             _DB_PREFIX_,
             (int) $customer->id
@@ -146,6 +151,7 @@ final class CustomerCondition extends AbstractCondition
         }
 
         $timestamp = strtotime($lastOrderDate);
+
         if ($timestamp === false) {
             return 999999;
         }
@@ -153,7 +159,7 @@ final class CustomerCondition extends AbstractCondition
         return (int) ((time() - $timestamp) / 86400);
     }
 
-    private function getEmailDomain(?\Customer $customer): string
+    private function getEmailDomain(?Customer $customer): string
     {
         if ($customer === null || empty($customer->email)) {
             return '';
@@ -164,4 +170,3 @@ final class CustomerCondition extends AbstractCondition
         return $parts[1] ?? '';
     }
 }
-

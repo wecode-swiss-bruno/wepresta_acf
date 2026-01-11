@@ -44,4 +44,3 @@ final class CategoryEntityFieldProvider implements EntityFieldProviderInterface
         return 'Category';
     }
 }
-

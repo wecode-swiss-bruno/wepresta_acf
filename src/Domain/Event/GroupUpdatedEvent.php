@@ -12,7 +12,7 @@ use WeprestaAcf\Wedev\Extension\Events\AbstractDomainEvent;
 final class GroupUpdatedEvent extends AbstractDomainEvent
 {
     /**
-     * @param int                  $groupId The group ID
+     * @param int $groupId The group ID
      * @param array<string, mixed> $changes Changed fields (key => new value)
      * @param array<string, mixed> $oldData Previous values of changed fields
      */
@@ -53,4 +53,3 @@ final class GroupUpdatedEvent extends AbstractDomainEvent
         return $this->oldData[$field] ?? null;
     }
 }
-

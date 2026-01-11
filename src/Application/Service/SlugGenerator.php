@@ -23,20 +23,28 @@ final class SlugGenerator
         $slug = preg_replace('/[^a-z0-9\-_\s]/u', '', $slug) ?? $slug;
         $slug = preg_replace('/[\s\-]+/', '_', $slug) ?? $slug;
         $slug = preg_replace('/^_+|_+$/', '', $slug) ?? $slug;
+
         return substr($slug, 0, 255) ?: 'field';
     }
 
     public function generateUnique(string $input, callable $existsChecker, ?int $excludeId = null): string
     {
         $baseSlug = $this->generate($input);
-        if (!$existsChecker($baseSlug, $excludeId)) { return $baseSlug; }
+
+        if (! $existsChecker($baseSlug, $excludeId)) {
+            return $baseSlug;
+        }
         $counter = 2;
+
         while ($counter < 100) {
             $testSlug = $baseSlug . '_' . $counter;
-            if (!$existsChecker($testSlug, $excludeId)) { return $testSlug; }
+
+            if (! $existsChecker($testSlug, $excludeId)) {
+                return $testSlug;
+            }
             ++$counter;
         }
+
         return $baseSlug . '_' . time();
     }
 }
-

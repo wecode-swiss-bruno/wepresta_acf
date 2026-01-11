@@ -24,15 +24,12 @@ declare(strict_types=1);
  *   - attrs (string): Attributs HTML additionnels (ex: 'data-action="submit"')
  * =============================================================================
  */
-
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
 /**
  * @param array<string, mixed> $params
- * @param Smarty_Internal_Template $template
- * @return string
  */
 function smarty_function_wedev_button(array $params, Smarty_Internal_Template $template): string
 {
@@ -53,7 +50,7 @@ function smarty_function_wedev_button(array $params, Smarty_Internal_Template $t
         'outline-warning', 'outline-info', 'outline-light', 'outline-dark',
     ];
 
-    if (!in_array($type, $validTypes, true)) {
+    if (! in_array($type, $validTypes, true)) {
         $type = 'primary';
     }
 
@@ -74,6 +71,7 @@ function smarty_function_wedev_button(array $params, Smarty_Internal_Template $t
 
     // Icône
     $iconHtml = '';
+
     if ($icon) {
         $iconSize = $size === 'sm' ? '16px' : ($size === 'lg' ? '22px' : '18px');
         $iconHtml = sprintf(
@@ -119,8 +117,3 @@ function smarty_function_wedev_button(array $params, Smarty_Internal_Template $t
         $labelHtml
     );
 }
-
-
-
-
-

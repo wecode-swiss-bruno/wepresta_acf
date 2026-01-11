@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - ConfigurationAdapter
+ * WEDEV Core - ConfigurationAdapter.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -36,7 +37,7 @@ class ConfigurationAdapter
     {
         $value = $this->get($key, $idLang);
 
-        return is_string($value) ? $value : '';
+        return \is_string($value) ? $value : '';
     }
 
     /**
@@ -84,7 +85,7 @@ class ConfigurationAdapter
 
         $decoded = json_decode($value, true);
 
-        return is_array($decoded) ? $decoded : null;
+        return \is_array($decoded) ? $decoded : null;
     }
 
     /**
@@ -141,11 +142,13 @@ class ConfigurationAdapter
      * Récupère plusieurs configurations d'un coup.
      *
      * @param string[] $keys
+     *
      * @return array<string, mixed>
      */
     public function getMultiple(array $keys): array
     {
         $result = [];
+
         foreach ($keys as $key) {
             $result[$key] = $this->get($key);
         }
@@ -161,8 +164,9 @@ class ConfigurationAdapter
     public function setMultiple(array $values): bool
     {
         $success = true;
+
         foreach ($values as $key => $value) {
-            if (!$this->set($key, $value)) {
+            if (! $this->set($key, $value)) {
                 $success = false;
             }
         }
@@ -170,4 +174,3 @@ class ConfigurationAdapter
         return $success;
     }
 }
-

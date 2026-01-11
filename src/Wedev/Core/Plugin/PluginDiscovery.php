@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Plugin;
 
+use ReflectionClass;
 use WeprestaAcf\Wedev\Core\Contract\PluginInterface;
 
 /**
@@ -22,9 +23,7 @@ use WeprestaAcf\Wedev\Core\Contract\PluginInterface;
  */
 final class PluginDiscovery
 {
-    /**
-     * Default discovery paths relative to PrestaShop root.
-     */
+    /** Default discovery paths relative to PrestaShop root. */
     private const DEFAULT_PATHS = [
         'modules/[name]/src/Plugin',
         'themes/[name]/modules/[name]/Plugin',
@@ -37,9 +36,7 @@ final class PluginDiscovery
      */
     private array $customPaths = [];
 
-    /**
-     * PrestaShop root directory.
-     */
+    /** PrestaShop root directory. */
     private string $rootDir;
 
     /**
@@ -139,7 +136,7 @@ final class PluginDiscovery
      */
     private function scanDirectory(string $directory): void
     {
-        if (!is_dir($directory)) {
+        if (! is_dir($directory)) {
             return;
         }
 
@@ -176,18 +173,18 @@ final class PluginDiscovery
         $fullClassName = $namespace . '\\' . $className;
 
         // Check if class exists and implements PluginInterface
-        if (!class_exists($fullClassName)) {
+        if (! class_exists($fullClassName)) {
             // Try to autoload
             require_once $file;
         }
 
-        if (!class_exists($fullClassName)) {
+        if (! class_exists($fullClassName)) {
             return;
         }
 
-        $reflection = new \ReflectionClass($fullClassName);
+        $reflection = new ReflectionClass($fullClassName);
 
-        if (!$reflection->implementsInterface(PluginInterface::class)) {
+        if (! $reflection->implementsInterface(PluginInterface::class)) {
             return;
         }
 
@@ -243,15 +240,14 @@ final class PluginDiscovery
             if (file_exists($dir . '/config/config.inc.php')) {
                 return $dir;
             }
-            $dir = dirname($dir);
+            $dir = \dirname($dir);
         }
 
         // Fallback to _PS_ROOT_DIR_ constant
-        if (defined('_PS_ROOT_DIR_')) {
+        if (\defined('_PS_ROOT_DIR_')) {
             return _PS_ROOT_DIR_;
         }
 
         return getcwd() ?: '/';
     }
 }
-

@@ -28,19 +28,13 @@ namespace WeprestaAcf\Wedev\Extension\Http;
  */
 final class RetryStrategy
 {
-    /**
-     * Délai de base en millisecondes.
-     */
+    /** Délai de base en millisecondes. */
     private const BASE_DELAY_MS = 1000;
 
-    /**
-     * Délai maximum en millisecondes (30 secondes).
-     */
+    /** Délai maximum en millisecondes (30 secondes). */
     private const MAX_DELAY_MS = 30000;
 
-    /**
-     * Codes HTTP qui déclenchent un retry.
-     */
+    /** Codes HTTP qui déclenchent un retry. */
     private const RETRIABLE_STATUS_CODES = [
         408, // Request Timeout
         429, // Too Many Requests
@@ -73,7 +67,7 @@ final class RetryStrategy
      */
     public function getDelay(int $attempt): int
     {
-        if (!$this->exponentialBackoff) {
+        if (! $this->exponentialBackoff) {
             return self::BASE_DELAY_MS + $this->getJitter();
         }
 
@@ -92,7 +86,7 @@ final class RetryStrategy
      */
     public function shouldRetry(int $statusCode): bool
     {
-        return in_array($statusCode, self::RETRIABLE_STATUS_CODES, true);
+        return \in_array($statusCode, self::RETRIABLE_STATUS_CODES, true);
     }
 
     /**
@@ -105,4 +99,3 @@ final class RetryStrategy
         return random_int(-$jitterRange, $jitterRange);
     }
 }
-

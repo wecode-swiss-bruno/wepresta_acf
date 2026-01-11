@@ -31,7 +31,7 @@ final class DependencyException extends ModuleException
     public static function extensionNotFound(string $extension): self
     {
         return new self(
-            sprintf(
+            \sprintf(
                 'Required extension "%s" not found. Install it with: wedev ps module add-ext %s',
                 $extension,
                 strtolower($extension)
@@ -46,7 +46,7 @@ final class DependencyException extends ModuleException
     public static function serviceNotFound(string $service): self
     {
         return new self(
-            sprintf('Service "%s" not found in container.', $service),
+            \sprintf('Service "%s" not found in container.', $service),
             self::CODE_DEPENDENCY
         );
     }
@@ -58,12 +58,12 @@ final class DependencyException extends ModuleException
      */
     public static function circularDependency(array|string $chain): self
     {
-        $message = is_array($chain)
+        $message = \is_array($chain)
             ? implode(' -> ', $chain)
             : $chain;
 
         return new self(
-            sprintf('Circular dependency detected: %s', $message),
+            \sprintf('Circular dependency detected: %s', $message),
             self::CODE_DEPENDENCY
         );
     }
@@ -77,7 +77,7 @@ final class DependencyException extends ModuleException
         string $installed
     ): self {
         return new self(
-            sprintf(
+            \sprintf(
                 'Extension "%s" version %s is incompatible. Required: %s',
                 $extension,
                 $installed,
@@ -93,7 +93,7 @@ final class DependencyException extends ModuleException
     public static function missingExtensionDependency(string $extension, string $requires): self
     {
         return new self(
-            sprintf(
+            \sprintf(
                 'Extension "%s" requires extension "%s" which is not installed.',
                 $extension,
                 $requires
@@ -108,7 +108,7 @@ final class DependencyException extends ModuleException
     public static function pluginNotFound(string $plugin): self
     {
         return new self(
-            sprintf('Plugin "%s" not found.', $plugin),
+            \sprintf('Plugin "%s" not found.', $plugin),
             self::CODE_DEPENDENCY
         );
     }
@@ -119,7 +119,7 @@ final class DependencyException extends ModuleException
     public static function missingPluginDependency(string $plugin, string $requires): self
     {
         return new self(
-            sprintf(
+            \sprintf(
                 'Plugin "%s" requires "%s" which is not available.',
                 $plugin,
                 $requires
@@ -128,4 +128,3 @@ final class DependencyException extends ModuleException
         );
     }
 }
-

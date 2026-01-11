@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - AbstractRepository
+ * WEDEV Core - AbstractRepository.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -21,33 +22,13 @@ use DbQuery;
 abstract class AbstractRepository
 {
     protected Db $db;
+
     protected string $dbPrefix;
 
     public function __construct(?Db $db = null, ?string $dbPrefix = null)
     {
         $this->db = $db ?? Db::getInstance();
         $this->dbPrefix = $dbPrefix ?? _DB_PREFIX_;
-    }
-
-    /**
-     * Nom de la table (sans préfixe).
-     */
-    abstract protected function getTableName(): string;
-
-    /**
-     * Nom de la table avec préfixe.
-     */
-    protected function getTable(): string
-    {
-        return $this->dbPrefix . $this->getTableName();
-    }
-
-    /**
-     * Nom de la clé primaire.
-     */
-    protected function getPrimaryKey(): string
-    {
-        return 'id_' . $this->getTableName();
     }
 
     /**
@@ -104,6 +85,7 @@ abstract class AbstractRepository
      * Trouve par critères.
      *
      * @param array<string, mixed> $criteria
+     *
      * @return array[]
      */
     public function findBy(array $criteria, ?string $orderBy = null, ?int $limit = null): array
@@ -114,9 +96,9 @@ abstract class AbstractRepository
         foreach ($criteria as $field => $value) {
             if ($value === null) {
                 $query->where(pSQL($field) . ' IS NULL');
-            } elseif (is_bool($value)) {
+            } elseif (\is_bool($value)) {
                 $query->where(pSQL($field) . ' = ' . ($value ? '1' : '0'));
-            } elseif (is_int($value)) {
+            } elseif (\is_int($value)) {
                 $query->where(pSQL($field) . ' = ' . $value);
             } else {
                 $query->where(pSQL($field) . " = '" . pSQL((string) $value) . "'");
@@ -155,7 +137,7 @@ abstract class AbstractRepository
 
         if ($criteria !== null) {
             foreach ($criteria as $field => $value) {
-                if (is_int($value)) {
+                if (\is_int($value)) {
                     $query->where(pSQL($field) . ' = ' . $value);
                 } else {
                     $query->where(pSQL($field) . " = '" . pSQL((string) $value) . "'");
@@ -173,8 +155,8 @@ abstract class AbstractRepository
      */
     public function insert(array $data): int
     {
-        $data['date_add'] = $data['date_add'] ?? date('Y-m-d H:i:s');
-        $data['date_upd'] = $data['date_upd'] ?? date('Y-m-d H:i:s');
+        $data['date_add'] ??= date('Y-m-d H:i:s');
+        $data['date_upd'] ??= date('Y-m-d H:i:s');
 
         $this->db->insert($this->getTableName(), $this->escapeData($data));
 
@@ -214,8 +196,9 @@ abstract class AbstractRepository
     public function deleteBy(array $criteria): int
     {
         $where = [];
+
         foreach ($criteria as $field => $value) {
-            if (is_int($value)) {
+            if (\is_int($value)) {
                 $where[] = pSQL($field) . ' = ' . $value;
             } else {
                 $where[] = pSQL($field) . " = '" . pSQL((string) $value) . "'";
@@ -253,55 +236,14 @@ abstract class AbstractRepository
     public function toggleActive(int $id): bool
     {
         $current = $this->findById($id);
+
         if ($current === null) {
             return false;
         }
 
-        $newStatus = !((bool) ($current['active'] ?? false));
+        $newStatus = ! ((bool) ($current['active'] ?? false));
 
         return $this->update($id, ['active' => $newStatus ? 1 : 0]);
-    }
-
-    /**
-     * Échappe les données pour l'insertion.
-     *
-     * @return array<string, string|int|float|null>
-     */
-    protected function escapeData(array $data): array
-    {
-        $escaped = [];
-
-        foreach ($data as $key => $value) {
-            if ($value === null) {
-                $escaped[pSQL($key)] = null;
-            } elseif (is_bool($value)) {
-                $escaped[pSQL($key)] = $value ? 1 : 0;
-            } elseif (is_int($value) || is_float($value)) {
-                $escaped[pSQL($key)] = $value;
-            } else {
-                $escaped[pSQL($key)] = pSQL((string) $value, true);
-            }
-        }
-
-        return $escaped;
-    }
-
-    /**
-     * Exécute une requête brute.
-     *
-     * @return array[]|bool
-     */
-    protected function query(string $sql): array|bool
-    {
-        return $this->db->executeS($sql) ?: [];
-    }
-
-    /**
-     * Exécute une commande brute.
-     */
-    protected function execute(string $sql): bool
-    {
-        return $this->db->execute($sql);
     }
 
     // =========================================================================
@@ -413,11 +355,11 @@ abstract class AbstractRepository
 
         $results = $this->db->executeS($query);
 
-        if (!$results) {
+        if (! $results) {
             return [];
         }
 
-        return array_map(fn($row) => (int) $row[$foreignKey], $results);
+        return array_map(fn ($row) => (int) $row[$foreignKey], $results);
     }
 
     /**
@@ -434,9 +376,71 @@ abstract class AbstractRepository
         $this->detachAll($pivotTable, $entityId);
 
         // Ajouter les nouvelles
-        if (!empty($foreignIds)) {
+        if (! empty($foreignIds)) {
             $this->attachMany($pivotTable, $foreignKey, $entityId, $foreignIds);
         }
     }
-}
 
+    /**
+     * Nom de la table (sans préfixe).
+     */
+    abstract protected function getTableName(): string;
+
+    /**
+     * Nom de la table avec préfixe.
+     */
+    protected function getTable(): string
+    {
+        return $this->dbPrefix . $this->getTableName();
+    }
+
+    /**
+     * Nom de la clé primaire.
+     */
+    protected function getPrimaryKey(): string
+    {
+        return 'id_' . $this->getTableName();
+    }
+
+    /**
+     * Échappe les données pour l'insertion.
+     *
+     * @return array<string, string|int|float|null>
+     */
+    protected function escapeData(array $data): array
+    {
+        $escaped = [];
+
+        foreach ($data as $key => $value) {
+            if ($value === null) {
+                $escaped[pSQL($key)] = null;
+            } elseif (\is_bool($value)) {
+                $escaped[pSQL($key)] = $value ? 1 : 0;
+            } elseif (\is_int($value) || \is_float($value)) {
+                $escaped[pSQL($key)] = $value;
+            } else {
+                $escaped[pSQL($key)] = pSQL((string) $value, true);
+            }
+        }
+
+        return $escaped;
+    }
+
+    /**
+     * Exécute une requête brute.
+     *
+     * @return array[]|bool
+     */
+    protected function query(string $sql): array|bool
+    {
+        return $this->db->executeS($sql) ?: [];
+    }
+
+    /**
+     * Exécute une commande brute.
+     */
+    protected function execute(string $sql): bool
+    {
+        return $this->db->execute($sql);
+    }
+}

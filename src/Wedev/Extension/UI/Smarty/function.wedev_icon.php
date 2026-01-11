@@ -19,15 +19,12 @@ declare(strict_types=1);
  *   - style (string): Styles CSS inline additionnels
  * =============================================================================
  */
-
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
 /**
  * @param array<string, mixed> $params
- * @param Smarty_Internal_Template $template
- * @return string
  */
 function smarty_function_wedev_icon(array $params, Smarty_Internal_Template $template): string
 {
@@ -51,12 +48,14 @@ function smarty_function_wedev_icon(array $params, Smarty_Internal_Template $tem
 
     // Construction du style
     $styleAttr = "font-size: {$fontSize}; vertical-align: middle;";
+
     if ($style) {
         $styleAttr .= ' ' . htmlspecialchars($style, ENT_QUOTES, 'UTF-8');
     }
 
     // Construction de la classe
     $classAttr = 'material-icons';
+
     if ($class) {
         $classAttr .= ' ' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8');
     }
@@ -68,8 +67,3 @@ function smarty_function_wedev_icon(array $params, Smarty_Internal_Template $tem
         htmlspecialchars($name, ENT_QUOTES, 'UTF-8')
     );
 }
-
-
-
-
-

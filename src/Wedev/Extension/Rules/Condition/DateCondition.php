@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Rules\Condition;
 
+use DateTimeImmutable;
+use DateTimeInterface;
+use InvalidArgumentException;
 use WeprestaAcf\Wedev\Extension\Rules\RuleContext;
 
 /**
@@ -39,16 +42,16 @@ final class DateCondition extends AbstractCondition
         'is_business_hours', // true/false (9h-18h, lun-ven)
     ];
 
-    private ?\DateTimeImmutable $referenceDate;
+    private ?DateTimeImmutable $referenceDate;
 
     public function __construct(
         private readonly string $field,
         private readonly string $operator,
         private readonly mixed $value,
-        ?\DateTimeInterface $referenceDate = null
+        ?DateTimeInterface $referenceDate = null
     ) {
-        if (!in_array($this->field, self::SUPPORTED_FIELDS, true)) {
-            throw new \InvalidArgumentException(sprintf(
+        if (! \in_array($this->field, self::SUPPORTED_FIELDS, true)) {
+            throw new InvalidArgumentException(\sprintf(
                 'Unsupported date field: "%s". Supported: %s',
                 $this->field,
                 implode(', ', self::SUPPORTED_FIELDS)
@@ -56,13 +59,13 @@ final class DateCondition extends AbstractCondition
         }
 
         $this->referenceDate = $referenceDate !== null
-            ? \DateTimeImmutable::createFromInterface($referenceDate)
+            ? DateTimeImmutable::createFromInterface($referenceDate)
             : null;
     }
 
     public function evaluate(RuleContext $context): bool
     {
-        $now = $this->referenceDate ?? new \DateTimeImmutable();
+        $now = $this->referenceDate ?? new DateTimeImmutable();
         $dateValue = $this->getDateValue($now);
 
         return $this->compare($dateValue, $this->operator, $this->value);
@@ -71,7 +74,7 @@ final class DateCondition extends AbstractCondition
     /**
      * Extrait la valeur de date pour le champ demandé.
      */
-    private function getDateValue(\DateTimeImmutable $now): mixed
+    private function getDateValue(DateTimeImmutable $now): mixed
     {
         return match ($this->field) {
             'day_of_week' => (int) $now->format('w'),
@@ -84,7 +87,7 @@ final class DateCondition extends AbstractCondition
             'datetime' => $now->format('Y-m-d H:i:s'),
             'date_range' => $this->isInDateRange($now),
             'time_range' => $this->isInTimeRange($now),
-            'is_weekend' => in_array((int) $now->format('w'), [0, 6], true),
+            'is_weekend' => \in_array((int) $now->format('w'), [0, 6], true),
             'is_business_hours' => $this->isBusinessHours($now),
             default => null,
         };
@@ -93,16 +96,16 @@ final class DateCondition extends AbstractCondition
     /**
      * Vérifie si la date est dans une plage.
      */
-    private function isInDateRange(\DateTimeImmutable $now): bool
+    private function isInDateRange(DateTimeImmutable $now): bool
     {
-        if (!is_array($this->value) || count($this->value) !== 2) {
+        if (! \is_array($this->value) || \count($this->value) !== 2) {
             return false;
         }
 
         [$start, $end] = $this->value;
 
-        $startDate = \DateTimeImmutable::createFromFormat('Y-m-d', $start);
-        $endDate = \DateTimeImmutable::createFromFormat('Y-m-d', $end);
+        $startDate = DateTimeImmutable::createFromFormat('Y-m-d', $start);
+        $endDate = DateTimeImmutable::createFromFormat('Y-m-d', $end);
 
         if ($startDate === false || $endDate === false) {
             return false;
@@ -117,9 +120,9 @@ final class DateCondition extends AbstractCondition
     /**
      * Vérifie si l'heure est dans une plage.
      */
-    private function isInTimeRange(\DateTimeImmutable $now): bool
+    private function isInTimeRange(DateTimeImmutable $now): bool
     {
-        if (!is_array($this->value) || count($this->value) !== 2) {
+        if (! \is_array($this->value) || \count($this->value) !== 2) {
             return false;
         }
 
@@ -132,7 +135,7 @@ final class DateCondition extends AbstractCondition
     /**
      * Vérifie si c'est les heures de bureau (9h-18h, lun-ven).
      */
-    private function isBusinessHours(\DateTimeImmutable $now): bool
+    private function isBusinessHours(DateTimeImmutable $now): bool
     {
         $dayOfWeek = (int) $now->format('w');
         $hour = (int) $now->format('G');
@@ -146,4 +149,3 @@ final class DateCondition extends AbstractCondition
         return $hour >= 9 && $hour < 18;
     }
 }
-

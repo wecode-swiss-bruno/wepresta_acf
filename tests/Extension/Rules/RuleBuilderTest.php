@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Tests\Extension\Rules;
 
+use PHPUnit\Framework\TestCase;
 use WeprestaAcf\Extension\Rules\Action\CallableAction;
 use WeprestaAcf\Extension\Rules\Condition\CartCondition;
 use WeprestaAcf\Extension\Rules\Rule;
 use WeprestaAcf\Extension\Rules\RuleBuilder;
 use WeprestaAcf\Extension\Rules\RuleContext;
-use PHPUnit\Framework\TestCase;
 
 class RuleBuilderTest extends TestCase
 {
@@ -37,7 +37,7 @@ class RuleBuilderTest extends TestCase
 
         $rule = RuleBuilder::create('action_rule')
             ->when(new CartCondition('total', '>=', 0))
-            ->then(new CallableAction(function () use (&$executed) {
+            ->then(new CallableAction(function () use (&$executed): void {
                 $executed = true;
             }))
             ->build();
@@ -87,4 +87,3 @@ class RuleBuilderTest extends TestCase
         $this->assertFalse($rule->isEnabled());
     }
 }
-

@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Extension - EntityPicker
+ * WEDEV Extension - EntityPicker.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -12,7 +13,9 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\EntityPicker\Provider;
 
+use Context;
 use DbQuery;
+use Exception;
 use Link;
 
 /**
@@ -32,12 +35,9 @@ final class ProductProvider extends AbstractEntityProvider
         return 'Produits';
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function search(string $term, int $limit = 20): array
     {
-        if (strlen($term) < 2) {
+        if (\strlen($term) < 2) {
             return [];
         }
 
@@ -61,16 +61,13 @@ final class ProductProvider extends AbstractEntityProvider
 
         $rows = $this->db->executeS($query);
 
-        if (!$rows) {
+        if (! $rows) {
             return [];
         }
 
         return $this->formatRows($rows);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getByIds(array $ids): array
     {
         if (empty($ids)) {
@@ -90,7 +87,7 @@ final class ProductProvider extends AbstractEntityProvider
 
         $rows = $this->db->executeS($query);
 
-        if (!$rows) {
+        if (! $rows) {
             return [];
         }
 
@@ -132,14 +129,13 @@ final class ProductProvider extends AbstractEntityProvider
         }
 
         if ($this->link === null) {
-            $this->link = \Context::getContext()->link ?? new Link();
+            $this->link = Context::getContext()->link ?? new Link();
         }
 
         try {
             return $this->link->getImageLink('product', (string) $imageId, 'small_default');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->getDefaultImageUrl();
         }
     }
 }
-

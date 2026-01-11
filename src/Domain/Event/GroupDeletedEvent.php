@@ -23,4 +23,3 @@ final class GroupDeletedEvent extends AbstractDomainEvent
         return 'acf.group.deleted';
     }
 }
-

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Import\Parser;
 
+use RuntimeException;
+
 /**
  * Parser CSV.
  *
@@ -31,7 +33,7 @@ final class CsvParser implements ParserInterface
         $handle = fopen($filePath, 'r');
 
         if ($handle === false) {
-            throw new \RuntimeException('Cannot open file: ' . $filePath);
+            throw new RuntimeException('Cannot open file: ' . $filePath);
         }
 
         $rows = [];
@@ -40,7 +42,7 @@ final class CsvParser implements ParserInterface
 
         try {
             while (($row = fgetcsv($handle, 0, $this->delimiter, $this->enclosure, $this->escape)) !== false) {
-                $lineNumber++;
+                ++$lineNumber;
 
                 // Ignorer les lignes vides
                 if ($this->skipEmptyLines && $this->isEmptyRow($row)) {
@@ -57,12 +59,12 @@ final class CsvParser implements ParserInterface
                 }
 
                 // Ignorer si pas assez de colonnes
-                if (count($row) < count($headers)) {
-                    $row = array_pad($row, count($headers), '');
+                if (\count($row) < \count($headers)) {
+                    $row = array_pad($row, \count($headers), '');
                 }
 
                 // Combiner avec les headers
-                $rows[] = array_combine($headers, array_slice($row, 0, count($headers)));
+                $rows[] = array_combine($headers, \array_slice($row, 0, \count($headers)));
             }
         } finally {
             fclose($handle);
@@ -76,7 +78,7 @@ final class CsvParser implements ParserInterface
         $handle = fopen($filePath, 'w');
 
         if ($handle === false) {
-            throw new \RuntimeException('Cannot create file: ' . $filePath);
+            throw new RuntimeException('Cannot create file: ' . $filePath);
         }
 
         try {
@@ -89,6 +91,7 @@ final class CsvParser implements ParserInterface
             // Data
             foreach ($data as $row) {
                 $line = [];
+
                 foreach ($columns as $column) {
                     $line[] = $row[$column] ?? '';
                 }
@@ -125,4 +128,3 @@ final class CsvParser implements ParserInterface
         return true;
     }
 }
-

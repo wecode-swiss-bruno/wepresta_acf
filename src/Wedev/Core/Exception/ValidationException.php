@@ -1,6 +1,7 @@
 <?php
+
 /**
- * WEDEV Core - ValidationException
+ * WEDEV Core - ValidationException.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI
  * Mise à jour via: wedev ps module --update-core
@@ -51,7 +52,7 @@ class ValidationException extends ModuleException
      */
     public function hasFieldError(string $field): bool
     {
-        return isset($this->errors[$field]) && count($this->errors[$field]) > 0;
+        return isset($this->errors[$field]) && \count($this->errors[$field]) > 0;
     }
 
     /**
@@ -70,4 +71,3 @@ class ValidationException extends ModuleException
         return new self($errors);
     }
 }
-

@@ -1,6 +1,7 @@
 <?php
+
 /**
- * SyncStatusResolver - Resolve sync status per group
+ * SyncStatusResolver - Resolve sync status per group.
  *
  * Lightweight class to check individual group sync status.
  */
@@ -15,10 +16,15 @@ namespace WeprestaAcf\Application\Service;
 final class SyncStatusResolver
 {
     public const STATUS_SYNCED = 'synced';
+
     public const STATUS_MODIFIED = 'modified';
+
     public const STATUS_NEED_PUSH = 'need_push';
+
     public const STATUS_NEED_PULL = 'need_pull';
+
     public const STATUS_THEME_ONLY = 'theme_only';
+
     public const STATUS_CONFLICT = 'conflict';
 
     public function __construct(
@@ -31,7 +37,7 @@ final class SyncStatusResolver
      */
     public function resolveForGroup(int $groupId): array
     {
-        if (!$this->syncService->isEnabled()) {
+        if (! $this->syncService->isEnabled()) {
             return [
                 'status' => 'disabled',
                 'label' => 'Sync disabled',
@@ -42,6 +48,7 @@ final class SyncStatusResolver
         }
 
         $status = $this->syncService->getGroupSyncStatus($groupId);
+
         if ($status === null) {
             return [
                 'status' => 'error',
@@ -60,7 +67,7 @@ final class SyncStatusResolver
      */
     public function resolveForThemeGroup(string $slug): array
     {
-        if (!$this->syncService->isEnabled()) {
+        if (! $this->syncService->isEnabled()) {
             return [
                 'status' => 'disabled',
                 'label' => 'Sync disabled',
@@ -71,6 +78,21 @@ final class SyncStatusResolver
         }
 
         return $this->mapStatusToDisplay(self::STATUS_THEME_ONLY, 'theme');
+    }
+
+    /**
+     * Get all available statuses for reference.
+     */
+    public static function getStatuses(): array
+    {
+        return [
+            self::STATUS_SYNCED => 'Group is in sync with theme JSON',
+            self::STATUS_MODIFIED => 'Group differs from theme JSON',
+            self::STATUS_NEED_PUSH => 'Group exists in DB but not in theme',
+            self::STATUS_NEED_PULL => 'Group exists in theme but not in DB',
+            self::STATUS_THEME_ONLY => 'Group only exists in theme',
+            self::STATUS_CONFLICT => 'Both DB and theme have different changes',
+        ];
     }
 
     /**
@@ -123,20 +145,4 @@ final class SyncStatusResolver
             ],
         };
     }
-
-    /**
-     * Get all available statuses for reference.
-     */
-    public static function getStatuses(): array
-    {
-        return [
-            self::STATUS_SYNCED => 'Group is in sync with theme JSON',
-            self::STATUS_MODIFIED => 'Group differs from theme JSON',
-            self::STATUS_NEED_PUSH => 'Group exists in DB but not in theme',
-            self::STATUS_NEED_PULL => 'Group exists in theme but not in DB',
-            self::STATUS_THEME_ONLY => 'Group only exists in theme',
-            self::STATUS_CONFLICT => 'Both DB and theme have different changes',
-        ];
-    }
 }
-
