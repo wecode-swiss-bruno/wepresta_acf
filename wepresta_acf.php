@@ -35,7 +35,7 @@ class WeprestaAcf extends Module
 {
     use EntityFieldHooksTrait;
 
-    public const VERSION = '1.2.2';
+    public const VERSION = '1.0.0';
 
     public const DEFAULT_CONFIG = [
         'WEPRESTA_ACF_MAX_FILE_SIZE' => 10485760, // 10MB
@@ -59,8 +59,8 @@ class WeprestaAcf extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->trans('WePresta ACF', [], 'Modules.Weprestaacf.Admin');
-        $this->description = $this->trans('Advanced Custom Fields for PrestaShop - ACF-style field builder', [], 'Modules.Weprestaacf.Admin');
+        $this->displayName = $this->trans('ACF (Advanced Custom Fields) for PrestaShop', [], 'Modules.Weprestaacf.Admin');
+        $this->description = $this->trans('Advanced Custom Fields for PrestaShop: create custom fields and field groups with an ACF-style builder, display rules and a clean back-office UI.', [], 'Modules.Weprestaacf.Admin');        
         $this->confirmUninstall = $this->trans('Delete all custom fields and values?', [], 'Modules.Weprestaacf.Admin');
 
         // Initialize service container
