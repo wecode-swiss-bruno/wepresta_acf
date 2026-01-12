@@ -123,6 +123,8 @@
     {* Upload dropzone *}
     {if $allowUpload}
     <div class="acf-input-panel acf-panel-upload{if $defaultMethod === 'upload' || $methodCount === 1} active{/if}" data-field="{$field.slug|escape:'htmlall':'UTF-8'}">
+        {* Hidden input to store uploaded file data *}
+        <input type="hidden" class="acf-file-value" id="{$inputId|escape:'htmlall':'UTF-8'}_value" name="{$inputName|escape:'htmlall':'UTF-8'}_value" value='{if $value && is_array($value) && isset($value.url)}{$value|json_encode|escape:'html':'UTF-8'}{else}null{/if}'>
         <div class="acf-dropzone{if $value && is_array($value) && isset($value.url)} acf-has-file{/if}">
             <input type="file" class="acf-file-input" id="{$inputId|escape:'htmlall':'UTF-8'}" name="{$inputName|escape:'htmlall':'UTF-8'}">
             <div class="acf-dropzone-content">
@@ -131,6 +133,59 @@
                 <span class="acf-dropzone-hint">{l s='Replace existing file' mod='wepresta_acf'}</span>
             </div>
         </div>
+        {* Show allowed file types info *}
+        {if isset($fieldConfig.allowedMimes) && $fieldConfig.allowedMimes|@count > 0}
+            {assign var="allowedTypesText" value=""}
+            {assign var="firstType" value=true}
+            {foreach $fieldConfig.allowedMimes as $mime}
+                {if $mime === 'application/pdf'}
+                    {if !$firstType}{assign var="allowedTypesText" value=$allowedTypesText|cat:', '}{/if}
+                    {assign var="allowedTypesText" value=$allowedTypesText|cat:'PDF'}
+                    {assign var="firstType" value=false}
+                {/if}
+                {if $mime === 'application/msword'}
+                    {if !$firstType}{assign var="allowedTypesText" value=$allowedTypesText|cat:', '}{/if}
+                    {assign var="allowedTypesText" value=$allowedTypesText|cat:'Word (.doc)'}
+                    {assign var="firstType" value=false}
+                {/if}
+                {if $mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+                    {if !$firstType}{assign var="allowedTypesText" value=$allowedTypesText|cat:', '}{/if}
+                    {assign var="allowedTypesText" value=$allowedTypesText|cat:'Word (.docx)'}
+                    {assign var="firstType" value=false}
+                {/if}
+                {if $mime === 'application/vnd.ms-excel'}
+                    {if !$firstType}{assign var="allowedTypesText" value=$allowedTypesText|cat:', '}{/if}
+                    {assign var="allowedTypesText" value=$allowedTypesText|cat:'Excel (.xls)'}
+                    {assign var="firstType" value=false}
+                {/if}
+                {if $mime === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
+                    {if !$firstType}{assign var="allowedTypesText" value=$allowedTypesText|cat:', '}{/if}
+                    {assign var="allowedTypesText" value=$allowedTypesText|cat:'Excel (.xlsx)'}
+                    {assign var="firstType" value=false}
+                {/if}
+                {if $mime === 'text/plain'}
+                    {if !$firstType}{assign var="allowedTypesText" value=$allowedTypesText|cat:', '}{/if}
+                    {assign var="allowedTypesText" value=$allowedTypesText|cat:'Text (.txt)'}
+                    {assign var="firstType" value=false}
+                {/if}
+                {if $mime === 'text/csv'}
+                    {if !$firstType}{assign var="allowedTypesText" value=$allowedTypesText|cat:', '}{/if}
+                    {assign var="allowedTypesText" value=$allowedTypesText|cat:'CSV'}
+                    {assign var="firstType" value=false}
+                {/if}
+                {if $mime === 'application/zip' || $mime === 'application/x-zip-compressed'}
+                    {if !$firstType}{assign var="allowedTypesText" value=$allowedTypesText|cat:', '}{/if}
+                    {assign var="allowedTypesText" value=$allowedTypesText|cat:'ZIP'}
+                    {assign var="firstType" value=false}
+                {/if}
+            {/foreach}
+            {if $allowedTypesText}
+                <small class="form-text text-muted acf-allowed-types-info">
+                    <span class="material-icons" style="font-size:14px;vertical-align:middle;">info</span>
+                    {l s='Allowed file types:' mod='wepresta_acf'} {$allowedTypesText}
+                </small>
+            {/if}
+        {/if}
     </div>
     {/if}
 

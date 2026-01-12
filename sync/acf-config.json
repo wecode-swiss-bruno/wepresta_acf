@@ -1,13 +1,13 @@
 {
     "version": "1.0",
-    "exported_at": "2026-01-10T15:32:29+01:00",
+    "exported_at": "2026-01-11T21:36:04+01:00",
     "module_version": "1.2.1",
     "prestashop_version": "9.0.2",
     "groups": [
         {
-            "uuid": "5d7c8409-f608-4d8b-b6f3-e205aa6a93e2",
-            "title": "test",
-            "slug": "test",
+            "uuid": "a9d30f6e-0816-472a-a1fa-4a6e6a341220",
+            "title": "Vidéo de présentation",
+            "slug": "video_de_presentation",
             "description": "",
             "location_rules": [
                 {
@@ -31,26 +31,77 @@
             ],
             "fields": [
                 {
-                    "uuid": "377b098d-0f9f-43f7-9e9f-ae15d50deff6",
+                    "uuid": "f075121d-784e-4c7c-9c19-8d13b84be8dc",
                     "id_parent": null,
-                    "type": "text",
-                    "title": "Text Fields",
-                    "slug": "text_fields",
+                    "type": "richtext",
+                    "title": "Rich Text Editor",
+                    "slug": "rich_text_editor",
                     "instructions": "",
                     "position": 0,
                     "required": false,
-                    "translatable": false,
+                    "translatable": true,
                     "active": true,
                     "config": [],
                     "validation": [],
                     "conditions": [],
-                    "wrapper": [],
-                    "fo_options": []
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "uuid": "18bbb593-4ace-4358-af49-201d64cf8b1c",
+                    "id_parent": null,
+                    "type": "video",
+                    "title": "Video Field",
+                    "slug": "video_field",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "allowUrl": false,
+                        "allowVimeo": false,
+                        "allowUpload": false,
+                        "allowYouTube": true
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": false
+                    }
                 }
             ],
-            "field_values": []
+            "field_values": [
+                {
+                    "field_slug": "video_field",
+                    "entity_type": "product",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": null,
+                    "value_index": ""
+                },
+                {
+                    "field_slug": "rich_text_editor",
+                    "entity_type": "product",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "Comment utiliser ce produit ?",
+                    "value_index": "Comment utiliser ce produit ?"
+                }
+            ]
         }
     ],
-    "timestamp": 1768055549,
-    "updated_at": "2026-01-10T15:32:29+01:00"
+    "timestamp": 1768163764,
+    "updated_at": "2026-01-11T21:36:04+01:00"
 }

@@ -1,0 +1,23 @@
+{#
+ # ACF File Field Template (Twig)
+ #}
+
+{% if value %}
+    {% if value is iterable %}
+        {% set fileUrl = value.url|default('') %}
+        {% set fileName = value.title|default(value.original_name|default('Download')) %}
+    {% else %}
+        {% set fileUrl = value %}
+        {% set fileName = 'Download' %}
+    {% endif %}
+    
+    {% if fileUrl is not empty %}
+        <a href="{{ fileUrl }}" 
+           class="acf-file{% if customClass %} {{ customClass }}{% endif %}"
+           {% if customId %}id="{{ customId }}"{% endif %}
+           download>
+            <span class="acf-file-icon">📄</span>
+            <span class="acf-file-name">{{ fileName }}</span>
+        </a>
+    {% endif %}
+{% endif %}

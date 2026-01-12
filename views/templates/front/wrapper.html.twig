@@ -1,0 +1,22 @@
+{#
+ # ACF Field Wrapper Template (Twig)
+ #}
+
+{% if innerHtml is not empty %}
+    <div class="acf-field-wrapper acf-field-wrapper--{{ type }}{% if customClass %} {{ customClass }}{% endif %}"
+         data-field="{{ slug }}"
+         {% if customId %}id="{{ customId }}"{% endif %}>
+        
+        {% if showTitle and title is not empty %}
+            <label class="acf-field-label">{{ title }}</label>
+        {% endif %}
+        
+        <div class="acf-field-value">
+            {{ innerHtml|raw }}
+        </div>
+        
+        {% if instructions is not empty %}
+            <p class="acf-field-instructions">{{ instructions }}</p>
+        {% endif %}
+    </div>
+{% endif %}

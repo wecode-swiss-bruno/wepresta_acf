@@ -1,0 +1,9 @@
+{#
+ # ACF Textarea Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    <div class="acf-textarea{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {{ value|nl2br }}
+    </div>
+{% endif %}

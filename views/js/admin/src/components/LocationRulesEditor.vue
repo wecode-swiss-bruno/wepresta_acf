@@ -204,9 +204,9 @@ function getEntityTypeLabel(entityType: string): string {
     <div v-if="rules.length > 0" class="mb-4">
       <h4 class="mb-3">
         <i class="material-icons text-success mr-2" style="vertical-align: middle;">check_circle</i>
-        Active Location Rules
+        {{ t('activeLocationRules') }}
       </h4>
-      <p class="text-muted mb-3">Your custom fields will appear on these content types:</p>
+      <p class="text-muted mb-3">{{ t('locationRulesDescription') }}</p>
       <div class="list-group">
         <div
           v-for="(rule, index) in rules"
@@ -220,7 +220,7 @@ function getEntityTypeLabel(entityType: string): string {
           <button
             class="btn btn-sm btn-outline-danger"
             @click="removeRule(index)"
-            title="Remove this rule"
+            :title="t('removeRule')"
           >
             <i class="material-icons" style="font-size: 18px;">delete</i>
           </button>
@@ -308,43 +308,6 @@ function getEntityTypeLabel(entityType: string): string {
     </div>
 
 
-
-    <!-- Warning if no entity type selected -->
-    <div v-if="group && activeEntityTypes.length === 0" class="card mt-4 border-warning">
-      <div class="card-body">
-        <div class="alert alert-warning mb-0">
-          <i class="material-icons mr-2" style="vertical-align: middle; font-size: 18px;">warning</i>
-          <strong>Content Type Required</strong><br>
-          <small>Please select a content type above before choosing a display hook.</small>
-        </div>
-      </div>
-    </div>
-
-    <!-- Help Section -->
-    <div class="mt-4 p-3 bg-light rounded">
-      <h5 class="mb-3 text-muted">
-        <i class="material-icons mr-2" style="vertical-align: middle;">help_outline</i>
-        How it works
-      </h5>
-      <div class="row">
-        <div class="col-md-6">
-          <ul class="mb-0 small text-muted">
-            <li>Select content types where your fields should appear</li>
-            <li>Add multiple rules to show fields on different content types</li>
-            <li>Each content type can have its own display hook</li>
-            <li>Use "Exclude" to hide fields from specific content types</li>
-          </ul>
-        </div>
-        <div class="col-md-6">
-          <div class="small text-muted">
-            <strong>Examples:</strong><br>
-            • Products: Add custom fields to product pages<br>
-            • Categories: Add fields specific to category pages<br>
-            • Multiple types: Each with its own display location
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Step Navigation -->
     <div class="acfps-step-navigation">

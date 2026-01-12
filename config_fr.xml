@@ -2,7 +2,7 @@
 <module>
     <name>wepresta_acf</name>
     <displayName><![CDATA[WePresta ACF]]></displayName>
-    <version><![CDATA[1.2.1]]></version>
+    <version><![CDATA[1.2.2]]></version>
     <description><![CDATA[Champs personnalis&eacute;s avanc&eacute;s pour PrestaShop - Constructeur de champs style ACF]]></description>
     <author><![CDATA[WePresta]]></author>
     <tab><![CDATA[administration]]></tab>

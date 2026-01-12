@@ -144,7 +144,14 @@ final class VideoField extends AbstractFieldType
             return null;
         }
 
-        return $data['title'] ?? $data['original_name'] ?? $data['url'] ?? null;
+        // Return title if it exists and is not empty, otherwise try other fields
+        if (!empty($data['title'])) {
+            return $data['title'];
+        }
+        if (!empty($data['original_name'])) {
+            return $data['original_name'];
+        }
+        return $data['url'] ?? null;
     }
 
     public function validate(mixed $value, array $fieldConfig = [], array $validation = []): array

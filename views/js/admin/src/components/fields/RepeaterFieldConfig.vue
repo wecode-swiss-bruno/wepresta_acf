@@ -39,7 +39,7 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
             placeholder="No minimum"
             @input="updateConfig('min', parseInt(($event.target as HTMLInputElement).value) || 0)"
           >
-          <small class="form-text text-muted">0 = no minimum</small>
+          <small class="form-text text-muted">{{ t('0 = no minimum') }}</small>
         </div>
       </div>
       <div class="col-md-6">
@@ -53,7 +53,7 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
             placeholder="Unlimited"
             @input="updateConfig('max', parseInt(($event.target as HTMLInputElement).value) || 0)"
           >
-          <small class="form-text text-muted">0 = unlimited</small>
+          <small class="form-text text-muted">{{ t('0 = unlimited') }}</small>
         </div>
       </div>
     </div>

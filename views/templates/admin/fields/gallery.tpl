@@ -7,8 +7,22 @@
 {assign var="galEnableTitle" value=$fieldConfig.enableTitle|default:false}
 
 <div class="acf-gallery-field" data-type="gallery" data-slug="{$field.slug|escape:'htmlall':'UTF-8'}">
+    {* Hidden input to store uploaded gallery data *}
+    <input type="hidden" class="acf-gallery-value" id="{$inputId|escape:'htmlall':'UTF-8'}_value" name="{$inputName|escape:'htmlall':'UTF-8'}_value" value="{if $value && is_array($value)}{$value|@json_encode|escape:'html':'UTF-8'}{else}[]{/if}">
+    
     {* Gallery Grid *}
     <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2 mb-3" id="acf_gallery_{$field.slug|escape:'htmlall':'UTF-8'}">
+        {* Show warning if no images but gallery has corrupted data *}
+        {if !$value || !is_array($value) || $value|@count === 0}
+            <div class="col-12">
+                <div class="alert alert-warning py-2 mb-3">
+                    <small class="text-muted">
+                        <span class="material-icons" style="font-size: 14px; vertical-align: middle;">warning</span>
+                        {l s='No images in gallery. Upload new images below.' mod='wepresta_acf'}
+                    </small>
+                </div>
+            </div>
+        {/if}
         {if $value && is_array($value)}
             {foreach $value as $idx => $item}
                 <div class="col acf-gallery-item" data-index="{$idx}" draggable="true">
@@ -72,5 +86,40 @@
             <span class="material-icons" style="font-size: 18px;">add_photo_alternate</span>
         </span>
     </div>
+
+    {* Show allowed image formats info *}
+    {if isset($fieldConfig.allowedFormats) && $fieldConfig.allowedFormats|@count > 0}
+        {assign var="allowedFormatsText" value=""}
+        {assign var="firstFormat" value=true}
+        {foreach $fieldConfig.allowedFormats as $format}
+            {if $format === 'jpg' || $format === 'jpeg'}
+                {if !$firstFormat}{assign var="allowedFormatsText" value=$allowedFormatsText|cat:', '}{/if}
+                {assign var="allowedFormatsText" value=$allowedFormatsText|cat:'JPEG'}
+                {assign var="firstFormat" value=false}
+            {/if}
+            {if $format === 'png'}
+                {if !$firstFormat}{assign var="allowedFormatsText" value=$allowedFormatsText|cat:', '}{/if}
+                {assign var="allowedFormatsText" value=$allowedFormatsText|cat:'PNG'}
+                {assign var="firstFormat" value=false}
+            {/if}
+            {if $format === 'gif'}
+                {if !$firstFormat}{assign var="allowedFormatsText" value=$allowedFormatsText|cat:', '}{/if}
+                {assign var="allowedFormatsText" value=$allowedFormatsText|cat:'GIF'}
+                {assign var="firstFormat" value=false}
+            {/if}
+            {if $format === 'webp'}
+                {if !$firstFormat}{assign var="allowedFormatsText" value=$allowedFormatsText|cat:', '}{/if}
+                {assign var="allowedFormatsText" value=$allowedFormatsText|cat:'WebP'}
+                {assign var="firstFormat" value=false}
+            {/if}
+        {/foreach}
+        {if $allowedFormatsText}
+            <small class="form-text text-muted acf-allowed-formats-info">
+                <span class="material-icons" style="font-size:14px;vertical-align:middle;">info</span>
+                {l s='Allowed image formats:' mod='wepresta_acf'} {$allowedFormatsText}
+            </small>
+        {/if}
+    {/if}
+
     <small class="form-text text-muted">{l s='Select multiple images. Drag to reorder.' mod='wepresta_acf'}</small>
 </div>

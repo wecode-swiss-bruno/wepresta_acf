@@ -6,11 +6,13 @@ import FieldList from '@/components/FieldList.vue'
 import FieldConfigurator from '@/components/FieldConfigurator.vue'
 import GroupSettings from '@/components/GroupSettings.vue'
 import LocationRulesEditor from '@/components/LocationRulesEditor.vue'
+import DocumentationPanel from '@/components/DocumentationPanel.vue'
 
 const store = useBuilderStore()
 const { t } = useTranslations()
 
 const activeTab = ref<'settings' | 'location' | 'fields'>('settings')
+const showDocs = ref(false)
 
 // Check if group has been saved to database (has an ID)
 const isGeneralSettingsComplete = computed(() => {
@@ -133,7 +135,20 @@ watch(activeTab, (newTab) => {
           Not saved
         </span>
       </h5>
+      
+      <!-- Documentation Button -->
+      <button 
+        class="btn btn-outline-info btn-sm docs-btn"
+        @click="showDocs = true"
+        title="View front-office documentation"
+      >
+        <span class="material-icons">menu_book</span>
+        <span class="btn-text">Docs</span>
+      </button>
     </div>
+    
+    <!-- Documentation Panel -->
+    <DocumentationPanel :show="showDocs" @close="showDocs = false" />
 
     <!-- Wizard Progress Bar -->
     <div class="acfps-wizard-steps">
@@ -392,12 +407,45 @@ watch(activeTab, (newTab) => {
   background: var(--light-bg, #fafbfc);
 }
 
+/* Builder title bar with flex layout */
+.acfps-builder-title-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
 /* ✅ Badge unsaved changes */
 .acfps-builder-title-bar .badge {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   vertical-align: middle;
   animation: pulse-badge 2s infinite;
+}
+
+/* Docs button */
+.docs-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.docs-btn .material-icons {
+  font-size: 18px;
+}
+
+.docs-btn .btn-text {
+  font-size: 0.8rem;
+}
+
+.docs-btn:hover {
+  background: #17a2b8;
+  color: white;
 }
 
 @keyframes pulse-badge {

@@ -1,0 +1,10 @@
+{#
+ # ACF Time Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    <time class="acf-time{% if customClass %} {{ customClass }}{% endif %}"
+          {% if customId %}id="{{ customId }}"{% endif %}>
+        {{ value }}
+    </time>
+{% endif %}

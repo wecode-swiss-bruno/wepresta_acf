@@ -302,4 +302,81 @@ final class GroupApiController extends AbstractApiController
             return $this->jsonError($e->getMessage());
         }
     }
+
+    /**
+     * Bulk toggle active status for multiple groups.
+     */
+    public function bulkToggleActive(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->getJsonPayload($request);
+            $groupIds = $data['groupIds'] ?? [];
+            $active = (bool) ($data['active'] ?? false);
+
+            if (empty($groupIds) || !is_array($groupIds)) {
+                return $this->jsonError('No group IDs provided', Response::HTTP_BAD_REQUEST);
+            }
+
+            $updatedCount = 0;
+            foreach ($groupIds as $groupId) {
+                $groupId = (int) $groupId;
+                if ($groupId <= 0) {
+                    continue;
+                }
+
+                try {
+                    $this->groupRepository->update($groupId, ['active' => $active]);
+                    $updatedCount++;
+                } catch (Exception $e) {
+                    // Continue with other groups even if one fails
+                    $this->logError("Failed to update group {$groupId}: " . $e->getMessage());
+                }
+            }
+
+            return $this->jsonSuccess([
+                'updated' => $updatedCount,
+                'total' => count($groupIds)
+            ], "Successfully updated {$updatedCount} groups");
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
+    }
+
+    /**
+     * Bulk delete multiple groups.
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->getJsonPayload($request);
+            $groupIds = $data['groupIds'] ?? [];
+
+            if (empty($groupIds) || !is_array($groupIds)) {
+                return $this->jsonError('No group IDs provided', Response::HTTP_BAD_REQUEST);
+            }
+
+            $deletedCount = 0;
+            foreach ($groupIds as $groupId) {
+                $groupId = (int) $groupId;
+                if ($groupId <= 0) {
+                    continue;
+                }
+
+                try {
+                    $this->groupRepository->delete($groupId);
+                    $deletedCount++;
+                } catch (Exception $e) {
+                    // Continue with other groups even if one fails
+                    $this->logError("Failed to delete group {$groupId}: " . $e->getMessage());
+                }
+            }
+
+            return $this->jsonSuccess([
+                'deleted' => $deletedCount,
+                'total' => count($groupIds)
+            ], "Successfully deleted {$deletedCount} groups");
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
+    }
 }

@@ -1,0 +1,20 @@
+{#
+ # ACF Star Rating Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    {% set rating = value|number_format(0) %}
+    {% set max = config.max|default(5) %}
+    
+    <span class="acf-star-rating{% if customClass %} {{ customClass }}{% endif %}" 
+          title="{{ rating }}/{{ max }}"
+          {% if customId %}id="{{ customId }}"{% endif %}>
+        {% for i in 1..max %}
+            {% if i <= rating %}
+                <span class="acf-star acf-star--filled">★</span>
+            {% else %}
+                <span class="acf-star acf-star--empty">☆</span>
+            {% endif %}
+        {% endfor %}
+    </span>
+{% endif %}

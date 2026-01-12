@@ -359,6 +359,7 @@ final class ExportImportService
 
         foreach ($fields as $field) {
             $exportedFields[] = [
+                'id' => (int) $field['id_wepresta_acf_field'], // Old ID for mapping during import
                 'uuid' => $field['uuid'] ?? null,
                 'id_parent' => isset($field['id_parent']) ? (int) $field['id_parent'] : null,
                 'type' => $field['type'],
@@ -377,8 +378,28 @@ final class ExportImportService
             ];
         }
 
-        // Sort fields by position
-        usort($exportedFields, fn ($a, $b) => $a['position'] <=> $b['position']);
+        // Sort fields: parents first (id_parent = null), then children by position
+        // This ensures proper hierarchy in export
+        usort($exportedFields, function ($a, $b) {
+            $aParent = $a['id_parent'] ?? 0;
+            $bParent = $b['id_parent'] ?? 0;
+
+            // Null parents come first
+            if ($aParent === 0 && $bParent !== 0) {
+                return -1;
+            }
+            if ($aParent !== 0 && $bParent === 0) {
+                return 1;
+            }
+
+            // Then sort by parent ID
+            if ($aParent !== $bParent) {
+                return $aParent <=> $bParent;
+            }
+
+            // Same parent, sort by position
+            return ($a['position'] ?? 0) <=> ($b['position'] ?? 0);
+        });
 
         // Format field values for export
         // Create a map of field IDs to slugs for quick lookup
@@ -561,12 +582,45 @@ final class ExportImportService
     private function importFields(int $groupId, array $fields, ImportResult $result): array
     {
         $fieldIdMap = [];
+        $oldIdToNewIdMap = []; // Map old field IDs to new field IDs
+
+        // Sort fields: parents first (id_parent = null), then children
+        // This ensures parent fields are created before their children
+        usort($fields, function ($a, $b) {
+            $aParent = isset($a['id_parent']) ? (int) $a['id_parent'] : 0;
+            $bParent = isset($b['id_parent']) ? (int) $b['id_parent'] : 0;
+
+            // Null parents come first
+            if ($aParent === 0 && $bParent !== 0) {
+                return -1;
+            }
+            if ($aParent !== 0 && $bParent === 0) {
+                return 1;
+            }
+
+            // Then sort by parent ID
+            if ($aParent !== $bParent) {
+                return $aParent <=> $bParent;
+            }
+
+            // Same parent, sort by position
+            return ($a['position'] ?? 0) <=> ($b['position'] ?? 0);
+        });
 
         foreach ($fields as $fieldData) {
+            $oldFieldId = isset($fieldData['id']) ? (int) $fieldData['id'] : null;
+            $oldParentId = isset($fieldData['id_parent']) ? (int) $fieldData['id_parent'] : null;
+
+            // Map old parent ID to new parent ID
+            $newParentId = null;
+            if ($oldParentId !== null && isset($oldIdToNewIdMap[$oldParentId])) {
+                $newParentId = $oldIdToNewIdMap[$oldParentId];
+            }
+
             $fieldToSave = [
                 'uuid' => $fieldData['uuid'] ?? null, // Will be generated if null
                 'idAcfGroup' => $groupId,
-                'idParent' => isset($fieldData['id_parent']) ? (int) $fieldData['id_parent'] : null,
+                'idParent' => $newParentId, // Use mapped parent ID
                 'slug' => $fieldData['slug'],
                 'type' => $fieldData['type'],
                 'title' => $fieldData['title'],
@@ -581,8 +635,13 @@ final class ExportImportService
                 'foOptions' => $fieldData['fo_options'] ?? [],
             ];
 
-            $fieldId = $this->fieldRepository->create($fieldToSave);
-            $fieldIdMap[$fieldData['slug']] = $fieldId;
+            $newFieldId = $this->fieldRepository->create($fieldToSave);
+            $fieldIdMap[$fieldData['slug']] = $newFieldId;
+
+            // Store mapping of old ID to new ID for children reference
+            if ($oldFieldId !== null) {
+                $oldIdToNewIdMap[$oldFieldId] = $newFieldId;
+            }
         }
 
         $result->addFieldsImported(\count($fields));

@@ -1,0 +1,18 @@
+{#
+ # ACF Text Field Template (Twig)
+ #
+ # Variables:
+ #   value - Field value (string)
+ #   field - Field definition array
+ #   config - Field configuration
+ #   foOptions - Front-office options
+ #   slug - Field slug
+ #   customClass - Custom CSS class
+ #   customId - Custom HTML ID
+ #}
+
+{% if value is not empty %}
+    <span class="acf-text{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {{ value }}
+    </span>
+{% endif %}

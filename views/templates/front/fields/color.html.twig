@@ -1,0 +1,11 @@
+{#
+ # ACF Color Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    <span class="acf-color{% if customClass %} {{ customClass }}{% endif %}" 
+          style="background-color: {{ value }};"
+          title="{{ value }}"
+          {% if customId %}id="{{ customId }}"{% endif %}>
+    </span>
+{% endif %}

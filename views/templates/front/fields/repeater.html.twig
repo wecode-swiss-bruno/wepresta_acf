@@ -1,0 +1,19 @@
+{#
+ # ACF Repeater Field Template (Twig)
+ # Note: Use acf_repeater() function to iterate over rows
+ #}
+
+{% if value is iterable and value|length > 0 %}
+    <div class="acf-repeater{% if customClass %} {{ customClass }}{% endif %}" 
+         data-rows="{{ value|length }}"
+         {% if customId %}id="{{ customId }}"{% endif %}>
+        {# 
+         # To display repeater content, use:
+         #
+         # {% for row in acf_repeater('field_slug') %}
+         #     {{ row.subfield_slug }}
+         # {% endfor %}
+         #}
+        <p class="acf-repeater-notice">{{ value|length }} items</p>
+    </div>
+{% endif %}

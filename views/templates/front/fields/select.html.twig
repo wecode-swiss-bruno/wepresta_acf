@@ -1,0 +1,19 @@
+{#
+ # ACF Select Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    {% set label = value %}
+    
+    {% if config.choices is defined and config.choices is iterable %}
+        {% for choice in config.choices %}
+            {% if choice is iterable and choice.value is defined and choice.value == value %}
+                {% set label = choice.label|default(value) %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    <span class="acf-select{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {{ label }}
+    </span>
+{% endif %}

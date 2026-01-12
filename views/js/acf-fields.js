@@ -21,6 +21,7 @@
         injectAcfContainersFromDataAttributes();
         initAcfDynamicFields();
         initAcfTabs();
+        initVideoDeleteToggle();
         initAcfAjaxSave();
     });
 
@@ -29,7 +30,58 @@
         injectAcfContainersFromDataAttributes();
         initAcfDynamicFields();
         initAcfTabs();
+        initVideoDeleteToggle();
         initAcfAjaxSave();
+    }
+
+    // =========================================================================
+    // DELETE TOGGLE FOR VIDEO FIELDS
+    // =========================================================================
+
+    function initVideoDeleteToggle() {
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-delete-toggle]');
+            if (!btn) return;
+
+            // Only handle delete toggles inside video fields (avoid hijacking image delete toggles)
+            var videoField = btn.closest('.acf-video-field');
+            if (!videoField) return;
+
+            var targetId = btn.dataset.deleteToggle;
+            if (!targetId) return;
+
+            e.preventDefault();
+
+            // Hide the preview if it exists (for existing videos)
+            var preview = document.getElementById(targetId);
+            if (preview) {
+                preview.style.display = 'none';
+            }
+
+            // Reset the hidden input to null
+            var hiddenInput = videoField.querySelector('.acf-video-value');
+            if (hiddenInput) {
+                hiddenInput.value = 'null';
+            }
+
+            // Clear any visible inputs in the tabs
+            var inputs = videoField.querySelectorAll('input[type="url"], input[type="file"]');
+            inputs.forEach(function(input) {
+                input.value = '';
+            });
+
+            // Reset the delete flag if it exists (for existing videos)
+            var deleteFlag = videoField.querySelector('[name*="_delete"]');
+            if (deleteFlag) {
+                deleteFlag.value = '1'; // Mark for deletion on save
+            }
+
+            // Show the input tabs (they are always rendered now)
+            var inputTabs = videoField.querySelector('.acf-video-input-tabs');
+            if (inputTabs) {
+                inputTabs.style.display = 'block';
+            }
+        });
     }
 
     // =========================================================================
@@ -926,7 +978,7 @@
     // AJAX SAVE FUNCTIONALITY
     // =========================================================================
     function initAcfAjaxSave() {
-        var container = document.getElementById('acf-entity-fields');
+        var container = document.getElementById('acf-entity-fields') || document.getElementById('acf-product-fields');
         var saveBtn = document.getElementById('acf-ajax-save');
         if (!container || !saveBtn) return;
 
@@ -934,7 +986,8 @@
         if (saveBtn.dataset.acfInit === '1') return;
         saveBtn.dataset.acfInit = '1';
 
-        var entityType = container.dataset.entityType || 'product';
+        var entityType = container.dataset.entityType;
+
         var entityId = parseInt(container.dataset.entityId) || 0;
         var apiUrl = container.dataset.apiUrl || '';
         var statusText = container.querySelector('.acf-status-text');
@@ -970,12 +1023,367 @@
             }
         }
 
+        function findPrimaryVideoFileInput(videoField) {
+            // Only pick the "main" upload input (exclude alt/poster/replace inputs)
+            return videoField.querySelector('input[type="file"]:not([name*="_alt"]):not([name*="_poster"]):not([name*="_replace"])');
+        }
+
+        function uploadSelectedFiles() {
+            var fileFields = Array.from(container.querySelectorAll('.acf-file-upload'));
+            var uploads = [];
+
+            fileFields.forEach(function(fileField) {
+                var fileInput = fileField.querySelector('input[type="file"]');
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                    return;
+                }
+
+                var slug = fileField.dataset.slug;
+                if (!slug) {
+                    return;
+                }
+
+                var file = fileInput.files[0];
+                var formData = new FormData();
+                formData.append('file', file);
+                formData.append('field_slug', slug);
+                formData.append('entity_type', entityType || 'product');
+                formData.append('entity_id', String(entityId));
+
+                uploads.push(
+                    fetch(apiUrl + '/upload-file', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: formData
+                    })
+                        .then(function(response) {
+                            return response.json().then(function(data) {
+                                return { ok: response.ok, data: data };
+                            });
+                        })
+                        .then(function(result) {
+                            if (!result.ok || !result.data || result.data.success !== true) {
+                                var msg = (result.data && (result.data.error || result.data.message)) ? (result.data.error || result.data.message) : 'File upload failed';
+                                throw new Error(msg);
+                            }
+
+                            var uploaded = result.data.data || {};
+                            var hiddenValue = {
+                                filename: uploaded.filename || null,
+                                path: uploaded.path || null,
+                                url: uploaded.url || '',
+                                size: uploaded.size || null,
+                                mime: uploaded.mime || file.type || null,
+                                original_name: uploaded.original_name || file.name || null
+                            };
+
+                            // Store the uploaded data in a hidden input for later collection
+                            var hiddenInput = fileField.querySelector('.acf-file-value');
+                            if (hiddenInput) {
+                                hiddenInput.value = JSON.stringify(hiddenValue);
+                            }
+
+                            // Clear the file input to avoid re-upload on subsequent saves
+                            fileInput.value = '';
+                        })
+                );
+            });
+
+            return Promise.all(uploads);
+        }
+
+        function uploadSelectedImages() {
+            var imageFields = Array.from(container.querySelectorAll('.acf-image-field'));
+            var uploads = [];
+
+            imageFields.forEach(function(imageField) {
+                var fileInput = imageField.querySelector('input[type="file"]');
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                    return;
+                }
+
+                var slug = imageField.dataset.slug;
+                if (!slug) {
+                    return;
+                }
+
+                var file = fileInput.files[0];
+                var formData = new FormData();
+                formData.append('file', file);
+                formData.append('field_slug', slug);
+                formData.append('entity_type', entityType || 'product');
+                formData.append('entity_id', String(entityId));
+
+                uploads.push(
+                    fetch(apiUrl + '/upload-file', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: formData
+                    })
+                        .then(function(response) {
+                            return response.json().then(function(data) {
+                                return { ok: response.ok, data: data };
+                            });
+                        })
+                        .then(function(result) {
+                            if (!result.ok || !result.data || result.data.success !== true) {
+                                var msg = (result.data && (result.data.error || result.data.message)) ? (result.data.error || result.data.message) : 'Image upload failed';
+                                throw new Error(msg);
+                            }
+
+                            var uploaded = result.data.data || {};
+                            var hiddenValue = {
+                                filename: uploaded.filename || null,
+                                path: uploaded.path || null,
+                                url: uploaded.url || '',
+                                size: uploaded.size || null,
+                                mime: uploaded.mime || file.type || null,
+                                original_name: uploaded.original_name || file.name || null
+                            };
+
+                            // Store the uploaded data in a hidden input for later collection
+                            var hiddenInput = imageField.querySelector('.acf-image-value');
+                            if (hiddenInput) {
+                                hiddenInput.value = JSON.stringify(hiddenValue);
+                            }
+
+                            // Clear the file input to avoid re-upload on subsequent saves
+                            fileInput.value = '';
+                        })
+                );
+            });
+
+            return Promise.all(uploads);
+        }
+
+        function uploadSelectedGalleries() {
+            var galleryFields = Array.from(container.querySelectorAll('.acf-gallery-field'));
+            var allUploads = [];
+
+            galleryFields.forEach(function(galleryField) {
+                var fileInput = galleryField.querySelector('.acf-gallery-input');
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                    return;
+                }
+
+                var slug = galleryField.dataset.slug;
+                if (!slug) {
+                    return;
+                }
+
+                var hiddenInput = galleryField.querySelector('.acf-gallery-value');
+                var galleryUploads = [];
+
+                // Upload each file in the gallery
+                Array.from(fileInput.files).forEach(function(file, index) {
+                    var formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('field_slug', slug);
+                    formData.append('entity_type', entityType || 'product');
+                    formData.append('entity_id', String(entityId));
+
+                    var uploadPromise = fetch(apiUrl + '/upload-file', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: formData
+                    })
+                        .then(function(response) {
+                            return response.json().then(function(data) {
+                                return { ok: response.ok, data: data };
+                            });
+                        })
+                        .then(function(result) {
+                            if (!result.ok || !result.data || result.data.success !== true) {
+                                var msg = (result.data && (result.data.error || result.data.message)) ? (result.data.error || result.data.message) : 'Gallery image upload failed';
+                                throw new Error(msg);
+                            }
+
+                            return result.data.data || {};
+                        });
+
+                    galleryUploads.push(uploadPromise);
+                });
+
+                // After all files for this gallery are uploaded, update the hidden input
+                var galleryPromise = Promise.all(galleryUploads).then(function(uploadedFiles) {
+                    if (hiddenInput && uploadedFiles.length > 0) {
+                        // Get existing gallery items - reset if corrupted
+                        var existingItems = [];
+                        try {
+                            var existingJson = hiddenInput.value || '[]';
+                            if (existingJson.trim() === '' || existingJson === 'null') {
+                                existingItems = [];
+                            } else {
+                                existingItems = JSON.parse(existingJson);
+                                if (!Array.isArray(existingItems)) {
+                                    console.warn('[ACF Gallery] Invalid existing data, resetting:', existingJson);
+                                    existingItems = [];
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('[ACF Gallery] Corrupted JSON, resetting gallery:', existingJson);
+                            existingItems = [];
+                        }
+
+                        // Add uploaded files to the gallery
+                        uploadedFiles.forEach(function(uploaded, index) {
+                            var galleryItem = {
+                                filename: uploaded.filename || null,
+                                path: uploaded.path || null,
+                                url: uploaded.url || '',
+                                size: uploaded.size || null,
+                                mime: uploaded.mime || null,
+                                original_name: uploaded.original_name || null,
+                                id: uploaded.id || null,
+                                position: existingItems.length + index
+                            };
+                            existingItems.push(galleryItem);
+                        });
+
+                        // Update the hidden input with complete gallery
+                        hiddenInput.value = JSON.stringify(existingItems);
+                    }
+
+                    // Clear the file input
+                    fileInput.value = '';
+                });
+
+                allUploads.push(galleryPromise);
+            });
+
+            return Promise.all(allUploads);
+        }
+
+        function uploadSelectedVideoFiles() {
+            var videoFields = Array.from(container.querySelectorAll('.acf-video-field'));
+            var uploads = [];
+
+            videoFields.forEach(function(videoField) {
+                var fileInput = findPrimaryVideoFileInput(videoField);
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                    return;
+                }
+
+                var hiddenInput = videoField.querySelector('.acf-video-value');
+                if (!hiddenInput) {
+                    return;
+                }
+
+                var slug = videoField.dataset.slug;
+                if (!slug) {
+                    return;
+                }
+
+                var file = fileInput.files[0];
+                var formData = new FormData();
+                formData.append('file', file);
+                formData.append('field_slug', slug);
+                formData.append('entity_type', entityType || 'product');
+                formData.append('entity_id', String(entityId));
+
+                uploads.push(
+                    fetch(apiUrl + '/upload-video', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: formData
+                    })
+                        .then(function(response) {
+                            return response.json().then(function(data) {
+                                return { ok: response.ok, data: data };
+                            });
+                        })
+                        .then(function(result) {
+                            if (!result.ok || !result.data || result.data.success !== true) {
+                                var msg = (result.data && (result.data.error || result.data.message)) ? (result.data.error || result.data.message) : 'Video upload failed';
+                                throw new Error(msg);
+                            }
+
+                            var uploaded = result.data.data || {};
+                            var titleInput = videoField.querySelector('input[name$="_title"]');
+
+                            var value = {
+                                source: 'upload',
+                                url: uploaded.url || '',
+                                filename: uploaded.filename || null,
+                                path: uploaded.path || null,
+                                size: uploaded.size || null,
+                                mime: uploaded.mime || file.type || null,
+                                original_name: uploaded.original_name || file.name || null,
+                                title: titleInput ? (titleInput.value || '') : ''
+                            };
+
+                            hiddenInput.value = JSON.stringify(value);
+
+                            // Clear the file input to avoid re-upload on subsequent saves
+                            fileInput.value = '';
+                        })
+                );
+            });
+
+            return Promise.all(uploads);
+        }
+
         function collectAllValues() {
             var values = {};
 
             if (typeof tinymce !== 'undefined') {
                 tinymce.triggerSave();
             }
+
+            // Manual video field value sync before collecting
+            document.querySelectorAll('.acf-video-field').forEach(function(videoField) {
+                var hiddenInput = videoField.querySelector('.acf-video-value');
+                if (!hiddenInput) {
+                    return;
+                }
+
+                // Find inputs manually
+                var youtubeInput = videoField.querySelector('input[name$="_youtube_url"]');
+                var vimeoInput = videoField.querySelector('input[name$="_vimeo_url"]');
+                var urlInput = videoField.querySelector('input[name$="_url"]:not([name*="_youtube_url"]):not([name*="_vimeo_url"])');
+
+                var value = null;
+
+                // Check YouTube
+                if (youtubeInput && youtubeInput.value.trim()) {
+                    var url = youtubeInput.value.trim();
+                    var ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                    if (ytMatch) {
+                        value = {
+                            source: 'youtube',
+                            video_id: ytMatch[1],
+                            url: url,
+                            thumbnail_url: 'https://img.youtube.com/vi/' + ytMatch[1] + '/hqdefault.jpg'
+                        };
+                    }
+                }
+                // Check Vimeo
+                else if (vimeoInput && vimeoInput.value.trim()) {
+                    var url = vimeoInput.value.trim();
+                    var vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+                    if (vimeoMatch) {
+                        value = {
+                            source: 'vimeo',
+                            video_id: vimeoMatch[1],
+                            url: url
+                        };
+                    }
+                }
+                // Check URL
+                else if (urlInput && urlInput.value.trim()) {
+                    value = {
+                        source: 'url',
+                        url: urlInput.value.trim()
+                    };
+                }
+
+                // Update hidden input
+                var jsonValue = value ? JSON.stringify(value) : null;
+                // Do not overwrite an already uploaded value
+                if (jsonValue !== null) {
+                    hiddenInput.value = jsonValue;
+                }
+            });
 
             container.querySelectorAll('.acf-field').forEach(function(fieldEl) {
                 var slug = fieldEl.dataset.fieldSlug;
@@ -984,17 +1392,15 @@
                 // Skip fields inside repeaters - they are collected by the repeater itself
                 // (but not the repeater field itself, which has its own hidden input)
                 if (fieldEl.closest('.acf-repeater-field')) {
-                    console.log('[ACF] Skipping subfield inside repeater:', slug);
                     return;
                 }
 
                 var translatableContainer = fieldEl.querySelector('.translations.tabbable');
-                
+
                 // For repeater fields, skip the translatable container check and go straight to collectFieldValue
                 // This prevents collecting subfield translations as if they were the repeater value
                 var hasRepeater = fieldEl.querySelector('.acf-repeater-field');
                 if (hasRepeater) {
-                    console.log('[ACF] Found repeater field:', slug, '- forcing collectFieldValue');
                     translatableContainer = null; // Force using collectFieldValue instead
                 }
                 if (translatableContainer) {
@@ -1029,7 +1435,6 @@
                     }
                 } else {
                     var val = collectFieldValue(fieldEl, slug);
-                    console.log('[ACF] collectFieldValue for', slug, ':', val);
                     if (val !== undefined) {
                         if (typeof val === 'object' && val !== null && !Array.isArray(val) && Object.keys(val).length === 0) {
                             // Empty object -> empty string
@@ -1069,10 +1474,11 @@
         }
 
         function collectFieldValue(fieldEl, slug) {
-            var hiddenValue = fieldEl.querySelector('.acf-repeater-value, .acf-list-value, .acf-relation-value');
+            // Check for special hidden value inputs FIRST (repeater, list, relation, video, file, image, gallery)
+            var hiddenValue = fieldEl.querySelector('.acf-repeater-value, .acf-list-value, .acf-relation-value, .acf-video-value, .acf-file-value, .acf-image-value, .acf-gallery-value');
             if (hiddenValue) {
                 try {
-                    var parsed = JSON.parse(hiddenValue.value || '[]');
+                    var parsed = JSON.parse(hiddenValue.value || 'null');
                     if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed) && Object.keys(parsed).length === 0) {
                         return '';
                     }
@@ -1082,7 +1488,9 @@
                     }
                     return parsed;
                 } catch (e) {
-                    return hiddenValue.value || '';
+                    // JSON parsing failed - likely corrupted data, return null to reset
+                    console.warn('[ACF] Invalid JSON in field ' + slug + ':', hiddenValue.value);
+                    return null;
                 }
             }
 
@@ -1103,7 +1511,8 @@
                 });
             }
 
-            var input = fieldEl.querySelector('input[name^="acf_' + slug + '"], textarea[name^="acf_' + slug + '"], select[name^="acf_' + slug + '"]');
+            // Look for regular input/textarea/select, but EXCLUDE the special hidden inputs we already checked
+            var input = fieldEl.querySelector('input[name^="acf_' + slug + '"]:not(.acf-repeater-value):not(.acf-list-value):not(.acf-relation-value):not(.acf-video-value):not(.acf-file-value):not(.acf-image-value):not(.acf-gallery-value), textarea[name^="acf_' + slug + '"], select[name^="acf_' + slug + '"]');
             if (input) {
                 var val = getInputValue(input);
                 return val !== null && val !== undefined ? val : '';
@@ -1116,78 +1525,98 @@
             e.preventDefault();
 
             setLoading(true);
-            setStatus('info', 'Collecting field values...');
+            setStatus('info', 'Uploading files...');
 
-            var values = collectAllValues();
+            uploadSelectedFiles()
+                .then(function() {
+                    setStatus('info', 'Uploading images...');
+                    return uploadSelectedImages();
+                })
+                .then(function() {
+                    setStatus('info', 'Uploading gallery images...');
+                    return uploadSelectedGalleries();
+                })
+                .then(function() {
+                    setStatus('info', 'Uploading videos...');
+                    return uploadSelectedVideoFiles();
+                })
+                .then(function() {
+                    setStatus('info', 'Collecting field values...');
+                    var values = collectAllValues();
 
-            setStatus('info', 'Sending to server...');
+                    setStatus('info', 'Sending to server...');
 
-            // Prepare request data - API expects 'productId' for products, generic names for other entities
-            var requestData = {
-                values: values
-            };
+                    // Prepare request data - API expects 'productId' for products, generic names for other entities
+                    var requestData = {
+                        values: values
+                    };
 
-            if (entityType === 'product') {
-                requestData.productId = entityId;
-            } else {
-                requestData.entityType = entityType;
-                requestData.entityId = entityId;
-            }
-
-            fetch(apiUrl + '/values', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            })
-            .then(function(response) {
-                return response.json().then(function(data) {
-                    return { ok: response.ok, data: data };
-                });
-            })
-            .then(function(result) {
-                setLoading(false);
-                if (result.ok && result.data.success) {
-                    setStatus('success', 'Custom fields saved successfully!');
-                    saveBtn.classList.add('btn-success');
-                    saveBtn.classList.remove('btn-primary');
-                    setTimeout(function() {
-                        saveBtn.classList.remove('btn-success');
-                        saveBtn.classList.add('btn-primary');
-                        setStatus('', '');
-                    }, 3000);
-                } else {
-                    var errorMsg = result.data.error;
-                    if (!errorMsg && result.data.errors) {
-                        // Handle validation errors object: { field_slug: [errors] }
-                        var errorParts = [];
-                        if (typeof result.data.errors === 'object') {
-                            for (var fieldSlug in result.data.errors) {
-                                if (result.data.errors.hasOwnProperty(fieldSlug)) {
-                                    var fieldErrors = result.data.errors[fieldSlug];
-                                    if (Array.isArray(fieldErrors)) {
-                                        errorParts.push(fieldSlug + ': ' + fieldErrors.join(', '));
-                                    } else if (typeof fieldErrors === 'string') {
-                                        errorParts.push(fieldSlug + ': ' + fieldErrors);
-                                    }
-                                }
-                            }
-                        } else if (Array.isArray(result.data.errors)) {
-                            errorParts = result.data.errors;
-                        }
-                        errorMsg = errorParts.length > 0 ? errorParts.join('; ') : 'Validation errors occurred';
+                    if (entityType === 'product') {
+                        requestData.productId = entityId;
+                    } else {
+                        requestData.entityType = entityType;
+                        requestData.entityId = entityId;
                     }
-                    errorMsg = errorMsg || 'Unknown error';
-                    setStatus('error', 'Error: ' + errorMsg);
-                }
-            })
-            .catch(function(error) {
-                setLoading(false);
-                setStatus('error', 'Network error: ' + error.message);
-                console.error('[ACF] Save error:', error);
-            });
+
+                    fetch(apiUrl + '/values', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    })
+                        .then(function(response) {
+                            return response.json().then(function(data) {
+                                return { ok: response.ok, data: data };
+                            });
+                        })
+                        .then(function(result) {
+                            setLoading(false);
+                            if (result.ok && result.data.success) {
+                                setStatus('success', 'Custom fields saved successfully!');
+                                saveBtn.classList.add('btn-success');
+                                saveBtn.classList.remove('btn-primary');
+                                setTimeout(function() {
+                                    saveBtn.classList.remove('btn-success');
+                                    saveBtn.classList.add('btn-primary');
+                                    setStatus('', '');
+                                }, 3000);
+                            } else {
+                                var errorMsg = result.data.error;
+                                if (!errorMsg && result.data.errors) {
+                                    // Handle validation errors object: { field_slug: [errors] }
+                                    var errorParts = [];
+                                    if (typeof result.data.errors === 'object') {
+                                        for (var fieldSlug in result.data.errors) {
+                                            if (result.data.errors.hasOwnProperty(fieldSlug)) {
+                                                var fieldErrors = result.data.errors[fieldSlug];
+                                                if (Array.isArray(fieldErrors)) {
+                                                    errorParts.push(fieldSlug + ': ' + fieldErrors.join(', '));
+                                                } else if (typeof fieldErrors === 'string') {
+                                                    errorParts.push(fieldSlug + ': ' + fieldErrors);
+                                                }
+                                            }
+                                        }
+                                    } else if (Array.isArray(result.data.errors)) {
+                                        errorParts = result.data.errors;
+                                    }
+                                    errorMsg = errorParts.length > 0 ? errorParts.join('; ') : 'Validation errors occurred';
+                                }
+                                errorMsg = errorMsg || 'Unknown error';
+                                setStatus('error', 'Error: ' + errorMsg);
+                            }
+                        })
+                        .catch(function(error) {
+                            setLoading(false);
+                            setStatus('error', 'Network error: ' + error.message);
+                            console.error('[ACF] Save error:', error);
+                        });
+                })
+                .catch(function(error) {
+                    setLoading(false);
+                    setStatus('error', 'Upload error: ' + error.message);
+                });
         });
 
         console.debug('[ACF] AJAX save initialized for', entityType, entityId);
@@ -1198,10 +1627,12 @@
         init: function() {
             initAcfDynamicFields();
             initAcfTabs();
+            initVideoDeleteToggle();
             initAcfAjaxSave();
         },
         initTabs: initAcfTabs,
         initDynamicFields: initAcfDynamicFields,
+        initVideoDeleteToggle: initVideoDeleteToggle,
         initAjaxSave: initAcfAjaxSave
     };
 })();

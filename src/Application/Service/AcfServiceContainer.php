@@ -8,8 +8,10 @@ use Exception;
 use Module;
 use WeprestaAcf\Application\Brick\AcfBrickDiscovery;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
+use WeprestaAcf\Application\Smarty\AcfSmartyWrapper;
 use WeprestaAcf\Application\Template\FieldGroupExporter;
 use WeprestaAcf\Application\Template\FieldGroupImporter;
+use WeprestaAcf\Application\Twig\AcfTwigExtension;
 use WeprestaAcf\Infrastructure\Repository\AcfFieldRepository;
 use WeprestaAcf\Infrastructure\Repository\AcfFieldValueRepository;
 use WeprestaAcf\Infrastructure\Repository\AcfGroupRepository;
@@ -258,5 +260,86 @@ final class AcfServiceContainer
         } catch (Exception $e) {
             return null;
         }
+    }
+
+    // =========================================================================
+    // FRONT-OFFICE SERVICES
+    // =========================================================================
+
+    public static function getContextDetector(): EntityContextDetector
+    {
+        if (!isset(self::$services[EntityContextDetector::class])) {
+            $service = self::tryGet(EntityContextDetector::class);
+            self::$services[EntityContextDetector::class] = $service ?? new EntityContextDetector();
+        }
+
+        /** @var EntityContextDetector */
+        return self::$services[EntityContextDetector::class];
+    }
+
+    public static function getFieldRenderer(): FieldRenderer
+    {
+        if (!isset(self::$services[FieldRenderer::class])) {
+            $service = self::tryGet(FieldRenderer::class);
+            self::$services[FieldRenderer::class] = $service ?? new FieldRenderer();
+        }
+
+        /** @var FieldRenderer */
+        return self::$services[FieldRenderer::class];
+    }
+
+    public static function getFrontService(): AcfFrontService
+    {
+        if (!isset(self::$services[AcfFrontService::class])) {
+            $service = self::tryGet(AcfFrontService::class);
+            self::$services[AcfFrontService::class] = $service ?? new AcfFrontService(
+                self::getContextDetector(),
+                self::getFieldRenderer(),
+                self::getValueProvider(),
+                self::getFieldRepository(),
+                self::getGroupRepository()
+            );
+        }
+
+        /** @var AcfFrontService */
+        return self::$services[AcfFrontService::class];
+    }
+
+    public static function getShortcodeParser(): ShortcodeParser
+    {
+        if (!isset(self::$services[ShortcodeParser::class])) {
+            $service = self::tryGet(ShortcodeParser::class);
+            self::$services[ShortcodeParser::class] = $service ?? new ShortcodeParser(
+                self::getFrontService(),
+                self::getFieldRenderer()
+            );
+        }
+
+        /** @var ShortcodeParser */
+        return self::$services[ShortcodeParser::class];
+    }
+
+    public static function getSmartyWrapper(): AcfSmartyWrapper
+    {
+        if (!isset(self::$services[AcfSmartyWrapper::class])) {
+            self::$services[AcfSmartyWrapper::class] = new AcfSmartyWrapper();
+        }
+
+        /** @var AcfSmartyWrapper */
+        return self::$services[AcfSmartyWrapper::class];
+    }
+
+    public static function getTwigExtension(): AcfTwigExtension
+    {
+        if (!isset(self::$services[AcfTwigExtension::class])) {
+            $service = self::tryGet(AcfTwigExtension::class);
+            self::$services[AcfTwigExtension::class] = $service ?? new AcfTwigExtension(
+                self::getFrontService(),
+                self::getFieldRenderer()
+            );
+        }
+
+        /** @var AcfTwigExtension */
+        return self::$services[AcfTwigExtension::class];
     }
 }

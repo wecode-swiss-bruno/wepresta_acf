@@ -1,0 +1,44 @@
+{#
+ # ACF Video Field Template (Twig)
+ #}
+
+{% if value %}
+    {% if value is iterable %}
+        {% set source = value.source|default('upload') %}
+        {% set videoId = value.video_id|default('') %}
+        {% set videoUrl = value.url|default('') %}
+        {% set poster = value.poster_url|default('') %}
+    {% else %}
+        {% set source = 'url' %}
+        {% set videoId = '' %}
+        {% set videoUrl = value %}
+        {% set poster = '' %}
+    {% endif %}
+    
+    <div class="acf-video acf-video--{{ source }}{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {% if source == 'youtube' and videoId is not empty %}
+            <div class="acf-video-embed">
+                <iframe src="https://www.youtube.com/embed/{{ videoId }}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen
+                        loading="lazy"></iframe>
+            </div>
+        {% elseif source == 'vimeo' and videoId is not empty %}
+            <div class="acf-video-embed">
+                <iframe src="https://player.vimeo.com/video/{{ videoId }}" 
+                        frameborder="0" 
+                        allow="autoplay; fullscreen; picture-in-picture" 
+                        allowfullscreen
+                        loading="lazy"></iframe>
+            </div>
+        {% elseif videoUrl is not empty %}
+            <video src="{{ videoUrl }}" 
+                   controls
+                   {% if poster %}poster="{{ poster }}"{% endif %}
+                   preload="metadata">
+                Your browser does not support the video tag.
+            </video>
+        {% endif %}
+    </div>
+{% endif %}

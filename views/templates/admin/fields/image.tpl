@@ -7,6 +7,9 @@
 {assign var="inputName" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
 
 <div class="acf-image-field" data-type="image" data-slug="{$field.slug|escape:'htmlall':'UTF-8'}">
+    {* Hidden input to store uploaded image data *}
+    <input type="hidden" class="acf-image-value" id="{$inputId|escape:'htmlall':'UTF-8'}_value" name="{$inputName|escape:'htmlall':'UTF-8'}_value" value='{if $value && is_array($value) && isset($value.url)}{$value|json_encode|escape:'html':'UTF-8'}{else}null{/if}'>
+
     {* Existing image preview *}
     {if $value && is_array($value) && isset($value.url)}
         <div class="card mb-3 acf-image-preview" id="preview_{$inputId|escape:'htmlall':'UTF-8'}">

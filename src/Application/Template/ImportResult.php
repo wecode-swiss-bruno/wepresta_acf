@@ -50,6 +50,13 @@ final class ImportResult
         return $this->message;
     }
 
+    public function setMessage(string $message): self
+    {
+        $this->message = $message;
+
+        return $this;
+    }
+
     public function getVersion(): string
     {
         return $this->version;

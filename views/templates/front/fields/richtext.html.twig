@@ -1,0 +1,10 @@
+{#
+ # ACF RichText Field Template (Twig)
+ # Note: value contains HTML and should be rendered raw
+ #}
+
+{% if value is not empty %}
+    <div class="acf-richtext{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {{ value|raw }}
+    </div>
+{% endif %}

@@ -31,7 +31,7 @@ const falseLabel = createStringRef('falseLabel')
         v-model="defaultValue"
         id="boolean-default"
       />
-      <small class="form-text text-muted">Default to checked</small>
+      <small class="form-text text-muted">{{ t('Default to checked') }}</small>
     </div>
 
     <div class="form-group">

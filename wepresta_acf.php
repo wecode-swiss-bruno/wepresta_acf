@@ -35,7 +35,7 @@ class WeprestaAcf extends Module
 {
     use EntityFieldHooksTrait;
 
-    public const VERSION = '1.2.1';
+    public const VERSION = '1.2.2';
 
     public const DEFAULT_CONFIG = [
         'WEPRESTA_ACF_MAX_FILE_SIZE' => 10485760, // 10MB
@@ -153,6 +153,165 @@ class WeprestaAcf extends Module
         if (in_array($controller, $v1Controllers, true)) {
             $this->context->controller->registerJavascript('wepresta_acf-front', 'modules/' . $this->name . '/views/js/front.js', ['position' => 'bottom', 'priority' => 150]);
         }
+
+        // Load ACF front-office CSS
+        $this->context->controller->registerStylesheet(
+            'wepresta_acf-front-css',
+            'modules/' . $this->name . '/views/css/acf-front.css',
+            ['priority' => 150]
+        );
+    }
+
+    /**
+     * Hook displayHeader - Initialize ACF Smarty wrapper and register plugins.
+     *
+     * This makes $acf available in ALL Smarty templates:
+     *   {$acf->field('brand')}
+     *   {$acf->render('image')}
+     *   {foreach $acf->repeater('specs') as $row}...{/foreach}
+     */
+    public function hookDisplayHeader(array $params): string
+    {
+        if (! $this->isActive()) {
+            return '';
+        }
+
+        try {
+            // Load custom field types for front-office rendering
+            AcfServiceContainer::loadCustomFieldTypes();
+
+            // Get Smarty wrapper instance
+            $acfWrapper = AcfServiceContainer::getSmartyWrapper();
+
+            // Assign $acf to Smarty context
+            $this->context->smarty->assign('acf', $acfWrapper);
+
+            // Register Smarty plugins
+            $this->registerSmartyPlugins();
+        } catch (Exception $e) {
+            $this->log('ACF header initialization failed: ' . $e->getMessage(), 2);
+        }
+
+        return '';
+    }
+
+    /**
+     * Hook filterCmsContent - Parse shortcodes in CMS page content.
+     *
+     * @param array{object: CMS, type: string, content: string} $params
+     */
+    public function hookFilterCmsContent(array $params): array
+    {
+        if (! $this->isActive()) {
+            return $params;
+        }
+
+        try {
+            $content = $params['content'] ?? '';
+
+            if (strpos($content, '[acf') !== false) {
+                $parser = AcfServiceContainer::getShortcodeParser();
+
+                // Try to detect CMS context
+                $cmsId = (int) Tools::getValue('id_cms', 0);
+                $entityType = $cmsId > 0 ? 'cms_page' : null;
+
+                $params['content'] = $parser->parse($content, $entityType, $cmsId > 0 ? $cmsId : null);
+            }
+        } catch (Exception $e) {
+            $this->log('ACF shortcode parsing failed: ' . $e->getMessage(), 2);
+        }
+
+        return $params;
+    }
+
+    /**
+     * Hook filterCategoryContent - Parse shortcodes in category description.
+     *
+     * @param array{object: Category, type: string, content: string} $params
+     */
+    public function hookFilterCategoryContent(array $params): array
+    {
+        if (! $this->isActive()) {
+            return $params;
+        }
+
+        try {
+            $content = $params['content'] ?? '';
+
+            if (strpos($content, '[acf') !== false) {
+                $parser = AcfServiceContainer::getShortcodeParser();
+                $categoryId = (int) Tools::getValue('id_category', 0);
+
+                $params['content'] = $parser->parse($content, 'category', $categoryId > 0 ? $categoryId : null);
+            }
+        } catch (Exception $e) {
+            $this->log('ACF shortcode parsing failed: ' . $e->getMessage(), 2);
+        }
+
+        return $params;
+    }
+
+    /**
+     * Hook filterProductContent - Parse shortcodes in product description.
+     *
+     * @param array{object: Product, type: string, content: string} $params
+     */
+    public function hookFilterProductContent(array $params): array
+    {
+        if (! $this->isActive()) {
+            return $params;
+        }
+
+        try {
+            $content = $params['content'] ?? '';
+
+            if (strpos($content, '[acf') !== false) {
+                $parser = AcfServiceContainer::getShortcodeParser();
+                $productId = (int) Tools::getValue('id_product', 0);
+
+                $params['content'] = $parser->parse($content, 'product', $productId > 0 ? $productId : null);
+            }
+        } catch (Exception $e) {
+            $this->log('ACF shortcode parsing failed: ' . $e->getMessage(), 2);
+        }
+
+        return $params;
+    }
+
+    /**
+     * Register Smarty plugin functions.
+     */
+    private function registerSmartyPlugins(): void
+    {
+        $smarty = $this->context->smarty;
+
+        // Register only if not already registered
+        $pluginsDir = __DIR__ . '/src/Application/Smarty/';
+
+        // Function plugins
+        $functions = ['acf_field', 'acf_render', 'acf_group'];
+
+        foreach ($functions as $funcName) {
+            $pluginFile = $pluginsDir . 'function.' . $funcName . '.php';
+
+            if (file_exists($pluginFile) && ! isset($smarty->registered_plugins['function'][$funcName])) {
+                require_once $pluginFile;
+                $smarty->registerPlugin('function', $funcName, 'smarty_function_' . $funcName);
+            }
+        }
+
+        // Block plugins
+        $blocks = ['acf_foreach'];
+
+        foreach ($blocks as $blockName) {
+            $pluginFile = $pluginsDir . 'block.' . $blockName . '.php';
+
+            if (file_exists($pluginFile) && ! isset($smarty->registered_plugins['block'][$blockName])) {
+                require_once $pluginFile;
+                $smarty->registerPlugin('block', $blockName, 'smarty_block_' . $blockName);
+            }
+        }
     }
 
     public function isActive(): bool
@@ -189,7 +348,7 @@ class WeprestaAcf extends Module
      *
      * @return T|null
      */
-    public function get(string $serviceId): ?object
+    public function get($serviceId): ?object
     {
         return $this->getService($serviceId);
     }

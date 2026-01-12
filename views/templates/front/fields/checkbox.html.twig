@@ -1,0 +1,21 @@
+{#
+ # ACF Checkbox Field Template (Twig)
+ #}
+
+{% if value is iterable and value|length > 0 %}
+    <ul class="acf-checkbox{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {% for val in value %}
+            {% set label = val %}
+            
+            {% if config.choices is defined and config.choices is iterable %}
+                {% for choice in config.choices %}
+                    {% if choice is iterable and choice.value is defined and choice.value == val %}
+                        {% set label = choice.label|default(val) %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            
+            <li class="acf-checkbox-item">{{ label }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

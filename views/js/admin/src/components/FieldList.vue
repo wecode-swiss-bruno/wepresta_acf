@@ -6,6 +6,7 @@ import { useTranslations } from '@/composables/useTranslations'
 import type { AcfField } from '@/types'
 import FieldTypeSelector from '@/components/FieldTypeSelector.vue'
 import SubfieldItem from '@/components/SubfieldItem.vue'
+import CopyCodeButton from '@/components/CopyCodeButton.vue'
 
 const store = useBuilderStore()
 const { t } = useTranslations()
@@ -103,7 +104,7 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
       <div class="empty-state-content">
         <span class="material-icons empty-icon">view_list</span>
         <h5 class="empty-title">{{ t('noFields') }}</h5>
-        <p class="empty-description">Get started by adding your first custom field to this group.</p>
+        <p class="empty-description">{{ t('getStartedAddingFields') }}</p>
         <button class="btn btn-primary btn-lg empty-action-btn" @click="showTypeSelector = true">
           <span class="material-icons">add</span>
           {{ t('addField') }}
@@ -163,6 +164,14 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
             </span>
           </div>
           <span class="field-slug">{{ field.slug }}</span>
+          
+          <!-- Copy Code Button -->
+          <CopyCodeButton 
+            v-if="field.slug" 
+            :field="field" 
+            :compact="true" 
+          />
+          
           <button 
             class="btn btn-link btn-sm text-danger"
             @click.stop="confirmDelete(field)"

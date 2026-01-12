@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
 import { useApi } from '@/composables/useApi'
@@ -9,10 +9,24 @@ const store = useBuilderStore()
 const { t } = useTranslations()
 const api = useApi()
 
+// Selection state
+const selectedGroups = ref<Set<number>>(new Set())
+const selectAll = ref(false)
+
 // Sync state
 const syncEnabled = ref(false)
 const syncStatus = ref<Record<number, { status: string }>>({})
 const themeOnlyGroups = ref<Array<{ slug: string; title: string }>>([])
+
+// Computed properties for selection
+const hasSelectedGroups = computed(() => selectedGroups.value.size > 0)
+const selectedCount = computed(() => selectedGroups.value.size)
+const isAllSelected = computed(() => {
+  return store.groups.length > 0 && selectedGroups.value.size === store.groups.length
+})
+const isIndeterminate = computed(() => {
+  return selectedGroups.value.size > 0 && selectedGroups.value.size < store.groups.length
+})
 
 // Load sync status on mount
 onMounted(async () => {
@@ -107,6 +121,99 @@ async function exportGroup(groupId: number): Promise<void> {
 }
 
 
+// Selection methods
+function toggleGroupSelection(groupId: number): void {
+  if (selectedGroups.value.has(groupId)) {
+    selectedGroups.value.delete(groupId)
+  } else {
+    selectedGroups.value.add(groupId)
+  }
+  updateSelectAllState()
+}
+
+function toggleSelectAll(): void {
+  if (isAllSelected.value) {
+    selectedGroups.value.clear()
+  } else {
+    selectedGroups.value.clear()
+    store.groups.forEach(group => {
+      if (group.id) {
+        selectedGroups.value.add(group.id)
+      }
+    })
+  }
+  updateSelectAllState()
+}
+
+function updateSelectAllState(): void {
+  selectAll.value = isAllSelected.value
+}
+
+function clearSelection(): void {
+  selectedGroups.value.clear()
+  selectAll.value = false
+}
+
+// Bulk action methods
+async function bulkToggleActive(active: boolean): Promise<void> {
+  const groupIds = Array.from(selectedGroups.value)
+  if (groupIds.length === 0) return
+
+  try {
+    const response = await api.fetchJson('/groups/bulk-toggle-active', {
+      method: 'POST',
+      body: JSON.stringify({ groupIds, active })
+    })
+
+    if (response.success) {
+      // Reload groups to reflect changes
+      await store.loadGroups()
+      clearSelection()
+      alert(t('bulkActionSuccess'))
+    } else {
+      alert(t('bulkActionError') + ': ' + (response.error || 'Unknown error'))
+    }
+  } catch (e) {
+    alert(t('bulkActionError') + ': ' + (e as Error).message)
+  }
+}
+
+function confirmBulkDelete(): void {
+  const groupIds = Array.from(selectedGroups.value)
+  if (groupIds.length === 0) return
+
+  const message = groupIds.length === 1
+    ? t('confirmDeleteGroup')
+    : t('confirmDeleteGroups').replace('{count}', groupIds.length.toString())
+
+  if (confirm(message)) {
+    bulkDelete()
+  }
+}
+
+async function bulkDelete(): Promise<void> {
+  const groupIds = Array.from(selectedGroups.value)
+  if (groupIds.length === 0) return
+
+  try {
+    const response = await api.fetchJson('/groups/bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify({ groupIds })
+    })
+
+    if (response.success) {
+      // Reload groups to reflect changes
+      await store.loadGroups()
+      clearSelection()
+      alert(t('bulkDeleteSuccess'))
+    } else {
+      alert(t('bulkDeleteError') + ': ' + (response.error || 'Unknown error'))
+    }
+  } catch (e) {
+    alert(t('bulkDeleteError') + ': ' + (e as Error).message)
+  }
+}
+
 function getGroupSyncStatus(groupId: number): string {
   return syncStatus.value[groupId]?.status || 'unknown'
 }
@@ -150,12 +257,56 @@ function getGroupSyncStatus(groupId: number): string {
         </div>
       </div>
 
+      <!-- Bulk Actions Bar -->
+      <div v-if="hasSelectedGroups" class="alert alert-light border d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+          <i class="material-icons text-primary mr-2">check_circle</i>
+          <span class="font-weight-semibold">
+            {{ selectedCount }} {{ selectedCount === 1 ? t('groupSelected') : t('groupsSelected') }}
+          </span>
+        </div>
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="material-icons mr-1">settings</i>
+            {{ t('actions') }}
+          </button>
+          <div class="dropdown-menu dropdown-menu-right">
+            <button class="dropdown-item" @click="bulkToggleActive(true)">
+              <i class="material-icons text-success mr-2">check_circle</i>
+              {{ t('activate') }}
+            </button>
+            <button class="dropdown-item" @click="bulkToggleActive(false)">
+              <i class="material-icons text-warning mr-2">cancel</i>
+              {{ t('deactivate') }}
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item text-danger" @click="confirmBulkDelete">
+              <i class="material-icons mr-2">delete</i>
+              {{ t('delete') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Native PrestaShop Grid -->
-      <div v-else-if="store.groups.length > 0" class="grid js-grid" id="acf_group_grid" data-grid-id="acf_group">
+      <div v-if="store.groups.length > 0" class="grid js-grid" id="acf_group_grid" data-grid-id="acf_group">
         <div class="table-responsive">
           <table class="grid-table js-grid-table table" id="acf_group_grid_table">
             <thead class="thead-default">
               <tr class="column-headers">
+                <th scope="col" data-type="selector" data-column-id="select" class="text-center">
+                  <input
+                    type="checkbox"
+                    class="form-check-input header-checkbox"
+                    :checked="isAllSelected"
+                    :indeterminate.prop="isIndeterminate"
+                    @change="toggleSelectAll"
+                    id="select-all-groups"
+                  />
+                  <label class="sr-only" for="select-all-groups">
+                    {{ t('selectAll') }}
+                  </label>
+                </th>
                 <th scope="col" data-type="identifier" data-column-id="id">
                   <span role="columnheader">ID</span>
                 </th>
@@ -184,6 +335,20 @@ function getGroupSyncStatus(groupId: number): string {
             </thead>
             <tbody>
               <tr v-for="group in store.groups" :key="group.id">
+                <td class="selector-type column-select text-center">
+                  <div class="form-check mb-0">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      :checked="selectedGroups.has(group.id!)"
+                      @change="toggleGroupSelection(group.id!)"
+                      :id="'select-group-' + group.id"
+                    />
+                    <label class="form-check-label sr-only" :for="'select-group-' + group.id">
+                      {{ t('selectGroup') }} {{ group.title || t('untitled') }}
+                    </label>
+                  </div>
+                </td>
                 <td data-identifier class="identifier-type column-id">
                   {{ group.id }}
                 </td>
@@ -314,6 +479,11 @@ function getGroupSyncStatus(groupId: number): string {
   vertical-align: middle;
 }
 
+.grid-table .column-select {
+  width: 60px;
+  text-align: center;
+}
+
 .grid-table .column-id {
   width: 60px;
 }
@@ -373,5 +543,51 @@ function getGroupSyncStatus(groupId: number): string {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
+}
+
+/* Bulk actions bar */
+.alert .btn-group .btn {
+  margin-left: 0.25rem;
+}
+
+.alert .btn-group .btn:first-child {
+  margin-left: 0;
+}
+
+/* Checkboxes */
+.form-check-input {
+  margin-top: 0;
+}
+
+.form-check-input[indeterminate] {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+/* Better checkbox alignment in table cells */
+.grid-table .column-select .form-check {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.grid-table .column-select .form-check-input {
+  margin: 0;
+}
+
+/* Header checkbox specific styling */
+.grid-table thead .column-select {
+  vertical-align: middle;
+  position: relative;
+}
+
+.grid-table thead .column-select .header-checkbox {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.1);
+  margin: 0;
 }
 </style>

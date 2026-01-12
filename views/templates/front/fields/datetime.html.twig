@@ -1,0 +1,13 @@
+{#
+ # ACF DateTime Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    {% set format = config.displayFormat|default('d/m/Y H:i') %}
+    
+    <time class="acf-datetime{% if customClass %} {{ customClass }}{% endif %}" 
+          datetime="{{ value }}"
+          {% if customId %}id="{{ customId }}"{% endif %}>
+        {{ value|date(format) }}
+    </time>
+{% endif %}

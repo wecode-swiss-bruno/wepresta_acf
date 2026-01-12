@@ -200,6 +200,20 @@ wepresta_acf_api_groups_global_values_save:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::saveGlobalValues'
 
+wepresta_acf_api_groups_bulk_toggle_active:
+    path: /api/groups/bulk-toggle-active
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::bulkToggleActive'
+
+wepresta_acf_api_groups_bulk_delete:
+    path: /api/groups/bulk-delete
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::bulkDelete'
+
 # =========================================================================
 # API - Fields
 # =========================================================================
@@ -298,6 +312,13 @@ wepresta_acf_api_upload_file:
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::uploadFile'
+
+wepresta_acf_api_upload_video:
+    path: /api/upload-video
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::uploadVideo'
 
 # =========================================================================
 # API - Field Types Management

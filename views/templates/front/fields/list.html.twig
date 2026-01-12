@@ -1,0 +1,11 @@
+{#
+ # ACF List Field Template (Twig)
+ #}
+
+{% if value is iterable and value|length > 0 %}
+    <ul class="acf-list{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {% for item in value %}
+            <li class="acf-list-item">{{ item }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

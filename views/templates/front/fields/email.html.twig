@@ -1,0 +1,11 @@
+{#
+ # ACF Email Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    <a href="mailto:{{ value }}" 
+       class="acf-email{% if customClass %} {{ customClass }}{% endif %}"
+       {% if customId %}id="{{ customId }}"{% endif %}>
+        {{ value }}
+    </a>
+{% endif %}

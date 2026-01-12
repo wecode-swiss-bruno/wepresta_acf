@@ -84,7 +84,7 @@ function onSlugChange(): void {
           @input="onTitleChange"
         >
         <small class="form-text text-muted">
-          A descriptive name for this field group that will be displayed in the admin interface.
+          {{ t('groupTitleHelp') }}
         </small>
       </div>
 
@@ -145,7 +145,7 @@ function onSlugChange(): void {
           rows="3"
         />
         <small class="form-text text-muted">
-          Optional description to help administrators understand the purpose of this field group.
+          {{ t('groupDescriptionHelp') }}
         </small>
       </div>
     </div>
@@ -160,7 +160,7 @@ function onSlugChange(): void {
           id="group-active"
         />
         <small class="form-text text-muted">
-          Inactive groups are hidden in the product form.
+          {{ t('groupInactiveHelp') }}
         </small>
       </div>
 

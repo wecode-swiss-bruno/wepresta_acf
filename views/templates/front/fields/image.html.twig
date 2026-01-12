@@ -1,0 +1,26 @@
+{#
+ # ACF Image Field Template (Twig)
+ #}
+
+{% if value %}
+    {% if value is iterable %}
+        {% set imgUrl = value.url|default('') %}
+        {% set imgAlt = value.alt|default(value.title|default('')) %}
+        {% set imgTitle = value.title|default('') %}
+    {% else %}
+        {% set imgUrl = value %}
+        {% set imgAlt = '' %}
+        {% set imgTitle = '' %}
+    {% endif %}
+    
+    {% if imgUrl is not empty %}
+        <img src="{{ imgUrl }}" 
+             alt="{{ imgAlt }}"
+             {% if imgTitle %}title="{{ imgTitle }}"{% endif %}
+             class="acf-image{% if customClass %} {{ customClass }}{% endif %}"
+             {% if customId %}id="{{ customId }}"{% endif %}
+             {% if config.width is defined %}width="{{ config.width }}"{% endif %}
+             {% if config.height is defined %}height="{{ config.height }}"{% endif %}
+             loading="lazy">
+    {% endif %}
+{% endif %}

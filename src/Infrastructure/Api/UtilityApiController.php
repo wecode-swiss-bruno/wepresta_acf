@@ -177,6 +177,7 @@ final class UtilityApiController extends AbstractApiController
             // Determine file type directory
             $fileTypeDir = match ($fieldType) {
                 'image' => 'images',
+                'gallery' => 'images',
                 'video' => 'videos',
                 'file' => 'files',
                 default => 'files',
@@ -221,6 +222,83 @@ final class UtilityApiController extends AbstractApiController
                 $useFixedPath,
                 $maxFileSize,
                 true // delete existing
+            );
+
+            return $this->jsonSuccess($result);
+        } catch (InvalidArgumentException $e) {
+            return $this->jsonError($e->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
+    }
+
+    /**
+     * Upload a video file for a video field (multipart/form-data).
+     *
+     * Expected form-data:
+     * - file: Uploaded file
+     * - field_slug: string
+     * - entity_id: int (product id)
+     */
+    public function uploadVideo(Request $request): JsonResponse
+    {
+        try {
+            $uploadedFile = $request->files->get('file');
+
+            if (! $uploadedFile) {
+                return $this->jsonError('No file uploaded', Response::HTTP_BAD_REQUEST);
+            }
+
+            $fieldSlug = $request->request->get('field_slug');
+            $entityId = (int) $request->request->get('entity_id', 0);
+
+            if (! $fieldSlug) {
+                return $this->jsonError('field_slug is required', Response::HTTP_BAD_REQUEST);
+            }
+
+            if ($entityId <= 0) {
+                return $this->jsonError('entity_id is required', Response::HTTP_BAD_REQUEST);
+            }
+
+            $field = $this->fieldRepository->findBySlug($fieldSlug);
+
+            if (! $field) {
+                return $this->jsonNotFound('Field');
+            }
+
+            if (($field['type'] ?? null) !== 'video') {
+                return $this->jsonError('Field is not a video field', Response::HTTP_BAD_REQUEST);
+            }
+
+            $fieldId = (int) $field['id_wepresta_acf_field'];
+            $fieldConfig = $this->decodeJson($field['config'] ?? '{}');
+
+            $shopId = (int) Context::getContext()->shop->id;
+            $uploadService = AcfServiceContainer::getFileUploadService();
+
+            $fileArray = [
+                'name' => $uploadedFile->getClientOriginalName(),
+                'type' => $uploadedFile->getMimeType(),
+                'tmp_name' => $uploadedFile->getPathname(),
+                'error' => $uploadedFile->getError(),
+                'size' => $uploadedFile->getSize(),
+            ];
+
+            $allowedMimes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+            $maxSizeMB = $fieldConfig['maxSizeMB'] ?? 100;
+            $maxFileSize = $maxSizeMB * 1024 * 1024;
+            $useFixedPath = $fieldConfig['useFixedPath'] ?? false;
+
+            $result = $uploadService->upload(
+                $fileArray,
+                $fieldId,
+                $entityId,
+                $shopId,
+                'videos',
+                $allowedMimes,
+                $useFixedPath,
+                $maxFileSize,
+                true
             );
 
             return $this->jsonSuccess($result);

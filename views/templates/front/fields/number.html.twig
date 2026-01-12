@@ -1,0 +1,11 @@
+{#
+ # ACF Number Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    <span class="acf-number{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {% if config.prefix is defined %}{{ config.prefix }}{% endif %}
+        {{ value }}
+        {% if config.suffix is defined %}{{ config.suffix }}{% endif %}
+    </span>
+{% endif %}

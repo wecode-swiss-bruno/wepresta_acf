@@ -110,7 +110,7 @@ function updateFilter(key: string, value: boolean): void {
           :value="config.max || ''"
           @input="updateConfig('max', parseInt(($event.target as HTMLInputElement).value) || null)"
         >
-        <small class="form-text text-muted">Leave empty for unlimited.</small>
+        <small class="form-text text-muted">{{ t('Leave empty for unlimited.') }}</small>
       </div>
     </div>
 

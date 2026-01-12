@@ -1,0 +1,14 @@
+{#
+ # ACF Default Field Template (Twig)
+ # Fallback for unknown field types
+ #}
+
+{% if value is not empty %}
+    <span class="acf-field acf-field--{{ type }}{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {% if value is iterable %}
+            {{ value|json_encode }}
+        {% else %}
+            {{ value }}
+        {% endif %}
+    </span>
+{% endif %}

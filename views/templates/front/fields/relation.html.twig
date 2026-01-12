@@ -1,0 +1,31 @@
+{#
+ # ACF Relation Field Template (Twig)
+ #}
+
+{% if value %}
+    {# Single relation #}
+    {% if value is iterable and value.id is defined %}
+        <span class="acf-relation{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+            {% if value.link is defined %}
+                <a href="{{ value.link }}">{{ value.name|default('#' ~ value.id) }}</a>
+            {% else %}
+                {{ value.name|default('#' ~ value.id) }}
+            {% endif %}
+        </span>
+    {# Multiple relations #}
+    {% elseif value is iterable and value|length > 0 %}
+        <ul class="acf-relations{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+            {% for item in value %}
+                {% if item is iterable %}
+                    <li class="acf-relation-item">
+                        {% if item.link is defined %}
+                            <a href="{{ item.link }}">{{ item.name|default('#' ~ item.id) }}</a>
+                        {% else %}
+                            {{ item.name|default('#' ~ item.id) }}
+                        {% endif %}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endif %}

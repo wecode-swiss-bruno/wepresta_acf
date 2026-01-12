@@ -205,6 +205,71 @@ trait EntityFieldHooksTrait
     }
 
     // =========================================================================
+    // CMS PAGE HOOKS - ADMIN (Back-Office)
+    // =========================================================================
+
+    /**
+     * Affiche les champs ACF dans l'édition d'une page CMS (BO).
+     *
+     * Hook: displayAdminCmsContent
+     */
+    public function hookDisplayAdminCmsContent(array $params): string
+    {
+        return $this->renderAdminFields('cms_page', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF lors de la mise à jour d'une page CMS (legacy ObjectModel).
+     *
+     * Hook: actionObjectCmsUpdateAfter
+     */
+    public function hookActionObjectCmsUpdateAfter(array $params): void
+    {
+        $this->saveEntityFields('cms_page', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF lors de la création d'une page CMS (legacy ObjectModel).
+     *
+     * Hook: actionObjectCmsAddAfter
+     */
+    public function hookActionObjectCmsAddAfter(array $params): void
+    {
+        $this->saveEntityFields('cms_page', $params);
+    }
+
+    // =========================================================================
+    // SYMFONY FORM HOOKS - CMS Page (PrestaShop 8/9)
+    // =========================================================================
+
+    /**
+     * Injecte les champs ACF dans le formulaire Symfony CMS Page (BO).
+     * Hook: actionCmsPageFormBuilderModifier.
+     */
+    public function hookActionCmsPageFormBuilderModifier(array $params): void
+    {
+        $this->handleSymfonyFormBuilder('cms_page', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF après création CMS Page (Symfony).
+     * Hook: actionAfterCreateCmsPageFormHandler.
+     */
+    public function hookActionAfterCreateCmsPageFormHandler(array $params): void
+    {
+        $this->handleSymfonyFormHandler('cms_page', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF après mise à jour CMS Page (Symfony).
+     * Hook: actionAfterUpdateCmsPageFormHandler.
+     */
+    public function hookActionAfterUpdateCmsPageFormHandler(array $params): void
+    {
+        $this->handleSymfonyFormHandler('cms_page', $params);
+    }
+
+    // =========================================================================
     // MÉTHODES PRIVÉES - Logique commune
     // =========================================================================
 
@@ -275,7 +340,6 @@ trait EntityFieldHooksTrait
             if ($service === null) {
                 return;
             }
-
             $service->saveFieldsForEntity($entity, $entityId, $_POST, $_FILES, $this);
         } catch (Exception $e) {
             $this->log("Error saving fields for {$entity}: " . $e->getMessage(), 3);

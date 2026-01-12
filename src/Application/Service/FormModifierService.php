@@ -317,10 +317,36 @@ final class FormModifierService
                     continue;
                 }
 
+                // Get field translations for metadata (title, instructions)
+                $fieldTranslations = $this->fieldRepository->getFieldTranslations((int) $field['id_wepresta_acf_field']);
+                $currentLangIso = null;
+
+                // Find current language ISO code
+                foreach ($languages as $lang) {
+                    if ((int) $lang['id_lang'] === $currentLangId) {
+                        $currentLangIso = $lang['iso_code'];
+                        break;
+                    }
+                }
+
+                // Use translated metadata if available, fallback to default values
+                $fieldTitle = $field['title'];
+                $fieldInstructions = $field['instructions'];
+
+                if ($currentLangIso && isset($fieldTranslations[$currentLangIso])) {
+                    $translation = $fieldTranslations[$currentLangIso];
+                    if (!empty($translation['title'])) {
+                        $fieldTitle = $translation['title'];
+                    }
+                    if (!empty($translation['instructions'])) {
+                        $fieldInstructions = $translation['instructions'];
+                    }
+                }
+
                 $fieldData = [
                     'slug' => $slug,
-                    'title' => $field['title'],
-                    'instructions' => $field['instructions'],
+                    'title' => $fieldTitle,
+                    'instructions' => $fieldInstructions,
                     'required' => (bool) (json_decode($field['validation'] ?? '{}', true)['required'] ?? false),
                     'translatable' => $isTranslatable,
                 ];

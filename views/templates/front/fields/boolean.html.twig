@@ -1,0 +1,13 @@
+{#
+ # ACF Boolean Field Template (Twig)
+ #}
+
+{% set boolValue = value and value != '0' and value != 'false' %}
+
+<span class="acf-boolean acf-boolean--{{ boolValue ? 'true' : 'false' }}{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+    {% if boolValue %}
+        {{ config.trueLabel|default('✓') }}
+    {% else %}
+        {{ config.falseLabel|default('✗') }}
+    {% endif %}
+</span>

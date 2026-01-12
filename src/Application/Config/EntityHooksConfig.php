@@ -27,6 +27,7 @@ final class EntityHooksConfig
         'product',
         'category',
         'customer',
+        'cms_page',
     ];
 
     /**
@@ -82,6 +83,21 @@ final class EntityHooksConfig
                 ],
             ],
         ],
+        'cms_page' => [
+            'display' => 'displayAdminCmsContent',
+            'save' => [
+                'actionObjectCmsUpdateAfter',
+                'actionObjectCmsAddAfter',
+            ],
+            // PrestaShop 8/9 (Symfony Forms) - CMS Page
+            'symfony' => [
+                'form_builder' => 'actionCmsPageFormBuilderModifier',
+                'form_handlers' => [
+                    'actionAfterCreateCmsPageFormHandler',
+                    'actionAfterUpdateCmsPageFormHandler',
+                ],
+            ],
+        ],
     ];
 
     /**
@@ -92,6 +108,18 @@ final class EntityHooksConfig
     public const SYSTEM_HOOKS = [
         'actionAdminControllerSetMedia',
         'actionFrontControllerSetMedia',
+    ];
+
+    /**
+     * Hooks front-office pour l'affichage ACF.
+     *
+     * @var string[]
+     */
+    public const FRONT_HOOKS = [
+        'displayHeader',           // Initialize $acf in Smarty + register plugins
+        'filterCmsContent',        // Parse shortcodes in CMS pages
+        'filterCategoryContent',   // Parse shortcodes in category descriptions
+        'filterProductContent',    // Parse shortcodes in product descriptions
     ];
 
     /**
@@ -108,12 +136,16 @@ final class EntityHooksConfig
      * Inclut:
      * - Hooks système (media, header)
      * - Hooks admin (display, save, Symfony)
+     * - Hooks front-office (display, shortcodes)
      *
      * @return string[]
      */
     public static function getAllHooks(): array
     {
         $hooks = self::SYSTEM_HOOKS;
+
+        // Front-office hooks
+        $hooks = array_merge($hooks, self::FRONT_HOOKS);
 
         // Admin hooks (legacy + Symfony)
         foreach (self::ADMIN_HOOKS as $config) {
@@ -172,7 +204,10 @@ final class EntityHooksConfig
      */
     public static function getIdParam(string $entity): string
     {
-        return 'id_' . $entity;
+        return match ($entity) {
+            'cms_page' => 'id_cms',
+            default => 'id_' . $entity,
+        };
     }
 
     /**
@@ -187,7 +222,12 @@ final class EntityHooksConfig
             'Catalog' => [
                 'product' => ['label' => 'Product', 'type' => 'active'],
                 'category' => ['label' => 'Category', 'type' => 'active'],
+            ],
+            'Customers' => [
                 'customer' => ['label' => 'Customer', 'type' => 'active'],
+            ],
+            'CMS' => [
+                'cms_page' => ['label' => 'CMS Page', 'type' => 'active'],
             ],
         ];
     }
@@ -209,8 +249,12 @@ final class EntityHooksConfig
         }
 
         return [
-            'label' => ucfirst($entityType),
-            'category' => $entityType === 'customer' ? 'Customers' : 'Catalog',
+            'label' => $entityType === 'cms_page' ? 'CMS Page' : ucfirst($entityType),
+            'category' => match ($entityType) {
+                'customer' => 'Customers',
+                'cms_page' => 'CMS',
+                default => 'Catalog',
+            },
             'form_builder_hook' => null,
             'form_handler_hooks' => [],
             'id_param' => self::getIdParam($entityType),

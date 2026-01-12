@@ -390,3 +390,37 @@ services:
         parent: 'form.type.translatable.aware'
         public: true
 
+    # =========================================================================
+    # Front-Office Services
+    # =========================================================================
+
+    WeprestaAcf\Application\Service\EntityContextDetector:
+        public: true
+
+    WeprestaAcf\Application\Service\FieldRenderer:
+        public: true
+
+    WeprestaAcf\Application\Service\AcfFrontService:
+        arguments:
+            $contextDetector: '@WeprestaAcf\Application\Service\EntityContextDetector'
+            $fieldRenderer: '@WeprestaAcf\Application\Service\FieldRenderer'
+            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+        public: true
+
+    WeprestaAcf\Application\Service\ShortcodeParser:
+        arguments:
+            $frontService: '@WeprestaAcf\Application\Service\AcfFrontService'
+            $fieldRenderer: '@WeprestaAcf\Application\Service\FieldRenderer'
+        public: true
+
+    WeprestaAcf\Application\Smarty\AcfSmartyWrapper:
+        public: true
+
+    WeprestaAcf\Application\Twig\AcfTwigExtension:
+        arguments:
+            $frontService: '@WeprestaAcf\Application\Service\AcfFrontService'
+            $fieldRenderer: '@WeprestaAcf\Application\Service\FieldRenderer'
+        tags: ['twig.extension']
+        public: true

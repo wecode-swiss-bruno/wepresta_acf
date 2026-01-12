@@ -22,6 +22,11 @@ const currentLangCode = ref<string>('en')
 const languages = computed(() => window.acfConfig?.languages || [])
 const defaultLanguage = computed(() => languages.value.find((l: any) => l.is_default) || languages.value[0])
 
+// Get current language object
+const currentLanguage = computed(() => {
+  return languages.value.find((l: any) => l.code === currentLangCode.value) || defaultLanguage.value
+})
+
 // Local choices state
 const choices = ref<FieldChoice[]>([...props.modelValue])
 const isUpdating = ref(false)
@@ -216,14 +221,14 @@ function emitChoices(): void {
           Custom value
         </small>
       </div>
-      <div v-for="lang in languages" :key="lang.code" v-show="currentLangCode === lang.code || languages.length === 1">
+      <div class="label-input-container" v-if="currentLanguage">
         <input
           type="text"
           class="form-control"
-          :placeholder="'Label' + (languages.length > 1 ? ' (' + lang.code.toUpperCase() + ')' : '')"
-          :value="choice.translations ? choice.translations[lang.id] || '' : choice.label"
-          :class="{ 'font-weight-bold': lang.is_default }"
-          @input="updateChoiceTranslation(index, lang.id, ($event.target as HTMLInputElement).value)"
+          :class="{ 'font-weight-bold': currentLanguage.is_default }"
+          :placeholder="'Label' + (languages.length > 1 ? ' (' + currentLanguage.code.toUpperCase() + ')' : '')"
+          :value="choice.translations ? choice.translations[currentLanguage.id] || '' : choice.label"
+          @input="updateChoiceTranslation(index, currentLanguage.id, ($event.target as HTMLInputElement).value)"
         >
       </div>
       <button
@@ -269,6 +274,10 @@ function emitChoices(): void {
 .value-input-container {
   flex: 1;
   position: relative;
+}
+
+.label-input-container {
+  flex: 1;
 }
 
 .value-hint {

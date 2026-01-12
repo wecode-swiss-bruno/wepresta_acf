@@ -1,0 +1,15 @@
+{#
+ # ACF URL Field Template (Twig)
+ #}
+
+{% if value is not empty %}
+    {% set linkText = config.linkText|default(value) %}
+    {% set target = config.openInNewTab|default(false) ? ' target="_blank" rel="noopener noreferrer"' : '' %}
+    
+    <a href="{{ value }}" 
+       class="acf-link{% if customClass %} {{ customClass }}{% endif %}"
+       {% if customId %}id="{{ customId }}"{% endif %}
+       {{ target|raw }}>
+        {{ linkText }}
+    </a>
+{% endif %}

@@ -1,0 +1,23 @@
+{#
+ # ACF Gallery Field Template (Twig)
+ #}
+
+{% if value is iterable and value|length > 0 %}
+    <div class="acf-gallery{% if customClass %} {{ customClass }}{% endif %}"{% if customId %} id="{{ customId }}"{% endif %}>
+        {% for item in value %}
+            {% if item is iterable %}
+                {% set imgUrl = item.url|default('') %}
+                {% set imgAlt = item.alt|default(item.title|default('')) %}
+            {% else %}
+                {% set imgUrl = item %}
+                {% set imgAlt = '' %}
+            {% endif %}
+            
+            {% if imgUrl is not empty %}
+                <div class="acf-gallery-item">
+                    <img src="{{ imgUrl }}" alt="{{ imgAlt }}" loading="lazy">
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}

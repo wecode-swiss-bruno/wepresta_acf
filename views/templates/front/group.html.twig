@@ -1,0 +1,21 @@
+{#
+ # ACF Group Template (Twig)
+ #}
+
+{% if fields is iterable and fields|length > 0 %}
+    <div class="acf-group">
+        {% for field in fields %}
+            {% if field.has_value %}
+                <div class="acf-group-field acf-group-field--{{ field.type }}" data-field="{{ field.slug }}">
+                    {% if options.showTitles is defined and options.showTitles and field.title is not empty %}
+                        <label class="acf-field-label">{{ field.title }}</label>
+                    {% endif %}
+                    
+                    <div class="acf-field-content">
+                        {{ field.rendered|raw }}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
