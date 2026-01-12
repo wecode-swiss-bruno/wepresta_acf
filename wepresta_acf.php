@@ -89,6 +89,9 @@ class WeprestaAcf extends Module
     public function uninstall(): bool
     {
         try {
+            // Clear Symfony cache before uninstall to avoid Twig service loading errors
+            $this->clearSymfonyCache();
+
             $uninstaller = new ModuleUninstaller($this, Db::getInstance());
 
             return $uninstaller->uninstall() && parent::uninstall();
@@ -97,6 +100,55 @@ class WeprestaAcf extends Module
 
             return false;
         }
+    }
+
+    /**
+     * Clear Symfony cache to avoid service loading errors during uninstall.
+     */
+    private function clearSymfonyCache(): void
+    {
+        try {
+            // Method 1: Try to clear via Symfony container
+            if (class_exists('\PrestaShop\PrestaShop\Adapter\SymfonyContainer')) {
+                $container = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance();
+                
+                if ($container && $container->has('cache.clearer')) {
+                    $cacheClearer = $container->get('cache.clearer');
+                    if (method_exists($cacheClearer, 'clear')) {
+                        $cacheClearer->clear('');
+                    }
+                }
+            }
+
+            // Method 2: Try to clear cache directory directly (PS8/PS9 compatible)
+            $rootDir = defined('_PS_ROOT_DIR_') ? _PS_ROOT_DIR_ : dirname(_PS_ADMIN_DIR_);
+            $cacheDir = $rootDir . '/var/cache';
+            if (is_dir($cacheDir)) {
+                $this->deleteDirectory($cacheDir . '/dev');
+                $this->deleteDirectory($cacheDir . '/prod');
+            }
+        } catch (Exception $e) {
+            // Silently ignore cache clearing errors during uninstall
+        }
+    }
+
+    /**
+     * Recursively delete a directory.
+     */
+    private function deleteDirectory(string $dir): bool
+    {
+        if (!is_dir($dir)) {
+            return true;
+        }
+
+        $files = array_diff(scandir($dir), ['.', '..']);
+        
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            is_dir($path) ? $this->deleteDirectory($path) : @unlink($path);
+        }
+
+        return @rmdir($dir);
     }
 
     // =========================================================================

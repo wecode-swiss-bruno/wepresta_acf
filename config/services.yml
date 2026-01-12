@@ -339,6 +339,8 @@ services:
             $fieldTypeLoader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
             $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
             $translator: '@translator'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $requestStack: '@request_stack'
         tags: ['controller.service_arguments']
         public: true
 

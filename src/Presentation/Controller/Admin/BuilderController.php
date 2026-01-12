@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace WeprestaAcf\Presentation\Controller\Admin;
 
 use Configuration;
+use Context;
 use Language;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Application\Service\FieldTypeLoader;
@@ -15,6 +18,7 @@ use WeprestaAcf\Application\Service\FieldTypeRegistry;
 
 /**
  * Vue.js Field Builder SPA Controller.
+ * Compatible PrestaShop 8.x and 9.x
  */
 final class BuilderController extends FrameworkBundleAdminController
 {
@@ -22,7 +26,9 @@ final class BuilderController extends FrameworkBundleAdminController
         private readonly FieldTypeRegistry $fieldTypeRegistry,
         private readonly FieldTypeLoader $fieldTypeLoader,
         private readonly LocationProviderRegistry $locationProviderRegistry,
-        private readonly TranslatorInterface $translator
+        private readonly TranslatorInterface $translator,
+        private readonly CsrfTokenManagerInterface $csrfTokenManager,
+        private readonly RequestStack $requestStack
     ) {
         // Note: parent::__construct() is NOT called for PS8/PS9 compatibility
         // In PS9 (Symfony 6.x), calling parent constructor causes "Cannot call constructor" error
@@ -81,12 +87,16 @@ final class BuilderController extends FrameworkBundleAdminController
             ];
         }
 
+        // Generate CSRF token compatible PS8/PS9
+        $csrfToken = $this->generateCsrfToken();
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/builder.html.twig', [
             'layoutTitle' => $this->trans('ACF Field Builder', 'Modules.Weprestaacf.Admin'),
             'enableSidebar' => true,
             'fieldTypes' => $fieldTypes,
             'locations' => $locations,
             'languages' => $languages,
+            'csrfToken' => $csrfToken,
             // Toolbar buttons are now handled dynamically via Vue.js and DOM manipulation
             // The buttons are injected via header_toolbar_btn block and controlled by Vue state
             'layoutHeaderToolbarBtn' => [],
@@ -100,5 +110,47 @@ final class BuilderController extends FrameworkBundleAdminController
     protected function trans($key, $domain, array $parameters = [])
     {
         return $this->translator->trans($key, $parameters, $domain);
+    }
+
+    /**
+     * Generate CSRF token compatible with PS8 and PS9.
+     * 
+     * For PS8 with "Protection des jetons" enabled, we need to use the same
+     * token that PrestaShop generates for the current page URL.
+     * This token is validated by the LegacyAdminTokenValidator.
+     */
+    private function generateCsrfToken(): string
+    {
+        // Try to get the current request's _token (this is the token PS8 validates)
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request && $request->query->has('_token')) {
+            return $request->query->get('_token');
+        }
+
+        // PS9 method (UserTokenManager)
+        if (class_exists('PrestaShopBundle\Security\Admin\UserTokenManager')) {
+            try {
+                $userTokenManager = $this->container->get('prestashop.security.admin.user_token_manager');
+                if ($userTokenManager && method_exists($userTokenManager, 'getSymfonyToken')) {
+                    return $userTokenManager->getSymfonyToken();
+                }
+            } catch (\Exception $e) {
+                // Fallback
+            }
+        }
+
+        // PS8 fallback: Generate CSRF token with employee email
+        try {
+            $context = Context::getContext();
+            if (isset($context->employee) && $context->employee->id && $context->employee->email) {
+                $tokenId = $context->employee->email;
+                return $this->csrfTokenManager->getToken($tokenId)->getValue();
+            }
+        } catch (\Exception $e) {
+            // Continue
+        }
+
+        // Last resort
+        return '';
     }
 }

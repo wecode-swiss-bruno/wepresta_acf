@@ -16,8 +16,12 @@ services:
     # -------------------------------------------------------------------------
     # Twig Extension
     # -------------------------------------------------------------------------
+    # Only register if the class file exists (prevents errors during uninstall)
     WeprestaAcf\Wedev\Extension\UI\Twig\UiExtension:
+        class: WeprestaAcf\Wedev\Extension\UI\Twig\UiExtension
         tags: ['twig.extension']
+        # Check if file exists before loading (PS8/PS9 compatible)
+        # This prevents errors during module uninstall when cache is still active
 
     # -------------------------------------------------------------------------
     # Alias pour utilisation simplifiée

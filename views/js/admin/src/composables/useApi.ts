@@ -18,12 +18,11 @@ export function useApi() {
     const cleanApiUrl = config.apiUrl.endsWith('/') ? config.apiUrl.slice(0, -1) : config.apiUrl
     let url = `${cleanApiUrl}${cleanEndpoint}`
     
-    // For GET requests, add token to URL instead of header
-    const method = options.method || 'GET'
-    if (method === 'GET') {
-      const separator = url.includes('?') ? '&' : '?'
-      url = `${url}${separator}_token=${config.token}`
-    }
+    // IMPORTANT: Add CSRF token to ALL requests (GET, POST, PUT, DELETE)
+    // PrestaShop 8 with "Protection des jetons" validates the Symfony CSRF token
+    // The parameter MUST be '_token' (with underscore) for PS8 Symfony routes
+    const separator = url.includes('?') ? '&' : '?'
+    url = `${url}${separator}_token=${config.token}`
     
     // Add timeout to prevent hanging requests
     const controller = new AbortController()
