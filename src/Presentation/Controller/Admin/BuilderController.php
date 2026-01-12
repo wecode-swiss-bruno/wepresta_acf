@@ -8,6 +8,7 @@ use Configuration;
 use Language;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Application\Service\FieldTypeLoader;
 use WeprestaAcf\Application\Service\FieldTypeRegistry;
@@ -20,8 +21,19 @@ final class BuilderController extends FrameworkBundleAdminController
     public function __construct(
         private readonly FieldTypeRegistry $fieldTypeRegistry,
         private readonly FieldTypeLoader $fieldTypeLoader,
-        private readonly LocationProviderRegistry $locationProviderRegistry
+        private readonly LocationProviderRegistry $locationProviderRegistry,
+        private readonly TranslatorInterface $translator
     ) {
+        parent::__construct();
+    }
+
+    /**
+     * Override trans() method for PS8/PS9 compatibility.
+     * In PS8, translator is not available in the service locator.
+     */
+    protected function trans($key, $domain, array $parameters = [])
+    {
+        return $this->translator->trans($key, $parameters, $domain);
     }
 
     public function index(): Response

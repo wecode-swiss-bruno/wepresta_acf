@@ -10,11 +10,11 @@ use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use WeprestaAcf\Application\Form\SyncType;
 use WeprestaAcf\Application\Service\AutoSyncService;
 use WeprestaAcf\Application\Service\ExportImportService;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
-use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 
 /**
  * Sync controller for Export/Import operations.
@@ -25,8 +25,18 @@ class SyncController extends FrameworkBundleAdminController
         private readonly ExportImportService $exportImportService,
         private readonly AcfGroupRepositoryInterface $groupRepository,
         private readonly AutoSyncService $autoSyncService,
-        private readonly ConfigurationAdapter $config
+        private readonly TranslatorInterface $translator
     ) {
+        parent::__construct();
+    }
+
+    /**
+     * Override trans() method for PS8/PS9 compatibility.
+     * In PS8, translator is not available in the service locator.
+     */
+    protected function trans($key, $domain, array $parameters = [])
+    {
+        return $this->translator->trans($key, $parameters, $domain);
     }
 
     /**

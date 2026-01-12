@@ -338,6 +338,7 @@ services:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
             $fieldTypeLoader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
             $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
+            $translator: '@translator'
         tags: ['controller.service_arguments']
         public: true
 
@@ -345,6 +346,7 @@ services:
         arguments:
             $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
             $fieldTypeLoader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
+            $translator: '@translator'
         tags: ['controller.service_arguments']
         public: true
 
@@ -353,6 +355,7 @@ services:
             $exportImportService: '@WeprestaAcf\Application\Service\ExportImportService'
             $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
             $autoSyncService: '@WeprestaAcf\Application\Service\AutoSyncService'
+            $translator: '@translator'
         tags: ['controller.service_arguments']
         public: true
 
@@ -379,15 +382,23 @@ services:
 
 
     # =========================================================================
-    # Form Types
+    # Form Types (PS8 Compatibility)
     # =========================================================================
 
+    # PS8: Cannot use 'parent' with autowire from _defaults (Symfony 3.4 limitation)
+    # Solution: Provide arguments explicitly without parent
     WeprestaAcf\Application\Form\ConfigurationType:
-        parent: 'form.type.translatable.aware'
+        arguments:
+            $translator: '@translator'
+            $locales: "@=service('prestashop.adapter.legacy.context').getAvailableLanguages()"
+        tags: ['form.type']
         public: true
 
     WeprestaAcf\Application\Form\SyncType:
-        parent: 'form.type.translatable.aware'
+        arguments:
+            $translator: '@translator'
+            $locales: "@=service('prestashop.adapter.legacy.context').getAvailableLanguages()"
+        tags: ['form.type']
         public: true
 
     # =========================================================================

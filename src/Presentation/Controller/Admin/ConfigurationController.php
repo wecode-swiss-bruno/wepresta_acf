@@ -13,6 +13,7 @@ use Module;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use WeprestaAcf\Application\Form\ConfigurationType;
 use WeprestaAcf\Application\Service\FieldTypeLoader;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
@@ -21,8 +22,19 @@ class ConfigurationController extends FrameworkBundleAdminController
 {
     public function __construct(
         private readonly ConfigurationAdapter $config,
-        private readonly FieldTypeLoader $fieldTypeLoader
+        private readonly FieldTypeLoader $fieldTypeLoader,
+        private readonly TranslatorInterface $translator
     ) {
+        parent::__construct();
+    }
+
+    /**
+     * Override trans() method for PS8/PS9 compatibility.
+     * In PS8, translator is not available in the service locator.
+     */
+    protected function trans($key, $domain, array $parameters = [])
+    {
+        return $this->translator->trans($key, $parameters, $domain);
     }
 
     public function configuration(Request $request): Response
