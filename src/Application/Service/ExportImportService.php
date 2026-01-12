@@ -388,6 +388,7 @@ final class ExportImportService
             if ($aParent === 0 && $bParent !== 0) {
                 return -1;
             }
+
             if ($aParent !== 0 && $bParent === 0) {
                 return 1;
             }
@@ -594,6 +595,7 @@ final class ExportImportService
             if ($aParent === 0 && $bParent !== 0) {
                 return -1;
             }
+
             if ($aParent !== 0 && $bParent === 0) {
                 return 1;
             }
@@ -613,6 +615,7 @@ final class ExportImportService
 
             // Map old parent ID to new parent ID
             $newParentId = null;
+
             if ($oldParentId !== null && isset($oldIdToNewIdMap[$oldParentId])) {
                 $newParentId = $oldIdToNewIdMap[$oldParentId];
             }

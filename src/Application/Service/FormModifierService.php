@@ -325,6 +325,7 @@ final class FormModifierService
                 foreach ($languages as $lang) {
                     if ((int) $lang['id_lang'] === $currentLangId) {
                         $currentLangIso = $lang['iso_code'];
+
                         break;
                     }
                 }
@@ -335,10 +336,12 @@ final class FormModifierService
 
                 if ($currentLangIso && isset($fieldTranslations[$currentLangIso])) {
                     $translation = $fieldTranslations[$currentLangIso];
-                    if (!empty($translation['title'])) {
+
+                    if (! empty($translation['title'])) {
                         $fieldTitle = $translation['title'];
                     }
-                    if (!empty($translation['instructions'])) {
+
+                    if (! empty($translation['instructions'])) {
                         $fieldInstructions = $translation['instructions'];
                     }
                 }

@@ -25,16 +25,8 @@ class ConfigurationController extends FrameworkBundleAdminController
         private readonly FieldTypeLoader $fieldTypeLoader,
         private readonly TranslatorInterface $translator
     ) {
-        parent::__construct();
-    }
-
-    /**
-     * Override trans() method for PS8/PS9 compatibility.
-     * In PS8, translator is not available in the service locator.
-     */
-    protected function trans($key, $domain, array $parameters = [])
-    {
-        return $this->translator->trans($key, $parameters, $domain);
+        // Note: parent::__construct() is NOT called for PS8/PS9 compatibility
+        // In PS9 (Symfony 6.x), calling parent constructor causes "Cannot call constructor" error
     }
 
     public function configuration(Request $request): Response
@@ -71,6 +63,15 @@ class ConfigurationController extends FrameworkBundleAdminController
             'discoveryPaths' => $discoveryPaths,
             'layoutTitle' => $this->trans('ACF Configuration', 'Modules.Weprestaacf.Admin'),
         ]);
+    }
+
+    /**
+     * Override trans() method for PS8/PS9 compatibility.
+     * In PS8, translator is not available in the service locator.
+     */
+    protected function trans($key, $domain, array $parameters = [])
+    {
+        return $this->translator->trans($key, $parameters, $domain);
     }
 
     /**

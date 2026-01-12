@@ -268,7 +268,7 @@ final class AcfServiceContainer
 
     public static function getContextDetector(): EntityContextDetector
     {
-        if (!isset(self::$services[EntityContextDetector::class])) {
+        if (! isset(self::$services[EntityContextDetector::class])) {
             $service = self::tryGet(EntityContextDetector::class);
             self::$services[EntityContextDetector::class] = $service ?? new EntityContextDetector();
         }
@@ -279,7 +279,7 @@ final class AcfServiceContainer
 
     public static function getFieldRenderer(): FieldRenderer
     {
-        if (!isset(self::$services[FieldRenderer::class])) {
+        if (! isset(self::$services[FieldRenderer::class])) {
             $service = self::tryGet(FieldRenderer::class);
             self::$services[FieldRenderer::class] = $service ?? new FieldRenderer();
         }
@@ -290,7 +290,7 @@ final class AcfServiceContainer
 
     public static function getFrontService(): AcfFrontService
     {
-        if (!isset(self::$services[AcfFrontService::class])) {
+        if (! isset(self::$services[AcfFrontService::class])) {
             $service = self::tryGet(AcfFrontService::class);
             self::$services[AcfFrontService::class] = $service ?? new AcfFrontService(
                 self::getContextDetector(),
@@ -307,7 +307,7 @@ final class AcfServiceContainer
 
     public static function getShortcodeParser(): ShortcodeParser
     {
-        if (!isset(self::$services[ShortcodeParser::class])) {
+        if (! isset(self::$services[ShortcodeParser::class])) {
             $service = self::tryGet(ShortcodeParser::class);
             self::$services[ShortcodeParser::class] = $service ?? new ShortcodeParser(
                 self::getFrontService(),
@@ -321,7 +321,7 @@ final class AcfServiceContainer
 
     public static function getSmartyWrapper(): AcfSmartyWrapper
     {
-        if (!isset(self::$services[AcfSmartyWrapper::class])) {
+        if (! isset(self::$services[AcfSmartyWrapper::class])) {
             self::$services[AcfSmartyWrapper::class] = new AcfSmartyWrapper();
         }
 
@@ -331,7 +331,7 @@ final class AcfServiceContainer
 
     public static function getTwigExtension(): AcfTwigExtension
     {
-        if (!isset(self::$services[AcfTwigExtension::class])) {
+        if (! isset(self::$services[AcfTwigExtension::class])) {
             $service = self::tryGet(AcfTwigExtension::class);
             self::$services[AcfTwigExtension::class] = $service ?? new AcfTwigExtension(
                 self::getFrontService(),

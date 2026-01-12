@@ -279,41 +279,6 @@ class WeprestaAcf extends Module
         return $params;
     }
 
-    /**
-     * Register Smarty plugin functions.
-     */
-    private function registerSmartyPlugins(): void
-    {
-        $smarty = $this->context->smarty;
-
-        // Register only if not already registered
-        $pluginsDir = __DIR__ . '/src/Application/Smarty/';
-
-        // Function plugins
-        $functions = ['acf_field', 'acf_render', 'acf_group'];
-
-        foreach ($functions as $funcName) {
-            $pluginFile = $pluginsDir . 'function.' . $funcName . '.php';
-
-            if (file_exists($pluginFile) && ! isset($smarty->registered_plugins['function'][$funcName])) {
-                require_once $pluginFile;
-                $smarty->registerPlugin('function', $funcName, 'smarty_function_' . $funcName);
-            }
-        }
-
-        // Block plugins
-        $blocks = ['acf_foreach'];
-
-        foreach ($blocks as $blockName) {
-            $pluginFile = $pluginsDir . 'block.' . $blockName . '.php';
-
-            if (file_exists($pluginFile) && ! isset($smarty->registered_plugins['block'][$blockName])) {
-                require_once $pluginFile;
-                $smarty->registerPlugin('block', $blockName, 'smarty_block_' . $blockName);
-            }
-        }
-    }
-
     public function isActive(): bool
     {
         return (bool) $this->active;
@@ -371,6 +336,41 @@ class WeprestaAcf extends Module
     public function getModulePath(): string
     {
         return $this->getLocalPath();
+    }
+
+    /**
+     * Register Smarty plugin functions.
+     */
+    private function registerSmartyPlugins(): void
+    {
+        $smarty = $this->context->smarty;
+
+        // Register only if not already registered
+        $pluginsDir = __DIR__ . '/src/Application/Smarty/';
+
+        // Function plugins
+        $functions = ['acf_field', 'acf_render', 'acf_group'];
+
+        foreach ($functions as $funcName) {
+            $pluginFile = $pluginsDir . 'function.' . $funcName . '.php';
+
+            if (file_exists($pluginFile) && ! isset($smarty->registered_plugins['function'][$funcName])) {
+                require_once $pluginFile;
+                $smarty->registerPlugin('function', $funcName, 'smarty_function_' . $funcName);
+            }
+        }
+
+        // Block plugins
+        $blocks = ['acf_foreach'];
+
+        foreach ($blocks as $blockName) {
+            $pluginFile = $pluginsDir . 'block.' . $blockName . '.php';
+
+            if (file_exists($pluginFile) && ! isset($smarty->registered_plugins['block'][$blockName])) {
+                require_once $pluginFile;
+                $smarty->registerPlugin('block', $blockName, 'smarty_block_' . $blockName);
+            }
+        }
     }
 
     /**

@@ -13,4 +13,3 @@ function upgrade_module_1_2_2(Module $module): bool
     // Register all hooks from centralized config (idempotent).
     return (bool) $module->registerHook(EntityHooksConfig::getAllHooks());
 }
-

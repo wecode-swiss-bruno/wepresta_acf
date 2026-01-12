@@ -29,18 +29,6 @@ final class AcfSmartyWrapper
 {
     private ?AcfFrontService $service = null;
 
-    /**
-     * Get or create the underlying service instance.
-     */
-    private function getService(): AcfFrontService
-    {
-        if ($this->service === null) {
-            $this->service = AcfServiceContainer::getFrontService();
-        }
-
-        return $this->service;
-    }
-
     // =========================================================================
     // FIELD ACCESS
     // =========================================================================
@@ -293,5 +281,17 @@ final class AcfSmartyWrapper
     public function getContext(): array
     {
         return $this->getService()->getContext();
+    }
+
+    /**
+     * Get or create the underlying service instance.
+     */
+    private function getService(): AcfFrontService
+    {
+        if ($this->service === null) {
+            $this->service = AcfServiceContainer::getFrontService();
+        }
+
+        return $this->service;
     }
 }

@@ -24,15 +24,18 @@ namespace WeprestaAcf\Application\Service;
 use Generator;
 use Hook;
 use PrestaShopLogger;
+use Throwable;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
-use WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 
 final class AcfFrontService
 {
     private ?string $entityType = null;
+
     private ?int $entityId = null;
+
     private ?int $shopId = null;
+
     private ?int $langId = null;
 
     /** @var array<string, mixed>|null Cached field values for current entity */
@@ -42,6 +45,13 @@ final class AcfFrontService
     private ?array $cachedFields = null;
 
     private bool $contextOverridden = false;
+
+    // =========================================================================
+    // REPEATER ACCESS
+    // =========================================================================
+
+    /** @var array<int, array<string, array<string, mixed>>>|null Cached sub-fields by parent ID */
+    private ?array $cachedSubFields = null;
 
     public function __construct(
         private readonly EntityContextDetector $contextDetector,
@@ -164,7 +174,7 @@ final class AcfFrontService
         }
 
         // Escape string values for XSS protection
-        if (is_string($value)) {
+        if (\is_string($value)) {
             return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
         }
 
@@ -216,19 +226,20 @@ final class AcfFrontService
         $fieldDef = $this->getFieldDefinition($slug);
 
         if ($fieldDef === null) {
-            return is_string($value) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : (string) $value;
+            return \is_string($value) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : (string) $value;
         }
 
         $fieldType = $fieldDef['type'] ?? '';
 
         // Only resolve labels for choice fields
-        if (!in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
-            return is_string($value) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : (string) $value;
+        if (! \in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
+            return \is_string($value) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : (string) $value;
         }
 
         // Get config and choices
         $config = $fieldDef['config'] ?? [];
-        if (is_string($config)) {
+
+        if (\is_string($config)) {
             $config = json_decode($config, true) ?: [];
         }
 
@@ -241,9 +252,9 @@ final class AcfFrontService
         $langId = $this->langId ?? $this->contextDetector->detect()['lang_id'] ?? 1;
 
         // Handle checkbox (multiple values)
-        if ($fieldType === 'checkbox' && is_array($value)) {
+        if ($fieldType === 'checkbox' && \is_array($value)) {
             $labels = array_map(
-                fn($v) => $this->resolveChoiceLabel($v, $choices, $langId),
+                fn ($v) => $this->resolveChoiceLabel($v, $choices, $langId),
                 $value
             );
 
@@ -276,7 +287,7 @@ final class AcfFrontService
 
         if ($fieldDef === null) {
             // Field definition not found, return escaped value
-            return is_string($value) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : '';
+            return \is_string($value) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : '';
         }
 
         try {
@@ -287,7 +298,7 @@ final class AcfFrontService
                 'entity_id' => $this->getEntityId(),
                 'value' => &$value,
             ];
-            \Hook::exec('actionAcfBeforeRender', $hookParams);
+            Hook::exec('actionAcfBeforeRender', $hookParams);
             $value = $hookParams['value'];
 
             // Render the field
@@ -298,10 +309,10 @@ final class AcfFrontService
                 'field_slug' => $slug,
                 'rendered_html' => &$html,
             ];
-            \Hook::exec('actionAcfAfterRender', $afterHookParams);
+            Hook::exec('actionAcfAfterRender', $afterHookParams);
 
             return $afterHookParams['rendered_html'];
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logError("Error rendering field '{$slug}': " . $e->getMessage());
 
             return '';
@@ -325,19 +336,8 @@ final class AcfFrontService
             return false;
         }
 
-        if (is_array($value) && count($value) === 0) {
-            return false;
-        }
-
-        return true;
+        return ! (\is_array($value) && \count($value) === 0);
     }
-
-    // =========================================================================
-    // REPEATER ACCESS
-    // =========================================================================
-
-    /** @var array<int, array<string, array<string, mixed>>>|null Cached sub-fields by parent ID */
-    private ?array $cachedSubFields = null;
 
     /**
      * Get repeater field rows as iterable.
@@ -353,7 +353,7 @@ final class AcfFrontService
 
         $value = $this->getFieldValue($slug);
 
-        if (!is_array($value) || empty($value)) {
+        if (! \is_array($value) || empty($value)) {
             return;
         }
 
@@ -362,19 +362,19 @@ final class AcfFrontService
 
         // Repeater structure: [{"row_id": "...", "values": {...}}, ...]
         foreach ($value as $index => $row) {
-            if (!is_array($row)) {
+            if (! \is_array($row)) {
                 continue;
             }
 
             // Extract values from row structure
             $rowValues = $row['values'] ?? $row;
 
-            if (!is_array($rowValues)) {
+            if (! \is_array($rowValues)) {
                 continue;
             }
 
             // Resolve labels for select/radio/checkbox fields
-            if ($resolveLabels && !empty($subFields)) {
+            if ($resolveLabels && ! empty($subFields)) {
                 $rowValues = $this->resolveSubFieldLabels($rowValues, $subFields);
             }
 
@@ -384,149 +384,6 @@ final class AcfFrontService
 
             yield $index => $rowValues;
         }
-    }
-
-    /**
-     * Get sub-fields definitions for a repeater.
-     *
-     * @return array<string, array<string, mixed>> Map of slug => field definition
-     */
-    private function getRepeaterSubFields(string $repeaterSlug): array
-    {
-        // Get repeater field definition
-        $repeaterField = $this->getFieldDefinition($repeaterSlug);
-
-        if ($repeaterField === null) {
-            return [];
-        }
-
-        $repeaterId = (int) ($repeaterField['id_wepresta_acf_field'] ?? 0);
-
-        if ($repeaterId === 0) {
-            return [];
-        }
-
-        // Check cache
-        if ($this->cachedSubFields === null) {
-            $this->cachedSubFields = [];
-        }
-
-        if (isset($this->cachedSubFields[$repeaterId])) {
-            return $this->cachedSubFields[$repeaterId];
-        }
-
-        // Load sub-fields from repository
-        $subFieldsRaw = $this->fieldRepository->findByParent($repeaterId);
-        $subFields = [];
-
-        foreach ($subFieldsRaw as $field) {
-            $fieldSlug = $field['slug'] ?? '';
-            if ($fieldSlug !== '') {
-                $subFields[$fieldSlug] = $field;
-            }
-        }
-
-        $this->cachedSubFields[$repeaterId] = $subFields;
-
-        return $subFields;
-    }
-
-    /**
-     * Resolve labels for select/radio/checkbox fields in a row.
-     *
-     * @param array<string, mixed> $rowValues Row values
-     * @param array<string, array<string, mixed>> $subFields Sub-field definitions
-     *
-     * @return array<string, mixed> Row values with resolved labels
-     */
-    private function resolveSubFieldLabels(array $rowValues, array $subFields): array
-    {
-        $langId = $this->langId ?? $this->contextDetector->detect()['lang_id'] ?? 1;
-
-        foreach ($rowValues as $slug => $value) {
-            // Skip metadata keys
-            if (str_starts_with($slug, '_')) {
-                continue;
-            }
-
-            $fieldDef = $subFields[$slug] ?? null;
-
-            if ($fieldDef === null) {
-                continue;
-            }
-
-            $fieldType = $fieldDef['type'] ?? '';
-
-            // Only resolve for choice fields
-            if (!in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
-                continue;
-            }
-
-            // Get config and choices
-            $config = $fieldDef['config'] ?? [];
-            if (is_string($config)) {
-                $config = json_decode($config, true) ?: [];
-            }
-
-            $choices = $config['choices'] ?? [];
-
-            if (empty($choices)) {
-                continue;
-            }
-
-            // Resolve value(s) to label(s)
-            if ($fieldType === 'checkbox' && is_array($value)) {
-                // Multiple values for checkbox
-                $rowValues[$slug] = array_map(
-                    fn($v) => $this->resolveChoiceLabel($v, $choices, $langId),
-                    $value
-                );
-            } else {
-                // Single value for select/radio
-                $rowValues[$slug] = $this->resolveChoiceLabel($value, $choices, $langId);
-            }
-        }
-
-        return $rowValues;
-    }
-
-    /**
-     * Resolve a single choice value to its label.
-     *
-     * @param mixed $value Choice value
-     * @param array<int, array<string, mixed>> $choices Available choices
-     * @param int $langId Language ID
-     *
-     * @return string Resolved label or original value
-     */
-    private function resolveChoiceLabel(mixed $value, array $choices, int $langId): string
-    {
-        if (!is_string($value) && !is_numeric($value)) {
-            return (string) $value;
-        }
-
-        foreach ($choices as $choice) {
-            if (($choice['value'] ?? '') === $value) {
-                // Check for translation
-                $translations = $choice['translations'] ?? [];
-
-                // Keys in translations are strings ("1", "2"), not integers
-                $langKey = (string) $langId;
-                if (isset($translations[$langKey]) && $translations[$langKey] !== '') {
-                    return (string) $translations[$langKey];
-                }
-
-                // Fallback to label
-                if (!empty($choice['label'])) {
-                    return (string) $choice['label'];
-                }
-
-                // Fallback to value
-                return (string) $value;
-            }
-        }
-
-        return (string) $value;
     }
 
     /**
@@ -554,11 +411,11 @@ final class AcfFrontService
 
         $value = $this->getFieldValue($slug);
 
-        if (!is_array($value)) {
+        if (! \is_array($value)) {
             return 0;
         }
 
-        return count($value);
+        return \count($value);
     }
 
     // =========================================================================
@@ -577,7 +434,7 @@ final class AcfFrontService
         $this->ensureContext();
 
         // Find group
-        $group = is_int($groupIdOrSlug)
+        $group = \is_int($groupIdOrSlug)
             ? $this->groupRepository->findOneBy(['id_wepresta_acf_group' => $groupIdOrSlug])
             : $this->groupRepository->findBySlug($groupIdOrSlug);
 
@@ -677,6 +534,152 @@ final class AcfFrontService
         return $result;
     }
 
+    /**
+     * Get sub-fields definitions for a repeater.
+     *
+     * @return array<string, array<string, mixed>> Map of slug => field definition
+     */
+    private function getRepeaterSubFields(string $repeaterSlug): array
+    {
+        // Get repeater field definition
+        $repeaterField = $this->getFieldDefinition($repeaterSlug);
+
+        if ($repeaterField === null) {
+            return [];
+        }
+
+        $repeaterId = (int) ($repeaterField['id_wepresta_acf_field'] ?? 0);
+
+        if ($repeaterId === 0) {
+            return [];
+        }
+
+        // Check cache
+        if ($this->cachedSubFields === null) {
+            $this->cachedSubFields = [];
+        }
+
+        if (isset($this->cachedSubFields[$repeaterId])) {
+            return $this->cachedSubFields[$repeaterId];
+        }
+
+        // Load sub-fields from repository
+        $subFieldsRaw = $this->fieldRepository->findByParent($repeaterId);
+        $subFields = [];
+
+        foreach ($subFieldsRaw as $field) {
+            $fieldSlug = $field['slug'] ?? '';
+
+            if ($fieldSlug !== '') {
+                $subFields[$fieldSlug] = $field;
+            }
+        }
+
+        $this->cachedSubFields[$repeaterId] = $subFields;
+
+        return $subFields;
+    }
+
+    /**
+     * Resolve labels for select/radio/checkbox fields in a row.
+     *
+     * @param array<string, mixed> $rowValues Row values
+     * @param array<string, array<string, mixed>> $subFields Sub-field definitions
+     *
+     * @return array<string, mixed> Row values with resolved labels
+     */
+    private function resolveSubFieldLabels(array $rowValues, array $subFields): array
+    {
+        $langId = $this->langId ?? $this->contextDetector->detect()['lang_id'] ?? 1;
+
+        foreach ($rowValues as $slug => $value) {
+            // Skip metadata keys
+            if (str_starts_with($slug, '_')) {
+                continue;
+            }
+
+            $fieldDef = $subFields[$slug] ?? null;
+
+            if ($fieldDef === null) {
+                continue;
+            }
+
+            $fieldType = $fieldDef['type'] ?? '';
+
+            // Only resolve for choice fields
+            if (! \in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
+                continue;
+            }
+
+            // Get config and choices
+            $config = $fieldDef['config'] ?? [];
+
+            if (\is_string($config)) {
+                $config = json_decode($config, true) ?: [];
+            }
+
+            $choices = $config['choices'] ?? [];
+
+            if (empty($choices)) {
+                continue;
+            }
+
+            // Resolve value(s) to label(s)
+            if ($fieldType === 'checkbox' && \is_array($value)) {
+                // Multiple values for checkbox
+                $rowValues[$slug] = array_map(
+                    fn ($v) => $this->resolveChoiceLabel($v, $choices, $langId),
+                    $value
+                );
+            } else {
+                // Single value for select/radio
+                $rowValues[$slug] = $this->resolveChoiceLabel($value, $choices, $langId);
+            }
+        }
+
+        return $rowValues;
+    }
+
+    /**
+     * Resolve a single choice value to its label.
+     *
+     * @param mixed $value Choice value
+     * @param array<int, array<string, mixed>> $choices Available choices
+     * @param int $langId Language ID
+     *
+     * @return string Resolved label or original value
+     */
+    private function resolveChoiceLabel(mixed $value, array $choices, int $langId): string
+    {
+        if (! \is_string($value) && ! is_numeric($value)) {
+            return (string) $value;
+        }
+
+        foreach ($choices as $choice) {
+            if (($choice['value'] ?? '') === $value) {
+                // Check for translation
+                $translations = $choice['translations'] ?? [];
+
+                // Keys in translations are strings ("1", "2"), not integers
+                $langKey = (string) $langId;
+
+                if (isset($translations[$langKey]) && $translations[$langKey] !== '') {
+                    return (string) $translations[$langKey];
+                }
+
+                // Fallback to label
+                if (! empty($choice['label'])) {
+                    return (string) $choice['label'];
+                }
+
+                // Fallback to value
+                return (string) $value;
+            }
+        }
+
+        return (string) $value;
+    }
+
     // =========================================================================
     // PRIVATE METHODS
     // =========================================================================
@@ -690,7 +693,7 @@ final class AcfFrontService
             return;
         }
 
-        if (!$this->contextOverridden) {
+        if (! $this->contextOverridden) {
             $detected = $this->contextDetector->detect();
             $this->entityType = $detected['entity_type'];
             $this->entityId = $detected['entity_id'];
@@ -720,7 +723,7 @@ final class AcfFrontService
             $this->cachedFields = [];
         }
 
-        if (!isset($this->cachedFields[$slug])) {
+        if (! isset($this->cachedFields[$slug])) {
             $field = $this->fieldRepository->findBySlug($slug);
             $this->cachedFields[$slug] = $field ?: [];
         }
@@ -753,7 +756,7 @@ final class AcfFrontService
                 $this->shopId,
                 $this->langId
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logError("Error loading values for {$entityType}#{$entityId}: " . $e->getMessage());
             $this->cachedValues = [];
         }
@@ -774,7 +777,7 @@ final class AcfFrontService
      */
     private function logError(string $message): void
     {
-        if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+        if (\defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
             PrestaShopLogger::addLog(
                 '[ACF Front] ' . $message,
                 2,

@@ -20,23 +20,22 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
     // =========================================================================
 
     private const TABLE_SHOP = 'wepresta_acf_group_shop';
+
     private const TABLE_LANG = 'wepresta_acf_group_lang';
 
-    /**
-     * Field configuration: camelCase => [snake_case, transformer, default]
-     */
+    /** Field configuration: camelCase => [snake_case, transformer, default] */
     private const FIELD_MAP = [
-        'uuid'              => ['uuid', null, ''],
-        'title'             => ['title', null, ''],
-        'slug'              => ['slug', null, ''],
-        'description'       => ['description', null, ''],
-        'locationRules'     => ['location_rules', 'json', []],
-        'placementTab'      => ['placement_tab', null, 'description'],
+        'uuid' => ['uuid', null, ''],
+        'title' => ['title', null, ''],
+        'slug' => ['slug', null, ''],
+        'description' => ['description', null, ''],
+        'locationRules' => ['location_rules', 'json', []],
+        'placementTab' => ['placement_tab', null, 'description'],
         'placementPosition' => ['placement_position', null, ''],
-        'priority'          => ['priority', 'int', 10],
-        'boOptions'         => ['bo_options', 'json', []],
-        'foOptions'         => ['fo_options', 'json', []],
-        'active'            => ['active', 'int', 1],
+        'priority' => ['priority', 'int', 10],
+        'boOptions' => ['bo_options', 'json', []],
+        'foOptions' => ['fo_options', 'json', []],
+        'active' => ['active', 'int', 1],
     ];
 
     // =========================================================================
@@ -192,7 +191,7 @@ final class AcfGroupRepository extends AbstractRepository implements AcfGroupRep
 
         $results = $this->db->executeS($sql);
 
-        if (!$results) {
+        if (! $results) {
             return [];
         }
 

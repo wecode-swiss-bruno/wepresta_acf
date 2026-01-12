@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Smarty block: acf_foreach
+ * Smarty block: acf_foreach.
  *
  * Iterate over ACF repeater rows.
  *
@@ -24,7 +24,7 @@
 
 declare(strict_types=1);
 
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
@@ -32,11 +32,6 @@ use WeprestaAcf\Application\Service\AcfServiceContainer;
 
 /**
  * @param array<string, mixed> $params
- * @param string|null $content
- * @param Smarty_Internal_Template $template
- * @param bool $repeat
- *
- * @return string
  */
 function smarty_block_acf_foreach(array $params, ?string $content, Smarty_Internal_Template $template, bool &$repeat): string
 {

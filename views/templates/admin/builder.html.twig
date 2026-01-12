@@ -60,7 +60,7 @@
         // Force cache reload - {{ 'now'|date('Y-m-d H:i:s') }}
         window.acfConfig = {
             apiUrl: '{{ url('wepresta_acf_api_groups_list') | split('/groups')[0] }}',
-            token: '{{ csrf_token('wepresta_acf') }}',
+            token: '{{ ps.jsRouterMetadata.token|default('') }}',
             translations: {
                 loading: '{{ 'Loading...'|trans({}, 'Admin.Global') }}',
                 fieldGroups: '{{ 'Field Groups'|trans({}, 'Modules.Weprestaacf.Admin') }}',

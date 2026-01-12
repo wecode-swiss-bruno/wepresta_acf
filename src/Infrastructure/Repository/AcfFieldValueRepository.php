@@ -20,8 +20,11 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
     // =========================================================================
 
     private const TABLE_FIELD = 'wepresta_acf_field';
+
     private const TABLE_GROUP = 'wepresta_acf_group';
+
     private const FK_FIELD = 'id_wepresta_acf_field';
+
     private const FK_GROUP = 'id_wepresta_acf_group';
 
     // =========================================================================
@@ -90,7 +93,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         $results = $this->db->executeS($sql);
 
-        if (!$results) {
+        if (! $results) {
             return [];
         }
 
@@ -102,6 +105,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             // For translatable fields, try to get translation
             if ((bool) ($row['value_translatable'] ?? false)) {
                 $langValue = $this->getLangValue((int) $row[$this->getPrimaryKey()], $langId);
+
                 if ($langValue !== null) {
                     $value = $langValue;
                 }
@@ -131,7 +135,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         $results = $this->db->executeS($sql);
 
-        if (!$results) {
+        if (! $results) {
             return [];
         }
 
@@ -143,8 +147,9 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             $mainValue = $this->decodeValue($row['value']);
             $isTranslatable = (bool) ($row['value_translatable'] ?? false);
 
-            if (!$isTranslatable) {
+            if (! $isTranslatable) {
                 $values[$slug] = $mainValue;
+
                 continue;
             }
 
@@ -179,7 +184,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         $results = $this->db->executeS($sql);
 
-        if (!$results) {
+        if (! $results) {
             return [];
         }
 
@@ -484,7 +489,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             'SELECT ' . $this->getPrimaryKey() . ' FROM `' . $this->dbPrefix . $this->getTableName() . '` WHERE ' . $mainWhere
         );
 
-        if (!$values) {
+        if (! $values) {
             return;
         }
 
@@ -548,7 +553,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
                 'date_upd' => $now,
             ]);
 
-            if (!$success) {
+            if (! $success) {
                 return false;
             }
 

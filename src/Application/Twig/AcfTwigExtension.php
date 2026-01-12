@@ -30,6 +30,7 @@ use WeprestaAcf\Application\Service\FieldRenderer;
 final class AcfTwigExtension extends AbstractExtension
 {
     private ?AcfFrontService $frontService = null;
+
     private ?FieldRenderer $fieldRenderer = null;
 
     public function __construct(

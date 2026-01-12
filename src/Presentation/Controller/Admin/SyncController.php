@@ -27,16 +27,8 @@ class SyncController extends FrameworkBundleAdminController
         private readonly AutoSyncService $autoSyncService,
         private readonly TranslatorInterface $translator
     ) {
-        parent::__construct();
-    }
-
-    /**
-     * Override trans() method for PS8/PS9 compatibility.
-     * In PS8, translator is not available in the service locator.
-     */
-    protected function trans($key, $domain, array $parameters = [])
-    {
-        return $this->translator->trans($key, $parameters, $domain);
+        // Note: parent::__construct() is NOT called for PS8/PS9 compatibility
+        // In PS9 (Symfony 6.x), calling parent constructor causes "Cannot call constructor" error
     }
 
     /**
@@ -428,6 +420,15 @@ class SyncController extends FrameworkBundleAdminController
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Override trans() method for PS8/PS9 compatibility.
+     * In PS8, translator is not available in the service locator.
+     */
+    protected function trans($key, $domain, array $parameters = [])
+    {
+        return $this->translator->trans($key, $parameters, $domain);
     }
 
     /**

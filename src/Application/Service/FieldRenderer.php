@@ -17,8 +17,18 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use Category;
+use CMS;
 use Context;
+use DateTime;
+use Exception;
+use ImageType;
+use Manufacturer;
+use Product;
 use Smarty;
+use Supplier;
+use Throwable;
+use Validate;
 
 final class FieldRenderer
 {
@@ -212,7 +222,7 @@ final class FieldRenderer
         $target = ($config['openInNewTab'] ?? false) ? ' target="_blank" rel="noopener"' : '';
         $text = $config['linkText'] ?? $url;
 
-        return sprintf(
+        return \sprintf(
             '<a href="%s" class="acf-link"%s>%s</a>',
             htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
             $target,
@@ -230,7 +240,7 @@ final class FieldRenderer
         }
 
         // Value can be string (URL) or array (with metadata)
-        if (is_array($value)) {
+        if (\is_array($value)) {
             $url = $value['url'] ?? '';
             $alt = $value['alt'] ?? $value['title'] ?? '';
         } else {
@@ -245,7 +255,7 @@ final class FieldRenderer
         $width = isset($config['width']) ? ' width="' . (int) $config['width'] . '"' : '';
         $height = isset($config['height']) ? ' height="' . (int) $config['height'] . '"' : '';
 
-        return sprintf(
+        return \sprintf(
             '<img src="%s" alt="%s" class="acf-image"%s%s loading="lazy">',
             htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($alt, ENT_QUOTES, 'UTF-8'),
@@ -259,14 +269,14 @@ final class FieldRenderer
      */
     private function renderGallery(mixed $value, array $config): string
     {
-        if (!is_array($value) || empty($value)) {
+        if (! \is_array($value) || empty($value)) {
             return '';
         }
 
         $html = '<div class="acf-gallery">';
 
         foreach ($value as $item) {
-            if (is_array($item)) {
+            if (\is_array($item)) {
                 $url = $item['url'] ?? '';
                 $alt = $item['alt'] ?? $item['title'] ?? '';
             } else {
@@ -278,7 +288,7 @@ final class FieldRenderer
                 continue;
             }
 
-            $html .= sprintf(
+            $html .= \sprintf(
                 '<div class="acf-gallery-item"><img src="%s" alt="%s" loading="lazy"></div>',
                 htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
                 htmlspecialchars($alt, ENT_QUOTES, 'UTF-8')
@@ -300,7 +310,7 @@ final class FieldRenderer
         }
 
         // Handle array value (with source, video_id, poster, etc.)
-        if (is_array($value)) {
+        if (\is_array($value)) {
             $source = $value['source'] ?? 'upload';
             $videoId = $value['video_id'] ?? '';
             $url = $value['url'] ?? '';
@@ -308,7 +318,7 @@ final class FieldRenderer
 
             // YouTube
             if ($source === 'youtube' && $videoId !== '') {
-                return sprintf(
+                return \sprintf(
                     '<div class="acf-video acf-video--youtube"><iframe src="https://www.youtube.com/embed/%s" frameborder="0" allowfullscreen loading="lazy"></iframe></div>',
                     htmlspecialchars($videoId, ENT_QUOTES, 'UTF-8')
                 );
@@ -316,7 +326,7 @@ final class FieldRenderer
 
             // Vimeo
             if ($source === 'vimeo' && $videoId !== '') {
-                return sprintf(
+                return \sprintf(
                     '<div class="acf-video acf-video--vimeo"><iframe src="https://player.vimeo.com/video/%s" frameborder="0" allowfullscreen loading="lazy"></iframe></div>',
                     htmlspecialchars($videoId, ENT_QUOTES, 'UTF-8')
                 );
@@ -326,7 +336,7 @@ final class FieldRenderer
             if ($url !== '') {
                 $posterAttr = $poster !== '' ? ' poster="' . htmlspecialchars($poster, ENT_QUOTES, 'UTF-8') . '"' : '';
 
-                return sprintf(
+                return \sprintf(
                     '<div class="acf-video"><video src="%s" controls%s></video></div>',
                     htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
                     $posterAttr
@@ -339,21 +349,21 @@ final class FieldRenderer
 
         // Try to detect YouTube/Vimeo from URL
         if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i', $url, $m)) {
-            return sprintf(
+            return \sprintf(
                 '<div class="acf-video acf-video--youtube"><iframe src="https://www.youtube.com/embed/%s" frameborder="0" allowfullscreen loading="lazy"></iframe></div>',
                 htmlspecialchars($m[1], ENT_QUOTES, 'UTF-8')
             );
         }
 
         if (preg_match('/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]+\/)?videos\/|video\/|)(\d+)/i', $url, $m)) {
-            return sprintf(
+            return \sprintf(
                 '<div class="acf-video acf-video--vimeo"><iframe src="https://player.vimeo.com/video/%s" frameborder="0" allowfullscreen loading="lazy"></iframe></div>',
                 htmlspecialchars($m[1], ENT_QUOTES, 'UTF-8')
             );
         }
 
         // Default: HTML5 video
-        return sprintf(
+        return \sprintf(
             '<div class="acf-video"><video src="%s" controls></video></div>',
             htmlspecialchars($url, ENT_QUOTES, 'UTF-8')
         );
@@ -368,7 +378,7 @@ final class FieldRenderer
             return '';
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             $url = $value['url'] ?? '';
             $title = $value['title'] ?? $value['original_name'] ?? basename($url);
         } else {
@@ -380,7 +390,7 @@ final class FieldRenderer
             return '';
         }
 
-        return sprintf(
+        return \sprintf(
             '<a href="%s" class="acf-file" download>%s</a>',
             htmlspecialchars($url, ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($title, ENT_QUOTES, 'UTF-8')
@@ -408,7 +418,7 @@ final class FieldRenderer
      */
     private function renderCheckbox(mixed $value, array $config): string
     {
-        if (!is_array($value) || empty($value)) {
+        if (! \is_array($value) || empty($value)) {
             return '';
         }
 
@@ -433,14 +443,14 @@ final class FieldRenderer
      */
     private function resolveChoiceLabel(mixed $value, array $choices): string
     {
-        if (!is_string($value) && !is_numeric($value)) {
+        if (! \is_string($value) && ! is_numeric($value)) {
             return (string) $value;
         }
 
         $langId = $this->getCurrentLangId();
 
         foreach ($choices as $choice) {
-            if (!is_array($choice)) {
+            if (! \is_array($choice)) {
                 continue;
             }
 
@@ -450,12 +460,13 @@ final class FieldRenderer
 
                 // Keys in translations are strings ("1", "2"), not integers
                 $langKey = (string) $langId;
+
                 if (isset($translations[$langKey]) && $translations[$langKey] !== '') {
                     return (string) $translations[$langKey];
                 }
 
                 // Fallback to label
-                if (!empty($choice['label'])) {
+                if (! empty($choice['label'])) {
                     return (string) $choice['label'];
                 }
 
@@ -497,10 +508,10 @@ final class FieldRenderer
         $format = $config['displayFormat'] ?? 'd/m/Y';
 
         try {
-            $date = new \DateTime($value);
+            $date = new DateTime($value);
 
             return '<span class="acf-date">' . $date->format($format) . '</span>';
-        } catch (\Exception) {
+        } catch (Exception) {
             return '<span class="acf-date">' . htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8') . '</span>';
         }
     }
@@ -517,10 +528,10 @@ final class FieldRenderer
         $format = $config['displayFormat'] ?? 'd/m/Y H:i';
 
         try {
-            $date = new \DateTime($value);
+            $date = new DateTime($value);
 
             return '<span class="acf-datetime">' . $date->format($format) . '</span>';
-        } catch (\Exception) {
+        } catch (Exception) {
             return '<span class="acf-datetime">' . htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8') . '</span>';
         }
     }
@@ -542,7 +553,7 @@ final class FieldRenderer
 
         $color = (string) $value;
 
-        return sprintf(
+        return \sprintf(
             '<span class="acf-color" style="background-color: %s;" title="%s"></span>',
             htmlspecialchars($color, ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($color, ENT_QUOTES, 'UTF-8')
@@ -570,7 +581,7 @@ final class FieldRenderer
 
     private function renderList(mixed $value): string
     {
-        if (!is_array($value) || empty($value)) {
+        if (! \is_array($value) || empty($value)) {
             return '';
         }
 
@@ -589,15 +600,15 @@ final class FieldRenderer
      */
     private function renderRelation(mixed $value, array $config): string
     {
-        if ($value === null || $value === '' || (is_array($value) && empty($value))) {
+        if ($value === null || $value === '' || (\is_array($value) && empty($value))) {
             return '';
         }
 
         // Single relation
-        if (!is_array($value) || isset($value['id'])) {
-            $item = is_array($value) ? $value : ['id' => $value, 'name' => "#{$value}"];
+        if (! \is_array($value) || isset($value['id'])) {
+            $item = \is_array($value) ? $value : ['id' => $value, 'name' => "#{$value}"];
 
-            return sprintf(
+            return \sprintf(
                 '<span class="acf-relation">%s</span>',
                 htmlspecialchars($item['name'] ?? "#{$item['id']}", ENT_QUOTES, 'UTF-8')
             );
@@ -607,10 +618,10 @@ final class FieldRenderer
         $html = '<ul class="acf-relations">';
 
         foreach ($value as $item) {
-            if (!is_array($item)) {
+            if (! \is_array($item)) {
                 continue;
             }
-            $html .= sprintf(
+            $html .= \sprintf(
                 '<li>%s</li>',
                 htmlspecialchars($item['name'] ?? "#{$item['id']}", ENT_QUOTES, 'UTF-8')
             );
@@ -622,12 +633,12 @@ final class FieldRenderer
 
     private function renderRepeater(mixed $value): string
     {
-        if (!is_array($value) || empty($value)) {
+        if (! \is_array($value) || empty($value)) {
             return '';
         }
 
         // Repeaters should be iterated in templates, not rendered directly
-        return '<div class="acf-repeater" data-rows="' . count($value) . '">[Repeater: use $acf->repeater() to iterate]</div>';
+        return '<div class="acf-repeater" data-rows="' . \count($value) . '">[Repeater: use $acf->repeater() to iterate]</div>';
     }
 
     // =========================================================================
@@ -662,8 +673,8 @@ final class FieldRenderer
             }
 
             return $smarty->fetch($templatePath);
-        } catch (\Throwable $e) {
-            if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+        } catch (Throwable $e) {
+            if (\defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
                 return '<!-- ACF Template Error: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . ' -->';
             }
 
@@ -736,15 +747,15 @@ final class FieldRenderer
         $langId = $this->getCurrentLangId();
 
         // Handle array of IDs
-        if (is_array($value)) {
+        if (\is_array($value)) {
             // Check if already enriched (has 'id' key in first item)
-            if (!empty($value) && isset($value[0]) && is_array($value[0]) && isset($value[0]['id'])) {
+            if (! empty($value) && isset($value[0]) && \is_array($value[0]) && isset($value[0]['id'])) {
                 return $value;
             }
 
             // Array of IDs - enrich each
             return array_filter(array_map(
-                fn($id) => $this->getEntityData($entityType, (int) $id, $langId),
+                fn ($id) => $this->getEntityData($entityType, (int) $id, $langId),
                 $value
             ));
         }
@@ -776,19 +787,21 @@ final class FieldRenderer
         try {
             switch ($entityType) {
                 case 'product':
-                    $product = new \Product($entityId, false, $langId);
-                    if (!\Validate::isLoadedObject($product)) {
+                    $product = new Product($entityId, false, $langId);
+
+                    if (! Validate::isLoadedObject($product)) {
                         return null;
                     }
 
                     // Get product cover image
                     $imageUrl = '';
-                    $cover = \Product::getCover($entityId);
+                    $cover = Product::getCover($entityId);
+
                     if ($cover && isset($cover['id_image'])) {
                         $imageUrl = $context->link->getImageLink(
                             $product->link_rewrite,
                             $cover['id_image'],
-                            \ImageType::getFormattedName('small')
+                            ImageType::getFormattedName('small')
                         );
                     }
 
@@ -798,18 +811,20 @@ final class FieldRenderer
                         'link' => $context->link->getProductLink($product),
                         'reference' => $product->reference ?? '',
                         'image' => $imageUrl,
-                        'price' => \Product::getPriceStatic($entityId, true),
+                        'price' => Product::getPriceStatic($entityId, true),
                         'type' => 'product',
                     ];
 
                 case 'category':
-                    $category = new \Category($entityId, $langId);
-                    if (!\Validate::isLoadedObject($category)) {
+                    $category = new Category($entityId, $langId);
+
+                    if (! Validate::isLoadedObject($category)) {
                         return null;
                     }
 
                     // Get category image
                     $imageUrl = '';
+
                     if (file_exists(_PS_CAT_IMG_DIR_ . $entityId . '.jpg')) {
                         $imageUrl = _PS_CAT_IMG_DIR_ . $entityId . '.jpg';
                         $imageUrl = $context->link->getMediaLink(_THEME_CAT_DIR_ . $entityId . '.jpg');
@@ -827,8 +842,9 @@ final class FieldRenderer
 
                 case 'cms':
                 case 'cms_page':
-                    $cms = new \CMS($entityId, $langId);
-                    if (!\Validate::isLoadedObject($cms)) {
+                    $cms = new CMS($entityId, $langId);
+
+                    if (! Validate::isLoadedObject($cms)) {
                         return null;
                     }
 
@@ -842,13 +858,15 @@ final class FieldRenderer
                     ];
 
                 case 'manufacturer':
-                    $manufacturer = new \Manufacturer($entityId, $langId);
-                    if (!\Validate::isLoadedObject($manufacturer)) {
+                    $manufacturer = new Manufacturer($entityId, $langId);
+
+                    if (! Validate::isLoadedObject($manufacturer)) {
                         return null;
                     }
 
                     // Get manufacturer image
                     $imageUrl = '';
+
                     if (file_exists(_PS_MANU_IMG_DIR_ . $entityId . '.jpg')) {
                         $imageUrl = $context->link->getMediaLink(_THEME_MANU_DIR_ . $entityId . '.jpg');
                     }
@@ -863,13 +881,15 @@ final class FieldRenderer
                     ];
 
                 case 'supplier':
-                    $supplier = new \Supplier($entityId, $langId);
-                    if (!\Validate::isLoadedObject($supplier)) {
+                    $supplier = new Supplier($entityId, $langId);
+
+                    if (! Validate::isLoadedObject($supplier)) {
                         return null;
                     }
 
                     // Get supplier image
                     $imageUrl = '';
+
                     if (file_exists(_PS_SUPP_IMG_DIR_ . $entityId . '.jpg')) {
                         $imageUrl = $context->link->getMediaLink(_THEME_SUP_DIR_ . $entityId . '.jpg');
                     }
@@ -894,7 +914,7 @@ final class FieldRenderer
                         'type' => $entityType,
                     ];
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Return minimal info on error
             return [
                 'id' => $entityId,
@@ -914,12 +934,12 @@ final class FieldRenderer
      */
     private function parseConfig(mixed $config): array
     {
-        if (is_string($config)) {
+        if (\is_string($config)) {
             $decoded = json_decode($config, true);
 
-            return is_array($decoded) ? $decoded : [];
+            return \is_array($decoded) ? $decoded : [];
         }
 
-        return is_array($config) ? $config : [];
+        return \is_array($config) ? $config : [];
     }
 }

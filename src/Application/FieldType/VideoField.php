@@ -145,12 +145,14 @@ final class VideoField extends AbstractFieldType
         }
 
         // Return title if it exists and is not empty, otherwise try other fields
-        if (!empty($data['title'])) {
+        if (! empty($data['title'])) {
             return $data['title'];
         }
-        if (!empty($data['original_name'])) {
+
+        if (! empty($data['original_name'])) {
             return $data['original_name'];
         }
+
         return $data['url'] ?? null;
     }
 

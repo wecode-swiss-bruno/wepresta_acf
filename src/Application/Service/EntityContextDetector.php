@@ -102,14 +102,14 @@ final class EntityContextDetector
         }
 
         // Allow other modules to override/extend detection
-        $hookResult = \Hook::exec('actionAcfDetectContext', [
+        $hookResult = Hook::exec('actionAcfDetectContext', [
             'context' => $context,
             'detected' => &$result,
         ], null, true);
 
-        if (is_array($hookResult)) {
+        if (\is_array($hookResult)) {
             foreach ($hookResult as $moduleResult) {
-                if (is_array($moduleResult) && !empty($moduleResult['entity_type'])) {
+                if (\is_array($moduleResult) && ! empty($moduleResult['entity_type'])) {
                     $result = array_merge($result, $moduleResult);
 
                     break;
@@ -222,7 +222,7 @@ final class EntityContextDetector
         if ($context !== null && isset($context->controller)) {
             $controller = $context->controller;
 
-            if (is_object($controller) && isset($controller->php_self)) {
+            if (\is_object($controller) && isset($controller->php_self)) {
                 return strtolower($controller->php_self);
             }
         }
@@ -230,7 +230,7 @@ final class EntityContextDetector
         // Fallback to Tools::getValue
         $controller = Tools::getValue('controller');
 
-        if (is_string($controller) && $controller !== '') {
+        if (\is_string($controller) && $controller !== '') {
             return strtolower($controller);
         }
 
@@ -273,7 +273,7 @@ final class EntityContextDetector
      */
     private function getLoggedInCustomerId(?Context $context): ?int
     {
-        if ($context === null || !isset($context->customer)) {
+        if ($context === null || ! isset($context->customer)) {
             return null;
         }
 
@@ -287,7 +287,7 @@ final class EntityContextDetector
      */
     private function getShopId(?Context $context): ?int
     {
-        if ($context === null || !isset($context->shop)) {
+        if ($context === null || ! isset($context->shop)) {
             return null;
         }
 
@@ -301,7 +301,7 @@ final class EntityContextDetector
      */
     private function getLangId(?Context $context): ?int
     {
-        if ($context === null || !isset($context->language)) {
+        if ($context === null || ! isset($context->language)) {
             return null;
         }
 

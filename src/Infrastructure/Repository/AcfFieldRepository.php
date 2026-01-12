@@ -19,11 +19,10 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
     // =========================================================================
 
     private const FK_GROUP = 'id_wepresta_acf_group';
+
     private const TABLE_LANG = 'wepresta_acf_field_lang';
 
-    /**
-     * Fields that are always JSON encoded.
-     */
+    /** Fields that are always JSON encoded. */
     private const JSON_FIELDS = [
         'config' => 'config',
         'validation' => 'validation',
@@ -119,7 +118,7 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
     {
         $mapped = $this->mapDataForInsert($data);
 
-        if (!empty($data['idParent'])) {
+        if (! empty($data['idParent'])) {
             $mapped['id_parent'] = (int) $data['idParent'];
         }
 
@@ -189,7 +188,7 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
 
         $results = $this->db->executeS($sql);
 
-        if (!$results) {
+        if (! $results) {
             return [];
         }
 
@@ -253,6 +252,7 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
         // Title - extract from translations or use direct value
         if (isset($data['title']) || isset($data['translations'])) {
             $title = $this->extractTranslatedValue($data, 'title');
+
             if ($title !== '' || isset($data['title'])) {
                 $mapped['title'] = $title !== '' ? $title : trim($data['title'] ?? '');
             }
@@ -261,6 +261,7 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
         // Instructions - extract from translations or use direct value
         if (isset($data['instructions']) || isset($data['translations'])) {
             $instructions = $this->extractTranslatedValue($data, 'instructions');
+
             if ($instructions !== '' || isset($data['instructions'])) {
                 $mapped['instructions'] = $instructions !== '' ? $instructions : trim($data['instructions'] ?? '');
             }
@@ -305,6 +306,7 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
         // Generate from title if available
         if ($fallbackTitle !== '') {
             $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '_', $fallbackTitle));
+
             return substr($slug, 0, 255) ?: 'field';
         }
 
@@ -321,14 +323,16 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
      */
     private function extractTranslatedValue(array $data, string $key): string
     {
-        if (!isset($data['translations']) || !is_array($data['translations'])) {
+        if (! isset($data['translations']) || ! \is_array($data['translations'])) {
             return trim((string) ($data[$key] ?? ''));
         }
 
         // Try default language by ISO code
         $defaultLangCode = $this->getDefaultLangCode();
+
         if ($defaultLangCode !== null) {
             $value = $this->getTranslationValue($data['translations'], $defaultLangCode, $key);
+
             if ($value !== null) {
                 return $value;
             }
@@ -336,12 +340,14 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
 
         // Try default language by ID
         $defaultLangId = $this->getDefaultLangId();
+
         foreach ($data['translations'] as $langIdOrCode => $translation) {
-            if (!is_array($translation)) {
+            if (! \is_array($translation)) {
                 continue;
             }
 
             $langId = $this->resolveLangId($langIdOrCode);
+
             if ($langId === $defaultLangId && isset($translation[$key])) {
                 return trim((string) $translation[$key]);
             }
@@ -349,7 +355,7 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
 
         // Fallback to first available translation
         foreach ($data['translations'] as $translation) {
-            if (is_array($translation) && !empty($translation[$key])) {
+            if (\is_array($translation) && ! empty($translation[$key])) {
                 return trim((string) $translation[$key]);
             }
         }
@@ -360,11 +366,11 @@ final class AcfFieldRepository extends AbstractRepository implements AcfFieldRep
 
     private function getTranslationValue(array $translations, string $langCode, string $key): ?string
     {
-        if (!isset($translations[$langCode]) || !is_array($translations[$langCode])) {
+        if (! isset($translations[$langCode]) || ! \is_array($translations[$langCode])) {
             return null;
         }
 
-        if (!isset($translations[$langCode][$key])) {
+        if (! isset($translations[$langCode][$key])) {
             return null;
         }
 

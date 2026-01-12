@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Smarty function: acf_field
+ * Smarty function: acf_field.
  *
  * Get an ACF field value (escaped).
  *
@@ -16,7 +16,7 @@
 
 declare(strict_types=1);
 
-if (!defined('_PS_VERSION_')) {
+if (! defined('_PS_VERSION_')) {
     exit;
 }
 
@@ -24,9 +24,6 @@ use WeprestaAcf\Application\Service\AcfServiceContainer;
 
 /**
  * @param array<string, mixed> $params
- * @param Smarty_Internal_Template $template
- *
- * @return string
  */
 function smarty_function_acf_field(array $params, Smarty_Internal_Template $template): string
 {

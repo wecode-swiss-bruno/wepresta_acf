@@ -22,15 +22,17 @@ declare(strict_types=1);
 namespace WeprestaAcf\Application\Service;
 
 use PrestaShopLogger;
+use Throwable;
 
 final class ShortcodeParser
 {
-    /**
-     * Regex patterns for shortcodes.
-     */
+    /** Regex patterns for shortcodes. */
     private const PATTERN_SIMPLE = '/\[acf\s+([^\]]+)\]/i';
+
     private const PATTERN_RENDER = '/\[acf_render\s+([^\]]+)\]/i';
+
     private const PATTERN_GROUP = '/\[acf_group\s+([^\]]+)\]/i';
+
     private const PATTERN_REPEATER = '/\[acf_repeater\s+([^\]]+)\](.*?)\[\/acf_repeater\]/is';
 
     public function __construct(
@@ -148,12 +150,12 @@ final class ShortcodeParser
             $value = $service->field($field, $default);
 
             // Convert arrays to string
-            if (is_array($value)) {
+            if (\is_array($value)) {
                 return implode(', ', array_map('strval', $value));
             }
 
             return (string) $value;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->handleError('acf', $e);
         }
     }
@@ -174,7 +176,7 @@ final class ShortcodeParser
             $service = $this->getService($params, $entityType, $entityId);
 
             return $service->render($field);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->handleError('acf_render', $e);
         }
     }
@@ -205,7 +207,7 @@ final class ShortcodeParser
             return $this->fieldRenderer->renderGroup($fields, [
                 'showTitles' => isset($params['show_titles']) && $params['show_titles'] !== 'false',
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->handleError('acf_group', $e);
         }
     }
@@ -242,7 +244,7 @@ final class ShortcodeParser
                         $key = $matches[1];
                         $value = $row[$key] ?? '';
 
-                        if (is_array($value)) {
+                        if (\is_array($value)) {
                             return json_encode($value);
                         }
 
@@ -258,7 +260,7 @@ final class ShortcodeParser
             }
 
             return $output;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return $this->handleError('acf_repeater', $e);
         }
     }
@@ -315,9 +317,9 @@ final class ShortcodeParser
     /**
      * Handle error with optional debug output.
      */
-    private function handleError(string $shortcode, \Throwable $e): string
+    private function handleError(string $shortcode, Throwable $e): string
     {
-        if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
+        if (\defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) {
             PrestaShopLogger::addLog(
                 "[ACF Shortcode] Error in [{$shortcode}]: " . $e->getMessage(),
                 2,
