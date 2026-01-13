@@ -24,9 +24,26 @@ final class ModuleUninstaller
 
     public function uninstall(): bool
     {
-        return $this->uninstallTabs()
-            && $this->uninstallDatabase()
-            && $this->uninstallConfiguration();
+        // Execute in order: Tabs -> Database -> Configuration
+        // Continue even if one step fails (best effort)
+        $tabsResult = $this->uninstallTabs();
+        $dbResult = $this->uninstallDatabase();
+        $configResult = $this->uninstallConfiguration();
+        
+        // Log any failures but don't block uninstall
+        if (!$tabsResult) {
+            $this->module->log('Failed to uninstall some tabs during module uninstall', 2);
+        }
+        if (!$dbResult) {
+            $this->module->log('Failed to uninstall database during module uninstall', 2);
+        }
+        if (!$configResult) {
+            $this->module->log('Failed to uninstall configuration during module uninstall', 2);
+        }
+        
+        // Return true if at least database and config were cleaned
+        // Tabs can fail if already deleted manually
+        return $dbResult && $configResult;
     }
 
     /**
@@ -61,20 +78,30 @@ final class ModuleUninstaller
     private function uninstallTabs(): bool
     {
         $tabClassNames = $this->getTabClassNames();
+        $success = true;
 
         foreach ($tabClassNames as $className) {
-            $tabId = (int) Tab::getIdFromClassName($className);
+            try {
+                $tabId = (int) Tab::getIdFromClassName($className);
 
-            if ($tabId > 0) {
-                $tab = new Tab($tabId);
+                if ($tabId > 0) {
+                    $tab = new Tab($tabId);
 
-                if (! $tab->delete()) {
-                    return false;
+                    if (! $tab->delete()) {
+                        $this->module->log("Failed to delete tab: {$className}", 2);
+                        $success = false;
+                    }
+                } else {
+                    // Tab already deleted or doesn't exist - not an error
+                    $this->module->log("Tab not found (already deleted?): {$className}", 1);
                 }
+            } catch (Exception $e) {
+                $this->module->log("Error deleting tab {$className}: " . $e->getMessage(), 2);
+                $success = false;
             }
         }
 
-        return true;
+        return $success;
     }
 
     /**

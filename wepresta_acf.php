@@ -89,12 +89,17 @@ class WeprestaAcf extends Module
     public function uninstall(): bool
     {
         try {
-            // Clear Symfony cache before uninstall to avoid Twig service loading errors
-            $this->clearSymfonyCache();
-
             $uninstaller = new ModuleUninstaller($this, Db::getInstance());
 
-            return $uninstaller->uninstall() && parent::uninstall();
+            // Execute uninstall FIRST, then clear cache to avoid service loading errors
+            $result = $uninstaller->uninstall() && parent::uninstall();
+            
+            // Clear Symfony cache AFTER successful uninstall
+            if ($result) {
+                $this->clearSymfonyCache();
+            }
+            
+            return $result;
         } catch (Exception $e) {
             $this->_errors[] = $e->getMessage();
 
@@ -103,12 +108,15 @@ class WeprestaAcf extends Module
     }
 
     /**
-     * Clear Symfony cache to avoid service loading errors during uninstall.
+     * Clear Symfony cache after uninstall to remove module services.
+     * 
+     * IMPORTANT: This should be called AFTER uninstall, not before,
+     * to avoid service loading errors during the uninstall process.
      */
     private function clearSymfonyCache(): void
     {
         try {
-            // Method 1: Try to clear via Symfony container
+            // Method 1: Use Symfony cache clearer (PS9 preferred method)
             if (class_exists('\PrestaShop\PrestaShop\Adapter\SymfonyContainer')) {
                 $container = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance();
                 
@@ -120,35 +128,28 @@ class WeprestaAcf extends Module
                 }
             }
 
-            // Method 2: Try to clear cache directory directly (PS8/PS9 compatible)
+            // Method 2: Clear container cache files only (safer than deleting entire cache dir)
             $rootDir = defined('_PS_ROOT_DIR_') ? _PS_ROOT_DIR_ : dirname(_PS_ADMIN_DIR_);
             $cacheDir = $rootDir . '/var/cache';
+            
             if (is_dir($cacheDir)) {
-                $this->deleteDirectory($cacheDir . '/dev');
-                $this->deleteDirectory($cacheDir . '/prod');
+                // Only remove container cache files, not the entire cache directory
+                // This prevents breaking other cached services
+                foreach (['dev', 'prod'] as $env) {
+                    $containerFiles = glob($cacheDir . '/' . $env . '/*Container*');
+                    if ($containerFiles) {
+                        foreach ($containerFiles as $file) {
+                            if (is_file($file)) {
+                                @unlink($file);
+                            }
+                        }
+                    }
+                }
             }
         } catch (Exception $e) {
             // Silently ignore cache clearing errors during uninstall
+            // Cache will be regenerated on next page load
         }
-    }
-
-    /**
-     * Recursively delete a directory.
-     */
-    private function deleteDirectory(string $dir): bool
-    {
-        if (!is_dir($dir)) {
-            return true;
-        }
-
-        $files = array_diff(scandir($dir), ['.', '..']);
-        
-        foreach ($files as $file) {
-            $path = $dir . '/' . $file;
-            is_dir($path) ? $this->deleteDirectory($path) : @unlink($path);
-        }
-
-        return @rmdir($dir);
     }
 
     // =========================================================================
