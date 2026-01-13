@@ -12,7 +12,7 @@ interface AcfGroupRepositoryInterface
 
     public function findActiveGroups(?int $shopId = null): array;
 
-    public function findAll(): array;
+    public function findAll(?int $limit = null, ?int $offset = null): array;
 
     public function create(array $data): int;
 

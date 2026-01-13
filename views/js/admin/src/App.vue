@@ -1,24 +1,31 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
+import { useCptStore } from '@/stores/cptStore'
 import { useTranslations } from '@/composables/useTranslations'
 import GroupList from '@/components/GroupList.vue'
 import GroupBuilder from '@/components/GroupBuilder.vue'
+import CptTypeList from '@/components/cpt/CptTypeList.vue'
+import CptTypeBuilder from '@/components/cpt/CptTypeBuilder.vue'
+import CptTaxonomyManager from '@/components/cpt/CptTaxonomyManager.vue'
+import CptTermManager from '@/components/cpt/CptTermManager.vue'
 
 const store = useBuilderStore()
+const cptStore = useCptStore()
 const { t } = useTranslations()
 
-// Render alerts to external container (native PrestaShop styling)
+// Navigation state
+const activeTab = ref<'acf' | 'cpt'>('acf')
+const cptView = ref<'types' | 'taxonomies'>('types')
+
 function setupExternalAlerts(): void {
   const alertsContainer = document.getElementById('acf-alerts-container')
   if (!alertsContainer) return
 
-  // Watch for error changes
   watch(() => store.error, (error) => {
     renderAlerts(alertsContainer)
   })
 
-  // Watch for success changes
   watch(() => store.successMessage, (msg) => {
     renderAlerts(alertsContainer)
   })
@@ -58,7 +65,6 @@ function renderAlerts(container: HTMLElement): void {
     })
     container.appendChild(successAlert)
 
-    // Auto-dismiss success after 5s
     setTimeout(() => {
       store.clearSuccess()
       successAlert.remove()
@@ -66,30 +72,19 @@ function renderAlerts(container: HTMLElement): void {
   }
 }
 
-// Connect to Twig toolbar buttons (rendered by PS Toolbar component)
-// PS Toolbar generates IDs like: page-header-desc-configuration-{key}
 function setupToolbarButtons(): void {
-  // Find buttons by partial ID match (PS generates IDs like page-header-desc-configuration-add-group)
   const btnAddGroup = document.querySelector('[id*="add-group"]') as HTMLElement
   const btnBack = document.querySelector('[id*="go-back"]') as HTMLElement
   const btnSave = document.querySelector('[id*="save-group"]') as HTMLElement
 
-  // Also collect buttons by CSS class for visibility toggling
   const listBtns = document.querySelectorAll('.acf-toolbar-list-btn')
   const editBtns = document.querySelectorAll('.acf-toolbar-edit-btn')
 
-  console.debug('[ACF] Toolbar buttons found:', {
-    addGroup: !!btnAddGroup,
-    back: !!btnBack,
-    save: !!btnSave,
-    listBtns: listBtns.length,
-    editBtns: editBtns.length
-  })
-
-  // Button click handlers
   btnAddGroup?.addEventListener('click', (e) => {
     e.preventDefault()
-    store.createNewGroup()
+    if (activeTab.value === 'acf') {
+      store.createNewGroup()
+    }
   })
   btnBack?.addEventListener('click', (e) => {
     e.preventDefault()
@@ -100,15 +95,10 @@ function setupToolbarButtons(): void {
     store.saveGroup()
   })
 
-  // Toggle toolbar visibility based on view mode
   watch(() => store.viewMode, (mode) => {
-    console.debug('[ACF] View mode changed to:', mode)
-
-    // Show/hide list view buttons (Add Group)
     listBtns.forEach(btn => {
       btn.classList.toggle('d-none', mode !== 'list')
     })
-    // Show/hide edit view buttons (Back, Save)
     editBtns.forEach(btn => {
       btn.classList.toggle('d-none', mode !== 'edit')
     })
@@ -124,20 +114,76 @@ onMounted(() => {
 
 <template>
   <div class="acfps-app">
+    <!-- Tab Navigation -->
+    <div class="nav nav-tabs mb-4" role="tablist">
+      <button
+        class="nav-link"
+        :class="{ active: activeTab === 'acf' }"
+        @click="activeTab = 'acf'"
+        type="button"
+      >
+        <i class="material-icons">view_list</i>
+        ACF Field Groups
+      </button>
+      <button
+        class="nav-link"
+        :class="{ active: activeTab === 'cpt' }"
+        @click="activeTab = 'cpt'"
+        type="button"
+      >
+        <i class="material-icons">article</i>
+        Custom Post Types
+      </button>
+    </div>
+
     <!-- Loading state -->
-    <div v-if="store.loading" class="acfps-loading">
+    <div v-if="store.loading && activeTab === 'acf'" class="acfps-loading">
       <div class="spinner-border text-primary" role="status">
         <span class="sr-only">{{ t('loading') }}</span>
       </div>
     </div>
 
-    <!-- Main content -->
-    <template v-else>
-      <!-- Group list view -->
+    <!-- ACF Groups Tab -->
+    <template v-if="activeTab === 'acf' && !store.loading">
       <GroupList v-if="store.viewMode === 'list'" />
-
-      <!-- Group edit/create view -->
       <GroupBuilder v-else-if="store.viewMode === 'edit'" />
+    </template>
+
+    <!-- CPT Tab -->
+    <template v-if="activeTab === 'cpt'">
+      <div class="cpt-content">
+        <!-- CPT Sub-Navigation -->
+        <div class="btn-group mb-3" role="group">
+          <button
+            type="button"
+            class="btn btn-sm"
+            :class="cptView === 'types' ? 'btn-primary' : 'btn-outline-secondary'"
+            @click="cptView = 'types'"
+          >
+            <i class="material-icons">article</i>
+            Post Types
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm"
+            :class="cptView === 'taxonomies' ? 'btn-primary' : 'btn-outline-secondary'"
+            @click="cptView = 'taxonomies'"
+          >
+            <i class="material-icons">category</i>
+            Taxonomies
+          </button>
+        </div>
+
+        <!-- CPT Views -->
+        <template v-if="cptView === 'types'">
+          <CptTypeList v-if="cptStore.viewMode === 'list'" />
+          <CptTypeBuilder v-else-if="cptStore.viewMode === 'edit'" @cancel="cptStore.goToList()" @saved="cptStore.goToList()" />
+        </template>
+        <template v-else-if="cptView === 'taxonomies'">
+          <CptTaxonomyManager v-if="cptStore.taxonomyViewMode === 'list'" />
+          <CptTermManager v-else-if="cptStore.taxonomyViewMode === 'terms'" />
+        </template>
+      </div>
     </template>
   </div>
 </template>
@@ -153,5 +199,50 @@ onMounted(() => {
   justify-content: center;
   min-height: 300px;
 }
-</style>
 
+.nav-tabs {
+  border-bottom: 2px solid #e9ecef;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  color: #495057;
+  background-color: #f8f9fa;
+}
+
+.nav-link.active {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+  font-weight: 600;
+}
+
+.nav-link .material-icons {
+  font-size: 20px;
+}
+
+.cpt-content {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>

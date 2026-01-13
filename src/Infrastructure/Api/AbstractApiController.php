@@ -9,6 +9,8 @@ use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
+use WeprestaAcf\Wedev\Core\Adapter\ContextAdapter;
 
 /**
  * Base controller for all API endpoints.
@@ -16,6 +18,16 @@ use Symfony\Component\HttpFoundation\Response;
  */
 abstract class AbstractApiController extends FrameworkBundleAdminController
 {
+    protected ConfigurationAdapter $config;
+    protected ContextAdapter $context;
+
+    public function __construct(ConfigurationAdapter $config, ContextAdapter $context)
+    {
+        $this->config = $config;
+        $this->context = $context;
+
+        // Note: parent::__construct() is NOT called for PS8/PS9 compatibility
+    }
     /**
      * Parse JSON payload from request body.
      *

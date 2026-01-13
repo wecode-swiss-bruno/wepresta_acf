@@ -1,0 +1,88 @@
+{#
+ # CPT Taxonomy Template (Twig) - Default template for taxonomy term archives
+ #
+ # Available variables:
+ # - cpt_type: Type information
+ # - cpt_taxonomy: Taxonomy information
+ # - cpt_term: Term information
+ # - cpt_posts: Array of posts
+ # - cpt_pagination: Pagination data
+ #}
+
+{% extends '@PrestaShop/Shop/layout.html.twig' %}
+
+{% block content %}
+    <div class="cpt-taxonomy cpt-taxonomy-{{ cpt_taxonomy.slug }}">
+        
+        <h1 class="page-title">{{ cpt_term.name }}</h1>
+
+        <div class="cpt-breadcrumb">
+            <a href="{{ cpt_type.url }}">{{ cpt_type.name }}</a>
+            <span class="separator">/</span>
+            <span>{{ cpt_term.name }}</span>
+        </div>
+
+        {% if cpt_term.description %}
+            <div class="cpt-term-description">
+                {{ cpt_term.description }}
+            </div>
+        {% endif %}
+
+        {% if cpt_posts|length > 0 %}
+            <div class="cpt-posts-grid">
+                {% for post in cpt_posts %}
+                    <article class="cpt-post-item" id="cpt-post-{{ post.id }}">
+                        <h2 class="cpt-post-title">
+                            <a href="{{ post.url }}">{{ post.title }}</a>
+                        </h2>
+                        
+                        <div class="cpt-post-meta">
+                            <time datetime="{{ post.date_upd }}">
+                                {{ post.date_upd|date('d/m/Y') }}
+                            </time>
+                        </div>
+
+                        <a href="{{ post.url }}" class="btn btn-primary">
+                            {{ 'Read more'|trans({}, 'Modules.Weprestaacf.Front') }}
+                        </a>
+                    </article>
+                {% endfor %}
+            </div>
+
+            {# Pagination #}
+            {% if cpt_pagination.total_pages > 1 %}
+                <nav class="cpt-pagination">
+                    <ul class="pagination">
+                        {% if cpt_pagination.current_page > 1 %}
+                            <li>
+                                <a href="{{ url('wepresta_acf_cpt_taxonomy', {'type': cpt_type.slug, 'taxonomy': cpt_taxonomy.id, 'term': cpt_term.slug, 'p': cpt_pagination.current_page - 1}) }}">
+                                    &laquo; {{ 'Previous'|trans({}, 'Shop.Theme') }}
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for i in 1..cpt_pagination.total_pages %}
+                            <li {% if i == cpt_pagination.current_page %}class="active"{% endif %}>
+                                <a href="{{ url('wepresta_acf_cpt_taxonomy', {'type': cpt_type.slug, 'taxonomy': cpt_taxonomy.id, 'term': cpt_term.slug, 'p': i}) }}">
+                                    {{ i }}
+                                </a>
+                            </li>
+                        {% endfor %}
+
+                        {% if cpt_pagination.current_page < cpt_pagination.total_pages %}
+                            <li>
+                                <a href="{{ url('wepresta_acf_cpt_taxonomy', {'type': cpt_type.slug, 'taxonomy': cpt_taxonomy.id, 'term': cpt_term.slug, 'p': cpt_pagination.current_page + 1}) }}">
+                                    {{ 'Next'|trans({}, 'Shop.Theme') }} &raquo;
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <p class="alert alert-info">
+                {{ 'No posts found in this category'|trans({}, 'Modules.Weprestaacf.Front') }}
+            </p>
+        {% endif %}
+    </div>
+{% endblock %}

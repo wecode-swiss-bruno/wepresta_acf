@@ -49,14 +49,14 @@ wepresta_acf_sync_import:
         _legacy_link: AdminWeprestaAcfSync
 
 wepresta_acf_api_export_all:
-    path: /api/export/all
+    path: /wpa-api/export/all
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
         _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportAll'
 
 wepresta_acf_api_export_group:
-    path: /api/export/group/{groupId}
+    path: /wpa-api/export/group/{groupId}
     methods: [GET]
     requirements:
         groupId: \d+
@@ -65,14 +65,14 @@ wepresta_acf_api_export_group:
         _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportGroup'
 
 wepresta_acf_api_import_validate:
-    path: /api/import/validate
+    path: /wpa-api/import/validate
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
         _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::validateFile'
 
 wepresta_acf_api_import:
-    path: /api/import
+    path: /wpa-api/import
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
@@ -83,7 +83,7 @@ wepresta_acf_api_import:
 # =========================================================================
 
 wepresta_acf_api_sync_status:
-    path: /api/sync/status
+    path: /wpa-api/sync/status
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
@@ -94,35 +94,35 @@ wepresta_acf_api_sync_status:
 # =========================================================================
 
 wepresta_acf_api_auto_sync_toggle:
-    path: /api/auto-sync/toggle
+    path: /wpa-api/auto-sync/toggle
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
         _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::toggleAutoSync'
 
 wepresta_acf_api_auto_sync_export_now:
-    path: /api/auto-sync/export-now
+    path: /wpa-api/auto-sync/export-now
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
         _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::exportNow'
 
 wepresta_acf_api_auto_sync_import:
-    path: /api/auto-sync/import
+    path: /wpa-api/auto-sync/import
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
         _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::importFromSync'
 
 wepresta_acf_api_auto_sync_dismiss:
-    path: /api/auto-sync/dismiss
+    path: /wpa-api/auto-sync/dismiss
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
         _controller: 'WeprestaAcf\Presentation\Controller\Admin\SyncController::dismissSyncNotification'
 
 wepresta_acf_api_auto_sync_now:
-    path: /api/auto-sync/sync-now
+    path: /wpa-api/auto-sync/sync-now
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfSync
@@ -133,21 +133,21 @@ wepresta_acf_api_auto_sync_now:
 # =========================================================================
 
 wepresta_acf_api_groups_list:
-    path: /api/groups
+    path: /wpa-api/groups
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::list'
 
 wepresta_acf_api_groups_create:
-    path: /api/groups
+    path: /wpa-api/groups
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::create'
 
 wepresta_acf_api_groups_show:
-    path: /api/groups/{id}
+    path: /wpa-api/groups/{id}
     methods: [GET]
     requirements:
         id: \d+
@@ -156,7 +156,7 @@ wepresta_acf_api_groups_show:
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::show'
 
 wepresta_acf_api_groups_update:
-    path: /api/groups/{id}
+    path: /wpa-api/groups/{id}
     methods: [PUT, PATCH]
     requirements:
         id: \d+
@@ -165,7 +165,7 @@ wepresta_acf_api_groups_update:
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::update'
 
 wepresta_acf_api_groups_delete:
-    path: /api/groups/{id}
+    path: /wpa-api/groups/{id}
     methods: [DELETE]
     requirements:
         id: \d+
@@ -174,7 +174,7 @@ wepresta_acf_api_groups_delete:
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::delete'
 
 wepresta_acf_api_groups_duplicate:
-    path: /api/groups/{id}/duplicate
+    path: /wpa-api/groups/{id}/duplicate
     methods: [POST]
     requirements:
         id: \d+
@@ -183,7 +183,7 @@ wepresta_acf_api_groups_duplicate:
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::duplicate'
 
 wepresta_acf_api_groups_global_values_get:
-    path: /api/groups/{id}/global-values
+    path: /wpa-api/groups/{id}/global-values
     methods: [GET]
     requirements:
         id: \d+
@@ -192,7 +192,7 @@ wepresta_acf_api_groups_global_values_get:
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::getGlobalValues'
 
 wepresta_acf_api_groups_global_values_save:
-    path: /api/groups/{id}/global-values
+    path: /wpa-api/groups/{id}/global-values
     methods: [POST, PUT]
     requirements:
         id: \d+
@@ -201,14 +201,14 @@ wepresta_acf_api_groups_global_values_save:
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::saveGlobalValues'
 
 wepresta_acf_api_groups_bulk_toggle_active:
-    path: /api/groups/bulk-toggle-active
+    path: /wpa-api/groups/bulk-toggle-active
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\GroupApiController::bulkToggleActive'
 
 wepresta_acf_api_groups_bulk_delete:
-    path: /api/groups/bulk-delete
+    path: /wpa-api/groups/bulk-delete
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
@@ -219,7 +219,7 @@ wepresta_acf_api_groups_bulk_delete:
 # =========================================================================
 
 wepresta_acf_api_fields_create:
-    path: /api/groups/{groupId}/fields
+    path: /wpa-api/groups/{groupId}/fields
     methods: [POST]
     requirements:
         groupId: \d+
@@ -228,7 +228,7 @@ wepresta_acf_api_fields_create:
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::create'
 
 wepresta_acf_api_fields_update:
-    path: /api/fields/{id}
+    path: /wpa-api/fields/{id}
     methods: [PUT, PATCH]
     requirements:
         id: \d+
@@ -237,7 +237,7 @@ wepresta_acf_api_fields_update:
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::update'
 
 wepresta_acf_api_fields_delete:
-    path: /api/fields/{id}
+    path: /wpa-api/fields/{id}
     methods: [DELETE]
     requirements:
         id: \d+
@@ -246,7 +246,7 @@ wepresta_acf_api_fields_delete:
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldApiController::delete'
 
 wepresta_acf_api_fields_reorder:
-    path: /api/groups/{groupId}/fields/reorder
+    path: /wpa-api/groups/{groupId}/fields/reorder
     methods: [POST]
     requirements:
         groupId: \d+
@@ -259,14 +259,14 @@ wepresta_acf_api_fields_reorder:
 # =========================================================================
 
 wepresta_acf_api_values_save:
-    path: /api/values
+    path: /wpa-api/values
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\ValueApiController::save'
 
 wepresta_acf_api_values_get:
-    path: /api/values/{productId}
+    path: /wpa-api/values/{productId}
     methods: [GET]
     requirements:
         productId: \d+
@@ -279,42 +279,42 @@ wepresta_acf_api_values_get:
 # =========================================================================
 
 wepresta_acf_api_field_types:
-    path: /api/field-types
+    path: /wpa-api/field-types
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::fieldTypes'
 
 wepresta_acf_api_field_types_grouped:
-    path: /api/field-types/grouped
+    path: /wpa-api/field-types/grouped
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::fieldTypesGrouped'
 
 wepresta_acf_api_slugify:
-    path: /api/slugify
+    path: /wpa-api/slugify
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::slugify'
 
 wepresta_acf_api_force_upgrade:
-    path: /api/force-upgrade
+    path: /wpa-api/force-upgrade
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::forceUpgrade'
 
 wepresta_acf_api_upload_file:
-    path: /api/upload-file
+    path: /wpa-api/upload-file
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\UtilityApiController::uploadFile'
 
 wepresta_acf_api_upload_video:
-    path: /api/upload-video
+    path: /wpa-api/upload-video
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
@@ -325,35 +325,35 @@ wepresta_acf_api_upload_video:
 # =========================================================================
 
 wepresta_acf_api_fieldtypes_list:
-    path: /api/field-types/list
+    path: /wpa-api/field-types/list
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::list'
 
 wepresta_acf_api_fieldtypes_show:
-    path: /api/field-types/{type}
+    path: /wpa-api/field-types/{type}
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::show'
 
 wepresta_acf_api_fieldtypes_upload:
-    path: /api/field-types/upload
+    path: /wpa-api/field-types/upload
     methods: [POST]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::upload'
 
 wepresta_acf_api_fieldtypes_delete:
-    path: /api/field-types/{type}
+    path: /wpa-api/field-types/{type}
     methods: [DELETE]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\FieldTypeApiController::remove'
 
 wepresta_acf_api_fieldtypes_paths:
-    path: /api/field-types/paths
+    path: /wpa-api/field-types/paths
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
@@ -364,9 +364,296 @@ wepresta_acf_api_fieldtypes_paths:
 # =========================================================================
 
 wepresta_acf_api_relation_search:
-    path: /api/relation/search
+    path: /wpa-api/relation/search
     methods: [GET]
     defaults:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\RelationApiController::search'
 
+# =========================================================================
+# CPT - Admin Pages
+# =========================================================================
+
+wepresta_acf_cpt_builder:
+    path: /modules/wepresta_acf/cpt
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptBuilderController::index'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _legacy_link: AdminWeprestaAcfBuilder
+
+wepresta_acf_cpt_posts_list:
+    path: /modules/wepresta_acf/cpt/{typeSlug}/posts
+    methods: [GET]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptPostController::list'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _legacy_link: AdminWeprestaAcfBuilder
+
+wepresta_acf_cpt_posts_create:
+    path: /modules/wepresta_acf/cpt/{typeSlug}/posts/new
+    methods: [GET, POST]
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptPostController::create'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _legacy_link: AdminWeprestaAcfBuilder
+
+wepresta_acf_cpt_posts_edit:
+    path: /modules/wepresta_acf/cpt/{typeSlug}/posts/{id}/edit
+    methods: [GET, POST]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptPostController::edit'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _legacy_link: AdminWeprestaAcfBuilder
+
+wepresta_acf_cpt_posts_delete:
+    path: /modules/wepresta_acf/cpt/{typeSlug}/posts/{id}/delete
+    methods: [POST]
+    requirements:
+        id: \d+
+    defaults:
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptPostController::delete'
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _legacy_link: AdminWeprestaAcfBuilder
+
+# =========================================================================
+# CPT - API Routes
+# =========================================================================
+
+# CPT Types
+wepresta_acf_api_cpt_types_list:
+    path: /wpa-api/cpt/types
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTypeApiController::list'
+
+wepresta_acf_api_cpt_types_create:
+    path: /wpa-api/cpt/types
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTypeApiController::create'
+
+wepresta_acf_api_cpt_types_show:
+    path: /wpa-api/cpt/types/{id}
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTypeApiController::show'
+
+wepresta_acf_api_cpt_types_update:
+    path: /wpa-api/cpt/types/{id}
+    methods: [PUT, PATCH]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTypeApiController::update'
+
+wepresta_acf_api_cpt_types_delete:
+    path: /wpa-api/cpt/types/{id}
+    methods: [DELETE]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTypeApiController::delete'
+
+# CPT Posts
+wepresta_acf_api_cpt_posts_list:
+    path: /wpa-api/cpt/{typeSlug}/posts
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptPostApiController::listByType'
+
+wepresta_acf_api_cpt_posts_create:
+    path: /wpa-api/cpt/{typeSlug}/posts
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptPostApiController::create'
+
+wepresta_acf_api_cpt_posts_show:
+    path: /wpa-api/cpt/posts/{id}
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptPostApiController::show'
+
+wepresta_acf_api_cpt_posts_update:
+    path: /wpa-api/cpt/posts/{id}
+    methods: [PUT, PATCH]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptPostApiController::update'
+
+wepresta_acf_api_cpt_posts_delete:
+    path: /wpa-api/cpt/posts/{id}
+    methods: [DELETE]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptPostApiController::delete'
+
+wepresta_acf_api_cpt_posts_status:
+    path: /wpa-api/cpt/posts/{id}/status
+    methods: [PATCH]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptPostApiController::changeStatus'
+
+# CPT Taxonomies
+wepresta_acf_api_cpt_taxonomies_list:
+    path: /wpa-api/cpt/taxonomies
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTaxonomyApiController::list'
+
+wepresta_acf_api_cpt_taxonomies_create:
+    path: /wpa-api/cpt/taxonomies
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTaxonomyApiController::create'
+
+wepresta_acf_api_cpt_taxonomies_show:
+    path: /wpa-api/cpt/taxonomies/{id}
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTaxonomyApiController::show'
+
+wepresta_acf_api_cpt_taxonomies_update:
+    path: /wpa-api/cpt/taxonomies/{id}
+    methods: [PUT, PATCH]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTaxonomyApiController::update'
+
+wepresta_acf_api_cpt_taxonomies_delete:
+    path: /wpa-api/cpt/taxonomies/{id}
+    methods: [DELETE]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTaxonomyApiController::delete'
+
+# CPT Terms
+wepresta_acf_api_cpt_terms_list:
+    path: /wpa-api/cpt/taxonomies/{taxonomyId}/terms
+    methods: [GET]
+    requirements:
+        taxonomyId: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTermApiController::listByTaxonomy'
+
+wepresta_acf_api_cpt_terms_create:
+    path: /wpa-api/cpt/taxonomies/{taxonomyId}/terms
+    methods: [POST]
+    requirements:
+        taxonomyId: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTermApiController::create'
+
+wepresta_acf_api_cpt_terms_show:
+    path: /wpa-api/cpt/terms/{id}
+    methods: [GET]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTermApiController::show'
+
+wepresta_acf_api_cpt_terms_update:
+    path: /wpa-api/cpt/terms/{id}
+    methods: [PUT, PATCH]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTermApiController::update'
+
+wepresta_acf_api_cpt_terms_delete:
+    path: /wpa-api/cpt/terms/{id}
+    methods: [DELETE]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptTermApiController::delete'
+
+# CPT Relations
+wepresta_acf_api_cpt_relations_list:
+    path: /wpa-api/cpt/relations
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptRelationApiController::list'
+
+wepresta_acf_api_cpt_relations_create:
+    path: /wpa-api/cpt/relations
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptRelationApiController::create'
+
+wepresta_acf_api_cpt_relations_delete:
+    path: /wpa-api/cpt/relations/{id}
+    methods: [DELETE]
+    requirements:
+        id: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptRelationApiController::delete'
+
+# CPT Sync
+wepresta_acf_api_cpt_sync_export_type:
+    path: /wpa-api/cpt/sync/export/{typeId}
+    methods: [GET]
+    requirements:
+        typeId: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptSyncApiController::exportType'
+
+wepresta_acf_api_cpt_sync_export_all:
+    path: /wpa-api/cpt/sync/export-all
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptSyncApiController::exportAll'
+
+wepresta_acf_api_cpt_sync_import:
+    path: /wpa-api/cpt/sync/import
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptSyncApiController::import'
+
+wepresta_acf_api_cpt_sync_import_file:
+    path: /wpa-api/cpt/sync/import-file
+    methods: [POST]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptSyncApiController::importFile'

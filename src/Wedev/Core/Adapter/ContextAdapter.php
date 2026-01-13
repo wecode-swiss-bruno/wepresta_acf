@@ -93,6 +93,11 @@ class ContextAdapter
         return (int) ($this->getLanguage()?->id ?? 1);
     }
 
+    public function getLangId(): int
+    {
+        return $this->getLanguageId();
+    }
+
     public function getLanguageIso(): string
     {
         return $this->getLanguage()?->iso_code ?? 'en';
@@ -153,7 +158,7 @@ class ContextAdapter
 
     public function getCustomerGroups(): array
     {
-        if (! $this->isCustomerLogged()) {
+        if (!$this->isCustomerLogged()) {
             return [(int) Configuration::get('PS_UNIDENTIFIED_GROUP')];
         }
 
@@ -219,7 +224,7 @@ class ContextAdapter
 
     public function isFrontContext(): bool
     {
-        return ! $this->isAdminContext();
+        return !$this->isAdminContext();
     }
 
     // =========================================================================

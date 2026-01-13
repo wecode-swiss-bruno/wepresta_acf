@@ -1,0 +1,32 @@
+{#
+ # CPT Single Template (Twig) - Default template for single post
+ #
+ # Available variables:
+ # - cpt_type: Type information
+ # - cpt_post: Post information
+ # - cpt: CPT service
+ # - acf: ACF service
+ #}
+
+{% extends '@PrestaShop/Shop/layout.html.twig' %}
+
+{% block content %}
+    <article class="cpt-single cpt-single-{{ cpt_type.slug }}" id="cpt-post-{{ cpt_post.id }}">
+        
+        <h1 class="page-title">{{ cpt_post.title }}</h1>
+
+        <div class="cpt-post-meta">
+            <time datetime="{{ cpt_post.date_upd }}">
+                {{ cpt_post.date_upd|date('d/m/Y') }}
+            </time>
+            <a href="{{ cpt_type.url }}" class="cpt-back-link">
+                &larr; {{ 'Back to'|trans({}, 'Modules.Weprestaacf.Front') }} {{ cpt_type.name }}
+            </a>
+        </div>
+
+        <div class="cpt-post-content">
+            {# ACF fields will be available via the ACF service injected in the controller #}
+            {# Content managed via ACF fields #}
+        </div>
+    </article>
+{% endblock %}

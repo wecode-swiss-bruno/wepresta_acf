@@ -437,3 +437,120 @@ services:
             $fieldRenderer: '@WeprestaAcf\Application\Service\FieldRenderer'
         tags: ['twig.extension']
         public: true
+
+    # =========================================================================
+    # CPT - Domain Repository Interfaces
+    # =========================================================================
+
+    WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface:
+        alias: WeprestaAcf\Infrastructure\Repository\CptTypeRepository
+
+    WeprestaAcf\Domain\Repository\CptPostRepositoryInterface:
+        alias: WeprestaAcf\Infrastructure\Repository\CptPostRepository
+
+    WeprestaAcf\Domain\Repository\CptTaxonomyRepositoryInterface:
+        alias: WeprestaAcf\Infrastructure\Repository\CptTaxonomyRepository
+
+    WeprestaAcf\Domain\Repository\CptTermRepositoryInterface:
+        alias: WeprestaAcf\Infrastructure\Repository\CptTermRepository
+
+    WeprestaAcf\Domain\Repository\CptRelationRepositoryInterface:
+        alias: WeprestaAcf\Infrastructure\Repository\CptRelationRepository
+
+    # =========================================================================
+    # CPT - Repositories (Public)
+    # =========================================================================
+
+    WeprestaAcf\Infrastructure\Repository\CptTypeRepository:
+        public: true
+
+    WeprestaAcf\Infrastructure\Repository\CptPostRepository:
+        public: true
+
+    WeprestaAcf\Infrastructure\Repository\CptTaxonomyRepository:
+        public: true
+
+    WeprestaAcf\Infrastructure\Repository\CptTermRepository:
+        public: true
+
+    WeprestaAcf\Infrastructure\Repository\CptRelationRepository:
+        public: true
+
+    # =========================================================================
+    # CPT - Application Services
+    # =========================================================================
+
+    WeprestaAcf\Application\Service\CptTypeService:
+        public: true
+
+    WeprestaAcf\Application\Service\CptPostService:
+        public: true
+
+    WeprestaAcf\Application\Service\CptTaxonomyService:
+        public: true
+
+    WeprestaAcf\Application\Service\CptFrontService:
+        public: true
+
+    WeprestaAcf\Application\Service\CptSeoService:
+        public: true
+
+    WeprestaAcf\Application\Service\CptUrlService:
+        public: true
+
+    WeprestaAcf\Application\Service\CptSyncService:
+        public: true
+
+    # =========================================================================
+    # CPT - API Controllers
+    # =========================================================================
+
+    WeprestaAcf\Infrastructure\Api\CptTypeApiController:
+        arguments:
+            $repository: '@WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface'
+            $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
+            $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\CptPostApiController:
+        arguments:
+            $repository: '@WeprestaAcf\Domain\Repository\CptPostRepositoryInterface'
+            $typeRepository: '@WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface'
+            $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
+            $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\CptTaxonomyApiController:
+        arguments:
+            $repository: '@WeprestaAcf\Domain\Repository\CptTaxonomyRepositoryInterface'
+            $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
+            $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\CptTermApiController:
+        arguments:
+            $repository: '@WeprestaAcf\Domain\Repository\CptTermRepositoryInterface'
+            $taxonomyRepository: '@WeprestaAcf\Domain\Repository\CptTaxonomyRepositoryInterface'
+            $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
+            $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\CptRelationApiController:
+        arguments:
+            $repository: '@WeprestaAcf\Domain\Repository\CptRelationRepositoryInterface'
+            $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
+            $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+        tags: ['controller.service_arguments']
+        public: true
+
+    WeprestaAcf\Infrastructure\Api\CptSyncApiController:
+        arguments:
+            $syncService: '@WeprestaAcf\Application\Service\CptSyncService'
+            $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
+            $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+        tags: ['controller.service_arguments']
+        public: true

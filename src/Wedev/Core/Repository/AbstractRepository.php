@@ -88,7 +88,7 @@ abstract class AbstractRepository
      *
      * @return array[]
      */
-    public function findBy(array $criteria, ?string $orderBy = null, ?int $limit = null): array
+    public function findBy(array $criteria, ?string $orderBy = null, ?int $limit = null, ?int $offset = null): array
     {
         $query = new DbQuery();
         $query->select('*')->from($this->getTableName());
@@ -110,7 +110,7 @@ abstract class AbstractRepository
         }
 
         if ($limit !== null) {
-            $query->limit($limit);
+            $query->limit($limit, $offset ?? 0);
         }
 
         return $this->db->executeS($query) ?: [];
@@ -241,7 +241,7 @@ abstract class AbstractRepository
             return false;
         }
 
-        $newStatus = ! ((bool) ($current['active'] ?? false));
+        $newStatus = !((bool) ($current['active'] ?? false));
 
         return $this->update($id, ['active' => $newStatus ? 1 : 0]);
     }
@@ -355,11 +355,11 @@ abstract class AbstractRepository
 
         $results = $this->db->executeS($query);
 
-        if (! $results) {
+        if (!$results) {
             return [];
         }
 
-        return array_map(fn ($row) => (int) $row[$foreignKey], $results);
+        return array_map(fn($row) => (int) $row[$foreignKey], $results);
     }
 
     /**
@@ -376,7 +376,7 @@ abstract class AbstractRepository
         $this->detachAll($pivotTable, $entityId);
 
         // Ajouter les nouvelles
-        if (! empty($foreignIds)) {
+        if (!empty($foreignIds)) {
             $this->attachMany($pivotTable, $foreignKey, $entityId, $foreignIds);
         }
     }
@@ -419,7 +419,7 @@ abstract class AbstractRepository
             } elseif (\is_int($value) || \is_float($value)) {
                 $escaped[pSQL($key)] = $value;
             } else {
-                $escaped[pSQL($key)] = pSQL((string) $value, true);
+                $escaped[pSQL($key)] = pSQL((string) $value);
             }
         }
 

@@ -1,0 +1,37 @@
+{#
+ # CPT Builder Template - Vue.js SPA for managing CPT types
+ #}
+
+{% extends '@PrestaShop/Admin/layout.html.twig' %}
+
+{% block content %}
+    <div id="cpt-builder-app">
+        <div class="loading">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        window.acfConfig = {
+            apiUrl: '{{ path('wepresta_acf_api_cpt_types_list')|replace({'/cpt/types': ''}) }}',
+            token: '{{ csrfToken }}',
+            moduleUrl: '{{ asset('modules/wepresta_acf/') }}',
+            mode: 'cpt',
+            currentLangId: {{ app.request.locale|split('-')[0] == 'fr' ? 2 : 1 }},
+            availableLanguages: {{ prestashop.languages|json_encode|raw }}
+        };
+        // Compatibility alias
+        window.weprestaAcfConfig = window.acfConfig;
+    </script>
+    <script src="{{ asset('modules/wepresta_acf/views/dist/admin-cpt.js') }}"></script>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('modules/wepresta_acf/views/css/admin.css') }}">
+{% endblock %}
