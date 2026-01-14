@@ -26,7 +26,7 @@ import FilesFieldConfig from '@/components/fields/FilesFieldConfig.vue'
 import RelationFieldConfig from '@/components/fields/RelationFieldConfig.vue'
 import ListFieldConfig from '@/components/fields/ListFieldConfig.vue'
 import RepeaterFieldConfig from '@/components/fields/RepeaterFieldConfig.vue'
-import PsSwitch from '@/components/ui/PsSwitch.vue'
+import PsSwitch from '@/components/common/PsSwitch.vue'
 
 const store = useBuilderStore()
 const { t } = useTranslations()

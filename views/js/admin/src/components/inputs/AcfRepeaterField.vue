@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { AcfField } from '@/types'
-import FileUploadField from '@/components/ui/FileUploadField.vue'
+import AcfFileUploadField from '@/components/inputs/AcfFileUploadField.vue'
 
 interface RepeaterRow {
   row_id: string
@@ -524,7 +524,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                 </select>
 
                 <!-- File Upload -->
-                <FileUploadField
+                <AcfFileUploadField
                   v-else-if="subfield.type === 'file'"
                   :model-value="getSubfieldValue(row, subfield)"
                   :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
@@ -533,7 +533,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                 />
 
                 <!-- Image Upload -->
-                <FileUploadField
+                <AcfFileUploadField
                   v-else-if="subfield.type === 'image'"
                   :model-value="getSubfieldValue(row, subfield)"
                   :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
@@ -543,7 +543,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                 />
 
                 <!-- Video Upload -->
-                <FileUploadField
+                <AcfFileUploadField
                   v-else-if="subfield.type === 'video'"
                   :model-value="getSubfieldValue(row, subfield)"
                   :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
@@ -703,7 +703,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                 />
 
                 <!-- Files (multiple) -->
-                <FileUploadField
+                <AcfFileUploadField
                   v-else-if="subfield.type === 'files'"
                   :model-value="getSubfieldValue(row, subfield)"
                   :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
@@ -712,7 +712,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                 />
 
                 <!-- Gallery (multiple images) -->
-                <FileUploadField
+                <AcfFileUploadField
                   v-else-if="subfield.type === 'gallery'"
                   :model-value="getSubfieldValue(row, subfield)"
                   :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"

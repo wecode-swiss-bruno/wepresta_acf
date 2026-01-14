@@ -370,6 +370,13 @@ wepresta_acf_api_relation_search:
         _legacy_controller: AdminWeprestaAcfBuilder
         _controller: 'WeprestaAcf\Infrastructure\Api\RelationApiController::search'
 
+wepresta_acf_api_relation_resolve:
+    path: /wpa-api/relation/resolve
+    methods: [GET]
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\RelationApiController::resolve'
+
 # =========================================================================
 # CPT - Admin Pages
 # =========================================================================

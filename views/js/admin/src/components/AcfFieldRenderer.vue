@@ -9,9 +9,15 @@ import AcfNumberField from './inputs/AcfNumberField.vue'
 import AcfSelectField from './inputs/AcfSelectField.vue'
 import AcfBooleanField from './inputs/AcfBooleanField.vue'
 import AcfCheckboxField from './inputs/AcfCheckboxField.vue'
+import AcfColorField from '@/components/inputs/AcfColorField.vue'
+import AcfDateField from '@/components/inputs/AcfDateField.vue'
+import AcfDateTimeField from '@/components/inputs/AcfDateTimeField.vue'
+import AcfTimeField from '@/components/inputs/AcfTimeField.vue'
 import AcfRadioField from './inputs/AcfRadioField.vue'
-import FileUploadField from '@/components/ui/FileUploadField.vue'
-import RepeaterGlobalField from '@/components/ui/RepeaterGlobalField.vue'
+import AcfFileUploadField from '@/components/inputs/AcfFileUploadField.vue'
+import AcfListField from '@/components/inputs/AcfListField.vue'
+import AcfRelationField from '@/components/inputs/AcfRelationField.vue'
+import AcfRepeaterField from '@/components/inputs/AcfRepeaterField.vue'
 
 const props = defineProps<{
   field: AcfField
@@ -87,7 +93,31 @@ const setValue = (val: any) => {
   >
     <!-- Text / URL / Email -->
     <AcfTextField
-      v-if="['text', 'url', 'email', 'password', 'date', 'time', 'datetime'].includes(field.type)"
+      v-if="['text', 'url', 'email', 'password'].includes(field.type)"
+      :field="field"
+      :model-value="getValue()"
+      @update:model-value="setValue"
+    />
+
+    <!-- Date -->
+    <AcfDateField
+      v-else-if="field.type === 'date'"
+      :field="field"
+      :model-value="getValue()"
+      @update:model-value="setValue"
+    />
+
+    <!-- Time -->
+    <AcfTimeField
+      v-else-if="field.type === 'time'"
+      :field="field"
+      :model-value="getValue()"
+      @update:model-value="setValue"
+    />
+
+    <!-- DateTime -->
+    <AcfDateTimeField
+      v-else-if="field.type === 'datetime'"
       :field="field"
       :model-value="getValue()"
       @update:model-value="setValue"
@@ -150,17 +180,15 @@ const setValue = (val: any) => {
     />
 
     <!-- Color -->
-    <input 
+    <AcfColorField
       v-else-if="field.type === 'color'"
-      type="color" 
-      class="form-control"
-      style="height: 40px; padding: 5px;"
-      :value="getValue() || '#000000'"
-      @input="setValue(($event.target as HTMLInputElement).value)"
+      :field="field"
+      :model-value="getValue()"
+      @update:model-value="setValue"
     />
 
     <!-- File / Image / Video -->
-    <FileUploadField
+    <AcfFileUploadField
       v-else-if="['file', 'image', 'video', 'gallery'].includes(field.type)"
       :model-value="getValue()"
       :field-slug="field.slug"
@@ -169,7 +197,7 @@ const setValue = (val: any) => {
     />
 
     <!-- Repeater -->
-    <RepeaterGlobalField
+    <AcfRepeaterField
       v-else-if="field.type === 'repeater'"
       :field="field"
       :model-value="getValue()"
@@ -179,10 +207,21 @@ const setValue = (val: any) => {
     />
 
     <!-- Relation (Fallback to Select for now) -->
-    <div v-else-if="field.type === 'relation' || field.type === 'post_object' || field.type === 'page_link' || field.type === 'taxonomy'" class="alert alert-info">
-       Relation field type '{{ field.type }}' implementation pending. using Text input for value storage.
-       <input type="text" class="form-control mt-2" :value="getValue()" @input="setValue(($event.target as HTMLInputElement).value)" />
-    </div>
+    <!-- List -->
+    <AcfListField
+      v-else-if="field.type === 'list'"
+      :field="field"
+      :model-value="getValue() || []"
+      @update:model-value="setValue"
+    />
+
+    <!-- Relation -->
+    <AcfRelationField
+      v-else-if="field.type === 'relation' || field.type === 'post_object' || field.type === 'page_link' || field.type === 'taxonomy'"
+      :field="field"
+      :model-value="getValue()"
+      @update:model-value="setValue"
+    />
 
     <!-- Unknown -->
     <div v-else class="alert alert-warning">

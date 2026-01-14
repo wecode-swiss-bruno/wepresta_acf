@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { AcfField } from '@/types'
-import PsSwitch from '@/components/ui/PsSwitch.vue'
+import PsSwitch from '@/components/common/PsSwitch.vue'
 
 const props = defineProps<{
   field: AcfField

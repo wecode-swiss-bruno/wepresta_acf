@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
 import { useApi } from '@/composables/useApi'
-import PsSwitch from '@/components/ui/PsSwitch.vue'
+import PsSwitch from '@/components/common/PsSwitch.vue'
 
 const emit = defineEmits<{
   'next-step': []

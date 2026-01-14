@@ -3,7 +3,7 @@ import { ref, watch, nextTick, computed } from 'vue'
 import type { FieldConfig, FieldChoice } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
 import { useFieldConfig } from '@/composables/useFieldConfig'
-import PsSwitch from '@/components/ui/PsSwitch.vue'
+import PsSwitch from '@/components/common/PsSwitch.vue'
 import ChoicesEditor from './ChoicesEditor.vue'
 
 const props = defineProps<{

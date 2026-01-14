@@ -2,7 +2,7 @@
 import type { FieldConfig } from '@/types'
 import { useTranslations } from '@/composables/useTranslations'
 import { useFieldConfig } from '@/composables/useFieldConfig'
-import PsSwitch from '@/components/ui/PsSwitch.vue'
+import PsSwitch from '@/components/common/PsSwitch.vue'
 
 const props = defineProps<{
   config: FieldConfig

@@ -90,10 +90,10 @@ final class RelationApiController extends AbstractApiController
             $sql->where('sa.quantity > 0');
         }
 
-        if (! empty($categories)) {
+        if (!empty($categories)) {
             $categoryIds = array_map('intval', explode(',', $categories));
 
-            if (! empty($categoryIds)) {
+            if (!empty($categoryIds)) {
                 $sql->innerJoin('category_product', 'cp', 'p.id_product = cp.id_product');
                 $sql->where('cp.id_category IN (' . implode(',', $categoryIds) . ')');
             }
@@ -101,7 +101,7 @@ final class RelationApiController extends AbstractApiController
 
         $results = $db->executeS($sql);
 
-        if (! $results) {
+        if (!$results) {
             return [];
         }
 
@@ -110,7 +110,7 @@ final class RelationApiController extends AbstractApiController
         foreach ($results as $row) {
             $imageUrl = null;
 
-            if (! empty($row['id_image'])) {
+            if (!empty($row['id_image'])) {
                 $imageUrl = _PS_BASE_URL_ . _THEME_PROD_DIR_ . Image::getImgFolderStatic($row['id_image']) . $row['id_image'] . '-small_default.jpg';
             }
 
@@ -158,7 +158,7 @@ final class RelationApiController extends AbstractApiController
 
         $results = $db->executeS($sql);
 
-        if (! $results) {
+        if (!$results) {
             return [];
         }
 
@@ -173,4 +173,138 @@ final class RelationApiController extends AbstractApiController
 
         return $items;
     }
+    /**
+     * Resolve entities by IDs.
+     */
+    public function resolve(Request $request): JsonResponse
+    {
+        $ids = trim((string) $request->query->get('ids', ''));
+        $entityType = $request->query->get('type', 'product');
+
+        if (empty($ids)) {
+            return $this->jsonSuccess([]);
+        }
+
+        $idList = array_map('intval', explode(',', $ids));
+        $idList = array_filter($idList);
+
+        if (empty($idList)) {
+            return $this->jsonSuccess([]);
+        }
+
+        $context = Context::getContext();
+        $langId = (int) $context->language->id;
+        $shopId = (int) $context->shop->id;
+
+        try {
+            if ($entityType === 'category') {
+                $results = $this->resolveCategories($idList, $langId);
+            } else {
+                $results = $this->resolveProducts($idList, $langId, $shopId);
+            }
+
+            return $this->jsonSuccess($results);
+        } catch (Exception $e) {
+            return $this->jsonError($e->getMessage());
+        }
+    }
+
+    /**
+     * @param int[] $ids
+     * @return array<int, array<string, mixed>>
+     */
+    private function resolveProducts(array $ids, int $langId, int $shopId): array
+    {
+        $db = Db::getInstance();
+        $idsString = implode(',', $ids);
+
+        $sql = new DbQuery();
+        $sql->select('p.id_product, pl.name, p.reference, i.id_image')
+            ->from('product', 'p')
+            ->innerJoin('product_lang', 'pl', 'p.id_product = pl.id_product AND pl.id_lang = ' . $langId . ' AND pl.id_shop = ' . $shopId)
+            ->innerJoin('product_shop', 'ps', 'p.id_product = ps.id_product AND ps.id_shop = ' . $shopId)
+            ->leftJoin('image_shop', 'i', 'p.id_product = i.id_product AND i.id_shop = ' . $shopId . ' AND i.cover = 1')
+            ->where('p.id_product IN (' . $idsString . ')');
+
+        $results = $db->executeS($sql);
+
+        if (!$results) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($results as $row) {
+            $imageUrl = null;
+
+            if (!empty($row['id_image'])) {
+                $imageUrl = _PS_BASE_URL_ . _THEME_PROD_DIR_ . Image::getImgFolderStatic($row['id_image']) . $row['id_image'] . '-small_default.jpg';
+            }
+
+            $items[] = [
+                'id' => (int) $row['id_product'],
+                'name' => $row['name'],
+                'reference' => $row['reference'] ?? '',
+                'image' => $imageUrl,
+            ];
+        }
+
+        // Preserve order based on input IDs
+        $orderedItems = [];
+        foreach ($ids as $id) {
+            foreach ($items as $item) {
+                if ($item['id'] === $id) {
+                    $orderedItems[] = $item;
+                    break;
+                }
+            }
+        }
+
+        return $orderedItems;
+    }
+
+    /**
+     * @param int[] $ids
+     * @return array<int, array<string, mixed>>
+     */
+    private function resolveCategories(array $ids, int $langId): array
+    {
+        $db = Db::getInstance();
+        $idsString = implode(',', $ids);
+
+        $sql = new DbQuery();
+        $sql->select('c.id_category, cl.name')
+            ->from('category', 'c')
+            ->innerJoin('category_lang', 'cl', 'c.id_category = cl.id_category AND cl.id_lang = ' . $langId)
+            ->where('c.id_category IN (' . $idsString . ')');
+
+        $results = $db->executeS($sql);
+
+        if (!$results) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($results as $row) {
+            $items[] = [
+                'id' => (int) $row['id_category'],
+                'name' => $row['name'],
+            ];
+        }
+
+        // Preserve order
+        $orderedItems = [];
+        foreach ($ids as $id) {
+            foreach ($items as $item) {
+                if ($item['id'] === $id) {
+                    $orderedItems[] = $item;
+                    break;
+                }
+            }
+        }
+
+        return $orderedItems;
+    }
 }
+
