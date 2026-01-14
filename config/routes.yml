@@ -8,7 +8,7 @@ wepresta_acf_builder:
     path: /modules/wepresta_acf/builder
     methods: [GET]
     defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\AcfBuilderController::index'
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\BuilderController::index'
         _legacy_controller: AdminWeprestaAcfBuilder
         _legacy_link: AdminWeprestaAcfBuilder
 
@@ -378,24 +378,8 @@ wepresta_acf_api_relation_resolve:
         _controller: 'WeprestaAcf\Infrastructure\Api\RelationApiController::resolve'
 
 # =========================================================================
-# CPT - Admin Pages
+# CPT - Admin Pages (Removed - using SPA tabs)
 # =========================================================================
-
-wepresta_acf_cpt_builder:
-    path: /modules/wepresta_acf/cpt
-    methods: [GET]
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptBuilderController::index'
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _legacy_link: AdminWeprestaAcfBuilder
-
-wepresta_acf_cpt_posts_list:
-    path: /modules/wepresta_acf/cpt/{typeSlug}/posts
-    methods: [GET]
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptBuilderController::list'
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _legacy_link: AdminWeprestaAcfBuilder
 
 # CPT - API Routes
 # =========================================================================

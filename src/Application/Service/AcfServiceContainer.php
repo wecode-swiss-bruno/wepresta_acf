@@ -350,7 +350,8 @@ final class AcfServiceContainer
                 self::getFieldRenderer(),
                 self::getValueProvider(),
                 self::getFieldRepository(),
-                self::getGroupRepository()
+                self::getGroupRepository(),
+                self::getLocationProviderRegistry()
             );
         }
 

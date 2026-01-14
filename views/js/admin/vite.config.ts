@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production'
-  
+
   return {
     plugins: [vue()],
     define: {
@@ -31,7 +31,6 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'src/main.ts'),
-          cpt: path.resolve(__dirname, 'src/cpt-main.ts'),
         },
         output: {
           format: 'es',

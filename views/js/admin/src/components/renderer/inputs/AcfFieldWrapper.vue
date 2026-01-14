@@ -14,7 +14,7 @@ const emit = defineEmits<{
 
 const isTranslatable = computed(() => {
   // Check variations of translatable flag
-  return !!props.field.value_translatable || !!props.field.valueTranslatable || !!props.field.translatable
+  return !!props.field.value_translatable || !!props.field.translatable
 })
 
 const showLangTabs = computed(() => {
@@ -27,8 +27,8 @@ const showLangTabs = computed(() => {
     <!-- Label -->
     <div class="d-flex align-items-center mb-2">
       <label class="form-control-label mb-0 mr-2">
-        {{ field.label }}
-        <span v-if="field.required" class="text-danger">*</span>
+        {{ field.title || (field as any).label }}
+        <span v-if="field.validation?.required" class="text-danger">*</span>
       </label>
       <span v-if="isTranslatable" class="acf-globe-icon" title="Translatable">
         <i class="material-icons">language</i>

@@ -93,7 +93,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         $results = $this->db->executeS($sql);
 
-        if (! $results) {
+        if (!$results) {
             return [];
         }
 
@@ -135,7 +135,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         $results = $this->db->executeS($sql);
 
-        if (! $results) {
+        if (!$results) {
             return [];
         }
 
@@ -147,7 +147,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             $mainValue = $this->decodeValue($row['value']);
             $isTranslatable = (bool) ($row['value_translatable'] ?? false);
 
-            if (! $isTranslatable) {
+            if (!$isTranslatable) {
                 $values[$slug] = $mainValue;
 
                 continue;
@@ -162,6 +162,56 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             }
 
             $values[$slug] = $translations;
+        }
+
+        return $values;
+    }
+
+    /**
+     * Find all field values for an entity, indexed by Field ID.
+     * Including ALL languages for translatable fields.
+     *
+     * @return array<int, mixed> [fieldId => value] or [fieldId => [langId => value]]
+     */
+    public function findByEntityAllLanguagesIndexedById(string $entityType, int $entityId, ?int $shopId = null): array
+    {
+        $shopId ??= $this->getContextShopId();
+
+        $sql = new DbQuery();
+        $sql->select('fv.value, f.slug, f.value_translatable, f.' . self::FK_FIELD . ', fv.' . $this->getPrimaryKey())
+            ->from($this->getTableName(), 'fv')
+            ->innerJoin(self::TABLE_FIELD, 'f', 'fv.' . self::FK_FIELD . ' = f.' . self::FK_FIELD)
+            ->where($this->buildEntityWhere($entityType, $entityId, $shopId))
+            ->orderBy('f.slug ASC');
+
+        $results = $this->db->executeS($sql);
+
+        if (!$results) {
+            return [];
+        }
+
+        $values = [];
+        $defaultLangId = $this->getDefaultLangId();
+
+        foreach ($results as $row) {
+            $fieldId = (int) $row[self::FK_FIELD];
+            $mainValue = $this->decodeValue($row['value']);
+            $isTranslatable = (bool) ($row['value_translatable'] ?? false);
+
+            if (!$isTranslatable) {
+                $values[$fieldId] = $mainValue;
+                continue;
+            }
+
+            // Build translations array
+            $translations = [$defaultLangId => $mainValue];
+            $langResults = $this->getAllLangValues((int) $row[$this->getPrimaryKey()]);
+
+            foreach ($langResults as $langRow) {
+                $translations[(int) $langRow['id_lang']] = $this->decodeValue($langRow['value']);
+            }
+
+            $values[$fieldId] = $translations;
         }
 
         return $values;
@@ -184,7 +234,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         $results = $this->db->executeS($sql);
 
-        if (! $results) {
+        if (!$results) {
             return [];
         }
 
@@ -489,7 +539,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             'SELECT ' . $this->getPrimaryKey() . ' FROM `' . $this->dbPrefix . $this->getTableName() . '` WHERE ' . $mainWhere
         );
 
-        if (! $values) {
+        if (!$values) {
             return;
         }
 
@@ -553,7 +603,7 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
                 'date_upd' => $now,
             ]);
 
-            if (! $success) {
+            if (!$success) {
                 return false;
             }
 

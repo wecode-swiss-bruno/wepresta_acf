@@ -49,4 +49,14 @@ final class ValueProvider
     {
         return $this->valueRepository->findByEntityAllLanguages($entityType, $entityId, $shopId);
     }
+
+    /**
+     * Gets all field values indexed by Field ID (for Admin Builders).
+     *
+     * @return array<int, mixed>
+     */
+    public function getEntityFieldValuesAllLanguagesIndexedById(string $entityType, int $entityId, ?int $shopId = null): array
+    {
+        return $this->valueRepository->findByEntityAllLanguagesIndexedById($entityType, $entityId, $shopId);
+    }
 }

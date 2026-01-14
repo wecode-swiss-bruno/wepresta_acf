@@ -284,7 +284,9 @@ class WeprestaAcf extends Module
         try {
             AcfServiceContainer::loadCustomFieldTypes();
             $acfWrapper = AcfServiceContainer::getSmartyWrapper();
-            $this->context->smarty->assign('acf', $acfWrapper);
+            if ($this->context->smarty->getTemplateVars('acf') === null) {
+                $this->context->smarty->assign('acf', $acfWrapper);
+            }
             $this->registerSmartyPlugins();
 
             // Render custom social meta tags if present

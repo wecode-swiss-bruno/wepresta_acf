@@ -21,16 +21,16 @@ import AcfRepeaterField from '@/components/renderer/inputs/AcfRepeaterField.vue'
 
 const props = defineProps<{
   field: AcfField
-  value: any
+  modelValue: any
+  languages?: any[]
+  defaultLanguage?: any
   locale?: string
   entityType?: string
   entityId?: number
 }>()
 
-console.log('AcfFieldRenderer mounted - VERSION CHECK 2542', { field: props.field?.slug, locale: props.locale })
-
 const emit = defineEmits<{
-  (e: 'update:value', value: any): void
+  (e: 'update:modelValue', value: any): void
 }>()
 
 // Internal state for multiple languages

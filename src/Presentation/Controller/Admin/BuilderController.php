@@ -17,10 +17,10 @@ use WeprestaAcf\Application\Service\FieldTypeLoader;
 use WeprestaAcf\Application\Service\FieldTypeRegistry;
 
 /**
- * Vue.js Field Builder SPA Controller.
+ * Builder Controller - Single Page Application Entry Point
  * Compatible PrestaShop 8.x and 9.x
  */
-final class AcfBuilderController extends FrameworkBundleAdminController
+final class BuilderController extends FrameworkBundleAdminController
 {
     public function __construct(
         private readonly FieldTypeRegistry $fieldTypeRegistry,
@@ -71,8 +71,6 @@ final class AcfBuilderController extends FrameworkBundleAdminController
         $languages = [];
 
         foreach (Language::getLanguages(true) as $lang) {
-            // Extract language name without duplicate code in parentheses
-            // PrestaShop stores names like "English (English)", we want just "English"
             $name = $lang['name'];
 
             if (preg_match('/^(.+)\s*\([^)]+\)$/', $name, $matches)) {
@@ -92,9 +90,8 @@ final class AcfBuilderController extends FrameworkBundleAdminController
         // Generate CSRF token compatible PS8/PS9
         $csrfToken = $this->generateCsrfToken();
 
-        return $this->render('@Modules/wepresta_acf/views/templates/admin/acf-builder.html.twig', [
+        return $this->render('@Modules/wepresta_acf/views/templates/admin/builder.html.twig', [
             'layoutTitle' => $this->trans('ACF Field Builder', 'Modules.Weprestaacf.Admin'),
-            'enableSidebar' => true,
             'fieldTypes' => $fieldTypes,
             'locations' => $locations,
             'languages' => $languages,

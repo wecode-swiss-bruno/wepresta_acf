@@ -74,7 +74,7 @@ final class LocationProviderRegistry
     public function getAll(): array
     {
         $providers = array_values($this->providers);
-        usort($providers, fn ($a, $b) => $b->getPriority() <=> $a->getPriority());
+        usort($providers, fn($a, $b) => $b->getPriority() <=> $a->getPriority());
 
         return $providers;
     }
@@ -98,7 +98,7 @@ final class LocationProviderRegistry
                 $location['provider'] = $provider->getIdentifier();
                 // Use provider's enabled value if set, otherwise check EntityHooksConfig
                 if (!isset($location['enabled'])) {
-                $location['enabled'] = EntityHooksConfig::isEntityEnabled($location['value'] ?? '');
+                    $location['enabled'] = EntityHooksConfig::isEntityEnabled($location['value'] ?? '');
                 }
                 $locations[] = $location;
             }
@@ -209,6 +209,21 @@ final class LocationProviderRegistry
         }
 
         return false;
+    }
+
+    public function matches(string $entityType, int $entityId, array $rule, array $extraContext = []): bool
+    {
+        $context = array_merge($extraContext, [
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+        ]);
+
+        // Legacy format support: map 'param' to 'type'
+        if (isset($rule['param']) && !isset($rule['type'])) {
+            $rule['type'] = $rule['param'];
+        }
+
+        return $this->matchJsonLogicRule($rule, $context);
     }
 
     public function clearCache(): void

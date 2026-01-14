@@ -41,24 +41,19 @@
               </div>
 
                <!-- ACF Fields -->
-               <div v-if="acfGroups.length > 0" class="acf-fields-section mt-4">
+               <div v-if="acfGroups.length > 0" class="mt-4">
                   <h4 class="mb-3">Custom Fields</h4>
-                  <div v-for="group in acfGroups" :key="group.id" class="card mb-3">
-                    <div class="card-header font-weight-bold">
-                      {{ group.title || 'Fields' }}
-                    </div>
-                    <div class="card-body">
-                      <AcfFieldRenderer
-                        v-for="field in group.fields"
-                        :key="field.id"
-                        :field="field"
-                        :model-value="formData.acf[field.slug]"
-                        :languages="languages"
-                        :default-language="defaultLanguage"
-                        @update:model-value="(val) => formData.acf[field.slug] = val"
-                      />
-                    </div>
-                  </div>
+                  <AcfEntityFields
+                    :groups="acfGroups"
+                    :initial-values="formData.acf"
+                    :entity-type="'cpt_post'"
+                    :entity-id="isEdit ? parseInt(props.postId!.toString()) : 0"
+                    :languages="languages"
+                    :default-language="defaultLanguage"
+                    :hide-toolbar="true"
+                    :auto-save="false"
+                    @update:values="(val) => formData.acf = val"
+                  />
                </div>
 
               <!-- Meta Box: SEO -->
@@ -161,10 +156,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, inject } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
 import { useApi } from '../../composables/useApi'
-import AcfFieldRenderer from '@/components/renderer/AcfFieldRenderer.vue'
+import AcfEntityFields from '@/components/renderer/AcfEntityFields.vue'
 
 const props = defineProps<{
   postId?: number
@@ -174,6 +169,7 @@ const emit = defineEmits(['cancel', 'saved'])
 
 const cptStore = useCptStore()
 const { slugify } = useApi()
+const config = inject('cptConfig') as any
 
 const isEdit = computed(() => !!props.postId)
 const loading = ref(false)
@@ -202,13 +198,12 @@ const relatedTaxonomies = computed(() => {
 })
 
 onMounted(async () => {
-  // Fetch languages (assuming available via window or API - for now simple mockup or get from context)
-  // TODO: Proper language fetching from API
-  if ((window as any).psLanguages) {
-     languages.value = (window as any).psLanguages
-     defaultLanguage.value = languages.value.find((l: any) => l.is_default) || languages.value[0]
+  // Fetch languages from injected config
+  if (config && config.languages) {
+     languages.value = config.languages
+     defaultLanguage.value = languages.value.find((l: any) => l.id_lang === config.defaultLangId) || languages.value[0]
   } else {
-     // Fallback to single language if not found
+     // Fallback if config issues
      defaultLanguage.value = { id_lang: 1, iso_code: 'en', is_default: 1 }
      languages.value = [defaultLanguage.value]
   }

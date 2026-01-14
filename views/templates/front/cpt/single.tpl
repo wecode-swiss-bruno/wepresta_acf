@@ -1,13 +1,3 @@
-{**
-* CPT Single Template - Default template for single post
-*
-* Available variables:
-* - $cpt_type: Type information
-* - $cpt_post: Post information
-* - $cpt: CPT service
-* - $acf: ACF service for custom fields
-*}
-
 {extends file='page.tpl'}
 
 {block name='page_title'}
@@ -42,7 +32,10 @@
 
     {* Display all ACF fields from assigned groups *}
     <div class="cpt-post-fields">
-        {foreach $acf->group($cpt_type.id) as $field}
+        {assign var="groups" value=$acf->getActiveGroupsArray()}
+        <!-- DEBUG: Found {$groups|@count} active groups -->
+        {foreach $groups as $group}
+        {foreach $group.fields as $field}
         {if $field.has_value && $field.slug != 'featured_image' && $field.slug != 'content'}
         <div class="acf-field acf-field-{$field.type}">
             {if $field.title}
@@ -53,6 +46,7 @@
             </div>
         </div>
         {/if}
+        {/foreach}
         {/foreach}
     </div>
 

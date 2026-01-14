@@ -117,11 +117,10 @@ final class CptPostApiController extends AbstractApiController
             $acfGroupsData = $this->getMatchingAcfGroups($type ? $type->getSlug() : '');
 
             // Fetch current ACF values
-            $acfValues = $this->valueProvider->getEntityFieldValues(
+            $acfValues = $this->valueProvider->getEntityFieldValuesAllLanguagesIndexedById(
                 'cpt_post',
                 $post->getId(),
-                $this->context->getShopId(),
-                $this->context->getLangId()
+                $this->context->getShopId()
             );
 
             $data = [

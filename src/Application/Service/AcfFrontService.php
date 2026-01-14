@@ -25,6 +25,7 @@ use Generator;
 use Hook;
 use PrestaShopLogger;
 use Throwable;
+use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 
@@ -45,6 +46,7 @@ final class AcfFrontService
     private ?array $cachedFields = null;
 
     private bool $contextOverridden = false;
+    private array $extraContext = [];
 
     // =========================================================================
     // REPEATER ACCESS
@@ -58,7 +60,8 @@ final class AcfFrontService
         private readonly FieldRenderer $fieldRenderer,
         private readonly ValueProvider $valueProvider,
         private readonly AcfFieldRepositoryInterface $fieldRepository,
-        private readonly AcfGroupRepositoryInterface $groupRepository
+        private readonly AcfGroupRepositoryInterface $groupRepository,
+        private readonly LocationProviderRegistry $locationProviderRegistry
     ) {
     }
 
@@ -117,8 +120,22 @@ final class AcfFrontService
         $clone->entityType = $entityType;
         $clone->entityId = $entityId;
         $clone->contextOverridden = true;
-        $clone->cachedValues = null; // Reset cache for new context
+        // Reset cache for new context
+        $clone->cachedValues = null;
         $clone->cachedFields = null;
+
+        return $clone;
+    }
+
+    /**
+     * Override context for a CPT post (with type slug).
+     *
+     * @return self New instance with overridden context and CPT type slug
+     */
+    public function forCpt(string $cptSlug, int $postId): self
+    {
+        $clone = $this->forEntity('cpt_post', $postId);
+        $clone->extraContext['cpt_type_slug'] = $cptSlug;
 
         return $clone;
     }
@@ -232,7 +249,7 @@ final class AcfFrontService
         $fieldType = $fieldDef['type'] ?? '';
 
         // Only resolve labels for choice fields
-        if (! \in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
+        if (!\in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
             return \is_string($value) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : (string) $value;
         }
 
@@ -254,7 +271,7 @@ final class AcfFrontService
         // Handle checkbox (multiple values)
         if ($fieldType === 'checkbox' && \is_array($value)) {
             $labels = array_map(
-                fn ($v) => $this->resolveChoiceLabel($v, $choices, $langId),
+                fn($v) => $this->resolveChoiceLabel($v, $choices, $langId),
                 $value
             );
 
@@ -336,7 +353,7 @@ final class AcfFrontService
             return false;
         }
 
-        return ! (\is_array($value) && \count($value) === 0);
+        return !(\is_array($value) && \count($value) === 0);
     }
 
     /**
@@ -353,7 +370,7 @@ final class AcfFrontService
 
         $value = $this->getFieldValue($slug);
 
-        if (! \is_array($value) || empty($value)) {
+        if (!\is_array($value) || empty($value)) {
             return;
         }
 
@@ -362,19 +379,19 @@ final class AcfFrontService
 
         // Repeater structure: [{"row_id": "...", "values": {...}}, ...]
         foreach ($value as $index => $row) {
-            if (! \is_array($row)) {
+            if (!\is_array($row)) {
                 continue;
             }
 
             // Extract values from row structure
             $rowValues = $row['values'] ?? $row;
 
-            if (! \is_array($rowValues)) {
+            if (!\is_array($rowValues)) {
                 continue;
             }
 
             // Resolve labels for select/radio/checkbox fields
-            if ($resolveLabels && ! empty($subFields)) {
+            if ($resolveLabels && !empty($subFields)) {
                 $rowValues = $this->resolveSubFieldLabels($rowValues, $subFields);
             }
 
@@ -411,7 +428,7 @@ final class AcfFrontService
 
         $value = $this->getFieldValue($slug);
 
-        if (! \is_array($value)) {
+        if (!\is_array($value)) {
             return 0;
         }
 
@@ -480,6 +497,82 @@ final class AcfFrontService
     public function getGroupFields(int|string $groupIdOrSlug): array
     {
         return iterator_to_array($this->group($groupIdOrSlug));
+    }
+
+    /**
+     * Get all active groups for the current context.
+     *
+     * Note: Returns a Generator for memory efficiency. For Smarty templates,
+     * use getActiveGroupsArray() instead, as Smarty templates work better with arrays.
+     *
+     * @return Generator<int, array<string, mixed>> Group data with fields
+     */
+    public function getActiveGroups(): Generator
+    {
+        $this->ensureContext();
+
+        $entityType = $this->getEntityType();
+        $entityId = $this->getEntityId();
+
+        // Get all active groups and filter them
+        // This mirrors FormModifierService logic but optimized for read-only
+        $groups = $this->groupRepository->findActiveGroups($this->shopId);
+
+        foreach ($groups as $group) {
+            // Skip if location rules don't match
+            if (!$this->matchLocationRules($group, $entityType, $entityId)) {
+                continue;
+            }
+
+            $groupId = (int) $group['id_wepresta_acf_group'];
+            $fieldsGen = $this->group($groupId);
+
+            // Check if group has fields
+            $fields = iterator_to_array($fieldsGen);
+
+            if (empty($fields)) {
+                continue;
+            }
+
+            yield [
+                'id' => $groupId,
+                'title' => $group['title'],
+                'slug' => $group['slug'] ?? '',
+                'fields' => $fields,
+            ];
+        }
+    }
+
+    /**
+     * Get all active groups as array (for template compatibility).
+     *
+     * @return array<int, array<string, mixed>> Group data with fields
+     */
+    public function getActiveGroupsArray(): array
+    {
+        return iterator_to_array($this->getActiveGroups());
+    }
+
+    /**
+     * Check if group matches current context location rules.
+     *
+     * Location rules are stored in JsonLogic format:
+     * [{"==": [{"var": "entity_type"}, "cpt_post:blog"]}, ...]
+     * where each element is a separate rule to match (OR logic between them).
+     */
+    private function matchLocationRules(array $group, ?string $entityType, ?int $entityId): bool
+    {
+        $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
+
+        if (empty($locationRules)) {
+            return false;
+        }
+
+        // Location rules use OR logic: any rule matching = group is shown
+        return $this->locationProviderRegistry->matchLocation($locationRules, array_merge($this->extraContext, [
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+        ]));
     }
 
     // =========================================================================
@@ -607,7 +700,7 @@ final class AcfFrontService
             $fieldType = $fieldDef['type'] ?? '';
 
             // Only resolve for choice fields
-            if (! \in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
+            if (!\in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
                 continue;
             }
 
@@ -628,7 +721,7 @@ final class AcfFrontService
             if ($fieldType === 'checkbox' && \is_array($value)) {
                 // Multiple values for checkbox
                 $rowValues[$slug] = array_map(
-                    fn ($v) => $this->resolveChoiceLabel($v, $choices, $langId),
+                    fn($v) => $this->resolveChoiceLabel($v, $choices, $langId),
                     $value
                 );
             } else {
@@ -651,7 +744,7 @@ final class AcfFrontService
      */
     private function resolveChoiceLabel(mixed $value, array $choices, int $langId): string
     {
-        if (! \is_string($value) && ! is_numeric($value)) {
+        if (!\is_string($value) && !is_numeric($value)) {
             return (string) $value;
         }
 
@@ -668,7 +761,7 @@ final class AcfFrontService
                 }
 
                 // Fallback to label
-                if (! empty($choice['label'])) {
+                if (!empty($choice['label'])) {
                     return (string) $choice['label'];
                 }
 
@@ -693,7 +786,7 @@ final class AcfFrontService
             return;
         }
 
-        if (! $this->contextOverridden) {
+        if (!$this->contextOverridden) {
             $detected = $this->contextDetector->detect();
             $this->entityType = $detected['entity_type'];
             $this->entityId = $detected['entity_id'];
@@ -723,7 +816,7 @@ final class AcfFrontService
             $this->cachedFields = [];
         }
 
-        if (! isset($this->cachedFields[$slug])) {
+        if (!isset($this->cachedFields[$slug])) {
             $field = $this->fieldRepository->findBySlug($slug);
             $this->cachedFields[$slug] = $field ?: [];
         }

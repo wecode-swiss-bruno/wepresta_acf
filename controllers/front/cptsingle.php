@@ -48,7 +48,7 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
 
         // Set context for ACF and CPT
         $cptFrontService->forPost($post->getId());
-        $acfFrontService->forEntity('cpt_post', $post->getId());
+        $acfFrontService = $acfFrontService->forCpt($type->getSlug(), $post->getId());
 
         // Generate SEO
         $seoMeta = $cptSeoService->generateMetaTags($post, $type);

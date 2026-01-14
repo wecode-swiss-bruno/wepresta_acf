@@ -135,7 +135,7 @@ onMounted(() => {
         type="button"
       >
         <i class="material-icons">view_list</i>
-        ACF Field Groups
+        ACF
       </button>
       <button
         class="nav-link"
@@ -144,7 +144,7 @@ onMounted(() => {
         type="button"
       >
         <i class="material-icons">article</i>
-        Custom Post Types
+        CPT
       </button>
     </div>
 

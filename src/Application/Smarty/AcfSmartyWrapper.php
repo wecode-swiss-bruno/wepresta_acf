@@ -152,6 +152,16 @@ final class AcfSmartyWrapper
         return $this->getService()->getGroupFields($groupIdOrSlug);
     }
 
+    /**
+     * Get all active groups for the current context.
+     *
+     * @return Generator<int, array<string, mixed>>
+     */
+    public function getActiveGroups(): Generator
+    {
+        return $this->getService()->getActiveGroups();
+    }
+
     // =========================================================================
     // CONTEXT OVERRIDE
     // =========================================================================

@@ -45,7 +45,7 @@ final class GroupApiController extends AbstractApiController
             $groups = $this->groupRepository->findAll();
             $responses = $this->groupTransformer->transformMany($groups, false);
 
-            return $this->jsonSuccess(array_map(fn ($r) => $r->toArray(), $responses));
+            return $this->jsonSuccess(array_map(fn($r) => $r->toArray(), $responses));
         } catch (Exception $e) {
             return $this->jsonError($e->getMessage());
         }
@@ -59,7 +59,7 @@ final class GroupApiController extends AbstractApiController
         try {
             $group = $this->groupRepository->findById($id);
 
-            if (! $group) {
+            if (!$group) {
                 return $this->jsonNotFound('Group', $id);
             }
 
@@ -83,14 +83,14 @@ final class GroupApiController extends AbstractApiController
 
             $errors = $createRequest->validate();
 
-            if (! empty($errors)) {
+            if (!empty($errors)) {
                 return $this->jsonValidationError($errors);
             }
 
             // Create group
             $result = $this->groupMutationService->create($createRequest, $this->generateUuid());
 
-            if (! $result['success']) {
+            if (!$result['success']) {
                 return $this->jsonError($result['error'], Response::HTTP_BAD_REQUEST);
             }
 
@@ -113,7 +113,7 @@ final class GroupApiController extends AbstractApiController
             // Check group exists
             $group = $this->groupRepository->findById($id);
 
-            if (! $group) {
+            if (!$group) {
                 return $this->jsonNotFound('Group', $id);
             }
 
@@ -124,7 +124,7 @@ final class GroupApiController extends AbstractApiController
             // Update group
             $result = $this->groupMutationService->update($id, $group, $updateRequest);
 
-            if (! $result['success']) {
+            if (!$result['success']) {
                 return $this->jsonError($result['error'], Response::HTTP_BAD_REQUEST);
             }
 
@@ -145,7 +145,7 @@ final class GroupApiController extends AbstractApiController
     {
         try {
             // Check group exists
-            if (! $this->groupRepository->findById($id)) {
+            if (!$this->groupRepository->findById($id)) {
                 return $this->jsonNotFound('Group', $id);
             }
 
@@ -167,14 +167,14 @@ final class GroupApiController extends AbstractApiController
             // Check group exists
             $group = $this->groupRepository->findById($id);
 
-            if (! $group) {
+            if (!$group) {
                 return $this->jsonNotFound('Group', $id);
             }
 
             // Duplicate group
             $result = $this->groupMutationService->duplicate($group, $this->generateUuid());
 
-            if (! $result['success']) {
+            if (!$result['success']) {
                 return $this->jsonError($result['error'], Response::HTTP_BAD_REQUEST);
             }
 
@@ -196,14 +196,14 @@ final class GroupApiController extends AbstractApiController
         try {
             $group = $this->groupRepository->findById($id);
 
-            if (! $group) {
+            if (!$group) {
                 return $this->jsonNotFound('Group', $id);
             }
 
             // Extract first entity_type from location_rules
             $locationRules = $this->decodeJson($group['location_rules'] ?? '[]');
 
-            if (empty($locationRules) || ! isset($locationRules[0]['=='][1])) {
+            if (empty($locationRules) || !isset($locationRules[0]['=='][1])) {
                 return $this->jsonError('No entity type defined for this group', Response::HTTP_BAD_REQUEST);
             }
 
@@ -233,7 +233,7 @@ final class GroupApiController extends AbstractApiController
         try {
             $group = $this->groupRepository->findById($id);
 
-            if (! $group) {
+            if (!$group) {
                 return $this->jsonNotFound('Group', $id);
             }
 
@@ -257,7 +257,7 @@ final class GroupApiController extends AbstractApiController
                 if (isset($rule['==']) && isset($rule['=='][1])) {
                     $entityType = $rule['=='][1];
 
-                    if (! \in_array($entityType, $entityTypes, true)) {
+                    if (!\in_array($entityType, $entityTypes, true)) {
                         $entityTypes[] = $entityType;
                     }
                 }
@@ -284,7 +284,7 @@ final class GroupApiController extends AbstractApiController
                 $fieldId = (int) $field['id_wepresta_acf_field'];
                 $fieldSlug = $field['slug'];
 
-                if (! isset($values[$fieldSlug])) {
+                if (!isset($values[$fieldSlug])) {
                     continue;
                 }
 
@@ -313,7 +313,7 @@ final class GroupApiController extends AbstractApiController
             $groupIds = $data['groupIds'] ?? [];
             $active = (bool) ($data['active'] ?? false);
 
-            if (empty($groupIds) || ! \is_array($groupIds)) {
+            if (empty($groupIds) || !\is_array($groupIds)) {
                 return $this->jsonError('No group IDs provided', Response::HTTP_BAD_REQUEST);
             }
 
@@ -353,7 +353,7 @@ final class GroupApiController extends AbstractApiController
             $data = $this->getJsonPayload($request);
             $groupIds = $data['groupIds'] ?? [];
 
-            if (empty($groupIds) || ! \is_array($groupIds)) {
+            if (empty($groupIds) || !\is_array($groupIds)) {
                 return $this->jsonError('No group IDs provided', Response::HTTP_BAD_REQUEST);
             }
 

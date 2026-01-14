@@ -84,6 +84,11 @@ const props = defineProps<{
    * Used when values need to be submitted with the parent form
    */
   formNamePrefix?: string
+
+  /**
+   * Whether to hide the save toolbar and status indicators
+   */
+  hideToolbar?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -97,7 +102,10 @@ const values = reactive<Record<number | string, any>>({})
 
 // Saving state
 const saving = ref(false)
-const saveError = ref<string | null>(null)
+const saveError = ref<string | string[] | null>(null)
+
+// ...
+
 const lastSaved = ref<Date | null>(null)
 
 const api = useApi()
@@ -176,8 +184,50 @@ async function saveValues(): Promise<void> {
     emit('save:success', data)
   } catch (error) {
     if (error instanceof ApiError && error.errors) {
-       const messages = Object.values(error.errors).flat()
-       saveError.value = 'Validation failed: ' + messages.join('. ')
+       // Create lookups for fields and languages
+       const fieldMap = new Map<number | string, string>()
+       
+       const processFields = (fields: AcfField[]) => {
+         fields.forEach(f => {
+           if (f.id) fieldMap.set(f.id, f.title || f.config?.label || `Field #${f.id}`)
+           if (f.children) processFields(f.children)
+         })
+       }
+       props.groups.forEach(g => processFields(g.fields))
+       
+       const langMap = new Map<number | string, string>()
+       if (props.languages) {
+         props.languages.forEach(l => langMap.set(l.id_lang, l.name || l.iso_code))
+       }
+
+       // Smart error flattening
+       const messages: string[] = []
+       
+       Object.entries(error.errors).forEach(([fieldId, langErrors]) => {
+         const fieldName = fieldMap.get(Number(fieldId)) || fieldMap.get(fieldId) || `Field ${fieldId}`
+         
+         if (typeof langErrors === 'object' && langErrors !== null && !Array.isArray(langErrors)) {
+            // It's keyed by language ID
+            Object.entries(langErrors).forEach(([langId, msgs]) => {
+                const langName = langMap.get(Number(langId)) || langMap.get(langId) || langId
+                const msgList = Array.isArray(msgs) ? msgs : [msgs]
+                
+                msgList.forEach((msg: any) => {
+                    messages.push(`<strong>${fieldName}</strong> (${langName}): ${msg}`)
+                })
+            })
+         } else if (Array.isArray(langErrors)) {
+             // Direct array of messages for the field (non-translatable?)
+             langErrors.forEach((msg: any) => {
+                 messages.push(`<strong>${fieldName}</strong>: ${msg}`)
+             })
+         } else {
+             // Fallback
+             messages.push(`<strong>${fieldName}</strong>: ${String(langErrors)}`)
+         }
+       })
+       
+       saveError.value = messages.length > 0 ? messages : ['Validation failed']
     } else {
        saveError.value = error instanceof Error ? error.message : 'Unknown error'
     }
@@ -229,12 +279,6 @@ defineExpose({
         :disabled="!apiUrl"
         @save="saveValues"
       />
-      
-      <!-- Debug: API URL missing warning -->
-      <div v-if="!apiUrl" class="alert alert-warning mb-3 small">
-        <i class="material-icons" style="font-size: 16px; vertical-align: middle;">warning</i>
-        Debug: API URL is missing. Save button disabled.
-      </div>
       
       <!-- Save status indicator (if autoSave is enabled) -->
       <div v-if="autoSave" class="acf-save-status mb-3">

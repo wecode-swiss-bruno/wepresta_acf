@@ -4,21 +4,49 @@ import { computed } from 'vue'
 const props = defineProps<{
   saving: boolean
   lastSaved: Date | null
-  error: string | null
+  error: string | string[] | null
 }>()
 
 const emit = defineEmits<{
-  save: []
+  (e: 'save'): void
 }>()
+
+// ...
 
 const statusText = computed(() => {
   if (props.saving) return 'Saving changes...'
-  if (props.error) return props.error
+  if (props.error) {
+    if (Array.isArray(props.error)) {
+        return props.error.length + ' errors found'
+    }
+    return props.error
+  }
   if (props.lastSaved) {
     return `Last saved: ${props.lastSaved.toLocaleTimeString()}`
   }
   return 'Unsaved changes'
 })
+// ...
+
+// Update template to show error details on hover or in a list
+/* 
+In template: 
+<div class="status-info" :title="errorMessageList">
+...
+<div v-if="hasMultipleErrors" class="error-list-tooltip">
+  <ul><li v-for="err in error">{{ err }}</li></ul>
+</div>
+*/
+
+const errorMessageList = computed(() => {
+    if (Array.isArray(props.error)) {
+        return props.error.join('\n')
+    }
+    return props.error || ''
+})
+
+const hasMultipleErrors = computed(() => Array.isArray(props.error) && props.error.length > 0)
+
 
 const statusIcon = computed(() => {
   if (props.saving) return 'sync'
@@ -34,8 +62,13 @@ const statusIcon = computed(() => {
       <div class="status-icon-wrapper">
         <i class="material-icons" :class="{ spinning: saving }">{{ statusIcon }}</i>
       </div>
-      <div class="status-info">
+      <div class="status-info" :title="errorMessageList">
         <span class="status-label">{{ statusText }}</span>
+        
+        <!-- Show first error if array -->
+        <span v-if="hasMultipleErrors" class="status-detail status-error-detail" v-html="Array.isArray(error) ? error[0] : ''">
+        </span>
+        
         <span v-if="lastSaved && !saving && !error" class="status-time">Success</span>
       </div>
     </div>
@@ -122,6 +155,19 @@ const statusIcon = computed(() => {
 .status-time {
   font-size: 10px;
   opacity: 0.8;
+}
+
+.status-error-detail {
+  font-size: 10px;
+  opacity: 0.9;
+  color: var(--acf-danger);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.status-error-detail strong {
+    font-weight: 700;
+    color: inherit;
 }
 
 .acfps-premium-save-btn {

@@ -38,19 +38,10 @@ services:
     WeprestaAcf\Presentation\Controller\:
         resource: '../src/Presentation/Controller/*'
         exclude:
-            - '../src/Presentation/Controller/Admin/CptBuilderController.php'
-            - '../src/Presentation/Controller/Admin/AcfBuilderController.php'
+            - '../src/Presentation/Controller/Admin/BuilderController.php'
         tags: ['controller.service_arguments']
 
-    # CPT Post Controller - explicit configuration for Location Rules support
-    # CPT Builder Controller - explicit configuration for Location Rules support
-    WeprestaAcf\Presentation\Controller\Admin\CptBuilderController:
-        arguments:
-            $csrfTokenManager: '@security.csrf.token_manager'
-            $requestStack: '@request_stack'
-            $typeService: '@WeprestaAcf\Application\Service\CptTypeService'
-        tags: ['controller.service_arguments']
-        public: true
+
 
     # =========================================================================
     # Domain Repository Interfaces
@@ -360,7 +351,7 @@ services:
     # Presentation Controllers
     # =========================================================================
 
-    WeprestaAcf\Presentation\Controller\Admin\AcfBuilderController:
+    WeprestaAcf\Presentation\Controller\Admin\BuilderController:
         arguments:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
             $fieldTypeLoader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
@@ -447,6 +438,7 @@ services:
             $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
             $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
             $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
         public: true
 
     WeprestaAcf\Application\Service\ShortcodeParser:
