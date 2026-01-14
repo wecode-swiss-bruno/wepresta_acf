@@ -1,0 +1,278 @@
+{% extends '@PrestaShop/Admin/layout.html.twig' %}
+
+{# Import WEDEV UI Macros via relative path #}
+{% import '@Modules/wepresta_acf/src/Wedev/Extension/UI/Twig/Macros/admin.html.twig' as ui %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    {# Admin SCSS compiled by Webpack Encore → views/dist/admin.css #}
+    <link rel="stylesheet" href="/modules/wepresta_acf/views/dist/admin.css">
+    {# Vue.js Builder CSS - uses Vite manifest for cache-busting #}
+    {{ vite_stylesheet('main') }}
+{% endblock %}
+
+{# Define toolbar buttons - rendered by PrestaShop Toolbar component #}
+{# Note: PS Toolbar skips keys 'back' and 'modules-list', so use 'go-back' instead #}
+{% set layoutHeaderToolbarBtn = {
+    'add-group': {
+        'href': '#',
+        'desc': 'Add Group'|trans({}, 'Modules.Weprestaacf.Admin'),
+        'icon': 'add_circle_outline',
+        'class': 'btn-primary acf-toolbar-list-btn',
+        'js': 'return false;'
+    },
+    'go-back': {
+        'href': '#',
+        'desc': 'Back'|trans({}, 'Admin.Actions'),
+        'icon': 'arrow_back',
+        'class': 'btn-outline-secondary acf-toolbar-edit-btn d-none',
+        'js': 'return false;'
+    },
+    'save-group': {
+        'href': '#',
+        'desc': 'Save'|trans({}, 'Admin.Actions'),
+        'icon': 'save',
+        'class': 'btn-primary acf-toolbar-edit-btn d-none',
+        'js': 'return false;'
+    }
+} %}
+
+{% block content %}
+    {# Include WEDEV UI Partials #}
+    {% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/confirm-modal.html.twig' %}
+    {% include '@Modules/wepresta_acf/src/Wedev/Extension/UI/Templates/admin/_partials/toasts.html.twig' %}
+
+    {# Alerts container - populated by Vue but outside app for native styling #}
+    <div id="acf-alerts-container"></div>
+
+    <div id="acf-builder-app" data-module-url="{{ path('wepresta_acf_builder') }}">
+        <div class="acf-loading text-center py-5">
+            {{ ui.loader('md', 'primary') }}
+            <p class="mt-2">{{ 'Loading ACF Builder...'|trans({}, 'Modules.Weprestaacf.Admin') }}</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        window.acfConfig = {
+            apiUrl: '{{ url('wepresta_acf_api_groups_list') | split('/groups')[0] }}',
+            currentLangId: {{ currentLangId }},
+            shopId: {{ currentShopId }},
+            token: '{{ csrfToken }}',
+            translations: {
+                loading: '{{ 'Loading...'|trans({}, 'Admin.Global') }}',
+                fieldGroups: '{{ 'Field Groups'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addGroup: '{{ 'Add Group'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noGroups: '{{ 'No field groups yet. Create your first one!'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupTitle: '{{ 'Title'|trans({}, 'Admin.Global') }}',
+                groupSlug: '{{ 'Slug'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fields: '{{ 'Fields'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                placementTab: '{{ 'Tab'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                active: '{{ 'Active'|trans({}, 'Admin.Global') }}',
+                options: '{{ 'Options'|trans({}, 'Admin.Global') }}',
+                untitled: '{{ 'Untitled'|trans({}, 'Admin.Global') }}',
+                edit: '{{ 'Edit'|trans({}, 'Admin.Actions') }}',
+                duplicate: '{{ 'Duplicate'|trans({}, 'Admin.Actions') }}',
+                delete: '{{ 'Delete'|trans({}, 'Admin.Actions') }}',
+                confirmDeleteGroup: '{{ 'Are you sure you want to delete this group?'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addField: '{{ 'Add Field'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noFields: '{{ 'No fields yet'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectField: '{{ 'Select a field type'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectFieldToEdit: '{{ 'Select a field to edit'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                save: '{{ 'Save'|trans({}, 'Admin.Actions') }}',
+                back: '{{ 'Back'|trans({}, 'Admin.Actions') }}',
+                general: '{{ 'General Settings'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                location: '{{ 'Location'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationRulesHelp: '{{ 'Choose where your custom fields will appear in the admin interface. Select the type of content (products, categories, etc.) where these fields should be available.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                applyTo: '{{ 'Apply to'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                contentTypeDescription: '{{ 'Content Type determines where your custom fields will appear in the admin. Choose "Product" to add fields to product edit pages, "Category" for category management, "Customer" for customer profiles, or any other content type in your store. Your fields will only show on the selected content types.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                conditionDescription: '{{ 'Choose whether to show fields on this content type (equals) or exclude it (not equals).' |trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addLocationRule: '{{ 'Add Location Rule'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectEntityType: '{{ 'Choose content type...'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                operator: '{{ 'Condition'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                settings: '{{ 'Settings'|trans({}, 'Admin.Global') }}',
+                validation: '{{ 'Validation'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                conditions: '{{ 'Conditions'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldTitle: '{{ 'Field Title'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldSlug: '{{ 'Field Name'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldType: '{{ 'Field Type'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldInstructions: '{{ 'Instructions'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                required: '{{ 'Required'|trans({}, 'Admin.Global') }}',
+                minLength: '{{ 'Min Length'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                maxLength: '{{ 'Max Length'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                minValue: '{{ 'Min Value'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                maxValue: '{{ 'Max Value'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                pattern: '{{ 'Pattern'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                errorMessage: '{{ 'Error Message'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                wrapperWidth: '{{ 'Width'|trans({}, 'Admin.Global') }}',
+                wrapperClass: '{{ 'CSS Class'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                wrapperId: '{{ 'CSS ID'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                frontendOptions: '{{ 'Frontend Options'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                translatable: '{{ 'Translatable'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                showOnFrontend: '{{ 'Show on Frontend'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                saving: '{{ 'Saving...'|trans({}, 'Admin.Global') }}',
+                // Sync translations
+                sync: '{{ 'Sync'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                syncActions: '{{ 'Sync Actions'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                pushToTheme: '{{ 'Push to Theme'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                pullFromTheme: '{{ 'Pull from Theme'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                exportJson: '{{ 'Export JSON'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                themeOnlyGroups: '{{ 'Groups available in theme'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                import: '{{ 'Import'|trans({}, 'Admin.Actions') }}',
+                groupPushedSuccess: '{{ 'Group pushed to theme successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupPulledSuccess: '{{ 'Group imported from theme successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                syncError: '{{ 'Sync error'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                exportError: '{{ 'Export error'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                confirmPullFromTheme: '{{ 'Are you sure? This will overwrite the current group.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Choice field translations
+                choices: '{{ 'Choices'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                choicesHelp: '{{ 'Define the available options'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addOption: '{{ 'Add Option'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noChoices: '{{ 'No options defined yet'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                defaultValue: '{{ 'Default Value'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                allowMultiple: '{{ 'Allow Multiple'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                allowMultipleHelp: '{{ 'Allow selecting multiple values'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectDefaultHelp: '{{ 'Select the default option'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                none: '{{ 'None'|trans({}, 'Admin.Global') }}',
+                completeGeneralSettingsFirst: '{{ '⚠️ Save required: Click the Save button above to unlock Fields and Location tabs'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                defineEntityTypeFirst: '{{ '⚠️ Entity type required: Define at least one entity type in Location tab to access Fields'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Field Type Selector translations
+                searchFieldTypes: '{{ 'Search field types...'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                recentlyUsed: '{{ 'Recently Used'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noFieldTypesFound: '{{ 'No field types found'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                tryDifferentSearch: '{{ 'Try a different search term'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                clearSearch: '{{ 'Clear search'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                useArrowsToNavigate: '{{ 'Use ↑↓ arrows to navigate, Enter to select, Esc to close'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Location Rules Editor translations
+                saveError: '{{ 'Failed to save location rule. Please try again.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Presentation tab translations
+                presentation: '{{ 'Presentation'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                customClass: '{{ 'Custom CSS Class'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                customId: '{{ 'Custom HTML ID'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                metadata: '{{ 'Field Metadata'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Help texts
+                enableDisableField: '{{ 'Enable or disable this field.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                fieldNotSaved: '{{ 'This field hasn\'t been saved yet'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                defaultLanguageHelp: '{{ 'This is the default language. Title is also used as fallback.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                slugAutoGenerated: '{{ 'Auto-generated from title. Click to edit manually.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                slugFormatHelp: '{{ 'Use lowercase letters, numbers, and underscores only.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                customClassHelp: '{{ 'Add custom CSS classes to the field container for styling.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                customIdHelp: '{{ 'Add a custom HTML ID to the field for JavaScript targeting.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                valueTranslatable: '{{ 'Value translatable'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                valueTranslatableHelp: '{{ 'Enable to allow translation of field values for multi-language support.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // GroupSettings.vue translations
+                groupTitleHelp: '{{ 'A descriptive name for this field group that will be displayed in the admin interface.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupDescriptionHelp: '{{ 'Optional description to help administrators understand the purpose of this field group.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupInactiveHelp: '{{ 'Inactive groups are hidden in the product form.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupDescription: '{{ 'Description'|trans({}, 'Admin.Global') }}',
+                // LocationRulesEditor.vue translations
+                activeLocationRules: '{{ 'Active Location Rules'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationRulesDescription: '{{ 'Your custom fields will appear on these content types:'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                removeRule: '{{ 'Remove this rule'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                contentTypeRequired: '{{ 'Content Type Required'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectContentTypeFirst: '{{ 'Please select a content type above before choosing a display hook.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationRuleTip1: '{{ 'Select content types where your fields should appear'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationRuleTip2: '{{ 'Add multiple rules to show fields on different content types'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationRuleTip3: '{{ 'Each content type can have its own display hook'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationRuleTip4: '{{ 'Use "Exclude" to hide fields from specific content types'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationExamples: '{{ 'Examples:'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationExample1: '{{ 'Products: Add custom fields to product pages'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationExample2: '{{ 'Categories: Add fields specific to category pages'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locationExample3: '{{ 'Multiple types: Each with its own display location'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Additional Vue translations
+                slugLockedTitle: '{{ 'Slug is locked because group is saved'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                locked: '{{ 'Locked'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                slugLockedExplanation: '{{ 'This slug cannot be changed because the group has been saved. Changing it could break existing code that references this group.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                important: '{{ 'Important:'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                slugPersistenceNote: '{{ 'Once saved, the field slug becomes permanent to maintain data integrity.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Additional field config translations
+                confirmDeleteField: '{{ 'Are you sure you want to delete this field?'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                noSubfields: '{{ 'No subfields yet. Click the button below to add one.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                confirmDeleteGroups: '{{ 'Are you sure you want to delete {count} groups?'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupSelected: '{{ 'group selected'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                groupsSelected: '{{ 'groups selected'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                bulkActionSuccess: '{{ 'Bulk action completed successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                bulkActionError: '{{ 'Bulk action failed'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                bulkDeleteSuccess: '{{ 'Groups deleted successfully'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                bulkDeleteError: '{{ 'Failed to delete groups'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectAll: '{{ 'Select All'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                selectGroup: '{{ 'Select group'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                activate: '{{ 'Activate'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                deactivate: '{{ 'Deactivate'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Field type translations
+                prefix: '{{ 'Prefix'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                suffix: '{{ 'Suffix'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                placeholder: '{{ 'Placeholder'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                defaultValuePlaceholder: '{{ 'Default value for all entities'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                defaultValueHelp: '{{ 'Used when the entity has no specific value.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                checkboxHelp: '{{ 'Users can select multiple options.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                radioHelp: '{{ 'User can select only one option.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                layout: '{{ 'Layout'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                vertical: '{{ 'Vertical'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                horizontal: '{{ 'Horizontal'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Relation field translations
+                entityType: '{{ 'Entity Type'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                displayFormat: '{{ 'Display Format'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                minItems: '{{ 'Minimum items'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                maxItems: '{{ 'Maximum items'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                filters: '{{ 'Filters'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                activeOnly: '{{ 'Active only'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                inStockOnly: '{{ 'In stock only'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                excludeCurrent: '{{ 'Exclude current product'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                limitCategories: '{{ 'Limit to categories'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                leaveEmptyUnlimited: '{{ 'Leave empty for unlimited.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Boolean field translations
+                trueLabel: '{{ 'True Label'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                falseLabel: '{{ 'False Label'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                yes: '{{ 'Yes'|trans({}, 'Admin.Global') }}',
+                no: '{{ 'No'|trans({}, 'Admin.Global') }}',
+                trueLabelHelp: '{{ 'Text to display when value is true/checked.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                falseLabelHelp: '{{ 'Text to display when value is false/unchecked.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                defaultToChecked: '{{ 'Default to checked'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // List/Repeater translations
+                noMinimum: '{{ '0 = no minimum'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                unlimitedZero: '{{ '0 = unlimited'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Empty state
+                getStartedAddingFields: '{{ 'Get started by adding your first custom field to this group.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                // Additional missing keys
+                actions: '{{ 'Actions'|trans({}, 'Admin.Global') }}',
+                addRule: '{{ 'Add Rule'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                addSubfield: '{{ 'Add Subfield'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                close: '{{ 'Close'|trans({}, 'Admin.Actions') }}',
+                select: '{{ 'Select'|trans({}, 'Admin.Actions') }}',
+                showTitle: '{{ 'Show field title'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                showTitleHelp: '{{ 'Display the field title in front-office rendering.'|trans({}, 'Modules.Weprestaacf.Admin') }}',
+                translationNotSupported: '{{ 'This field type does not support translation.'|trans({}, 'Modules.Weprestaacf.Admin') }}'
+            },
+            fieldTypes: {{ fieldTypes|json_encode|raw }},
+            locations: {{ locations|json_encode|raw }},
+            languages: {{ languages|json_encode|raw }},
+            productTabs: [
+                { value: 'extra', label: '{{ 'Extra Tab (ACF)'|trans({}, 'Modules.Weprestaacf.Admin') }}' },
+                { value: 'description', label: '{{ 'Description'|trans({}, 'Admin.Catalog.Feature') }}' },
+                { value: 'pricing', label: '{{ 'Pricing'|trans({}, 'Admin.Catalog.Feature') }}' },
+                { value: 'seo', label: '{{ 'SEO'|trans({}, 'Admin.Catalog.Feature') }}' },
+                { value: 'shipping', label: '{{ 'Shipping'|trans({}, 'Admin.Catalog.Feature') }}' },
+                { value: 'options', label: '{{ 'Options'|trans({}, 'Admin.Catalog.Feature') }}' }
+            ],
+            layoutOptions: {
+                widths: [
+                    { value: '100', label: '100%' },
+                    { value: '75', label: '75%' },
+                    { value: '50', label: '50%' },
+                    { value: '33', label: '33%' },
+                    { value: '25', label: '25%' }
+                ],
+                positions: [
+                    { value: 'before', label: '{{ 'Before'|trans({}, 'Modules.Weprestaacf.Admin') }}' },
+                    { value: 'after', label: '{{ 'After'|trans({}, 'Modules.Weprestaacf.Admin') }}' }
+                ]
+            }
+        };
+    </script>
+    {# Vue.js Builder Script - uses Vite manifest for cache-busting #}
+    {{ vite_script('main') }}
+{% endblock %}

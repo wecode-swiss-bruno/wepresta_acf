@@ -1,14 +1,30 @@
 {#
- # CPT Builder Template - Vue.js SPA for managing CPT types
+ # CPT Builder Template - Vue.js SPA Container
  #}
 
 {% extends '@PrestaShop/Admin/layout.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {# CPT Builder CSS - uses Vite manifest for cache-busting #}
+    {{ vite_stylesheet('cpt') }}
+{% endblock %}
+
 {% block content %}
-    <div id="cpt-builder-app">
-        <div class="loading">
-            <div class="spinner-border" role="status">
-                <span class="sr-only">Loading...</span>
+    <div class="bootstrap" style="margin-top: 20px;">
+        <div id="cpt-app"
+             data-type-slug="{{ type.slug }}"
+             data-type-name="{{ type.name }}"
+             data-type-id="{{ type.id }}"
+             data-api-url="{{ apiUrl }}"
+             data-languages='{{ languages|json_encode }}'
+             data-default-lang-id="{{ defaultLangId }}"
+             data-shop-id="{{ shopId }}"
+             data-token="{{ csrfToken }}">
+             
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2">{{ 'Loading...'|trans({}, 'Modules.Weprestaacf.Admin') }}</div>
             </div>
         </div>
     </div>
@@ -16,22 +32,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        window.acfConfig = {
-            apiUrl: '{{ path('wepresta_acf_api_cpt_types_list')|replace({'/cpt/types': ''}) }}',
-            token: '{{ csrfToken }}',
-            moduleUrl: '{{ asset('modules/wepresta_acf/') }}',
-            mode: 'cpt',
-            currentLangId: {{ defaultLangId }},
-            availableLanguages: {{ languages|json_encode|raw }}
-        };
-        // Compatibility alias
-        window.weprestaAcfConfig = window.acfConfig;
-    </script>
-    <script src="{{ asset('modules/wepresta_acf/views/dist/admin-cpt.js') }}"></script>
-{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('modules/wepresta_acf/views/css/admin.css') }}">
+    {# CPT Builder Script - uses Vite manifest for cache-busting #}
+    {{ vite_script('cpt') }}
 {% endblock %}

@@ -2,30 +2,43 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
-export default defineConfig({
-    plugins: [vue()],
-    define: {
-        'process.env': {}
-    },
-    resolve: {
-        alias: {
-            '@': path.resolve(__dirname, 'src'),
+export default defineConfig(({ mode }) => {
+    const isProd = mode === 'production'
+    
+    return {
+        plugins: [vue()],
+        define: {
+            'process.env': {}
         },
-    },
-    build: {
-        outDir: 'dist',
-        emptyOutDir: false, // Don't wipe dist as we might have other assets
-        rollupOptions: {
-            input: {
-                'entity-fields': path.resolve(__dirname, 'src/entity-fields.ts'),
-            },
-            output: {
-                format: 'iife',
-                name: 'WeprestaAcfEntityFields',
-                entryFileNames: 'entity-fields.js',
-                assetFileNames: 'acf-entity-fields.[ext]', // Distinct name
-                inlineDynamicImports: true
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    api: 'modern-compiler'
+                }
+            }
+        },
+        resolve: {
+            alias: {
+                '@': path.resolve(__dirname, 'src'),
             },
         },
-    },
+        build: {
+            outDir: 'dist',
+            emptyOutDir: false, // Don't wipe dist as we build after main config
+            manifest: 'manifest-entity.json', // Separate manifest for entity fields
+            rollupOptions: {
+                input: {
+                    'entity-fields': path.resolve(__dirname, 'src/entity-fields.ts'),
+                },
+                output: {
+                    format: 'iife',
+                    name: 'WeprestaAcfEntityFields',
+                    // Hash in production for cache-busting
+                    entryFileNames: isProd ? 'entity-fields.[hash].js' : 'entity-fields.js',
+                    assetFileNames: isProd ? 'acf-entity-fields.[hash].[ext]' : 'acf-entity-fields.[ext]',
+                    inlineDynamicImports: true
+                },
+            },
+        },
+    }
 })

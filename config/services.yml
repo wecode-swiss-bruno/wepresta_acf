@@ -38,21 +38,17 @@ services:
     WeprestaAcf\Presentation\Controller\:
         resource: '../src/Presentation/Controller/*'
         exclude:
-            - '../src/Presentation/Controller/Admin/CptPostController.php'
-            - '../src/Presentation/Controller/Admin/BuilderController.php'
+            - '../src/Presentation/Controller/Admin/CptBuilderController.php'
+            - '../src/Presentation/Controller/Admin/AcfBuilderController.php'
         tags: ['controller.service_arguments']
 
     # CPT Post Controller - explicit configuration for Location Rules support
-    WeprestaAcf\Presentation\Controller\Admin\CptPostController:
+    # CPT Builder Controller - explicit configuration for Location Rules support
+    WeprestaAcf\Presentation\Controller\Admin\CptBuilderController:
         arguments:
-            $postService: '@WeprestaAcf\Application\Service\CptPostService'
+            $csrfTokenManager: '@security.csrf.token_manager'
+            $requestStack: '@request_stack'
             $typeService: '@WeprestaAcf\Application\Service\CptTypeService'
-            $taxonomyService: '@WeprestaAcf\Application\Service\CptTaxonomyService'
-            $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
-            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
-            $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
-            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
-            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
         tags: ['controller.service_arguments']
         public: true
 
@@ -138,6 +134,8 @@ services:
             $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
             $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
             $fileUploadService: '@WeprestaAcf\Application\Service\FileUploadService'
+            $requestStack: '@request_stack'
+            $csrfTokenManager: '@security.csrf.token_manager'
         public: true
 
     # =========================================================================
@@ -362,7 +360,7 @@ services:
     # Presentation Controllers
     # =========================================================================
 
-    WeprestaAcf\Presentation\Controller\Admin\BuilderController:
+    WeprestaAcf\Presentation\Controller\Admin\AcfBuilderController:
         arguments:
             $fieldTypeRegistry: '@WeprestaAcf\Application\Service\FieldTypeRegistry'
             $fieldTypeLoader: '@WeprestaAcf\Application\Service\FieldTypeLoader'
@@ -464,6 +462,11 @@ services:
         arguments:
             $frontService: '@WeprestaAcf\Application\Service\AcfFrontService'
             $fieldRenderer: '@WeprestaAcf\Application\Service\FieldRenderer'
+        tags: ['twig.extension']
+        public: true
+
+    # Vite Asset Extension - Handles manifest-based asset loading with cache-busting
+    WeprestaAcf\Application\Twig\ViteAssetExtension:
         tags: ['twig.extension']
         public: true
 
