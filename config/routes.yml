@@ -604,6 +604,15 @@ wepresta_acf_api_cpt_terms_delete:
         _controller: 'WeprestaAcf\Infrastructure\Api\CptTermApiController::delete'
 
 # CPT Relations
+wepresta_acf_api_cpt_relations_list_by_source:
+    path: /wpa-api/cpt/relations/{sourceTypeId}
+    methods: [GET]
+    requirements:
+        sourceTypeId: \d+
+    defaults:
+        _legacy_controller: AdminWeprestaAcfBuilder
+        _controller: 'WeprestaAcf\Infrastructure\Api\CptRelationApiController::listBySourceType'
+
 wepresta_acf_api_cpt_relations_list:
     path: /wpa-api/cpt/relations
     methods: [GET]

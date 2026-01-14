@@ -13,7 +13,7 @@ if (!defined('_PS_VERSION_')) {
  */
 class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
 {
-    public function init()
+    public function init(): void
     {
         parent::init();
 
@@ -30,7 +30,7 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
         $cptFrontService = AcfServiceContainer::get('WeprestaAcf\Application\Service\CptFrontService');
         $cptUrlService = AcfServiceContainer::get('WeprestaAcf\Application\Service\CptUrlService');
         $cptSeoService = AcfServiceContainer::get('WeprestaAcf\Application\Service\CptSeoService');
-        $acfFrontService = AcfServiceContainer::getAcfFrontService();
+        $acfFrontService = AcfServiceContainer::getFrontService();
 
         // Get type
         $type = $cptTypeService->getTypeBySlug($typeSlug);
@@ -109,11 +109,13 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
 
     private function addMetaTags(array $meta): void
     {
+        $socialMeta = [];
         foreach ($meta as $property => $content) {
             if (strpos($property, 'og:') === 0 || strpos($property, 'twitter:') === 0) {
-                $this->context->controller->addMeta($property, $content);
+                $socialMeta[$property] = $content;
             }
         }
+        $this->context->smarty->assign('acf_social_meta', $socialMeta);
     }
 
     private function addSchemaOrg(array $schema): void

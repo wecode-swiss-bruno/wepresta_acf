@@ -118,6 +118,7 @@ final class CptTermApiController extends AbstractApiController
             'id' => $term->getId(),
             'slug' => $term->getSlug(),
             'name' => $term->getName(),
+            'description' => $term->getDescription(),
             'parent_id' => $term->getParentId(),
         ];
         if (!empty($term->getChildren())) {

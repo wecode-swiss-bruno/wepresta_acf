@@ -81,7 +81,9 @@ final class BuilderController extends FrameworkBundleAdminController
 
             $languages[] = [
                 'id' => (int) $lang['id_lang'],
+                'id_lang' => (int) $lang['id_lang'],
                 'code' => $lang['iso_code'],
+                'iso_code' => $lang['iso_code'],
                 'name' => $name,
                 'is_default' => (int) $lang['id_lang'] === (int) Configuration::get('PS_LANG_DEFAULT'),
             ];
@@ -96,6 +98,7 @@ final class BuilderController extends FrameworkBundleAdminController
             'fieldTypes' => $fieldTypes,
             'locations' => $locations,
             'languages' => $languages,
+            'currentLangId' => (int) Configuration::get('PS_LANG_DEFAULT'),
             'csrfToken' => $csrfToken,
             // Toolbar buttons are now handled dynamically via Vue.js and DOM manipulation
             // The buttons are injected via header_toolbar_btn block and controlled by Vue state

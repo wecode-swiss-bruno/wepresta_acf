@@ -263,7 +263,7 @@ final class FormModifierService
     }
 
     /**
-     * Renders ACF fields using Twig for full field support.
+     * Renders ACF fields using Vue.js for unified field rendering.
      *
      * @param array $matchingGroups Groups that match location rules
      * @param string $entityType Entity type
@@ -278,50 +278,25 @@ final class FormModifierService
         $currentLangId = (int) Context::getContext()->language->id;
         $shopId = (int) Context::getContext()->shop->id;
 
-        // Get field values for the entity
-        $values = [];
-        $valuesPerLang = [];
-
-        if ($entityId !== null && $entityId > 0) {
-            $values = $this->valueProvider->getEntityFieldValues($entityType, $entityId, null, $currentLangId);
-
-            foreach ($languages as $lang) {
-                $valuesPerLang[(int) $lang['id_lang']] = $this->valueProvider->getEntityFieldValues(
-                    $entityType,
-                    $entityId,
-                    null,
-                    (int) $lang['id_lang']
-                );
-            }
-        }
-
-        // Build groups data for Twig
+        // Build groups data for Vue.js
         $groupsData = [];
-        PrestaShopLogger::addLog('[ACF renderAcfFields] Processing ' . \count($matchingGroups) . ' groups', 1);
 
         foreach ($matchingGroups as $group) {
             $groupId = (int) $group['id_wepresta_acf_group'];
-            PrestaShopLogger::addLog('[ACF renderAcfFields] Group ID: ' . $groupId . ', Title: ' . ($group['title'] ?? 'N/A'), 1);
             $fields = $this->fieldRepository->findByGroup($groupId);
-            PrestaShopLogger::addLog('[ACF renderAcfFields] Found ' . \count($fields) . ' fields', 1);
 
-            $fieldsHtml = [];
+            $fieldsData = [];
 
             foreach ($fields as $field) {
+                $fieldId = (int) $field['id_wepresta_acf_field'];
                 $slug = $field['slug'];
                 $type = $field['type'];
                 $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
-                $fieldType = $this->fieldTypeRegistry->getOrNull($type);
 
-                if (! $fieldType) {
-                    continue;
-                }
-
-                // Get field translations for metadata (title, instructions)
-                $fieldTranslations = $this->fieldRepository->getFieldTranslations((int) $field['id_wepresta_acf_field']);
+                // Get field translations for metadata
+                $fieldTranslations = $this->fieldRepository->getFieldTranslations($fieldId);
                 $currentLangIso = null;
 
-                // Find current language ISO code
                 foreach ($languages as $lang) {
                     if ((int) $lang['id_lang'] === $currentLangId) {
                         $currentLangIso = $lang['iso_code'];
@@ -330,7 +305,7 @@ final class FormModifierService
                     }
                 }
 
-                // Use translated metadata if available, fallback to default values
+                // Use translated metadata if available
                 $fieldTitle = $field['title'];
                 $fieldInstructions = $field['instructions'];
 
@@ -346,86 +321,102 @@ final class FormModifierService
                     }
                 }
 
-                $fieldData = [
+                // Parse config
+                $config = json_decode($field['config'] ?? '{}', true) ?: [];
+
+                // Parse choices from config
+                $choices = [];
+
+                if (isset($config['choices']) && \is_array($config['choices'])) {
+                    $choices = $config['choices'];
+                }
+
+                // Parse wrapper
+                $wrapper = [];
+
+                if (isset($config['wrapper']) && \is_array($config['wrapper'])) {
+                    $wrapper = $config['wrapper'];
+                }
+
+                $fieldsData[] = [
+                    'id' => $fieldId,
                     'slug' => $slug,
+                    'type' => $type,
                     'title' => $fieldTitle,
-                    'instructions' => $fieldInstructions,
+                    'label' => $fieldTitle,
+                    'instructions' => $fieldInstructions ?? '',
                     'required' => (bool) (json_decode($field['validation'] ?? '{}', true)['required'] ?? false),
-                    'translatable' => $isTranslatable,
+                    'value_translatable' => $isTranslatable,
+                    'valueTranslatable' => $isTranslatable,
+                    'config' => $config,
+                    'choices' => $choices,
+                    'wrapper' => $wrapper,
                 ];
-
-                // For repeater fields, load children and generate JS templates
-                if ($type === 'repeater') {
-                    $fieldId = (int) $field['id_wepresta_acf_field'];
-                    $children = $this->fieldRepository->findByParent($fieldId);
-                    $field['children'] = $children;
-                    $field['jsTemplates'] = [];
-
-                    foreach ($children as $child) {
-                        $childType = $this->fieldTypeRegistry->getOrNull($child['type']);
-
-                        if ($childType) {
-                            $field['jsTemplates'][$child['slug']] = $childType->getJsTemplate($child);
-                        }
-                    }
-                }
-
-                if ($isTranslatable) {
-                    // Render field for each language
-                    $langInputs = [];
-
-                    foreach ($languages as $lang) {
-                        $langId = (int) $lang['id_lang'];
-                        $langValue = $valuesPerLang[$langId][$slug] ?? null;
-                        $langInputs[] = [
-                            'id_lang' => $langId,
-                            'iso_code' => $lang['iso_code'],
-                            'name' => $lang['name'],
-                            'is_default' => $langId === $defaultLangId,
-                            'html' => $fieldType->renderAdminInput($field, $langValue, [
-                                'prefix' => 'acf_',
-                                'suffix' => '_' . $langId,
-                                'fieldRenderer' => $this->fieldTypeRegistry,
-                            ]),
-                        ];
-                    }
-                    $fieldData['lang_inputs'] = $langInputs;
-                    $fieldData['html'] = '';
-                } else {
-                    $value = $values[$slug] ?? null;
-                    $fieldData['html'] = $fieldType->renderAdminInput($field, $value, [
-                        'prefix' => 'acf_',
-                        'fieldRenderer' => $this->fieldTypeRegistry,
-                    ]);
-                    $fieldData['lang_inputs'] = [];
-                }
-
-                $fieldsHtml[] = $fieldData;
             }
 
             $groupsData[] = [
                 'id' => $groupId,
                 'title' => $group['title'],
-                'description' => $group['description'],
-                'fields' => $fieldsHtml,
+                'slug' => $group['slug'] ?? '',
+                'description' => $group['description'] ?? '',
+                'fields' => $fieldsData,
             ];
+        }
+
+        // Get field values for Vue.js (keyed by field ID)
+        $values = [];
+
+        if ($entityId !== null && $entityId > 0) {
+            // Get values per field ID
+            foreach ($groupsData as $group) {
+                foreach ($group['fields'] as $field) {
+                    $fieldId = $field['id'];
+                    $slug = $field['slug'];
+                    $isTranslatable = $field['value_translatable'];
+
+                    if ($isTranslatable) {
+                        // Get values for all languages
+                        $langValues = [];
+
+                        foreach ($languages as $lang) {
+                            $langId = (int) $lang['id_lang'];
+                            $langValue = $this->valueProvider->getEntityFieldValues($entityType, $entityId, null, $langId);
+                            $langValues[$langId] = $langValue[$slug] ?? null;
+                        }
+                        $values[$fieldId] = $langValues;
+                    } else {
+                        $fieldValues = $this->valueProvider->getEntityFieldValues($entityType, $entityId, null, $currentLangId);
+                        $values[$fieldId] = $fieldValues[$slug] ?? null;
+                    }
+                }
+            }
         }
 
         // Build API URL
         $apiUrl = $this->getAdminApiBaseUrl();
 
-        PrestaShopLogger::addLog('[ACF renderAcfFields] Total groups to render: ' . \count($groupsData), 1);
+        // Format languages for Vue.js
+        $languagesData = [];
 
-        foreach ($groupsData as $g) {
-            PrestaShopLogger::addLog('[ACF renderAcfFields] Group "' . $g['title'] . '" has ' . \count($g['fields']) . ' fields', 1);
+        foreach ($languages as $lang) {
+            $languagesData[] = [
+                'id_lang' => (int) $lang['id_lang'],
+                'iso_code' => $lang['iso_code'],
+                'name' => $lang['name'],
+                'is_default' => (int) $lang['id_lang'] === $defaultLangId,
+            ];
         }
 
-        // Render using Twig
-        return $this->twig->render('@Modules/wepresta_acf/views/templates/admin/form-theme/acf_entity_fields.html.twig', [
+        // Render using Vue.js Twig template
+        return $this->twig->render('@Modules/wepresta_acf/views/templates/admin/form-theme/acf_entity_fields_vue.html.twig', [
             'groups' => $groupsData,
+            'values' => $values,
             'entity_type' => $entityType,
             'entity_id' => $entityId ?? 0,
             'api_url' => $apiUrl,
+            'languages' => $languagesData,
+            'default_lang_id' => $defaultLangId,
+            'shop_id' => $shopId,
         ]);
     }
 

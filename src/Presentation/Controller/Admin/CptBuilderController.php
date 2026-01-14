@@ -37,6 +37,10 @@ final class CptBuilderController extends FrameworkBundleAdminController
         // Generate CSRF token compatible PS8/PS9
         $csrfToken = $this->generateCsrfToken();
 
+        // Fetch active languages
+        $languages = array_values(\Language::getLanguages(true, Context::getContext()->shop->id));
+        $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/cpt-builder.html.twig', [
             'layoutTitle' => $this->trans('CPT Builder', 'Modules.Weprestaacf.Admin'),
             'requireBulkActions' => false,
@@ -45,6 +49,8 @@ final class CptBuilderController extends FrameworkBundleAdminController
             'help_link' => false,
             'csrfToken' => $csrfToken,
             'layoutHeaderToolbarBtn' => [],
+            'languages' => $languages,
+            'defaultLangId' => $defaultLangId,
         ]);
     }
 

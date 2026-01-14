@@ -294,4 +294,12 @@ final class AcfSmartyWrapper
 
         return $this->service;
     }
+
+    /**
+     * Allow conversion to string for safer template usage.
+     */
+    public function __toString(): string
+    {
+        return '';
+    }
 }

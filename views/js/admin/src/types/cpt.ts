@@ -6,8 +6,8 @@ export interface CptType {
   id?: number
   uuid?: string
   slug: string
-  name: string
-  description?: string
+  name: string | Record<number, string> // string (legacy) or localized map
+  description?: string | Record<number, string> // string (legacy) or localized map
   config?: Record<string, any>
   url_prefix: string
   has_archive: boolean

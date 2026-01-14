@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WeprestaAcf\Domain\Repository\CptRelationRepositoryInterface;
+use WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 use WeprestaAcf\Wedev\Core\Adapter\ContextAdapter;
 
@@ -18,49 +19,38 @@ if (!defined('_PS_VERSION_')) {
 final class CptRelationApiController extends AbstractApiController
 {
     private CptRelationRepositoryInterface $repository;
+    private CptTypeRepositoryInterface $typeRepository;
 
-    public function __construct(CptRelationRepositoryInterface $repository, ConfigurationAdapter $config, ContextAdapter $context)
+    public function __construct(CptRelationRepositoryInterface $repository, CptTypeRepositoryInterface $typeRepository, ConfigurationAdapter $config, ContextAdapter $context)
     {
         parent::__construct($config, $context);
         $this->repository = $repository;
+        $this->typeRepository = $typeRepository;
     }
 
-    public function list(Request $request): JsonResponse
+    public function listBySourceType(int $sourceTypeId, Request $request): JsonResponse
     {
         try {
-            $relations = $this->repository->findAll();
+            // Find relations where this type is the source
+            // e.g., Book (Source) -> Author (Target)
+            $relations = $this->repository->findBySourceType($sourceTypeId);
+
             $data = array_map(function ($relation) {
-                return ['id' => $relation->getId(), 'slug' => $relation->getSlug(), 'name' => $relation->getName()];
+                // Enrich with target type info
+                $targetType = $this->typeRepository->find($relation->getTargetTypeId());
+
+                return [
+                    'id' => $relation->getId(),
+                    'slug' => $relation->getSlug(),
+                    'name' => $relation->getName(),
+                    'target_type_id' => $relation->getTargetTypeId(),
+                    'target_type_slug' => $targetType ? $targetType->getSlug() : null,
+                    'target_type_name' => $targetType ? $targetType->getName() : null,
+                    'config' => $relation->getConfig(),
+                ];
             }, $relations);
+
             return $this->jsonSuccess($data);
-        } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    public function create(Request $request): JsonResponse
-    {
-        try {
-            $data = json_decode($request->getContent(), true);
-            if (!$data || empty($data['slug']) || empty($data['name'])) {
-                return $this->jsonError('Invalid data', Response::HTTP_BAD_REQUEST);
-            }
-            $relation = new \WeprestaAcf\Domain\Entity\CptRelation($data);
-            $id = $this->repository->save($relation);
-            return $this->jsonSuccess(['id' => $id], null, Response::HTTP_CREATED);
-        } catch (\Exception $e) {
-            return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    public function delete(int $id): JsonResponse
-    {
-        try {
-            if (!$this->repository->find($id)) {
-                return $this->jsonError('Relation not found', Response::HTTP_NOT_FOUND);
-            }
-            $this->repository->delete($id);
-            return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }

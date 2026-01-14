@@ -22,8 +22,8 @@
             token: '{{ csrfToken }}',
             moduleUrl: '{{ asset('modules/wepresta_acf/') }}',
             mode: 'cpt',
-            currentLangId: {{ app.request.locale|split('-')[0] == 'fr' ? 2 : 1 }},
-            availableLanguages: {{ prestashop.languages|json_encode|raw }}
+            currentLangId: {{ defaultLangId }},
+            availableLanguages: {{ languages|json_encode|raw }}
         };
         // Compatibility alias
         window.weprestaAcfConfig = window.acfConfig;

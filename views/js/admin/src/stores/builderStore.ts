@@ -28,7 +28,14 @@ export const useBuilderStore = defineStore('builder', () => {
   const saving = ref(false)
   const error = ref<string | null>(null)
   const successMessage = ref<string | null>(null)
+  const currentUiLangId = ref<number>(parseInt((window as any).acfConfig?.currentLangId || (window as any).weprestaAcfConfig?.currentLangId) || 1)
 
+  /**
+   * Set global UI language for translatable fields
+   */
+  function setCurrentUiLangId(id: number): void {
+    currentUiLangId.value = id
+  }
   // Getters
   const activeGroups = computed(() =>
     groups.value.filter(g => g.active)
@@ -44,13 +51,13 @@ export const useBuilderStore = defineStore('builder', () => {
 
   const hasUnsavedChanges = computed(() => {
     if (!currentGroup.value) return false
-    
+
     // Nouveau groupe pas encore sauvegardé
     if (!currentGroup.value.id && currentGroup.value.title) return true
-    
+
     // Champs nouveaux non sauvegardés
     const hasNewFields = (currentGroup.value.fields || []).some(f => !f.id && f.title.trim())
-    
+
     return hasNewFields
   })
 
@@ -112,7 +119,7 @@ export const useBuilderStore = defineStore('builder', () => {
     // ✅ VALIDATION: Vérifier les champs incomplets
     const invalidFields = (currentGroup.value.fields || [])
       .filter(f => !f.title?.trim())
-    
+
     if (invalidFields.length > 0) {
       error.value = `❌ ${invalidFields.length} field(s) missing title. Please fill all field titles before saving.`
       // Sélectionner automatiquement le premier champ invalide
@@ -264,7 +271,7 @@ export const useBuilderStore = defineStore('builder', () => {
         return
       }
     }
-    
+
     currentGroup.value = null
     selectedField.value = null
     viewMode.value = 'list'
@@ -615,6 +622,8 @@ export const useBuilderStore = defineStore('builder', () => {
     reorderFields,
     clearError,
     clearSuccess,
+    currentUiLangId,
+    setCurrentUiLangId,
   }
 })
 

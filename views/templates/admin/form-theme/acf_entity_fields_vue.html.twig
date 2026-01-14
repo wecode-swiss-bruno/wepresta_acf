@@ -1,0 +1,100 @@
+{#
+ # ACF - Entity Fields Vue.js Template
+ # Generates a container for mounting the Vue.js AcfEntityFields component.
+ # This provides a unified rendering system for all entity types.
+ #}
+
+{# Build groups JSON data #}
+{% set groupsJson = [] %}
+{% for group in groups %}
+    {% set fieldsJson = [] %}
+    {% for field in group.fields %}
+        {% set fieldData = {
+            'id': field.id,
+            'slug': field.slug,
+            'type': field.type,
+            'title': field.title,
+            'label': field.title,
+            'instructions': field.instructions|default(''),
+            'required': field.required|default(false),
+            'value_translatable': field.translatable|default(false),
+            'valueTranslatable': field.translatable|default(false),
+            'config': field.config|default({}),
+            'choices': field.choices|default([]),
+            'wrapper': field.wrapper|default({})
+        } %}
+        {% set fieldsJson = fieldsJson|merge([fieldData]) %}
+    {% endfor %}
+    
+    {% set groupData = {
+        'id': group.id,
+        'title': group.title,
+        'slug': group.slug|default(''),
+        'description': group.description|default(''),
+        'fields': fieldsJson
+    } %}
+    {% set groupsJson = groupsJson|merge([groupData]) %}
+{% endfor %}
+
+{# Vue.js container with data attributes #}
+<div class="acf-entity-fields-vue-container"
+     id="acf-entity-fields-vue"
+     data-groups="{{ groupsJson|json_encode|e('html_attr') }}"
+     data-values="{{ values|json_encode|e('html_attr') }}"
+     data-entity-type="{{ entity_type|e('html_attr') }}"
+     data-entity-id="{{ entity_id }}"
+     data-api-url="{{ api_url|e('html_attr') }}"
+     data-languages="{{ languages|json_encode|e('html_attr') }}"
+     data-default-lang-id="{{ default_lang_id }}"
+     data-shop-id="{{ shop_id }}"
+     data-form-name-prefix="acf">
+    
+    {# Loading state (replaced by Vue.js app when mounted) #}
+    <div class="acf-loading text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">{{ 'Loading custom fields...'|trans({}, 'Modules.Weprestaacf.Admin') }}</p>
+    </div>
+</div>
+
+{# Include Vue.js entity fields script #}
+<script>
+// Ensure the script is loaded
+if (!window.acfEntityFieldsLoaded) {
+    window.acfEntityFieldsLoaded = true;
+    
+    // Load the Vue.js app script as ES module
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = '{{ asset('modules/wepresta_acf/views/js/admin/dist/entity-fields.js') }}';
+    script.onload = function() {
+        console.log('ACF: Entity fields script loaded');
+    };
+    script.onerror = function() {
+        console.error('ACF: Failed to load entity fields script');
+        // Show fallback message
+        const container = document.getElementById('acf-entity-fields-vue');
+        if (container) {
+            container.innerHTML = '<div class="alert alert-danger">{{ "Failed to load custom fields editor. Please refresh the page."|trans({}, "Modules.Weprestaacf.Admin") }}</div>';
+        }
+    };
+    document.head.appendChild(script);
+}
+</script>
+
+<style>
+.acf-entity-fields-vue-container {
+    min-height: 100px;
+}
+
+.acf-entity-fields-vue-container .acf-loading {
+    background: #f8f9fa;
+    border: 1px dashed #dee2e6;
+    border-radius: 4px;
+}
+
+.acf-entity-fields-vue-container.acf-vue-initialized .acf-loading {
+    display: none;
+}
+</style>

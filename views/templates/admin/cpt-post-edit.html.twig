@@ -49,9 +49,26 @@
                             {% if type.acf_groups|length > 0 %}
                                 <div class="acf-fields-section">
                                     <h4>{{ 'Custom Fields'|trans({}, 'Modules.Weprestaacf.Admin') }}</h4>
-                                    {# ACF fields will be injected here via JavaScript or PHP #}
-                                    <div id="acf-fields-container">
-                                        {# Dynamic ACF field rendering #}
+                                    
+                                    <div v-for="group in acfGroups" :key="group.id" class="acf-group-card card mb-3">
+                                        <div class="card-header">
+                                            {{ group.title || 'Untitled Group' }}
+                                        </div>
+                                        <div class="card-body">
+                                            <AcfFieldRenderer
+                                                v-for="field in group.fields"
+                                                :key="field.id"
+                                                :field="field"
+                                                :model-value="formData.acf[field.id]"
+                                                :languages="languages"
+                                                :default-language="defaultLanguage"
+                                                @update:model-value="(val) => formData.acf[field.id] = val"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div v-if="!acfGroups.length && typeId" class="alert alert-info">
+                                        No ACF fields assigned to this CPT type.
                                     </div>
                                 </div>
                             {% endif %}

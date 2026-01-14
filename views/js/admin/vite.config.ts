@@ -22,9 +22,16 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'src/main.ts'),
+        'entity-fields': path.resolve(__dirname, 'src/entity-fields.ts'),
       },
       output: {
-        entryFileNames: 'acf-admin.js',
+        format: 'es',
+        entryFileNames: (chunkInfo) => {
+          // Custom names for entry points
+          if (chunkInfo.name === 'main') return 'acf-admin.js'
+          if (chunkInfo.name === 'entity-fields') return 'entity-fields.js'
+          return 'acf-[name].js'
+        },
         chunkFileNames: 'acf-[name].js',
         assetFileNames: 'acf-[name].[ext]',
       },

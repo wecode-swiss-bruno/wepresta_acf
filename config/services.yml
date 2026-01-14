@@ -37,7 +37,23 @@ services:
 
     WeprestaAcf\Presentation\Controller\:
         resource: '../src/Presentation/Controller/*'
+        exclude:
+            - '../src/Presentation/Controller/Admin/CptPostController.php'
         tags: ['controller.service_arguments']
+
+    # CPT Post Controller - explicit configuration for Location Rules support
+    WeprestaAcf\Presentation\Controller\Admin\CptPostController:
+        arguments:
+            $postService: '@WeprestaAcf\Application\Service\CptPostService'
+            $typeService: '@WeprestaAcf\Application\Service\CptTypeService'
+            $taxonomyService: '@WeprestaAcf\Application\Service\CptTaxonomyService'
+            $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
+            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
+            $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+        tags: ['controller.service_arguments']
+        public: true
 
     # =========================================================================
     # Domain Repository Interfaces
@@ -258,7 +274,16 @@ services:
                      '@WeprestaAcf\Application\Provider\EntityField\StateEntityFieldProvider',
                      '@WeprestaAcf\Application\Provider\EntityField\CurrencyEntityFieldProvider',
                      '@WeprestaAcf\Application\Provider\EntityField\OrderEntityFieldProvider',
-                     '@WeprestaAcf\Application\Provider\EntityField\CartEntityFieldProvider']
+                     '@WeprestaAcf\Application\Provider\EntityField\CartEntityFieldProvider',
+                     '@WeprestaAcf\Application\Provider\EntityField\CptPostEntityFieldProvider']
+            - method: register
+              arguments:
+                  - '@WeprestaAcf\Application\Provider\CptLocationProvider'
+        public: true
+
+    WeprestaAcf\Application\Provider\CptLocationProvider:
+        arguments:
+            $typeRepository: '@WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface'
         public: true
 
     # =========================================================================
@@ -311,6 +336,9 @@ services:
         public: true
 
     WeprestaAcf\Application\Provider\EntityField\CartEntityFieldProvider:
+        public: true
+
+    WeprestaAcf\Application\Provider\EntityField\CptPostEntityFieldProvider:
         public: true
 
     # =========================================================================
@@ -508,8 +536,11 @@ services:
     WeprestaAcf\Infrastructure\Api\CptTypeApiController:
         arguments:
             $repository: '@WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface'
+            $urlService: '@WeprestaAcf\Application\Service\CptUrlService'
             $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
             $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
         tags: ['controller.service_arguments']
         public: true
 
@@ -517,8 +548,15 @@ services:
         arguments:
             $repository: '@WeprestaAcf\Domain\Repository\CptPostRepositoryInterface'
             $typeRepository: '@WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface'
+            $relationRepository: '@WeprestaAcf\Domain\Repository\CptRelationRepositoryInterface'
+            $urlService: '@WeprestaAcf\Application\Service\CptUrlService'
             $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
             $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+            $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
+            $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
+            $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
+            $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
         tags: ['controller.service_arguments']
         public: true
 

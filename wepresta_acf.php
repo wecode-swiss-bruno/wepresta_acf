@@ -175,6 +175,16 @@ class WeprestaAcf extends Module
             $acfWrapper = AcfServiceContainer::getSmartyWrapper();
             $this->context->smarty->assign('acf', $acfWrapper);
             $this->registerSmartyPlugins();
+
+            // Render custom social meta tags if present
+            $socialMeta = $this->context->smarty->getTemplateVars('acf_social_meta');
+            if (!empty($socialMeta) && is_array($socialMeta)) {
+                $html = "\n";
+                foreach ($socialMeta as $property => $content) {
+                    $html .= '    <meta property="' . htmlspecialchars((string) $property, ENT_QUOTES, 'UTF-8') . '" content="' . htmlspecialchars((string) $content, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+                }
+                return $html;
+            }
         } catch (Exception $e) {
             $this->log('ACF header initialization failed: ' . $e->getMessage(), 2);
         }

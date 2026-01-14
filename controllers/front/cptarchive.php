@@ -13,7 +13,7 @@ if (!defined('_PS_VERSION_')) {
  */
 class Wepresta_AcfCptarchiveModuleFrontController extends ModuleFrontController
 {
-    public function init()
+    public function init(): void
     {
         parent::init();
 

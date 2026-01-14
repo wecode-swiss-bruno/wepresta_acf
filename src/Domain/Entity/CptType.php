@@ -16,8 +16,10 @@ final class CptType
     private ?int $id = null;
     private string $uuid;
     private string $slug;
-    private string $name;
-    private ?string $description = null;
+    /** @var array<int, string>|string */
+    private $name;
+    /** @var array<int, string>|string|null */
+    private $description = null;
     private array $config = [];
     private string $urlPrefix;
     private bool $hasArchive = true;
@@ -49,8 +51,8 @@ final class CptType
 
         $this->uuid = $data['uuid'] ?? $this->generateUuid();
         $this->slug = $data['slug'] ?? '';
-        $this->name = $data['name'] ?? '';
-        $this->description = $data['description'] ?? null;
+        $this->setName($data['name'] ?? '');
+        $this->setDescription($data['description'] ?? null);
 
         if (isset($data['config'])) {
             $this->config = is_string($data['config']) ? json_decode($data['config'], true) : $data['config'];
@@ -97,13 +99,35 @@ final class CptType
         return $this->slug;
     }
 
-    public function getName(): string
+    /**
+     * @return array<int, string>|string
+     */
+    public function getName($langId = null)
     {
+        if ($langId && is_array($this->name)) {
+            if (isset($this->name[$langId])) {
+                return $this->name[$langId];
+            }
+            // Fallback to default or first available
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            return $this->name[$defaultLangId] ?? (reset($this->name) ?: '');
+        }
         return $this->name;
     }
 
-    public function getDescription(): ?string
+    /**
+     * @return array<int, string>|string|null
+     */
+    public function getDescription($langId = null)
     {
+        if ($langId && is_array($this->description)) {
+            if (isset($this->description[$langId])) {
+                return $this->description[$langId];
+            }
+            // Fallback to default or first available
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            return $this->description[$defaultLangId] ?? (reset($this->description) ?: '');
+        }
         return $this->description;
     }
 
@@ -190,15 +214,31 @@ final class CptType
         return $this;
     }
 
-    public function setName(string $name): self
+    /**
+     * @param array<int, string>|string $name
+     */
+    public function setName($name): self
     {
         $this->name = $name;
+        if (is_array($name)) {
+            foreach ($name as $langId => $val) {
+                $this->translations[$langId]['name'] = $val;
+            }
+        }
         return $this;
     }
 
-    public function setDescription(?string $description): self
+    /**
+     * @param array<int, string>|string|null $description
+     */
+    public function setDescription($description): self
     {
         $this->description = $description;
+        if (is_array($description)) {
+            foreach ($description as $langId => $val) {
+                $this->translations[$langId]['description'] = $val;
+            }
+        }
         return $this;
     }
 
@@ -253,6 +293,27 @@ final class CptType
     public function setTranslations(array $translations): self
     {
         $this->translations = $translations;
+
+        // Also hydrate name and description if they are empty or if we want to sync
+        if (!empty($translations)) {
+            $names = [];
+            $descriptions = [];
+            foreach ($translations as $langId => $trans) {
+                if (isset($trans['name'])) {
+                    $names[$langId] = $trans['name'];
+                }
+                if (isset($trans['description'])) {
+                    $descriptions[$langId] = $trans['description'];
+                }
+            }
+            if (!empty($names)) {
+                $this->name = $names;
+            }
+            if (!empty($descriptions)) {
+                $this->description = $descriptions;
+            }
+        }
+
         return $this;
     }
 
@@ -283,8 +344,8 @@ final class CptType
             'id_wepresta_acf_cpt_type' => $this->id,
             'uuid' => $this->uuid,
             'slug' => $this->slug,
-            'name' => $this->name,
-            'description' => $this->description,
+            'name' => is_array($this->name) ? json_encode($this->name) : $this->name, // Fallback for single lang context if needed, but repo handles saving
+            'description' => is_array($this->description) ? json_encode($this->description) : $this->description,
             'config' => json_encode($this->config),
             'url_prefix' => $this->urlPrefix,
             'has_archive' => $this->hasArchive ? 1 : 0,

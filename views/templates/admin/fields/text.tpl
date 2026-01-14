@@ -1,8 +1,8 @@
 {**
- * ACF Field Partial: Text, Email, URL
- * Uses Bootstrap input-group for prefix/suffix
- * Variables: $field, $fieldConfig, $prefix, $value, $context
- *}
+* ACF Field Partial: Text, Email, URL
+* Uses Bootstrap input-group for prefix/suffix
+* Variables: $field, $fieldConfig, $prefix, $value, $context
+*}
 {assign var="inputId" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
 {assign var="inputName" value="{$prefix}{$field.slug}{if isset($context.suffix)}{$context.suffix}{/if}"}
 {assign var="inputType" value=$context.inputType|default:'text'}
@@ -17,22 +17,21 @@
         <span class="input-group-text">{$fieldConfig.prefix|escape:'htmlall':'UTF-8'}</span>
     </div>
     {/if}
-{/if}
+    {/if}
 
-<input type="{$inputType|escape:'htmlall':'UTF-8'}"
-       class="form-control{if isset($context.size) && $context.size === 'sm'} form-control-sm{/if}{if isset($context.dataSubfield) && $context.dataSubfield} acf-subfield-input{/if}"
-       id="{$inputId|escape:'htmlall':'UTF-8'}"
-       {if isset($context.dataSubfield) && $context.dataSubfield}
-           data-subfield="{$field.slug|escape:'htmlall':'UTF-8'}"
-       {else}
-           name="{$inputName|escape:'htmlall':'UTF-8'}"
-       {/if}
-       {if isset($context.dataLangId) && $context.dataLangId}data-lang-id="{$context.dataLangId|escape:'htmlall':'UTF-8'}"{/if}
-       value="{$value|escape:'htmlall':'UTF-8'}"
-       {if isset($fieldConfig.placeholder) && $fieldConfig.placeholder}placeholder="{$fieldConfig.placeholder|escape:'htmlall':'UTF-8'}"{/if}
-       {if isset($fieldConfig.maxLength) && $fieldConfig.maxLength}maxlength="{$fieldConfig.maxLength|intval}"{/if}>
+    FDP
 
-{if $hasInputGroup}
+    <input type="{$inputType|escape:'htmlall':'UTF-8'}"
+        class="form-control{if isset($context.size) && $context.size === 'sm'} form-control-sm{/if}{if isset($context.dataSubfield) && $context.dataSubfield} acf-subfield-input{/if}"
+        id="{$inputId|escape:'htmlall':'UTF-8'}" {if isset($context.dataSubfield) && $context.dataSubfield}
+        data-subfield="{$field.slug|escape:'htmlall':'UTF-8'}" {else} name="{$inputName|escape:'htmlall':'UTF-8'}" {/if}
+        {if isset($context.dataLangId) &&
+        $context.dataLangId}data-lang-id="{$context.dataLangId|escape:'htmlall':'UTF-8'}" {/if}
+        value="{$value|escape:'htmlall':'UTF-8'}" {if isset($fieldConfig.placeholder) &&
+        $fieldConfig.placeholder}placeholder="{$fieldConfig.placeholder|escape:'htmlall':'UTF-8'}" {/if} {if
+        isset($fieldConfig.maxLength) && $fieldConfig.maxLength}maxlength="{$fieldConfig.maxLength|intval}" {/if}>
+
+    {if $hasInputGroup}
     {if $hasSuffix}
     <div class="input-group-append">
         <span class="input-group-text">{$fieldConfig.suffix|escape:'htmlall':'UTF-8'}</span>

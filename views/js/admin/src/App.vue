@@ -9,6 +9,8 @@ import CptTypeList from '@/components/cpt/CptTypeList.vue'
 import CptTypeBuilder from '@/components/cpt/CptTypeBuilder.vue'
 import CptTaxonomyManager from '@/components/cpt/CptTaxonomyManager.vue'
 import CptTermManager from '@/components/cpt/CptTermManager.vue'
+import CptPostList from '@/components/cpt/CptPostList.vue'
+import CptPostBuilder from '@/components/cpt/CptPostBuilder.vue'
 
 const store = useBuilderStore()
 const cptStore = useCptStore()
@@ -16,7 +18,17 @@ const { t } = useTranslations()
 
 // Navigation state
 const activeTab = ref<'acf' | 'cpt'>('acf')
-const cptView = ref<'types' | 'taxonomies'>('types')
+const cptView = ref<'types' | 'taxonomies' | 'posts' | 'post-build'>('types')
+
+watch(() => cptStore.viewMode, (mode) => {
+  if (mode === 'posts') {
+    cptView.value = 'posts'
+  } else if (mode === 'post-build' as any) {
+    cptView.value = 'post-build'
+  } else if (mode === 'list' && (cptView.value === 'posts' || cptView.value === 'post-build')) {
+    cptView.value = 'types'
+  }
+})
 
 function setupExternalAlerts(): void {
   const alertsContainer = document.getElementById('acf-alerts-container')
@@ -177,11 +189,26 @@ onMounted(() => {
         <!-- CPT Views -->
         <template v-if="cptView === 'types'">
           <CptTypeList v-if="cptStore.viewMode === 'list'" />
-          <CptTypeBuilder v-else-if="cptStore.viewMode === 'edit'" @cancel="cptStore.goToList()" @saved="cptStore.goToList()" />
+          <CptTypeBuilder 
+            v-else-if="cptStore.viewMode === 'edit'" 
+            :type-id="cptStore.currentType?.id"
+            @cancel="cptStore.goToList()" 
+            @saved="cptStore.goToList()" 
+          />
         </template>
         <template v-else-if="cptView === 'taxonomies'">
           <CptTaxonomyManager v-if="cptStore.taxonomyViewMode === 'list'" />
           <CptTermManager v-else-if="cptStore.taxonomyViewMode === 'terms'" />
+        </template>
+        <template v-else-if="cptView === 'posts'">
+          <CptPostList />
+        </template>
+        <template v-else-if="cptView === 'post-build'">
+           <CptPostBuilder 
+            :post-id="cptStore.currentPost?.id"
+            @cancel="cptStore.viewMode = 'posts'"
+            @saved="cptStore.viewMode = 'posts'" 
+           />
         </template>
       </div>
     </template>

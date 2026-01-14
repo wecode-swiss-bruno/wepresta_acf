@@ -18,6 +18,7 @@ interface CptTypeRepositoryInterface
     public function findAll(?int $limit = null, ?int $offset = null): array;
     public function findWithGroups(int $id, ?int $langId = null, ?int $shopId = null): ?CptType;
     public function findWithTaxonomies(int $id, ?int $langId = null, ?int $shopId = null): ?CptType;
+    public function findFull(int $id, ?int $langId = null, ?int $shopId = null): ?CptType;
     public function save(CptType $type, ?int $shopId = null): int;
     public function delete(int $id): bool;
     public function attachGroup(int $typeId, int $groupId, int $position = 0): bool;

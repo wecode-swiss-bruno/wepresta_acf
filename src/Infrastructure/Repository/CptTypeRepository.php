@@ -32,9 +32,9 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
         }
 
         $type = new CptType($row);
-        if ($langId !== null) {
-            $type->setTranslations($this->getTranslations($id, $langId));
-        }
+        // Always fetch translations, if langId is specific we might filter later or just fetch all
+        // Ideally we want all translations if we are in the builder (admin)
+        $type->setTranslations($this->getTranslations($id, $langId));
         return $type;
     }
 
@@ -46,9 +46,7 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
         }
 
         $type = new CptType($row);
-        if ($langId !== null) {
-            $type->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_type'], $langId));
-        }
+        $type->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_type'], $langId));
         return $type;
     }
 
@@ -57,9 +55,7 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
         $rows = $this->findBy(['active' => 1], 'position ASC');
         return array_map(function ($row) use ($langId) {
             $type = new CptType($row);
-            if ($langId !== null) {
-                $type->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_type'], $langId));
-            }
+            $type->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_type'], $langId));
             return $type;
         }, $rows);
     }
@@ -68,7 +64,9 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
     {
         $rows = $this->findBy([], 'position ASC', $limit);
         return array_map(function ($row) {
-            return new CptType($row);
+            $type = new CptType($row);
+            $type->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_type']));
+            return $type;
         }, $rows);
     }
 
@@ -91,6 +89,17 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
         }
         $taxonomies = $this->getAttachedTaxonomies($id);
         $type->setTaxonomies($taxonomies);
+        return $type;
+    }
+
+    public function findFull(int $id, ?int $langId = null, ?int $shopId = null): ?CptType
+    {
+        $type = $this->find($id, $langId, $shopId);
+        if (!$type) {
+            return null;
+        }
+        $type->setAcfGroups($this->getAttachedGroups($id));
+        $type->setTaxonomies($this->getAttachedTaxonomies($id));
         return $type;
     }
 
@@ -141,7 +150,12 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
     {
         \Db::getInstance()->delete('wepresta_acf_cpt_type_group', 'id_wepresta_acf_cpt_type = ' . (int) $typeId);
         foreach ($groupIds as $position => $groupId) {
-            $this->attachGroup($typeId, $groupId, $position);
+            if (is_array($groupId)) {
+                $groupId = (int) ($groupId['id_wepresta_acf_group'] ?? $groupId['id'] ?? 0);
+            }
+            if ($groupId > 0) {
+                $this->attachGroup($typeId, (int) $groupId, $position);
+            }
         }
     }
 
@@ -157,7 +171,16 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
 
     public function syncTaxonomies(int $typeId, array $taxonomyIds): void
     {
-        $this->syncAttached('wepresta_acf_cpt_type_taxonomy', 'id_wepresta_acf_cpt_taxonomy', $typeId, $taxonomyIds);
+        $ids = [];
+        foreach ($taxonomyIds as $id) {
+            if (is_array($id)) {
+                $id = (int) ($id['id_wepresta_acf_cpt_taxonomy'] ?? $id['id'] ?? 0);
+            }
+            if ($id > 0) {
+                $ids[] = (int) $id;
+            }
+        }
+        $this->syncAttached('wepresta_acf_cpt_type_taxonomy', 'id_wepresta_acf_cpt_taxonomy', $typeId, $ids);
     }
 
     public function slugExists(string $slug, ?int $excludeId = null): bool
@@ -172,23 +195,41 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
         return true;
     }
 
-    private function getTranslations(int $id, int $langId): array
+    private function getTranslations(int $id, ?int $langId = null): array
     {
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'wepresta_acf_cpt_type_lang 
-                WHERE id_wepresta_acf_cpt_type = ' . (int) $id . ' AND id_lang = ' . (int) $langId;
-        return \Db::getInstance()->getRow($sql) ?: [];
+                WHERE id_wepresta_acf_cpt_type = ' . (int) $id;
+
+        if ($langId !== null) {
+            $sql .= ' AND id_lang = ' . (int) $langId;
+            $row = \Db::getInstance()->getRow($sql);
+            return $row ? [$langId => $row] : []; // Return format compatible with setTranslations expecting [langId => data] or array of rows?
+            // Actually setTranslations expects: [langId => ['name' => ..., 'description' => ...]]
+            // getRow returns ['name' => ..., 'description' => ...]
+            // So if single row, wrap it.
+        }
+
+        $rows = \Db::getInstance()->executeS($sql);
+        $translations = [];
+        if ($rows) {
+            foreach ($rows as $row) {
+                $translations[$row['id_lang']] = $row;
+            }
+        }
+        return $translations;
     }
 
     private function saveTranslations(int $id, array $translations): void
     {
         foreach ($translations as $langId => $trans) {
-            if (empty($trans['name'])) {
+            // Allow saving if either name or description is set
+            if (empty($trans['name']) && empty($trans['description'])) {
                 continue;
             }
             $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'wepresta_acf_cpt_type_lang 
                     (id_wepresta_acf_cpt_type, id_lang, name, description) 
-                    VALUES (' . (int) $id . ', ' . (int) $langId . ', "' . pSQL($trans['name']) . '", "' . pSQL($trans['description'] ?? '') . '")
-                    ON DUPLICATE KEY UPDATE name = "' . pSQL($trans['name']) . '", description = "' . pSQL($trans['description'] ?? '') . '"';
+                    VALUES (' . (int) $id . ', ' . (int) $langId . ', "' . pSQL($trans['name'] ?? '') . '", "' . pSQL($trans['description'] ?? '') . '")
+                    ON DUPLICATE KEY UPDATE name = "' . pSQL($trans['name'] ?? '') . '", description = "' . pSQL($trans['description'] ?? '') . '"';
             \Db::getInstance()->execute($sql);
         }
     }

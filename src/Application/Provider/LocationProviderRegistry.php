@@ -96,7 +96,10 @@ final class LocationProviderRegistry
         foreach ($this->getAll() as $provider) {
             foreach ($provider->getLocations() as $location) {
                 $location['provider'] = $provider->getIdentifier();
+                // Use provider's enabled value if set, otherwise check EntityHooksConfig
+                if (!isset($location['enabled'])) {
                 $location['enabled'] = EntityHooksConfig::isEntityEnabled($location['value'] ?? '');
+                }
                 $locations[] = $location;
             }
         }
@@ -245,7 +248,8 @@ final class LocationProviderRegistry
     /**
      * Match a single JsonLogic rule against context.
      * Format: {"==": [{"var": "entity_type"}, "product"]}
-     *         {"!=": [{"var": "entity_type"}, "category"]}.
+     *         {"!=": [{"var": "entity_type"}, "category"]}
+     *         {"==": [{"var": "entity_type"}, "cpt_post:blog_articles"]} (CPT format)
      *
      * @param array<string, mixed> $rule
      * @param array<string, mixed> $context
@@ -258,6 +262,11 @@ final class LocationProviderRegistry
             $leftValue = $this->resolveJsonLogicValue($left, $context);
             $rightValue = $this->resolveJsonLogicValue($right, $context);
 
+            // Check for CPT format: "cpt_post:slug"
+            if (\is_string($rightValue) && str_starts_with($rightValue, 'cpt_post:')) {
+                return $this->matchCptRule($rightValue, $context, true);
+            }
+
             return $leftValue === $rightValue;
         }
 
@@ -266,6 +275,11 @@ final class LocationProviderRegistry
             [$left, $right] = $rule['!='];
             $leftValue = $this->resolveJsonLogicValue($left, $context);
             $rightValue = $this->resolveJsonLogicValue($right, $context);
+
+            // Check for CPT format: "cpt_post:slug"
+            if (\is_string($rightValue) && str_starts_with($rightValue, 'cpt_post:')) {
+                return $this->matchCptRule($rightValue, $context, false);
+            }
 
             return $leftValue !== $rightValue;
         }
@@ -276,6 +290,36 @@ final class LocationProviderRegistry
         }
 
         return false;
+    }
+
+    /**
+     * Match CPT-specific rule format: "cpt_post:slug".
+     *
+     * @param string $ruleValue The rule value in format "cpt_post:slug"
+     * @param array<string, mixed> $context The context to match against
+     * @param bool $equals True for equals, false for not equals
+     */
+    private function matchCptRule(string $ruleValue, array $context, bool $equals): bool
+    {
+        // Parse "cpt_post:slug" format
+        $parts = explode(':', $ruleValue, 2);
+        if (\count($parts) !== 2) {
+            return false;
+        }
+
+        [$entityType, $cptSlug] = $parts;
+
+        // Check entity type
+        $contextEntityType = $context['entity_type'] ?? '';
+        if ($contextEntityType !== $entityType) {
+            return !$equals; // If not equals operator, return true when entity type differs
+        }
+
+        // Check CPT type slug
+        $contextCptSlug = $context['cpt_type_slug'] ?? '';
+        $matches = $contextCptSlug === $cptSlug;
+
+        return $equals ? $matches : !$matches;
     }
 
     /**

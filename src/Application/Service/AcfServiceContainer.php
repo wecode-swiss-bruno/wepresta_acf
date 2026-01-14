@@ -97,11 +97,13 @@ final class AcfServiceContainer
             FieldRenderer::class => self::getFieldRenderer(),
             AcfFrontService::class => self::getFrontService(),
             ShortcodeParser::class => self::getShortcodeParser(),
-            AcfSmartyWrapper::class => self::getSmartyWrapper(),
-            AcfTwigExtension::class => self::getTwigExtension(),
             CptTypeService::class => self::getTypeService(),
             CptPostService::class => self::getPostService(),
             CptTaxonomyService::class => self::getTaxonomyService(),
+            CptFrontService::class => self::getFrontCptService(),
+            CptSeoService::class => self::getSeoService(),
+            CptUrlService::class => self::getUrlService(),
+            CptSyncService::class => self::getSyncCptService(),
             ContextAdapter::class => self::getContextAdapter(),
             default => self::tryGet($id)
         };
@@ -483,5 +485,57 @@ final class AcfServiceContainer
 
         /** @var CptTaxonomyService */
         return self::$services[CptTaxonomyService::class];
+    }
+
+    public static function getFrontCptService(): CptFrontService
+    {
+        if (!isset(self::$services[CptFrontService::class])) {
+            $service = self::tryGet(CptFrontService::class);
+            self::$services[CptFrontService::class] = $service ?? new CptFrontService(
+                self::getPostRepository(),
+                self::getTypeRepository(),
+                self::getContextAdapter()
+            );
+        }
+
+        /** @var CptFrontService */
+        return self::$services[CptFrontService::class];
+    }
+
+    public static function getSeoService(): CptSeoService
+    {
+        if (!isset(self::$services[CptSeoService::class])) {
+            $service = self::tryGet(CptSeoService::class);
+            self::$services[CptSeoService::class] = $service ?? new CptSeoService();
+        }
+
+        /** @var CptSeoService */
+        return self::$services[CptSeoService::class];
+    }
+
+    public static function getUrlService(): CptUrlService
+    {
+        if (!isset(self::$services[CptUrlService::class])) {
+            $service = self::tryGet(CptUrlService::class);
+            self::$services[CptUrlService::class] = $service ?? new CptUrlService();
+        }
+
+        /** @var CptUrlService */
+        return self::$services[CptUrlService::class];
+    }
+
+    public static function getSyncCptService(): CptSyncService
+    {
+        if (!isset(self::$services[CptSyncService::class])) {
+            $service = self::tryGet(CptSyncService::class);
+            self::$services[CptSyncService::class] = $service ?? new CptSyncService(
+                self::getTypeRepository(),
+                self::getTaxonomyRepository(),
+                self::getTermRepository()
+            );
+        }
+
+        /** @var CptSyncService */
+        return self::$services[CptSyncService::class];
     }
 }

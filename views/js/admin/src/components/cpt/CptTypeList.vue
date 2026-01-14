@@ -59,15 +59,20 @@
                   <span v-else class="badge badge-secondary">Inactive</span>
                 </td>
                 <td>
-                  <button class="btn btn-sm btn-outline-secondary" @click="cptStore.editType(type.id)" title="Edit">
-                    <i class="material-icons">edit</i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-primary" @click="managePosts(type)" title="Manage Posts">
-                    <i class="material-icons">list</i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" @click="confirmDelete(type)" title="Delete">
-                    <i class="material-icons">delete</i>
-                  </button>
+                  <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-secondary" @click="cptStore.editType(type.id)" title="Edit">
+                      <i class="material-icons">edit</i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" @click="managePosts(type)" title="Manage Posts">
+                      <i class="material-icons">list</i>
+                    </button>
+                    <a v-if="type.view_url" :href="type.view_url" target="_blank" class="btn btn-sm btn-outline-info" title="View on Front">
+                      <i class="material-icons">visibility</i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger" @click="confirmDelete(type)" title="Delete">
+                      <i class="material-icons">delete</i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -94,8 +99,9 @@ onMounted(async () => {
 })
 
 function managePosts(type: any) {
-  // Navigate to posts list
-  window.location.href = `/admin-dev/index.php?controller=AdminModules&configure=wepresta_acf&cpt=${type.slug}/posts`
+  cptStore.currentType = type
+  cptStore.viewMode = 'posts' as any
+  cptStore.fetchPostsByType(type.slug)
 }
 
 function confirmDelete(type: any) {

@@ -37,7 +37,7 @@ final class CptTerm
         }
 
         $this->taxonomyId = isset($data['id_wepresta_acf_cpt_taxonomy']) ? (int) $data['id_wepresta_acf_cpt_taxonomy'] : 0;
-        $this->parentId = !empty($data['id_parent']) ? (int) $data['id_parent'] : null;
+        $this->parentId = !empty($data['id_parent']) ? (int) $data['id_parent'] : (!empty($data['parent_id']) ? (int) $data['parent_id'] : null);
         $this->slug = $data['slug'] ?? '';
         $this->name = $data['name'] ?? '';
         $this->description = $data['description'] ?? null;
@@ -80,12 +80,12 @@ final class CptTerm
 
     public function getName(): string
     {
-        return $this->name;
+        return $this->translations['name'] ?? $this->name;
     }
 
     public function getDescription(): ?string
     {
-        return $this->description;
+        return $this->translations['description'] ?? $this->description;
     }
 
     public function getPosition(): int
@@ -222,15 +222,20 @@ final class CptTerm
      */
     public function toArray(): array
     {
-        return [
+        $data = [
             'id_wepresta_acf_cpt_term' => $this->id,
             'id_wepresta_acf_cpt_taxonomy' => $this->taxonomyId,
-            'id_parent' => $this->parentId,
             'slug' => $this->slug,
             'name' => $this->name,
             'description' => $this->description,
             'position' => $this->position,
             'active' => $this->active ? 1 : 0,
         ];
+
+        if ($this->parentId !== null) {
+            $data['id_parent'] = $this->parentId;
+        }
+
+        return $data;
     }
 }

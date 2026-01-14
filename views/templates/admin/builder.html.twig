@@ -60,6 +60,7 @@
         // Force cache reload - {{ 'now'|date('Y-m-d H:i:s') }}
         window.acfConfig = {
             apiUrl: '{{ url('wepresta_acf_api_groups_list') | split('/groups')[0] }}',
+            currentLangId: {{ currentLangId }},
             token: '{{ csrfToken }}',
             translations: {
                 loading: '{{ 'Loading...'|trans({}, 'Admin.Global') }}',
@@ -248,7 +249,7 @@
             },
             fieldTypes: {{ fieldTypes|json_encode|raw }},
             locations: {{ locations|json_encode|raw }},
-            languages: {{ languages|json_encode|raw }},
+            availableLanguages: {{ languages|json_encode|raw }},
             productTabs: [
                 { value: 'extra', label: '{{ 'Extra Tab (ACF)'|trans({}, 'Modules.Weprestaacf.Admin') }}' },
                 { value: 'description', label: '{{ 'Description'|trans({}, 'Admin.Catalog.Feature') }}' },
@@ -272,6 +273,6 @@
             }
         };
     </script>
-    <script src="/modules/wepresta_acf/views/js/admin/dist/acf-admin.js?v={{ random(1000000) }}" defer></script>
+    <script type="module" src="/modules/wepresta_acf/views/js/admin/dist/acf-admin.js?v={{ random(1000000) }}"></script>
 {% endblock %}
 

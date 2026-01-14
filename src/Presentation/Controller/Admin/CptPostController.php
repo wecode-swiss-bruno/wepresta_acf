@@ -4,48 +4,45 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Presentation\Controller\Admin;
 
+use Context;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Application\Service\CptPostService;
-use WeprestaAcf\Application\Service\CptTypeService;
 use WeprestaAcf\Application\Service\CptTaxonomyService;
+use WeprestaAcf\Application\Service\CptTypeService;
 use WeprestaAcf\Application\Service\ValueHandler;
 use WeprestaAcf\Application\Service\ValueProvider;
-use WeprestaAcf\Domain\Repository\CptGroupRepositoryInterface;
+use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
+use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 /**
- * CPT Post Controller - CRUD for CPT posts with ACF fields
+ * CPT Post Controller - CRUD for CPT posts with ACF fields.
+ *
+ * Uses Location Rules to determine which ACF groups to display for each CPT type.
  */
 final class CptPostController extends FrameworkBundleAdminController
 {
-    private CptPostService $postService;
-    private CptTypeService $typeService;
-    private CptTaxonomyService $taxonomyService;
-    private ValueHandler $valueHandler;
-    private ValueProvider $valueProvider;
-
     public function __construct(
-        CptPostService $postService,
-        CptTypeService $typeService,
-        CptTaxonomyService $taxonomyService,
-        ValueHandler $valueHandler,
-        ValueProvider $valueProvider
+        private readonly CptPostService $postService,
+        private readonly CptTypeService $typeService,
+        private readonly CptTaxonomyService $taxonomyService,
+        private readonly ValueHandler $valueHandler,
+        private readonly ValueProvider $valueProvider,
+        private readonly LocationProviderRegistry $locationProviderRegistry,
+        private readonly AcfGroupRepositoryInterface $groupRepository,
+        private readonly AcfFieldRepositoryInterface $fieldRepository
     ) {
-        $this->postService = $postService;
-        $this->typeService = $typeService;
-        $this->taxonomyService = $taxonomyService;
-        $this->valueHandler = $valueHandler;
-        $this->valueProvider = $valueProvider;
     }
 
     /**
-     * List posts by type
+     * List posts by type.
      */
     #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
     public function list(string $typeSlug, Request $request): Response
@@ -54,6 +51,7 @@ final class CptPostController extends FrameworkBundleAdminController
 
         if (!$type) {
             $this->addFlash('error', $this->trans('CPT Type not found', 'Modules.Weprestaacf.Admin'));
+
             return $this->redirectToRoute('wepresta_acf_builder');
         }
 
@@ -78,15 +76,16 @@ final class CptPostController extends FrameworkBundleAdminController
     }
 
     /**
-     * Create new post
+     * Create new post.
      */
     #[AdminSecurity("is_granted('create', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
     public function create(string $typeSlug, Request $request): Response
     {
-        $type = $this->typeService->getTypeWithGroups($typeSlug);
+        $type = $this->typeService->getTypeBySlug($typeSlug);
 
         if (!$type) {
             $this->addFlash('error', $this->trans('CPT Type not found', 'Modules.Weprestaacf.Admin'));
+
             return $this->redirectToRoute('wepresta_acf_builder');
         }
 
@@ -97,9 +96,12 @@ final class CptPostController extends FrameworkBundleAdminController
         // Get taxonomies
         $taxonomies = $this->taxonomyService->getTaxonomiesByType($type->getId());
 
+        // Get ACF groups via Location Rules
+        $acfGroups = $this->getMatchingAcfGroups($type->getSlug());
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/cpt-post-edit.html.twig', [
             'layoutTitle' => $this->trans('New', 'Modules.Weprestaacf.Admin') . ' - ' . $type->getName(),
-            'type' => $this->serializeType($type),
+            'type' => $this->serializeType($type, $acfGroups),
             'post' => null,
             'taxonomies' => $this->serializeTaxonomies($taxonomies),
             'acfValues' => [],
@@ -107,7 +109,7 @@ final class CptPostController extends FrameworkBundleAdminController
     }
 
     /**
-     * Edit existing post
+     * Edit existing post.
      */
     #[AdminSecurity("is_granted('update', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
     public function edit(int $id, Request $request): Response
@@ -116,13 +118,20 @@ final class CptPostController extends FrameworkBundleAdminController
 
         if (!$post) {
             $this->addFlash('error', $this->trans('Post not found', 'Modules.Weprestaacf.Admin'));
+
             return $this->redirectToRoute('wepresta_acf_builder');
         }
 
-        $type = $this->typeService->getTypeWithGroups($post->getTypeId());
+        $type = $this->typeService->getTypeBySlug($post->getTypeId());
+
+        // Try by ID if slug lookup failed
+        if (!$type) {
+            $type = $this->typeService->getTypeById($post->getTypeId());
+        }
 
         if (!$type) {
             $this->addFlash('error', $this->trans('CPT Type not found', 'Modules.Weprestaacf.Admin'));
+
             return $this->redirectToRoute('wepresta_acf_builder');
         }
 
@@ -134,11 +143,15 @@ final class CptPostController extends FrameworkBundleAdminController
         $taxonomies = $this->taxonomyService->getTaxonomiesByType($type->getId());
 
         // Get ACF values
-        $acfValues = $this->valueProvider->getEntityFieldValues('cpt_post', $id, (int) $this->get('prestashop.adapter.legacy.context')->getContext()->shop->id);
+        $shopId = (int) $this->get('prestashop.adapter.legacy.context')->getContext()->shop->id;
+        $acfValues = $this->valueProvider->getEntityFieldValues('cpt_post', $id, $shopId);
+
+        // Get ACF groups via Location Rules
+        $acfGroups = $this->getMatchingAcfGroups($type->getSlug());
 
         return $this->render('@Modules/wepresta_acf/views/templates/admin/cpt-post-edit.html.twig', [
             'layoutTitle' => $this->trans('Edit', 'Modules.Weprestaacf.Admin') . ' - ' . $post->getTitle(),
-            'type' => $this->serializeType($type),
+            'type' => $this->serializeType($type, $acfGroups),
             'post' => $this->serializePost($post),
             'taxonomies' => $this->serializeTaxonomies($taxonomies),
             'acfValues' => $acfValues,
@@ -146,7 +159,7 @@ final class CptPostController extends FrameworkBundleAdminController
     }
 
     /**
-     * Delete post
+     * Delete post.
      */
     #[AdminSecurity("is_granted('delete', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
     public function delete(int $id): Response
@@ -155,6 +168,7 @@ final class CptPostController extends FrameworkBundleAdminController
 
         if (!$post) {
             $this->addFlash('error', $this->trans('Post not found', 'Modules.Weprestaacf.Admin'));
+
             return $this->redirectToRoute('wepresta_acf_builder');
         }
 
@@ -165,6 +179,63 @@ final class CptPostController extends FrameworkBundleAdminController
         $this->addFlash('success', $this->trans('Post deleted successfully', 'Modules.Weprestaacf.Admin'));
 
         return $this->redirectToRoute('wepresta_acf_cpt_posts_list', ['typeSlug' => $typeSlug]);
+    }
+
+    /**
+     * Get ACF groups that match the Location Rules for a CPT type.
+     *
+     * @param string $cptTypeSlug The CPT type slug
+     *
+     * @return array<array<string, mixed>> Matching groups with their fields
+     */
+    private function getMatchingAcfGroups(string $cptTypeSlug): array
+    {
+        $shopId = (int) Context::getContext()->shop->id;
+
+        // Build context for location rule matching
+        $context = [
+            'entity_type' => 'cpt_post',
+            'cpt_type_slug' => $cptTypeSlug,
+        ];
+
+        // Get all active groups
+        $allGroups = $this->groupRepository->findActiveGroups($shopId);
+
+        if (empty($allGroups)) {
+            return [];
+        }
+
+        $matchingGroups = [];
+
+        foreach ($allGroups as $group) {
+            $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
+
+            // Check if group matches location rules
+            if (!$this->locationProviderRegistry->matchLocation($locationRules, $context)) {
+                continue;
+            }
+
+            // Exclude global scope groups
+            $foOptions = json_decode($group['fo_options'] ?? '{}', true);
+            if (($foOptions['valueScope'] ?? 'entity') === 'global') {
+                continue;
+            }
+
+            // Get fields for this group
+            $groupId = (int) $group['id_wepresta_acf_group'];
+            $fields = $this->fieldRepository->findByGroup($groupId);
+
+            $matchingGroups[] = [
+                'id_wepresta_acf_group' => $groupId,
+                'id' => $groupId,
+                'title' => $group['title'],
+                'slug' => $group['slug'],
+                'description' => $group['description'] ?? '',
+                'fields' => $fields,
+            ];
+        }
+
+        return $matchingGroups;
     }
 
     private function handleSave(?int $id, $type, Request $request): Response
@@ -211,13 +282,16 @@ final class CptPostController extends FrameworkBundleAdminController
         ]);
     }
 
-    private function serializeType($type): array
+    /**
+     * @param array<array<string, mixed>> $acfGroups Groups from Location Rules
+     */
+    private function serializeType($type, array $acfGroups = []): array
     {
         return [
             'id' => $type->getId(),
             'slug' => $type->getSlug(),
             'name' => $type->getName(),
-            'acf_groups' => $type->getAcfGroups(),
+            'acf_groups' => $acfGroups,
         ];
     }
 
