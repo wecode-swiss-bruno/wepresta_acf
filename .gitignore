@@ -1,48 +1,91 @@
-# Module Starter - Git Ignore
+# Module WePresta ACF - Git Ignore
 
-# Dependencies
+# =============================================================================
+# DEPENDENCIES (CRITICAL - ignore ALL node_modules everywhere)
+# =============================================================================
+node_modules/
 /vendor/
-/node_modules/
 
-# Build artifacts
+# =============================================================================
+# BUILD ARTIFACTS (generated files - rebuild with npm run build)
+# =============================================================================
+
+# Webpack Encore output
 /views/dist/
 
-# IDE
+# Vite Vue.js output (rebuild with: cd views/js/admin && npm run build)
+/views/js/admin/dist/
+
+# =============================================================================
+# IDE & EDITORS
+# =============================================================================
 /.idea/
 /.vscode/
 *.swp
 *.swo
 *~
+.project
+.settings/
 
-# OS
+# =============================================================================
+# OS FILES
+# =============================================================================
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Logs & Cache
+# =============================================================================
+# LOGS & CACHE
+# =============================================================================
 /var/
 *.log
+.phpunit.cache/
+**/cache/*
 
-# Testing
+# =============================================================================
+# TESTING
+# =============================================================================
 /.phpunit.result.cache
 /phpunit.xml.bak
 /coverage/
+.phpunit.cache/
 
-# Tools cache
+# =============================================================================
+# TOOLS CACHE
+# =============================================================================
 /.php-cs-fixer.cache
 /phpstan.neon.bak
 
-# Environment
+# =============================================================================
+# ENVIRONMENT
+# =============================================================================
 .env.local
 .env.*.local
 
-# Compiled assets (keep these for production deployments)
-# Uncomment if you want to track built assets
-# !/views/dist/
+# =============================================================================
+# UPLOADS (user-generated content - don't track in git)
+# =============================================================================
+/uploads/files/*
+/uploads/images/*
+/uploads/videos/*
+!/uploads/files/index.php
+!/uploads/images/index.php
+!/uploads/videos/index.php
+!/uploads/index.php
 
-# Package lock (optional - uncomment to track)
-# !package-lock.json
-# !composer.lock
+# =============================================================================
+# PACKAGE LOCKS (optional - uncomment to ignore)
+# =============================================================================
+# package-lock.json
+# composer.lock
+# views/js/admin/package-lock.json
 
-/var/cache/
-**/cache/*
+# =============================================================================
+# OLD/BACKUP FILES
+# =============================================================================
+*.bak
+*.old
 acfps_module_old_arch

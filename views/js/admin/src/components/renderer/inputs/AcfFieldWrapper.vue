@@ -27,7 +27,7 @@ const showLangTabs = computed(() => {
     <!-- Label -->
     <div class="d-flex align-items-center mb-2">
       <label class="form-control-label mb-0 mr-2">
-        {{ field.label || field.title }}
+        {{ field.label }}
         <span v-if="field.required" class="text-danger">*</span>
       </label>
       <span v-if="isTranslatable" class="acf-globe-icon" title="Translatable">
@@ -50,6 +50,11 @@ const showLangTabs = computed(() => {
       >
         {{ lang.iso_code.toUpperCase() }}
       </button>
+    </div>
+
+    <!-- Field Input Slot -->
+    <div class="field-input-container" :class="{ 'has-tabs': showLangTabs }">
+      <slot></slot>
     </div>
   </div>
 </template>
