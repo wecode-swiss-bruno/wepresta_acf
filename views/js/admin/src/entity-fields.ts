@@ -20,6 +20,7 @@
  */
 
 import { createApp, h } from 'vue'
+import { createPinia } from 'pinia'
 import AcfEntityFields from '@/components/AcfEntityFields.vue'
 
 interface MountConfig {
@@ -91,12 +92,16 @@ function mountAcfApp(container: HTMLElement): void {
     }
   })
 
+  // Install Pinia
+  const pinia = createPinia()
+  app.use(pinia)
+
   // Mount the app
   app.mount(container)
-  
+
   // Mark container as initialized
   container.classList.add('acf-vue-initialized')
-  
+
   console.log(`ACF: Mounted entity fields app for ${config.entityType} #${config.entityId}`)
 }
 
@@ -104,23 +109,23 @@ function mountAcfApp(container: HTMLElement): void {
  * Update hidden inputs for form submission
  */
 function updateHiddenInputs(
-  container: HTMLElement, 
-  values: Record<string, any>, 
+  container: HTMLElement,
+  values: Record<string, any>,
   prefix: string
 ): void {
   // Get or create hidden inputs container
   let hiddenContainer = container.querySelector('.acf-hidden-inputs')
-  
+
   if (!hiddenContainer) {
     hiddenContainer = document.createElement('div')
     hiddenContainer.className = 'acf-hidden-inputs'
     hiddenContainer.style.display = 'none'
     container.appendChild(hiddenContainer)
   }
-  
+
   // Clear existing hidden inputs
   hiddenContainer.innerHTML = ''
-  
+
   // Create hidden inputs for each field value
   for (const [fieldId, value] of Object.entries(values)) {
     const input = document.createElement('input')
@@ -138,13 +143,13 @@ function initAcfEntityFields(): void {
   const containers = document.querySelectorAll<HTMLElement>(
     '.acf-entity-fields-vue-container:not(.acf-vue-initialized)'
   )
-  
+
   if (containers.length === 0) {
     return
   }
-  
+
   console.log(`ACF: Found ${containers.length} entity fields container(s)`)
-  
+
   containers.forEach(container => {
     try {
       mountAcfApp(container)
@@ -195,6 +200,6 @@ observer.observe(document.body, {
   subtree: true
 })
 
-// Expose for manual initialization if needed
-;(window as any).initAcfEntityFields = initAcfEntityFields
-;(window as any).mountAcfApp = mountAcfApp
+  // Expose for manual initialization if needed
+  ; (window as any).initAcfEntityFields = initAcfEntityFields
+  ; (window as any).mountAcfApp = mountAcfApp

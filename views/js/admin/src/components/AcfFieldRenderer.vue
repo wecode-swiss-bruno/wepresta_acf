@@ -83,149 +83,162 @@ const setValue = (val: any) => {
     emit('update:modelValue', val)
   }
 }
+// Normalizing field config
+const processedField = computed(() => {
+  const f = { ...props.field }
+  if (typeof f.config === 'string') {
+    try {
+      f.config = JSON.parse(f.config)
+    } catch (e) {
+      f.config = {}
+    }
+  } else if (!f.config) {
+      f.config = {}
+  }
+  return f
+})
 </script>
 
 <template>
   <AcfFieldWrapper 
-    :field="field" 
+    :field="processedField" 
     :languages="languages" 
     v-model:currentLang="currentLang"
   >
     <!-- Text / URL / Email -->
     <AcfTextField
-      v-if="['text', 'url', 'email', 'password'].includes(field.type)"
-      :field="field"
+      v-if="['text', 'url', 'email', 'password'].includes(processedField.type)"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Date -->
     <AcfDateField
-      v-else-if="field.type === 'date'"
-      :field="field"
+      v-else-if="processedField.type === 'date'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Time -->
     <AcfTimeField
-      v-else-if="field.type === 'time'"
-      :field="field"
+      v-else-if="processedField.type === 'time'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- DateTime -->
     <AcfDateTimeField
-      v-else-if="field.type === 'datetime'"
-      :field="field"
+      v-else-if="processedField.type === 'datetime'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Textarea -->
     <AcfTextareaField
-      v-else-if="field.type === 'textarea'"
-      :field="field"
+      v-else-if="processedField.type === 'textarea'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Rich Text (WYSIWYG) -->
     <AcfRichTextField
-      v-else-if="field.type === 'wysiwyg' || field.type === 'richtext'"
-      :field="field"
+      v-else-if="processedField.type === 'wysiwyg' || processedField.type === 'richtext'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Number -->
     <AcfNumberField
-      v-else-if="field.type === 'number' || field.type === 'range'"
-      :field="field"
+      v-else-if="processedField.type === 'number' || processedField.type === 'range'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Boolean (Checkbox/Switch) -->
     <AcfBooleanField
-      v-else-if="field.type === 'boolean' || field.type === 'true_false'"
-      :field="field"
+      v-else-if="processedField.type === 'boolean' || processedField.type === 'true_false'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Checkbox (Multiple Group) -->
     <AcfCheckboxField
-      v-else-if="field.type === 'checkbox'"
-      :field="field"
+      v-else-if="processedField.type === 'checkbox'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Radio -->
     <AcfRadioField
-      v-else-if="field.type === 'radio'"
-      :field="field"
+      v-else-if="processedField.type === 'radio'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Select -->
     <AcfSelectField
-      v-else-if="field.type === 'select'"
-      :field="field"
+      v-else-if="processedField.type === 'select'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Color -->
     <AcfColorField
-      v-else-if="field.type === 'color'"
-      :field="field"
+      v-else-if="processedField.type === 'color'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- File / Image / Video -->
     <AcfFileUploadField
-      v-else-if="['file', 'image', 'video', 'gallery'].includes(field.type)"
+      v-else-if="['file', 'image', 'video', 'gallery'].includes(processedField.type)"
       :model-value="getValue()"
-      :field-slug="field.slug"
-      :field-type="field.type"
+      :field-slug="processedField.slug"
+      :field-type="processedField.type"
       @update:model-value="setValue($event)"
     />
 
     <!-- Repeater -->
     <AcfRepeaterField
-      v-else-if="field.type === 'repeater'"
-      :field="field"
+      v-else-if="processedField.type === 'repeater'"
+      :field="processedField"
       :model-value="getValue()"
       :languages="languages || []"
       :default-language="defaultLanguage"
       @update:model-value="setValue($event)"
     />
 
-    <!-- Relation (Fallback to Select for now) -->
     <!-- List -->
     <AcfListField
-      v-else-if="field.type === 'list'"
-      :field="field"
+      v-else-if="processedField.type === 'list'"
+      :field="processedField"
       :model-value="getValue() || []"
       @update:model-value="setValue"
     />
 
     <!-- Relation -->
     <AcfRelationField
-      v-else-if="field.type === 'relation' || field.type === 'post_object' || field.type === 'page_link' || field.type === 'taxonomy'"
-      :field="field"
+      v-else-if="processedField.type === 'relation' || processedField.type === 'post_object' || processedField.type === 'page_link' || processedField.type === 'taxonomy'"
+      :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"
     />
 
     <!-- Unknown -->
     <div v-else class="alert alert-warning">
-      Unsupported field type: {{ field.type }}
+      Unsupported field type: {{ processedField.type }}
     </div>
 
   </AcfFieldWrapper>

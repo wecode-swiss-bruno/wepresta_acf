@@ -39,6 +39,7 @@ services:
         resource: '../src/Presentation/Controller/*'
         exclude:
             - '../src/Presentation/Controller/Admin/CptPostController.php'
+            - '../src/Presentation/Controller/Admin/BuilderController.php'
         tags: ['controller.service_arguments']
 
     # CPT Post Controller - explicit configuration for Location Rules support

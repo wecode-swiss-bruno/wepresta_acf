@@ -120,7 +120,7 @@ final class EntityFieldService
                     $valuesPerLang[$currentLangId][$slug] = $value[$currentLangId];
 
                     foreach ($value as $langId => $langValue) {
-                        if (! isset($valuesPerLang[$langId])) {
+                        if (!isset($valuesPerLang[$langId])) {
                             $valuesPerLang[$langId] = [];
                         }
                         $valuesPerLang[$langId][$slug] = $langValue;
@@ -132,7 +132,7 @@ final class EntityFieldService
                     foreach ($languages as $lang) {
                         $langId = (int) $lang['id_lang'];
 
-                        if (! isset($valuesPerLang[$langId])) {
+                        if (!isset($valuesPerLang[$langId])) {
                             $valuesPerLang[$langId] = [];
                         }
                         $valuesPerLang[$langId][$slug] = $value;
@@ -149,179 +149,65 @@ final class EntityFieldService
 
                 $fieldsHtml = [];
 
+                $fieldsData = [];
                 foreach ($fields as $field) {
                     $slug = $field['slug'];
                     $type = $field['type'];
+                    $fieldId = (int) $field['id_wepresta_acf_field'];
                     $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
-                    $fieldType = $this->fieldTypeRegistry->getOrNull($type);
 
-                    if (! $fieldType) {
-                        continue;
+                    // Parse config if it's a string
+                    if (isset($field['config']) && is_string($field['config'])) {
+                        $field['config'] = json_decode($field['config'], true) ?: [];
                     }
 
-                    $fieldData = [
-                        'slug' => $slug,
-                        'title' => $field['title'],
-                        'instructions' => $field['instructions'],
-                        'required' => (bool) (json_decode($field['validation'] ?? '{}', true)['required'] ?? false),
-                        'translatable' => $isTranslatable,
-                    ];
+                    // Basic field data
+                    $fieldData = $field;
+                    $fieldData['slug'] = $slug;
+                    $fieldData['translatable'] = $isTranslatable;
+                    // Ensure boolean types
+                    $fieldData['required'] = (bool) (json_decode($field['validation'] ?? '{}', true)['required'] ?? false);
 
-                    // For repeater fields, load children and generate JS templates
+                    // Handle Repeater
                     if ($type === 'repeater') {
-                        $fieldId = (int) $field['id_wepresta_acf_field'];
                         $children = $this->fieldRepository->findByParent($fieldId);
-                        $field['children'] = [];
-                        $field['jsTemplates'] = [];
-
-                        // Parse repeater value to extract subfield values per language
-                        $repeaterValue = $values[$slug] ?? null;
-                        $repeaterRows = [];
-
-                        if ($repeaterValue) {
-                            if (\is_string($repeaterValue)) {
-                                $decoded = json_decode($repeaterValue, true);
-                                $repeaterRows = \is_array($decoded) ? $decoded : [];
-                            } elseif (\is_array($repeaterValue)) {
-                                $repeaterRows = $repeaterValue;
+                        $fieldData['children'] = array_map(function ($child) {
+                            if (isset($child['config']) && is_string($child['config'])) {
+                                $child['config'] = json_decode($child['config'], true) ?: [];
                             }
-                        }
-
-                        foreach ($children as $child) {
-                            $childSlug = $child['slug'];
-                            $childType = $this->fieldTypeRegistry->getOrNull($child['type']);
-                            $childIsTranslatable = (bool) ($child['value_translatable'] ?? $child['translatable'] ?? false);
-
-                            // Prepare child field data with translation support
-                            $childData = $child;
-                            $childData['translatable'] = $childIsTranslatable;
-
-                            if ($childType) {
-                                // Generate JS template
-                                $field['jsTemplates'][$childSlug] = $childType->getJsTemplate($child);
-
-                                // For translatable subfields, prepare lang_inputs
-                                if ($childIsTranslatable) {
-                                    $childLangInputs = [];
-
-                                    foreach ($languages as $lang) {
-                                        $langId = (int) $lang['id_lang'];
-
-                                        // Extract value for this language from repeater rows
-                                        // Values structure: row.values[subfieldSlug] can be:
-                                        // - string for non-translatable
-                                        // - {langId: value} object for translatable
-                                        $langValue = null;
-
-                                        if (! empty($repeaterRows)) {
-                                            // Get first row's value (or merge all rows - depends on UI needs)
-                                            // For now, we'll use the first row, but the UI should handle per-row values
-                                            foreach ($repeaterRows as $row) {
-                                                // Ensure row['values'] is an array
-                                                $rowValues = $row['values'] ?? [];
-
-                                                // If values is a string (JSON), decode it
-                                                if (\is_string($rowValues)) {
-                                                    $decoded = json_decode($rowValues, true);
-                                                    $rowValues = \is_array($decoded) ? $decoded : [];
-                                                }
-
-                                                // Check if values is actually an array before accessing
-                                                if (\is_array($rowValues) && isset($rowValues[$childSlug])) {
-                                                    $subfieldValue = $rowValues[$childSlug];
-
-                                                    // If subfieldValue is a string (JSON), decode it
-                                                    if (\is_string($subfieldValue)) {
-                                                        $decoded = json_decode($subfieldValue, true);
-                                                        $subfieldValue = \is_array($decoded) ? $decoded : $subfieldValue;
-                                                    }
-
-                                                    if (\is_array($subfieldValue) && isset($subfieldValue[$langId])) {
-                                                        $langValue = $subfieldValue[$langId];
-                                                    } elseif (! \is_array($subfieldValue) && $langId === $defaultLangId) {
-                                                        // Fallback: if not an array, use as default language value
-                                                        $langValue = $subfieldValue;
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        $childLangInputs[] = [
-                                            'id_lang' => $langId,
-                                            'iso_code' => $lang['iso_code'],
-                                            'name' => $lang['name'],
-                                            'is_default' => $langId === $defaultLangId,
-                                            'html' => $childType->renderAdminInput($child, $langValue, [
-                                                'prefix' => 'acf_repeater_',
-                                                'suffix' => '_' . $langId,
-                                                'fieldRenderer' => $this->fieldTypeRegistry,
-                                                'dataSubfield' => true,
-                                                'size' => 'sm',
-                                            ]),
-                                        ];
-                                    }
-
-                                    $childData['lang_inputs'] = $childLangInputs;
-                                } else {
-                                    $childData['lang_inputs'] = [];
-                                }
-                            } else {
-                                $childData['lang_inputs'] = [];
-                            }
-
-                            $field['children'][] = $childData;
-                        }
+                            $child['translatable'] = (bool) ($child['value_translatable'] ?? $child['translatable'] ?? false);
+                            return $child;
+                        }, $children);
                     }
 
-                    if ($isTranslatable) {
-                        // Render field for each language
-                        $langInputs = [];
+                    $fieldsData[] = $fieldData;
 
+                    // Prepare Values
+                    if ($isTranslatable) {
+                        $fieldValues = [];
                         foreach ($languages as $lang) {
                             $langId = (int) $lang['id_lang'];
-                            $langValue = $valuesPerLang[$langId][$slug] ?? null;
-                            $langInputs[] = [
-                                'id_lang' => $langId,
-                                'iso_code' => $lang['iso_code'],
-                                'name' => $lang['name'],
-                                'is_default' => $langId === $defaultLangId,
-                                'html' => $fieldType->renderAdminInput($field, $langValue, [
-                                    'prefix' => 'acf_',
-                                    'suffix' => '_' . $langId,
-                                    'fieldRenderer' => $this->fieldTypeRegistry,
-                                ]),
-                            ];
+                            $val = $valuesPerLang[$langId][$slug] ?? null;
+                            if ($type === 'repeater' && is_string($val)) {
+                                $val = json_decode($val, true);
+                            }
+                            $fieldValues[$langId] = $val;
                         }
-                        $fieldData['lang_inputs'] = $langInputs;
-                        $fieldData['html'] = '';
+                        $acfValues[$fieldId] = $fieldValues;
                     } else {
-                        $value = $values[$slug] ?? null;
-
-                        // For repeater fields, pass languages in context for subfield translation support
-                        $renderContext = [
-                            'prefix' => 'acf_',
-                            'fieldRenderer' => $this->fieldTypeRegistry,
-                            'entity_id' => $entityId,
-                            'id_product' => $entityType === 'product' ? $entityId : 0,
-                        ];
-
-                        if ($type === 'repeater') {
-                            $renderContext['languages'] = $languages;
-                            $renderContext['default_lang_id'] = $defaultLangId;
+                        $val = $values[$slug] ?? null;
+                        if ($type === 'repeater' && is_string($val)) {
+                            $val = json_decode($val, true);
                         }
-
-                        $fieldData['html'] = $fieldType->renderAdminInput($field, $value, $renderContext);
-                        $fieldData['lang_inputs'] = [];
+                        $acfValues[$fieldId] = $val;
                     }
-
-                    $fieldsHtml[] = $fieldData;
                 }
 
                 $groupsData[] = [
                     'id' => $groupId,
                     'title' => $group['title'],
                     'description' => $group['description'],
-                    'fields' => $fieldsHtml,
+                    'fields' => $fieldsData,
                 ];
             }
 
@@ -337,6 +223,7 @@ final class EntityFieldService
 
             $assignData = [
                 'acf_groups' => $groupsData,
+                'acf_values' => $acfValues,
                 'acf_entity_type' => $entityType,
                 'acf_entity_id' => $entityId,
                 'acf_languages' => $languages,
@@ -344,6 +231,7 @@ final class EntityFieldService
                 'link' => $contextObj->link,
                 'base_url' => $contextObj->shop->getBaseURL(),
                 'acf_api_base_url' => $this->getAdminApiBaseUrl($module),
+                'acf_shop_id' => (int) $contextObj->shop->id,
             ];
 
             // Add entity-specific IDs for backward compatibility
@@ -459,7 +347,7 @@ final class EntityFieldService
 
         // Process simple file uploads
         foreach ($files as $key => $file) {
-            if (! str_starts_with($key, 'acf_')) {
+            if (!str_starts_with($key, 'acf_')) {
                 continue;
             }
             $slug = substr($key, 4);
@@ -469,16 +357,16 @@ final class EntityFieldService
             }
 
             $hasFile = \is_array($file['error'])
-                ? ! empty(array_filter($file['error'], fn ($e) => $e === UPLOAD_ERR_OK))
+                ? !empty(array_filter($file['error'], fn($e) => $e === UPLOAD_ERR_OK))
                 : $file['error'] === UPLOAD_ERR_OK;
 
-            if (! $hasFile) {
+            if (!$hasFile) {
                 continue;
             }
 
             $field = $this->fieldRepository->findBySlug($slug);
 
-            if (! $field) {
+            if (!$field) {
                 continue;
             }
 
@@ -498,7 +386,7 @@ final class EntityFieldService
 
         // Process regular POST values
         foreach ($postData as $key => $value) {
-            if (! str_starts_with($key, 'acf_')) {
+            if (!str_starts_with($key, 'acf_')) {
                 continue;
             }
 
@@ -576,7 +464,7 @@ final class EntityFieldService
         Module $module
     ): void {
         foreach ($postData as $key => $val) {
-            if (! str_starts_with($key, 'acf_') || ! str_ends_with($key, '_items')) {
+            if (!str_starts_with($key, 'acf_') || !str_ends_with($key, '_items')) {
                 continue;
             }
 
@@ -588,7 +476,7 @@ final class EntityFieldService
 
             $field = $this->fieldRepository->findBySlug($slug);
 
-            if (! $field || ! \in_array($field['type'], ['gallery', 'files'], true)) {
+            if (!$field || !\in_array($field['type'], ['gallery', 'files'], true)) {
                 continue;
             }
 
@@ -603,7 +491,7 @@ final class EntityFieldService
                 foreach ($existingItems as $idx => $jsonItem) {
                     $item = \is_string($jsonItem) ? json_decode($jsonItem, true) : $jsonItem;
 
-                    if (! \is_array($item) || empty($item['url'])) {
+                    if (!\is_array($item) || empty($item['url'])) {
                         continue;
                     }
                     $titleKey = 'acf_' . $slug . '_title';
@@ -652,7 +540,7 @@ final class EntityFieldService
                 }
             }
 
-            $values[$slug] = ! empty($items) ? $items : null;
+            $values[$slug] = !empty($items) ? $items : null;
             $processedSlugs[$slug] = true;
         }
     }

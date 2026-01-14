@@ -99,12 +99,24 @@ final class CptPostController extends FrameworkBundleAdminController
         // Get ACF groups via Location Rules
         $acfGroups = $this->getMatchingAcfGroups($type->getSlug());
 
+        // Get context data for proper field rendering
+        $context = Context::getContext();
+        $languages = \Language::getLanguages(false, $context->shop->id);
+        $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+        $currentShopId = (int) $context->shop->id;
+        $link = $context->link;
+        $adminApiUrl = $link->getAdminLink('WeprestaAcfApi');
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/cpt-post-edit.html.twig', [
             'layoutTitle' => $this->trans('New', 'Modules.Weprestaacf.Admin') . ' - ' . $type->getName(),
             'type' => $this->serializeType($type, $acfGroups),
             'post' => null,
             'taxonomies' => $this->serializeTaxonomies($taxonomies),
             'acfValues' => [],
+            'languages' => $languages,
+            'defaultLanguageId' => $defaultLangId,
+            'shopId' => $currentShopId,
+            'apiUrl' => $adminApiUrl,
         ]);
     }
 
@@ -149,12 +161,32 @@ final class CptPostController extends FrameworkBundleAdminController
         // Get ACF groups via Location Rules
         $acfGroups = $this->getMatchingAcfGroups($type->getSlug());
 
+        // Get context data for proper field rendering (Harmonization with Product/Entity pages)
+        $context = Context::getContext();
+        $languages = \Language::getLanguages(false, $context->shop->id);
+        $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+        $currentShopId = (int) $context->shop->id;
+        // Construct API URL similarly to EntityFieldService
+        $link = $context->link;
+        $apiUrl = $link->getAdminLink('WeprestaAcfApi', true, ['route' => 'wepresta_acf_api_relation_resolve']);
+        // Clean up API URL to base if needed, or pass specific endpoints. 
+        // For relation field, we usually need base API url or specific resolving route.
+        // EntityFieldService passes `acf_api_base_url` which is .../module/wepresta_acf/api
+        // Let's standarize on passing the resolve route for now as per Relation field needs, 
+        // or better, pass the same base URL structure if possible.
+        // Looking at EntityFieldService, it uses $link->getAdminLink('WeprestaAcfApi').
+        $adminApiUrl = $link->getAdminLink('WeprestaAcfApi');
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/cpt-post-edit.html.twig', [
             'layoutTitle' => $this->trans('Edit', 'Modules.Weprestaacf.Admin') . ' - ' . $post->getTitle(),
             'type' => $this->serializeType($type, $acfGroups),
             'post' => $this->serializePost($post),
             'taxonomies' => $this->serializeTaxonomies($taxonomies),
             'acfValues' => $acfValues,
+            'languages' => $languages,
+            'defaultLanguageId' => $defaultLangId,
+            'shopId' => $currentShopId,
+            'apiUrl' => $adminApiUrl,
         ]);
     }
 

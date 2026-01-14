@@ -48,27 +48,27 @@
                             {# ACF Fields #}
                             {% if type.acf_groups|length > 0 %}
                                 <div class="acf-fields-section">
-                                    <h4>{{ 'Custom Fields'|trans({}, 'Modules.Weprestaacf.Admin') }}</h4>
+                                    <h4>{{ 'Custom Fields FDP'|trans({}, 'Modules.Weprestaacf.Admin') }}</h4>
                                     
-                                    <div v-for="group in acfGroups" :key="group.id" class="acf-group-card card mb-3">
-                                        <div class="card-header">
-                                            {{ group.title || 'Untitled Group' }}
-                                        </div>
-                                        <div class="card-body">
-                                            <AcfFieldRenderer
-                                                v-for="field in group.fields"
-                                                :key="field.id"
-                                                :field="field"
-                                                :model-value="formData.acf[field.id]"
-                                                :languages="languages"
-                                                :default-language="defaultLanguage"
-                                                @update:model-value="(val) => formData.acf[field.id] = val"
-                                            />
+                                    <div class="acf-entity-fields-vue-container"
+                                         data-entity-type="cpt_post"
+                                         data-entity-id="{{ post ? post.id : 0 }}"
+                                         data-groups='{{ type.acf_groups|json_encode }}'
+                                         data-values='{{ acfValues|json_encode }}'
+                                         data-languages='{{ languages|json_encode }}'
+                                         data-default-lang-id="{{ defaultLanguageId }}"
+                                         data-shop-id="{{ shopId }}"
+                                         data-api-url="{{ apiUrl }}"
+                                         data-form-name-prefix="acf">
+                                        
+                                        <div class="acf-loading text-center py-5">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <div class="mt-2">{{ 'Loading fields...'|trans({}, 'Modules.Weprestaacf.Admin') }}</div>
                                         </div>
                                     </div>
-                                    
-                                    <div v-if="!acfGroups.length && typeId" class="alert alert-info">
-                                        No ACF fields assigned to this CPT type.
+
+                                    <div v-if="!acfGroups.length && typeId" class="alert alert-info" style="display: none;">
+                                        {# Hidden fallback, handled by Vue app if needed #}
                                     </div>
                                 </div>
                             {% endif %}

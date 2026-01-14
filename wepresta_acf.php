@@ -140,8 +140,46 @@ class WeprestaAcf extends Module
             }
         }
 
-        $this->context->controller->addCSS($this->_path . 'views/css/admin-fields.css');
-        $this->context->controller->addJS($this->_path . 'views/js/acf-fields.js');
+        // List of controllers where we render ACF fields
+        $entityControllers = [
+            'AdminProducts',
+            'AdminCategories',
+            'AdminCmsContent',
+            'AdminCustomers',
+            'AdminManufacturers',
+            'AdminSuppliers'
+        ];
+
+        // Specific handling for Symfony controllers where 'controller' param might differ or we need to check the class
+        // But for addJS/addCSS, checking Tools::getValue('controller') is usually enough for legacy.
+        // For CPTs, we might need a dynamic check.
+
+        // Check for Custom Post Type Controller (Symfony)
+        $isCptController = false;
+        if (isset($this->context->controller) && is_object($this->context->controller)) {
+            $className = get_class($this->context->controller);
+            if (strpos($className, 'CptPostController') !== false) {
+                $isCptController = true;
+            }
+        }
+
+        if (in_array($controller, $entityControllers) || $isCptController) {
+            // Entity Fields App (Vue)
+            $this->context->controller->addJS($this->_path . 'views/js/admin/dist/entity-fields.js');
+            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-entity-fields.css');
+            // Also load main styles if shared styles are needed (usually yes for variables)
+            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-main.css');
+        } elseif (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'])) {
+            // Builder App (Vue)
+            // Note: If using ESM build, this might need module type or IIFE rebuild.
+            // For now assuming acf-admin.js is available (might need rebuild if users see errors here too)
+            $this->context->controller->addJS($this->_path . 'views/js/admin/dist/acf-admin.js');
+            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-main.css');
+        } else {
+            // Fallback or global assets if needed
+            $this->context->controller->addCSS($this->_path . 'views/css/admin-fields.css');
+            $this->context->controller->addJS($this->_path . 'views/js/acf-fields.js');
+        }
     }
 
     public function hookActionFrontControllerSetMedia(array $params): void
