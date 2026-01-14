@@ -24,7 +24,8 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      emptyOutDir: true,
+      // Only empty in production to avoid race conditions with entity config in dev
+      emptyOutDir: isProd,
       // Generate manifest.json for asset resolution in templates
       manifest: true,
       rollupOptions: {
