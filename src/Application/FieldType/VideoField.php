@@ -123,7 +123,7 @@ final class VideoField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (! \is_array($data) || ! isset($data['source'])) {
+        if (!\is_array($data) || !isset($data['source'])) {
             return '';
         }
 
@@ -140,16 +140,16 @@ final class VideoField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (! \is_array($data)) {
+        if (!\is_array($data)) {
             return null;
         }
 
         // Return title if it exists and is not empty, otherwise try other fields
-        if (! empty($data['title'])) {
+        if (!empty($data['title'])) {
             return $data['title'];
         }
 
-        if (! empty($data['original_name'])) {
+        if (!empty($data['original_name'])) {
             return $data['original_name'];
         }
 
@@ -166,7 +166,7 @@ final class VideoField extends AbstractFieldType
 
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (! \is_array($data) || ! isset($data['source'])) {
+        if (!\is_array($data) || !isset($data['source'])) {
             $errors[] = 'Invalid video data.';
         }
 
@@ -283,19 +283,7 @@ final class VideoField extends AbstractFieldType
         ];
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $data = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('video.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $data,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

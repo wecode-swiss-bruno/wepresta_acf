@@ -128,7 +128,15 @@ class WeprestaAcf extends Module
 
     public function hookActionAdminControllerSetMedia(array $params): void
     {
+        // Ensure hooks are registered (PS8/PS9 compatibility)
+        $this->ensureHooksRegistered();
+
         $controller = Tools::getValue('controller');
+
+        // Load our shared design system CSS
+        if ($this->isEntityEditPage($controller) || in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'], true)) {
+            $this->context->controller->addCSS($this->_path . 'views/css/admin/acf-admin.css');
+        }
 
         if (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'], true)) {
             if (file_exists($this->getLocalPath() . 'views/dist/admin.css')) {
@@ -140,35 +148,20 @@ class WeprestaAcf extends Module
             }
         }
 
-        // List of controllers where we render ACF fields
-        $entityControllers = [
-            'AdminProducts',
-            'AdminCategories',
-            'AdminCmsContent',
-            'AdminCustomers',
-            'AdminManufacturers',
-            'AdminSuppliers'
-        ];
+        // Detect entity edit pages (both legacy and Symfony controllers)
+        $isEntityPage = $this->isEntityEditPage($controller);
 
-        // Specific handling for Symfony controllers where 'controller' param might differ or we need to check the class
-        // But for addJS/addCSS, checking Tools::getValue('controller') is usually enough for legacy.
-        // For CPTs, we might need a dynamic check.
-
-        // Check for Custom Post Type Controller (Symfony)
-        $isCptController = false;
-        if (isset($this->context->controller) && is_object($this->context->controller)) {
-            $className = get_class($this->context->controller);
-            if (strpos($className, 'CptPostController') !== false) {
-                $isCptController = true;
-            }
-        }
-
-        if (in_array($controller, $entityControllers) || $isCptController) {
+        if ($isEntityPage) {
             // Entity Fields App (Vue)
-            $this->context->controller->addJS($this->_path . 'views/js/admin/dist/entity-fields.js');
-            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-entity-fields.css');
+            $jsPath = $this->getLocalPath() . 'views/js/admin/dist/entity-fields.js';
+            $cssPath = $this->getLocalPath() . 'views/js/admin/dist/acf-entity-fields.css';
+            $jsVer = file_exists($jsPath) ? filemtime($jsPath) : self::VERSION;
+            $cssVer = file_exists($cssPath) ? filemtime($cssPath) : self::VERSION;
+
+            $this->context->controller->addJS($this->_path . 'views/js/admin/dist/entity-fields.js?v=' . $jsVer);
+            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-entity-fields.css?v=' . $cssVer);
             // Also load main styles if shared styles are needed (usually yes for variables)
-            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-main.css');
+            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-main.css?v=' . $cssVer);
         } elseif (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'])) {
             // Builder App (Vue)
             // Note: If using ESM build, this might need module type or IIFE rebuild.
@@ -180,6 +173,86 @@ class WeprestaAcf extends Module
             $this->context->controller->addCSS($this->_path . 'views/css/admin-fields.css');
             $this->context->controller->addJS($this->_path . 'views/js/acf-fields.js');
         }
+    }
+
+    /**
+     * Détecte si on est sur une page d'édition d'entité (Product, Category, etc.).
+     * Compatible avec les contrôleurs legacy ET Symfony (PrestaShop 8/9).
+     *
+     * @param string|null $controller Nom du contrôleur depuis Tools::getValue('controller')
+     *
+     * @return bool True si on est sur une page d'édition d'entité
+     */
+    private function isEntityEditPage(?string $controller): bool
+    {
+        // Legacy controllers
+        $legacyControllers = [
+            'AdminProducts',
+            'AdminCategories',
+            'AdminCmsContent',
+            'AdminCustomers',
+            'AdminManufacturers',
+            'AdminSuppliers'
+        ];
+
+        if (in_array($controller, $legacyControllers, true)) {
+            return true;
+        }
+
+        // Check controller class for Symfony routes (PrestaShop 8/9)
+        if (isset($this->context->controller) && is_object($this->context->controller)) {
+            $className = get_class($this->context->controller);
+
+            // Symfony Product Controller (PS 8/9)
+            if (strpos($className, 'ProductController') !== false) {
+                return true;
+            }
+
+            // Symfony Category Controller
+            if (strpos($className, 'CategoryController') !== false) {
+                return true;
+            }
+
+            // Symfony Customer Controller
+            if (strpos($className, 'CustomerController') !== false) {
+                return true;
+            }
+
+            // Symfony CMS Controller
+            if (strpos($className, 'CmsPageController') !== false) {
+                return true;
+            }
+
+            // Custom Post Type Controller
+            if (strpos($className, 'CptPostController') !== false) {
+                return true;
+            }
+        }
+
+        // Check URL patterns for Symfony routes
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+
+        // Product edit page: /sell/catalog/products/{id}/edit
+        if (preg_match('#/sell/catalog/products/\d+/edit#', $requestUri)) {
+            return true;
+        }
+
+        // Category edit page: /sell/catalog/categories/{id}/edit
+        if (preg_match('#/sell/catalog/categories/\d+/edit#', $requestUri)) {
+            return true;
+        }
+
+        // Customer edit page: /sell/customers/{id}/edit
+        if (preg_match('#/sell/customers/\d+/edit#', $requestUri)) {
+            return true;
+        }
+
+        // CMS page edit: /improve/design/cms-pages/{id}/edit
+        if (preg_match('#/improve/design/cms-pages/\d+/edit#', $requestUri)) {
+            return true;
+        }
+
+        return false;
     }
 
     public function hookActionFrontControllerSetMedia(array $params): void
@@ -908,6 +981,46 @@ class WeprestaAcf extends Module
     private function getAllHooks(): array
     {
         return array_merge(EntityHooksConfig::getAllHooks(), ['moduleRoutes']);
+    }
+
+    /**
+     * Ensures all required hooks are registered.
+     * This is needed for PS8/PS9 compatibility when Symfony hooks were added later.
+     * Only runs once per day to avoid performance impact.
+     */
+    private function ensureHooksRegistered(): void
+    {
+        // Check if we already verified hooks today
+        $lastCheck = Configuration::get('WEPRESTA_ACF_HOOKS_LAST_CHECK');
+        $today = date('Y-m-d');
+
+        if ($lastCheck === $today) {
+            return; // Already checked today
+        }
+
+        try {
+            $allHooks = $this->getAllHooks();
+            $missingHooks = [];
+
+            // Check each hook
+            foreach ($allHooks as $hookName) {
+                if (!$this->isRegisteredInHook($hookName)) {
+                    $missingHooks[] = $hookName;
+                }
+            }
+
+            // Register missing hooks
+            if (!empty($missingHooks)) {
+                foreach ($missingHooks as $hookName) {
+                    $this->registerHook($hookName);
+                }
+            }
+
+            // Update last check date
+            Configuration::updateValue('WEPRESTA_ACF_HOOKS_LAST_CHECK', $today);
+        } catch (Exception $e) {
+            // Silent fail
+        }
     }
 
     private function getAdminApiBaseUrl(): string

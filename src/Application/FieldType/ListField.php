@@ -81,13 +81,13 @@ final class ListField extends AbstractFieldType
         if (\is_string($value)) {
             $decoded = json_decode($value, true);
 
-            if (! \is_array($decoded)) {
+            if (!\is_array($decoded)) {
                 return null;
             }
             $value = $decoded;
         }
 
-        if (! \is_array($value)) {
+        if (!\is_array($value)) {
             return null;
         }
 
@@ -96,7 +96,7 @@ final class ListField extends AbstractFieldType
         $position = 0;
 
         foreach ($value as $item) {
-            if (! \is_array($item)) {
+            if (!\is_array($item)) {
                 continue;
             }
 
@@ -134,7 +134,7 @@ final class ListField extends AbstractFieldType
 
             if (\is_array($decoded)) {
                 // Sort by position
-                usort($decoded, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+                usort($decoded, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
                 return $decoded;
             }
@@ -143,7 +143,7 @@ final class ListField extends AbstractFieldType
         }
 
         if (\is_array($value)) {
-            usort($value, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+            usort($value, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
             return $value;
         }
@@ -170,13 +170,13 @@ final class ListField extends AbstractFieldType
         foreach ($items as $item) {
             $html .= '<li class="acf-list-item">';
 
-            if ($showIcon && ! empty($item['icon'])) {
+            if ($showIcon && !empty($item['icon'])) {
                 $html .= '<span class="acf-list-icon material-icons">' . htmlspecialchars($item['icon'], ENT_QUOTES, 'UTF-8') . '</span>';
             }
 
             $text = htmlspecialchars($item['text'], ENT_QUOTES, 'UTF-8');
 
-            if ($showLink && ! empty($item['link'])) {
+            if ($showLink && !empty($item['link'])) {
                 $link = htmlspecialchars($item['link'], ENT_QUOTES, 'UTF-8');
                 $html .= '<a href="' . $link . '" class="acf-list-link">' . $text . '</a>';
             } else {
@@ -200,7 +200,7 @@ final class ListField extends AbstractFieldType
         }
 
         // Index: concatenate all text values
-        $texts = array_map(fn ($item) => $item['text'] ?? '', $items);
+        $texts = array_map(fn($item) => $item['text'] ?? '', $items);
 
         return substr(implode(' | ', $texts), 0, 255);
     }
@@ -262,7 +262,7 @@ final class ListField extends AbstractFieldType
         $count = \count($items);
 
         // Check required
-        if (! empty($validation['required']) && $count === 0) {
+        if (!empty($validation['required']) && $count === 0) {
             $errors[] = 'This field is required.';
 
             return $errors;
@@ -300,19 +300,7 @@ final class ListField extends AbstractFieldType
         ];
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $items = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('list.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $items,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

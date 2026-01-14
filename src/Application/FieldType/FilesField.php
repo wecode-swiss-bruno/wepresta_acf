@@ -122,7 +122,7 @@ final class FilesField extends AbstractFieldType
 
             if (\is_array($decoded)) {
                 // Sort by position
-                usort($decoded, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+                usort($decoded, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
                 return $decoded;
             }
@@ -130,7 +130,7 @@ final class FilesField extends AbstractFieldType
 
         // Already an array
         if (\is_array($value)) {
-            usort($value, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+            usort($value, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
             return $value;
         }
@@ -149,7 +149,7 @@ final class FilesField extends AbstractFieldType
         $html = '<ul class="acf-files-list">';
 
         foreach ($items as $item) {
-            if (! isset($item['url'])) {
+            if (!isset($item['url'])) {
                 continue;
             }
 
@@ -311,19 +311,7 @@ final class FilesField extends AbstractFieldType
         return $fieldConfig['allowedMimes'] ?? self::DEFAULT_ALLOWED_MIMES;
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $items = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('files.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $items,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

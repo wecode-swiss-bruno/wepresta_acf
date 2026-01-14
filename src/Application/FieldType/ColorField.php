@@ -57,12 +57,12 @@ final class ColorField extends AbstractFieldType
         $color = trim((string) $value);
 
         // Ensure # prefix
-        if (! str_starts_with($color, '#')) {
+        if (!str_starts_with($color, '#')) {
             $color = '#' . $color;
         }
 
         // Validate hex format
-        if (! preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
+        if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
             // Try to expand short hex (#RGB -> #RRGGBB)
             if (preg_match('/^#([0-9A-Fa-f])([0-9A-Fa-f])([0-9A-Fa-f])$/', $color, $matches)) {
                 $color = '#' . $matches[1] . $matches[1] . $matches[2] . $matches[2] . $matches[3] . $matches[3];
@@ -127,12 +127,12 @@ final class ColorField extends AbstractFieldType
 
         $color = trim((string) $value);
 
-        if (! str_starts_with($color, '#')) {
+        if (!str_starts_with($color, '#')) {
             $color = '#' . $color;
         }
 
         // Validate hex format (6 or 3 digits)
-        if (! preg_match('/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/', $color)) {
+        if (!preg_match('/^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/', $color)) {
             $errors[] = 'Please enter a valid hex color (e.g., #FF5733).';
         }
 
@@ -179,19 +179,7 @@ final class ColorField extends AbstractFieldType
         return 'palette';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $colorValue = $value ?: ($config['defaultValue'] ?? '#000000');
 
-        return $this->renderPartial('color.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $colorValue,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

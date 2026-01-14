@@ -48,16 +48,16 @@ final class TextField extends AbstractFieldType
         $options = parent::getFormOptions($fieldConfig, $validation);
 
         // Add maxlength attribute if configured
-        if (! empty($validation['maxLength'])) {
+        if (!empty($validation['maxLength'])) {
             $options['attr']['maxlength'] = (int) $validation['maxLength'];
         }
 
         // Add prefix/suffix if configured
-        if (! empty($fieldConfig['prefix'])) {
+        if (!empty($fieldConfig['prefix'])) {
             $options['attr']['data-prefix'] = $fieldConfig['prefix'];
         }
 
-        if (! empty($fieldConfig['suffix'])) {
+        if (!empty($fieldConfig['suffix'])) {
             $options['attr']['data-suffix'] = $fieldConfig['suffix'];
         }
 
@@ -129,7 +129,7 @@ final class TextField extends AbstractFieldType
         $errors = array_merge($errors, $this->validateStringLength($stringValue, $validation));
 
         // Pattern validation
-        if (! empty($validation['pattern'])) {
+        if (!empty($validation['pattern'])) {
             $errors = array_merge(
                 $errors,
                 $this->validatePattern($stringValue, $validation['pattern'], $validation['patternMessage'] ?? 'Invalid format.')
@@ -171,18 +171,7 @@ final class TextField extends AbstractFieldType
         return 'text_fields';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
 
-        return $this->renderPartial('text.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $value,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

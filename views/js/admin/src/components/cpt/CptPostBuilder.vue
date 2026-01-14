@@ -164,7 +164,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
 import { useApi } from '../../composables/useApi'
-import AcfFieldRenderer from '@/components/AcfFieldRenderer.vue'
+import AcfFieldRenderer from '@/components/renderer/AcfFieldRenderer.vue'
 
 const props = defineProps<{
   postId?: number

@@ -93,7 +93,7 @@ final class RadioField extends AbstractFieldType
             $choices = json_decode($choices, true) ?: [];
         }
 
-        if (! \is_array($choices)) {
+        if (!\is_array($choices)) {
             $choices = [];
         }
 
@@ -118,7 +118,7 @@ final class RadioField extends AbstractFieldType
         // Validate that selected value exists in choices
         $validValues = array_column($fieldConfig['choices'] ?? [], 'value');
 
-        if (! \in_array($value, $validValues, true)) {
+        if (!\in_array($value, $validValues, true)) {
             $errors[] = 'Invalid option selected.';
         }
 
@@ -171,20 +171,7 @@ final class RadioField extends AbstractFieldType
         return 'radio_button_checked';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $currentLangId = $this->getCurrentLanguageId();
 
-        return $this->renderPartial('radio.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'currentLangId' => $currentLangId,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $value,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {
@@ -192,7 +179,7 @@ final class RadioField extends AbstractFieldType
         $config = $this->getFieldConfig($field);
         $choices = $config['choices'] ?? [];
 
-        if (! \is_array($choices)) {
+        if (!\is_array($choices)) {
             $choices = [];
         }
 
@@ -275,24 +262,24 @@ final class RadioField extends AbstractFieldType
     private function getChoiceLabelForValidation(array $choice): string
     {
         // 1. Try translations (default language first, then any available)
-        if (! empty($choice['translations']) && \is_array($choice['translations'])) {
+        if (!empty($choice['translations']) && \is_array($choice['translations'])) {
             // Try default language
             $defaultLangId = $this->getDefaultLanguageId();
 
-            if (isset($choice['translations'][$defaultLangId]) && ! empty($choice['translations'][$defaultLangId])) {
+            if (isset($choice['translations'][$defaultLangId]) && !empty($choice['translations'][$defaultLangId])) {
                 return $choice['translations'][$defaultLangId];
             }
 
             // Try any available translation
             foreach ($choice['translations'] as $langId => $label) {
-                if (! empty($label)) {
+                if (!empty($label)) {
                     return $label;
                 }
             }
         }
 
         // 2. Fallback to main label
-        if (! empty($choice['label'])) {
+        if (!empty($choice['label'])) {
             return $choice['label'];
         }
 

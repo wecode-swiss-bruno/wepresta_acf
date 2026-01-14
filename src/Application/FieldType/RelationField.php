@@ -95,7 +95,7 @@ final class RelationField extends AbstractFieldType
                     $ids = array_filter($ids);
 
                     // Return null if no valid IDs after filtering
-                    return ! empty($ids) ? json_encode(array_values($ids), JSON_THROW_ON_ERROR) : null;
+                    return !empty($ids) ? json_encode(array_values($ids), JSON_THROW_ON_ERROR) : null;
                 }
 
                 // Single value
@@ -179,12 +179,12 @@ final class RelationField extends AbstractFieldType
 
         // Handle array of objects with 'id' key (from repeater/frontend)
         // Example: [{"id":14,"name":"..."},{"id":11,"name":"..."}]
-        if (\is_array($decoded) && ! empty($decoded)) {
+        if (\is_array($decoded) && !empty($decoded)) {
             $firstItem = reset($decoded);
 
             if (\is_array($firstItem) && isset($firstItem['id'])) {
                 // Already denormalized - extract IDs and reload with fresh data
-                $ids = array_map(fn ($item) => (int) ($item['id'] ?? 0), $decoded);
+                $ids = array_map(fn($item) => (int) ($item['id'] ?? 0), $decoded);
                 $ids = array_filter($ids);
             } elseif (is_numeric($firstItem)) {
                 // Array of IDs
@@ -225,14 +225,14 @@ final class RelationField extends AbstractFieldType
         // Ensure we have array of entities
         $entities = $multiple ? $value : [$value];
 
-        if (! \is_array($entities)) {
+        if (!\is_array($entities)) {
             return '';
         }
 
         $output = [];
 
         foreach ($entities as $entity) {
-            if (! \is_array($entity) || ! isset($entity['name'])) {
+            if (!\is_array($entity) || !isset($entity['name'])) {
                 continue;
             }
 
@@ -406,34 +406,7 @@ final class RelationField extends AbstractFieldType
         return 'link';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
 
-        // Get raw IDs and load entities for display
-        $rawIds = $this->getRawIds($value, $config);
-        $entityType = $this->getConfigValue($config, 'entityType', 'product');
-        $entities = ! empty($rawIds) ? $this->loadEntities($rawIds, $entityType, $config) : [];
-
-        // Extract entity ID from context for relation filters
-        $entityId = 0;
-
-        if (isset($context['entity_id'])) {
-            $entityId = (int) $context['entity_id'];
-        } elseif (isset($context['id_product'])) {
-            $entityId = (int) $context['id_product'];
-        }
-
-        return $this->renderPartial('relation.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $rawIds,
-            'entities' => $entities,
-            'context' => $context,
-            'id_product' => $entityId,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {
@@ -686,7 +659,7 @@ final class RelationField extends AbstractFieldType
 
         // If already denormalized (array of entities)
         if (\is_array($value) && isset($value[0]['id'])) {
-            return array_map(fn ($e) => (int) $e['id'], $value);
+            return array_map(fn($e) => (int) $e['id'], $value);
         }
 
         // If single entity
@@ -746,7 +719,7 @@ final class RelationField extends AbstractFieldType
 
         $html = \sprintf('<div class="acf-relation-item badge badge-secondary" data-id="%d">', $id);
 
-        if (! $isCompact && $image && ($displayFormat === 'thumbnail_name' || $displayFormat === 'full')) {
+        if (!$isCompact && $image && ($displayFormat === 'thumbnail_name' || $displayFormat === 'full')) {
             $html .= \sprintf('<img src="%s" alt="" class="acf-relation-thumb">', $this->escapeAttr($image));
         }
 

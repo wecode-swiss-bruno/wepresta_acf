@@ -35,7 +35,7 @@ export const useCptStore = defineStore('cpt', () => {
   const currentPost = ref<any | null>(null)
 
   // View state
-  const viewMode = ref<'list' | 'edit'>('list')
+  const viewMode = ref<'list' | 'edit' | 'posts' | 'post-build'>('list')
   const loading = ref(false)
   const error = ref<string | null>(null)
 

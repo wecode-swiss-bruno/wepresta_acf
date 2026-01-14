@@ -75,9 +75,12 @@ export interface Language {
 export interface AcfConfig {
   apiUrl: string
   token: string
+  entityId?: number
   translations: Record<string, string>
   languages: Language[]
   defaultLangId: string
+  currentLangId: string
+  shopId: number
   fieldTypes: Array<{
     type: string
     label: string

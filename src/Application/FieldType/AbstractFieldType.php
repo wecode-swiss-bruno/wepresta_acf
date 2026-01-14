@@ -36,12 +36,12 @@ abstract class AbstractFieldType implements FieldTypeInterface
         ];
 
         // Add placeholder if configured
-        if (! empty($fieldConfig['placeholder'])) {
+        if (!empty($fieldConfig['placeholder'])) {
             $options['attr']['placeholder'] = $fieldConfig['placeholder'];
         }
 
         // Add CSS class if configured
-        if (! empty($fieldConfig['class'])) {
+        if (!empty($fieldConfig['class'])) {
             $options['attr']['class'] = $fieldConfig['class'];
         }
 
@@ -112,7 +112,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
         $errors = [];
 
         // Check required
-        if (! empty($validation['required']) && ($value === null || $value === '')) {
+        if (!empty($validation['required']) && ($value === null || $value === '')) {
             $errors[] = 'This field is required.';
         }
 
@@ -135,44 +135,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
         return 'text_fields';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $slug = $field['slug'] ?? '';
-        $config = $this->getFieldConfig($field);
 
-        // Context options
-        $size = $context['size'] ?? '';
-        $prefix = $context['prefix'] ?? 'acf_';
-        $dataSubfield = ! empty($context['dataSubfield']);
-        $idPrefix = $context['idPrefix'] ?? 'acf_';
-
-        // Build attributes
-        $sizeClass = $size ? "form-control-{$size}" : '';
-        $escapedSlug = htmlspecialchars($slug, ENT_QUOTES, 'UTF-8');
-        $escapedValue = htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-        $placeholder = htmlspecialchars($config['placeholder'] ?? '', ENT_QUOTES, 'UTF-8');
-
-        // Name or data-subfield attribute
-        $nameAttr = $dataSubfield
-            ? ''
-            : \sprintf('name="%s%s"', $prefix, $escapedSlug);
-        $dataAttr = $dataSubfield
-            ? \sprintf('data-subfield="%s"', $escapedSlug)
-            : '';
-        $inputClass = $dataSubfield ? 'acf-subfield-input' : '';
-
-        return \sprintf(
-            '<input type="text" class="form-control %s %s" id="%s%s" %s %s value="%s" placeholder="%s">',
-            $sizeClass,
-            $inputClass,
-            $idPrefix,
-            $escapedSlug,
-            $nameAttr,
-            $dataAttr,
-            $escapedValue,
-            $placeholder
-        );
-    }
 
     public function getJsTemplate(array $field): string
     {
@@ -196,7 +159,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
      */
     protected function extractTranslatableValue(mixed $value): mixed
     {
-        if (! \is_array($value)) {
+        if (!\is_array($value)) {
             return $value;
         }
 
@@ -225,7 +188,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
             $config = json_decode($config, true) ?: [];
         }
 
-        if (! \is_array($config)) {
+        if (!\is_array($config)) {
             return [];
         }
 
@@ -247,43 +210,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
         return $config;
     }
 
-    /**
-     * Renders a Smarty partial template for this field type.
-     *
-     * @param string $template The template filename (e.g., 'video.tpl')
-     * @param array $vars Variables to assign to the template
-     *
-     * @return string The rendered HTML
-     */
-    protected function renderPartial(string $template, array $vars = []): string
-    {
-        $smarty = Context::getContext()->smarty;
 
-        // Save current vars to restore after
-        $savedVars = [];
-
-        foreach ($vars as $key => $value) {
-            if ($smarty->getTemplateVars($key) !== null) {
-                $savedVars[$key] = $smarty->getTemplateVars($key);
-            }
-            $smarty->assign($key, $value);
-        }
-
-        $templatePath = _PS_MODULE_DIR_ . 'wepresta_acf/views/templates/admin/fields/' . $template;
-
-        if (! file_exists($templatePath)) {
-            return \sprintf('<!-- Template not found: %s -->', htmlspecialchars($template));
-        }
-
-        $html = $smarty->fetch($templatePath);
-
-        // Restore previous vars
-        foreach ($savedVars as $key => $value) {
-            $smarty->assign($key, $value);
-        }
-
-        return $html;
-    }
 
     /**
      * Helper: Get a config value with default fallback.
@@ -345,7 +272,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
      */
     protected function validatePattern(string $value, string $pattern, string $message = 'Invalid format.'): array
     {
-        if ($value !== '' && ! preg_match($pattern, $value)) {
+        if ($value !== '' && !preg_match($pattern, $value)) {
             return [$message];
         }
 
@@ -373,7 +300,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
         $slug = $field['slug'] ?? '';
         $size = $context['size'] ?? '';
         $prefix = $context['prefix'] ?? 'acf_';
-        $dataSubfield = ! empty($context['dataSubfield']);
+        $dataSubfield = !empty($context['dataSubfield']);
         $idPrefix = $context['idPrefix'] ?? 'acf_';
 
         $escapedSlug = $this->escapeAttr($slug);

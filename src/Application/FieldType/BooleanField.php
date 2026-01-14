@@ -104,7 +104,7 @@ final class BooleanField extends AbstractFieldType
         // And "required" for boolean means "must be true"
         $errors = [];
 
-        if (! empty($validation['required']) && ! $this->denormalizeValue($value, $fieldConfig)) {
+        if (!empty($validation['required']) && !$this->denormalizeValue($value, $fieldConfig)) {
             $errors[] = 'This field must be checked.';
         }
 
@@ -159,22 +159,7 @@ final class BooleanField extends AbstractFieldType
         return 'toggle_on';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $boolValue = $this->denormalizeValue($value, $config);
 
-        // Pass as integer (1 or 0) for Smarty compatibility
-        $smartyValue = $boolValue ? 1 : 0;
-
-        return $this->renderPartial('boolean.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $smartyValue,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

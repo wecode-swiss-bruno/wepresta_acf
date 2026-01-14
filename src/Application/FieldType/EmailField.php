@@ -109,7 +109,7 @@ final class EmailField extends AbstractFieldType
         $stringValue = (string) $value;
 
         // Email format validation
-        if (! filter_var($stringValue, FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($stringValue, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Please enter a valid email address.';
         }
 
@@ -134,25 +134,7 @@ final class EmailField extends AbstractFieldType
         return 'email';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $attrs = $this->buildInputAttrs($field, $context);
-        $config = $this->getFieldConfig($field);
-        $escapedValue = $this->escapeAttr((string) $value);
-        $placeholder = $this->escapeAttr($config['placeholder'] ?? 'email@example.com');
 
-        return \sprintf(
-            '<input type="email" class="form-control %s %s" id="%s%s" %s %s value="%s" placeholder="%s">',
-            $attrs['sizeClass'],
-            $attrs['inputClass'],
-            $attrs['idPrefix'],
-            $attrs['slug'],
-            $attrs['nameAttr'],
-            $attrs['dataAttr'],
-            $escapedValue,
-            $placeholder
-        );
-    }
 
     public function getJsTemplate(array $field): string
     {

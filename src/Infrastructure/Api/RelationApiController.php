@@ -34,9 +34,8 @@ final class RelationApiController extends AbstractApiController
             return $this->jsonSuccess([]);
         }
 
-        $context = Context::getContext();
-        $langId = (int) $context->language->id;
-        $shopId = (int) $context->shop->id;
+        $langId = (int) $request->query->get('id_lang', $this->context->getLangId());
+        $shopId = (int) $request->query->get('id_shop', $this->context->getShopId());
 
         try {
             if ($entityType === 'category') {
@@ -192,9 +191,8 @@ final class RelationApiController extends AbstractApiController
             return $this->jsonSuccess([]);
         }
 
-        $context = Context::getContext();
-        $langId = (int) $context->language->id;
-        $shopId = (int) $context->shop->id;
+        $langId = $this->context->getLangId();
+        $shopId = $this->context->getShopId();
 
         try {
             if ($entityType === 'category') {

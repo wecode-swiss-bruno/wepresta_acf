@@ -21,7 +21,7 @@
 
 import { createApp, h } from 'vue'
 import { createPinia } from 'pinia'
-import AcfEntityFields from '@/components/AcfEntityFields.vue'
+import AcfEntityFields from '@/components/renderer/AcfEntityFields.vue'
 
 interface MountConfig {
   groups: any[]
@@ -31,8 +31,10 @@ interface MountConfig {
   apiUrl?: string
   languages?: any[]
   defaultLangId?: number
+  currentLangId?: number
   shopId?: number
   formNamePrefix?: string
+  token?: string
 }
 
 /**
@@ -53,15 +55,35 @@ function parseJson(jsonString: string | null, defaultValue: any = null): any {
  */
 function mountAcfApp(container: HTMLElement): void {
   const config: MountConfig = {
-    groups: parseJson(container.dataset.groups, []),
-    values: parseJson(container.dataset.values, {}),
+    groups: parseJson(container.dataset.groups || null, []),
+    values: parseJson(container.dataset.values || null, {}),
     entityType: container.dataset.entityType || 'unknown',
     entityId: parseInt(container.dataset.entityId || '0', 10),
     apiUrl: container.dataset.apiUrl,
-    languages: parseJson(container.dataset.languages, []),
+    languages: parseJson(container.dataset.languages || null, []),
     defaultLangId: parseInt(container.dataset.defaultLangId || '1', 10),
+    currentLangId: parseInt(container.dataset.currentLangId || container.dataset.defaultLangId || '1', 10),
     shopId: parseInt(container.dataset.shopId || '1', 10),
-    formNamePrefix: container.dataset.formNamePrefix || 'acf'
+    formNamePrefix: container.dataset.formNamePrefix || 'acf',
+    token: container.dataset.token
+  }
+
+  // Initialize global config for services (like useApi)
+  if (!window.acfConfig) {
+    (window as any).acfConfig = {
+      apiUrl: config.apiUrl || '',
+      token: config.token || '',
+      entityId: config.entityId,
+      languages: config.languages || [],
+      defaultLangId: String(config.defaultLangId),
+      currentLangId: String(config.currentLangId || config.defaultLangId),
+      shopId: config.shopId || 1,
+      translations: {}, // Will be populated by components if needed
+      fieldTypes: [],
+      locations: {},
+      productTabs: [],
+      layoutOptions: { widths: [], positions: [] }
+    }
   }
 
   // Find default language
@@ -114,7 +136,7 @@ function updateHiddenInputs(
   prefix: string
 ): void {
   // Get or create hidden inputs container
-  let hiddenContainer = container.querySelector('.acf-hidden-inputs')
+  let hiddenContainer = container.querySelector('.acf-hidden-inputs') as HTMLElement
 
   if (!hiddenContainer) {
     hiddenContainer = document.createElement('div')

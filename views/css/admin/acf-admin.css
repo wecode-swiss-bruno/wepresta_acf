@@ -1,0 +1,54 @@
+/**
+ * acf-admin.css
+ * Shared design system for WePresta ACF
+ * Ensures consistency between Legacy Product pages and Modern CPT pages
+ */
+
+/* 1. Base Variables */
+:root {
+    --acf-primary: #25b9d7;
+    --acf-primary-hover: #1ea2bc;
+    --acf-primary-light: #eefbff;
+    --acf-success: #2f855a;
+    --acf-success-bg: #f0fff4;
+    --acf-danger: #c53030;
+    --acf-danger-bg: #fff5f5;
+    --acf-text: #363a41;
+    --acf-text-muted: #6c868e;
+    --acf-border: #e3e9ed;
+    --acf-bg-light: #f8f9fa;
+    --acf-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --acf-radius: 8px;
+}
+
+/* 2. Material Icons Fallback - Ensure they load everywhere */
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2) format('woff2');
+}
+
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 3. Utilities needed for Vue components BEM independence */
+.acf-mr-2 {
+    margin-right: 0.5rem !important;
+}
+
+.acf-mb-0 {
+    margin-bottom: 0 !important;
+}

@@ -118,7 +118,7 @@ final class FileField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (! \is_array($data) || ! isset($data['url'])) {
+        if (!\is_array($data) || !isset($data['url'])) {
             return '';
         }
 
@@ -138,7 +138,7 @@ final class FileField extends AbstractFieldType
     {
         $data = $this->denormalizeValue($value, $fieldConfig);
 
-        if (! \is_array($data)) {
+        if (!\is_array($data)) {
             return null;
         }
 
@@ -160,7 +160,7 @@ final class FileField extends AbstractFieldType
         $data = $this->denormalizeValue($value, $fieldConfig);
 
         // Valid file data has either filename (uploaded) or url (external link)
-        if (! \is_array($data) || (! isset($data['filename']) && ! isset($data['url']))) {
+        if (!\is_array($data) || (!isset($data['filename']) && !isset($data['url']))) {
             $errors[] = 'Invalid file data.';
         }
 
@@ -228,22 +228,7 @@ final class FileField extends AbstractFieldType
         return $fieldConfig['allowedMimes'] ?? self::DEFAULT_ALLOWED_MIMES;
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $data = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('file.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $data,
-            'context' => $context,
-            'base_url' => $context['base_url'] ?? Tools::getShopDomainSsl(true) . __PS_BASE_URI__,
-            'product_link' => $context['product_link'] ?? '',
-            'product_attachments' => $context['product_attachments'] ?? [],
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

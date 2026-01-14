@@ -118,7 +118,7 @@ final class GalleryField extends AbstractFieldType
 
             if (\is_array($decoded)) {
                 // Sort by position
-                usort($decoded, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+                usort($decoded, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
                 return $decoded;
             }
@@ -126,15 +126,17 @@ final class GalleryField extends AbstractFieldType
             // Handle corrupted JSON - if it's truncated array/object, return empty
             $value = trim($value);
 
-            if ((str_starts_with($value, '[') && ! str_ends_with($value, ']'))
-                || (str_starts_with($value, '{') && ! str_ends_with($value, '}'))) {
+            if (
+                (str_starts_with($value, '[') && !str_ends_with($value, ']'))
+                || (str_starts_with($value, '{') && !str_ends_with($value, '}'))
+            ) {
                 return [];
             }
         }
 
         // Already an array
         if (\is_array($value)) {
-            usort($value, fn ($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
+            usort($value, fn($a, $b) => ($a['position'] ?? 0) <=> ($b['position'] ?? 0));
 
             return $value;
         }
@@ -153,7 +155,7 @@ final class GalleryField extends AbstractFieldType
         $html = '<div class="acf-gallery">';
 
         foreach ($items as $item) {
-            if (! isset($item['url'])) {
+            if (!isset($item['url'])) {
                 continue;
             }
 
@@ -329,19 +331,7 @@ final class GalleryField extends AbstractFieldType
         return array_unique($mimes) ?: self::ALLOWED_IMAGE_MIMES;
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $items = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('gallery.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $items,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

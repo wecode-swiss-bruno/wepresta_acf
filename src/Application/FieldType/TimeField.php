@@ -194,19 +194,7 @@ final class TimeField extends AbstractFieldType
         return 'schedule';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $timeValue = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('time.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $timeValue,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

@@ -61,7 +61,7 @@ final class UrlField extends AbstractFieldType
         }
 
         // Add protocol if missing
-        if (! preg_match('#^https?://#i', $value)) {
+        if (!preg_match('#^https?://#i', $value)) {
             $value = 'https://' . $value;
         }
 
@@ -123,12 +123,12 @@ final class UrlField extends AbstractFieldType
         $stringValue = (string) $value;
 
         // Add protocol for validation if missing
-        if (! preg_match('#^https?://#i', $stringValue)) {
+        if (!preg_match('#^https?://#i', $stringValue)) {
             $stringValue = 'https://' . $stringValue;
         }
 
         // URL format validation
-        if (! filter_var($stringValue, FILTER_VALIDATE_URL)) {
+        if (!filter_var($stringValue, FILTER_VALIDATE_URL)) {
             $errors[] = 'Please enter a valid URL.';
         }
 
@@ -176,18 +176,7 @@ final class UrlField extends AbstractFieldType
         return 'link';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
 
-        return $this->renderPartial('url.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $value,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

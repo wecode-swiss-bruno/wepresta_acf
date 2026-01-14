@@ -161,7 +161,7 @@ final class RichTextField extends AbstractFieldType
         }
 
         // Check max length if configured (based on stripped text)
-        if (! empty($validation['maxLength'])) {
+        if (!empty($validation['maxLength'])) {
             $textContent = strip_tags((string) $value);
 
             if (mb_strlen($textContent) > (int) $validation['maxLength']) {
@@ -220,18 +220,7 @@ final class RichTextField extends AbstractFieldType
         return 'article';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
 
-        return $this->renderPartial('richtext.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $value,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

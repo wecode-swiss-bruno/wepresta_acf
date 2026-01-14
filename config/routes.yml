@@ -8,7 +8,7 @@ wepresta_acf_builder:
     path: /modules/wepresta_acf/builder
     methods: [GET]
     defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\BuilderController::index'
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\AcfBuilderController::index'
         _legacy_controller: AdminWeprestaAcfBuilder
         _legacy_link: AdminWeprestaAcfBuilder
 
@@ -393,39 +393,10 @@ wepresta_acf_cpt_posts_list:
     path: /modules/wepresta_acf/cpt/{typeSlug}/posts
     methods: [GET]
     defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptPostController::list'
+        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptBuilderController::list'
         _legacy_controller: AdminWeprestaAcfBuilder
         _legacy_link: AdminWeprestaAcfBuilder
 
-wepresta_acf_cpt_posts_create:
-    path: /modules/wepresta_acf/cpt/{typeSlug}/posts/new
-    methods: [GET, POST]
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptPostController::create'
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _legacy_link: AdminWeprestaAcfBuilder
-
-wepresta_acf_cpt_posts_edit:
-    path: /modules/wepresta_acf/cpt/{typeSlug}/posts/{id}/edit
-    methods: [GET, POST]
-    requirements:
-        id: \d+
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptPostController::edit'
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _legacy_link: AdminWeprestaAcfBuilder
-
-wepresta_acf_cpt_posts_delete:
-    path: /modules/wepresta_acf/cpt/{typeSlug}/posts/{id}/delete
-    methods: [POST]
-    requirements:
-        id: \d+
-    defaults:
-        _controller: 'WeprestaAcf\Presentation\Controller\Admin\CptPostController::delete'
-        _legacy_controller: AdminWeprestaAcfBuilder
-        _legacy_link: AdminWeprestaAcfBuilder
-
-# =========================================================================
 # CPT - API Routes
 # =========================================================================
 

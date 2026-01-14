@@ -3,8 +3,8 @@ import { ref, onMounted, watch } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useCptStore } from '@/stores/cptStore'
 import { useTranslations } from '@/composables/useTranslations'
-import GroupList from '@/components/GroupList.vue'
-import GroupBuilder from '@/components/GroupBuilder.vue'
+import GroupList from '@/components/builder/GroupList.vue'
+import GroupBuilder from '@/components/builder/GroupBuilder.vue'
 import CptTypeList from '@/components/cpt/CptTypeList.vue'
 import CptTypeBuilder from '@/components/cpt/CptTypeBuilder.vue'
 import CptTaxonomyManager from '@/components/cpt/CptTaxonomyManager.vue'
@@ -34,11 +34,11 @@ function setupExternalAlerts(): void {
   const alertsContainer = document.getElementById('acf-alerts-container')
   if (!alertsContainer) return
 
-  watch(() => store.error, (error) => {
+  watch(() => store.error, () => {
     renderAlerts(alertsContainer)
   })
 
-  watch(() => store.successMessage, (msg) => {
+  watch(() => store.successMessage, () => {
     renderAlerts(alertsContainer)
   })
 }

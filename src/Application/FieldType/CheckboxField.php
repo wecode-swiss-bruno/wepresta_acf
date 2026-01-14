@@ -65,12 +65,12 @@ final class CheckboxField extends AbstractFieldType
         }
 
         // Ensure it's an array
-        if (! \is_array($value)) {
+        if (!\is_array($value)) {
             $value = [$value];
         }
 
         // Filter out empty values
-        $value = array_filter($value, fn ($v) => $v !== null && $v !== '');
+        $value = array_filter($value, fn($v) => $v !== null && $v !== '');
 
         if (empty($value)) {
             return null;
@@ -116,7 +116,7 @@ final class CheckboxField extends AbstractFieldType
             $choices = json_decode($choices, true) ?: [];
         }
 
-        if (! \is_array($choices)) {
+        if (!\is_array($choices)) {
             $choices = [];
         }
         $labels = [];
@@ -160,18 +160,18 @@ final class CheckboxField extends AbstractFieldType
         // For checkbox, empty array is "empty"
         $values = $this->denormalizeValue($value, $fieldConfig);
 
-        if (! empty($validation['required']) && empty($values)) {
+        if (!empty($validation['required']) && empty($values)) {
             // Remove the default required error and add our own
-            $errors = array_filter($errors, fn ($e) => $e !== 'This field is required.');
+            $errors = array_filter($errors, fn($e) => $e !== 'This field is required.');
             $errors[] = 'Please select at least one option.';
         }
 
         // Validate that selected values exist in choices
-        if (! empty($values)) {
+        if (!empty($values)) {
             $validValues = array_column($fieldConfig['choices'] ?? [], 'value');
 
             foreach ($values as $val) {
-                if (! \in_array($val, $validValues, true)) {
+                if (!\in_array($val, $validValues, true)) {
                     $errors[] = \sprintf('Invalid option: %s', $val);
                 }
             }
@@ -217,24 +217,7 @@ final class CheckboxField extends AbstractFieldType
         return 'check_box';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
 
-        // Pass current language ID for template translation
-        $currentLangId = $this->getCurrentLanguageId();
-
-        $selectedValues = $this->denormalizeValue($value, $config);
-
-        return $this->renderPartial('checkbox.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,  // Original choices for Symfony validation
-            'currentLangId' => $currentLangId,  // For template translation
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $selectedValues,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {
@@ -242,7 +225,7 @@ final class CheckboxField extends AbstractFieldType
         $config = $this->getFieldConfig($field);
         $choices = $config['choices'] ?? [];
 
-        if (! \is_array($choices)) {
+        if (!\is_array($choices)) {
             $choices = [];
         }
 
@@ -278,7 +261,7 @@ final class CheckboxField extends AbstractFieldType
         if (isset($choice['translations']) && isset($choice['translations'][$currentLangId])) {
             $translated = $choice['translations'][$currentLangId];
 
-            if (! empty($translated)) {
+            if (!empty($translated)) {
                 return $translated;
             }
         }
@@ -313,7 +296,7 @@ final class CheckboxField extends AbstractFieldType
         $currentLangId = $this->getCurrentLanguageId();
 
         return array_map(function ($choice) use ($currentLangId) {
-            if (! \is_array($choice) || ! isset($choice['label'])) {
+            if (!\is_array($choice) || !isset($choice['label'])) {
                 return $choice;
             }
 
@@ -321,7 +304,7 @@ final class CheckboxField extends AbstractFieldType
             if (isset($choice['translations']) && isset($choice['translations'][$currentLangId])) {
                 $translated = $choice['translations'][$currentLangId];
 
-                if (! empty($translated)) {
+                if (!empty($translated)) {
                     $choice['label'] = $translated;
                 }
             }
@@ -363,24 +346,24 @@ final class CheckboxField extends AbstractFieldType
     private function getChoiceLabelForValidation(array $choice): string
     {
         // 1. Try translations (default language first, then any available)
-        if (! empty($choice['translations']) && \is_array($choice['translations'])) {
+        if (!empty($choice['translations']) && \is_array($choice['translations'])) {
             // Try default language
             $defaultLangId = $this->getDefaultLanguageId();
 
-            if (isset($choice['translations'][$defaultLangId]) && ! empty($choice['translations'][$defaultLangId])) {
+            if (isset($choice['translations'][$defaultLangId]) && !empty($choice['translations'][$defaultLangId])) {
                 return $choice['translations'][$defaultLangId];
             }
 
             // Try any available translation
             foreach ($choice['translations'] as $langId => $label) {
-                if (! empty($label)) {
+                if (!empty($label)) {
                     return $label;
                 }
             }
         }
 
         // 2. Fallback to main label
-        if (! empty($choice['label'])) {
+        if (!empty($choice['label'])) {
             return $choice['label'];
         }
 

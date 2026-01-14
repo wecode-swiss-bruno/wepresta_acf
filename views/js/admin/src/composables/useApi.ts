@@ -3,6 +3,19 @@ import type { AcfGroup, AcfField, ApiResponse, GroupsListResponse, GroupResponse
 /**
  * API composable for WePresta ACF REST endpoints
  */
+export class ApiError extends Error {
+  errors?: Record<string, string[]> // Field ID or key -> error messages
+
+  constructor(message: string, errors?: Record<string, string[]>) {
+    super(message)
+    this.name = 'ApiError'
+    this.errors = errors
+  }
+}
+
+/**
+ * API composable for WePresta ACF REST endpoints
+ */
 export function useApi() {
   const config = window.acfConfig
 
@@ -17,13 +30,13 @@ export function useApi() {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
     const cleanApiUrl = config.apiUrl.endsWith('/') ? config.apiUrl.slice(0, -1) : config.apiUrl
     let url = `${cleanApiUrl}${cleanEndpoint}`
-    
+
     // IMPORTANT: Add CSRF token to ALL requests (GET, POST, PUT, DELETE)
     // PrestaShop 8 with "Protection des jetons" validates the Symfony CSRF token
     // The parameter MUST be '_token' (with underscore) for PS8 Symfony routes
     const separator = url.includes('?') ? '&' : '?'
     url = `${url}${separator}_token=${config.token}`
-    
+
     // Add timeout to prevent hanging requests
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
@@ -31,15 +44,15 @@ export function useApi() {
     let response: Response
     try {
       response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
         signal: controller.signal,
-    })
+      })
       clearTimeout(timeoutId)
-    } catch (error) {
+    } catch (error: any) {
       clearTimeout(timeoutId)
       if (error.name === 'AbortError') {
         throw new Error('Request timeout - API server may be unavailable')
@@ -50,7 +63,11 @@ export function useApi() {
     const data = await response.json()
 
     if (!response.ok || data.success === false) {
-      throw new Error(data.error || data.message || 'API request failed')
+      // Pass the detailed errors object if available
+      throw new ApiError(
+        data.error || data.message || 'API request failed',
+        data.errors
+      )
     }
 
     return data
@@ -176,6 +193,22 @@ export function useApi() {
   }
 
   /**
+   * Save field values for an entity
+   */
+  async function saveEntityValues(data: {
+    entityType: string
+    entityId: number
+    values: Record<number | string, any>
+    shopId?: number
+    langId?: number
+  }): Promise<any> {
+    return await request('/values', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  /**
    * Generic fetchJson method for custom endpoints
    */
   async function fetchJson<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -200,5 +233,34 @@ export function useApi() {
     // Utilities
     slugify,
     fetchJson,
+    // CPT
+    getCpts: async (slug: string, params: any = {}) => {
+      const qs = new URLSearchParams(params).toString()
+      const url = `/cpt/${slug}/posts${qs ? '?' + qs : ''}`
+      const response = await request<any>(url)
+      return response.data
+    },
+    getCpt: async (id: number) => {
+      const response = await request<any>(`/cpt/posts/${id}`)
+      return response.data
+    },
+    createCpt: async (slug: string, data: any) => {
+      const response = await request<any>(`/cpt/${slug}/posts`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+      return response.data
+    },
+    updateCpt: async (id: number, data: any) => {
+      const response = await request<any>(`/cpt/posts/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      })
+      return response.data
+    },
+    deleteCpt: async (id: number) => {
+      await request<any>(`/cpt/posts/${id}`, { method: 'DELETE' })
+    },
+    saveEntityValues,
   }
 }

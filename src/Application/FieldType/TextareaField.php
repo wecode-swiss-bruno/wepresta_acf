@@ -52,7 +52,7 @@ final class TextareaField extends AbstractFieldType
         $options['attr']['rows'] = (int) $rows;
 
         // Add maxlength if configured
-        if (! empty($validation['maxLength'])) {
+        if (!empty($validation['maxLength'])) {
             $options['attr']['maxlength'] = (int) $validation['maxLength'];
         }
 
@@ -152,18 +152,7 @@ final class TextareaField extends AbstractFieldType
         return 'notes';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
 
-        return $this->renderPartial('textarea.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $value,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

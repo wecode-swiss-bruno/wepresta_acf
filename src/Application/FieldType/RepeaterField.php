@@ -84,26 +84,26 @@ final class RepeaterField extends AbstractFieldType
         if (\is_string($value)) {
             $decoded = json_decode($value, true);
 
-            if (! \is_array($decoded)) {
+            if (!\is_array($decoded)) {
                 return null;
             }
             $value = $decoded;
         }
 
-        if (! \is_array($value)) {
+        if (!\is_array($value)) {
             return null;
         }
 
         // Check if this is a valid repeater structure
         // Valid format: [{"row_id":"...","values":{...}}, ...]
         // Invalid format: {"1":"...","2":"..."} (translations object)
-        if (! empty($value)) {
+        if (!empty($value)) {
             $firstItem = reset($value);
             $isValidRepeaterStructure = \is_array($firstItem) && (isset($firstItem['row_id']) || isset($firstItem['values']));
 
             // If invalid structure (like a translations object), return null
             // This prevents errors and allows proper handling elsewhere
-            if (! $isValidRepeaterStructure) {
+            if (!$isValidRepeaterStructure) {
                 return null;
             }
         }
@@ -112,7 +112,7 @@ final class RepeaterField extends AbstractFieldType
         $normalized = [];
 
         foreach ($value as $row) {
-            if (! \is_array($row)) {
+            if (!\is_array($row)) {
                 continue;
             }
 
@@ -152,7 +152,7 @@ final class RepeaterField extends AbstractFieldType
                 // If not, it might be malformed data - return empty array to avoid errors
                 $isValidRepeaterStructure = false;
 
-                if (! empty($decoded)) {
+                if (!empty($decoded)) {
                     $firstItem = reset($decoded);
                     $isValidRepeaterStructure = \is_array($firstItem) && (isset($firstItem['row_id']) || isset($firstItem['values']));
                 }
@@ -165,7 +165,7 @@ final class RepeaterField extends AbstractFieldType
 
         if (\is_array($value)) {
             // Same validation for array values
-            if (! empty($value)) {
+            if (!empty($value)) {
                 $firstItem = reset($value);
                 $isValidRepeaterStructure = \is_array($firstItem) && (isset($firstItem['row_id']) || isset($firstItem['values']));
 
@@ -202,7 +202,7 @@ final class RepeaterField extends AbstractFieldType
         foreach ($rows as $index => $row) {
             $html .= '<tr class="acf-repeater-row" data-row-id="' . htmlspecialchars($row['row_id'] ?? '', ENT_QUOTES, 'UTF-8') . '">';
 
-            if (! empty($row['values']) && \is_array($row['values'])) {
+            if (!empty($row['values']) && \is_array($row['values'])) {
                 foreach ($row['values'] as $slug => $subfieldValue) {
                     $html .= '<td class="acf-repeater-field" data-field="' . htmlspecialchars($slug, ENT_QUOTES, 'UTF-8') . '">';
 
@@ -222,7 +222,7 @@ final class RepeaterField extends AbstractFieldType
                     }
 
                     // Fallback to simple rendering
-                    if (! $rendered) {
+                    if (!$rendered) {
                         $html .= htmlspecialchars(\is_string($subfieldValue) ? $subfieldValue : json_encode($subfieldValue), ENT_QUOTES, 'UTF-8');
                     }
 
@@ -312,7 +312,7 @@ final class RepeaterField extends AbstractFieldType
         $count = \count($rows);
 
         // Check required
-        if (! empty($validation['required']) && $count === 0) {
+        if (!empty($validation['required']) && $count === 0) {
             $errors[] = 'This field is required.';
 
             return $errors;
@@ -408,27 +408,7 @@ final class RepeaterField extends AbstractFieldType
         return trim($title) ?: \sprintf('Row %d', $rowIndex);
     }
 
-    /**
-     * {@inheritdoc}
-     *
-     * Note: Repeater subfields are rendered by the Smarty template using FieldTypeRegistry.
-     */
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $rows = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('repeater.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $rows,
-            'context' => $context,
-            'fieldRenderer' => $context['fieldRenderer'] ?? null,
-            'languages' => $context['languages'] ?? [],
-            'default_lang_id' => $context['default_lang_id'] ?? 1,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

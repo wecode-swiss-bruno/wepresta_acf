@@ -68,11 +68,11 @@ final class FieldTypeRegistry
 
     public function get(string $type): FieldTypeInterface
     {
-        if (! $this->has($type)) {
+        if (!$this->has($type)) {
             throw new InvalidArgumentException(\sprintf('Unknown field type: "%s"', $type));
         }
 
-return $this->types[$type];
+        return $this->types[$type];
     }
 
     public function getOrNull(string $type): ?FieldTypeInterface
@@ -177,24 +177,7 @@ return $this->types[$type];
         return $this->getOrNull($type)?->validate($value, $config, $validation) ?? [];
     }
 
-    /**
-     * Render admin input for a field.
-     *
-     * @param array<string, mixed> $field Field data including type and config
-     * @param mixed $value Current value
-     * @param array<string, mixed> $context Render context
-     */
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $type = $field['type'] ?? '';
-        $fieldType = $this->getOrNull($type);
 
-        if (! $fieldType) {
-            return '<span class="text-muted">Unknown field type: ' . htmlspecialchars($type, ENT_QUOTES, 'UTF-8') . '</span>';
-        }
-
-        return $fieldType->renderAdminInput($field, $value, $context);
-    }
 
     private function registerBuiltInTypes(): void
     {

@@ -85,22 +85,22 @@ final class SelectField extends AbstractFieldType
         $defaultLangId = $this->getDefaultLanguageId();
 
         return array_map(function ($choice) use ($defaultLangId) {
-            if (! \is_array($choice) || ! isset($choice['value'])) {
+            if (!\is_array($choice) || !isset($choice['value'])) {
                 return $choice;
             }
 
             // Ensure translations array exists
-            if (! isset($choice['translations']) || ! \is_array($choice['translations'])) {
+            if (!isset($choice['translations']) || !\is_array($choice['translations'])) {
                 $choice['translations'] = [];
             }
 
             // Fix: If main label is empty, try to get it from default language translation
-            if (empty($choice['label']) && isset($choice['translations'][$defaultLangId]) && ! empty($choice['translations'][$defaultLangId])) {
+            if (empty($choice['label']) && isset($choice['translations'][$defaultLangId]) && !empty($choice['translations'][$defaultLangId])) {
                 $choice['label'] = $choice['translations'][$defaultLangId];
             }
 
             // Fix: If default language translation is empty but main label exists, sync it
-            if (! empty($choice['label']) && empty($choice['translations'][$defaultLangId] ?? '')) {
+            if (!empty($choice['label']) && empty($choice['translations'][$defaultLangId] ?? '')) {
                 $choice['translations'][$defaultLangId] = $choice['label'];
             }
 
@@ -215,7 +215,7 @@ final class SelectField extends AbstractFieldType
         }
 
         // Validate against allowed choices (unless allowCustom is enabled)
-        if (! $this->getConfigValue($fieldConfig, 'allowCustom', false)) {
+        if (!$this->getConfigValue($fieldConfig, 'allowCustom', false)) {
             $validValues = array_values($this->buildChoices($fieldConfig));
             $allowMultiple = $this->getConfigValue($fieldConfig, 'allowMultiple', false);
 
@@ -223,12 +223,12 @@ final class SelectField extends AbstractFieldType
                 $values = \is_array($value) ? $value : [$value];
 
                 foreach ($values as $val) {
-                    if (! \in_array($val, $validValues, true)) {
+                    if (!\in_array($val, $validValues, true)) {
                         $errors[] = \sprintf('Invalid choice: %s', $val);
                     }
                 }
             } else {
-                if (! \in_array($value, $validValues, true)) {
+                if (!\in_array($value, $validValues, true)) {
                     $errors[] = 'Invalid choice selected.';
                 }
             }
@@ -292,26 +292,7 @@ final class SelectField extends AbstractFieldType
         return 'list';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
 
-        // Sanitize choices to ensure proper label handling
-        $sanitizedConfig = $config;
-        $sanitizedConfig['choices'] = $this->getSanitizedChoicesForAdmin($config);
-
-        // Pass current language ID for template translation
-        $currentLangId = $this->getCurrentLanguageId();
-
-        return $this->renderPartial('select.tpl', [
-            'field' => $field,
-            'fieldConfig' => $sanitizedConfig,  // Sanitized choices for display
-            'currentLangId' => $currentLangId,  // For template translation
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $value,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {
@@ -321,7 +302,7 @@ final class SelectField extends AbstractFieldType
         // Sanitize choices for consistent label display
         $choices = $this->getSanitizedChoicesForAdmin($config);
 
-        if (! \is_array($choices)) {
+        if (!\is_array($choices)) {
             $choices = [];
         }
 
@@ -369,7 +350,7 @@ final class SelectField extends AbstractFieldType
     {
         $choices = [];
 
-        if (! \is_array($rawChoices)) {
+        if (!\is_array($rawChoices)) {
             return $choices;
         }
 
@@ -389,7 +370,7 @@ final class SelectField extends AbstractFieldType
                 $choices[$label] = $value;
             } elseif (\is_string($choice)) {
                 // Format: ['value1', 'value2', ...] - use value as label
-                if (! empty($choice)) {
+                if (!empty($choice)) {
                     $choices[$choice] = $choice;
                 }
             }
@@ -405,24 +386,24 @@ final class SelectField extends AbstractFieldType
     private function getChoiceLabelForValidation(array $choice): string
     {
         // 1. Try translations (default language first, then any available)
-        if (! empty($choice['translations']) && \is_array($choice['translations'])) {
+        if (!empty($choice['translations']) && \is_array($choice['translations'])) {
             // Try default language
             $defaultLangId = $this->getDefaultLanguageId();
 
-            if (isset($choice['translations'][$defaultLangId]) && ! empty($choice['translations'][$defaultLangId])) {
+            if (isset($choice['translations'][$defaultLangId]) && !empty($choice['translations'][$defaultLangId])) {
                 return $choice['translations'][$defaultLangId];
             }
 
             // Try any available translation
             foreach ($choice['translations'] as $langId => $label) {
-                if (! empty($label)) {
+                if (!empty($label)) {
                     return $label;
                 }
             }
         }
 
         // 2. Fallback to main label
-        if (! empty($choice['label'])) {
+        if (!empty($choice['label'])) {
             return $choice['label'];
         }
 
@@ -457,7 +438,7 @@ final class SelectField extends AbstractFieldType
         if (isset($choice['translations']) && isset($choice['translations'][$currentLangId])) {
             $translated = $choice['translations'][$currentLangId];
 
-            if (! empty($translated)) {
+            if (!empty($translated)) {
                 return $translated;
             }
         }
@@ -489,7 +470,7 @@ final class SelectField extends AbstractFieldType
         $map = [];
         $rawChoices = $this->getConfigValue($fieldConfig, 'choices', []);
 
-        if (! \is_array($rawChoices)) {
+        if (!\is_array($rawChoices)) {
             return $map;
         }
 
@@ -513,7 +494,7 @@ final class SelectField extends AbstractFieldType
         $currentLangId = $this->getCurrentLanguageId();
 
         return array_map(function ($choice) use ($currentLangId) {
-            if (! \is_array($choice) || ! isset($choice['label'])) {
+            if (!\is_array($choice) || !isset($choice['label'])) {
                 return $choice;
             }
 
@@ -521,7 +502,7 @@ final class SelectField extends AbstractFieldType
             if (isset($choice['translations']) && isset($choice['translations'][$currentLangId])) {
                 $translated = $choice['translations'][$currentLangId];
 
-                if (! empty($translated)) {
+                if (!empty($translated)) {
                     $choice['label'] = $translated;
                 }
             }

@@ -91,81 +91,7 @@ class StarRatingField extends AbstractFieldType
         ];
     }
 
-    /**
-     * Render interactive star picker for admin product edit form.
-     */
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $a = $this->buildInputAttrs($field, $context);
-        $config = $this->getFieldConfig($field);
 
-        $maxStars = (int) ($config['max_stars'] ?? 5);
-        $allowHalf = ! empty($config['allow_half']);
-        $currentValue = (float) ($value ?? $config['default_value'] ?? 0);
-        $starSize = (int) ($config['star_size'] ?? 24);
-        $colorFilled = $this->escapeAttr($config['color_filled'] ?? '#ffc107');
-        $colorEmpty = $this->escapeAttr($config['color_empty'] ?? '#e0e0e0');
-
-        $inputId = $a['idPrefix'] . $a['slug'] . ($a['suffix'] ?? '');
-        $uniqueId = 'star-rating-' . uniqid();
-
-        // Hidden input to store the value
-        $html = \sprintf(
-            '<input type="hidden" class="acf-star-rating-value" id="%s" %s value="%s">',
-            $inputId,
-            $a['nameAttr'],
-            $this->escapeAttr((string) $currentValue)
-        );
-
-        // Star picker container
-        $html .= \sprintf(
-            '<div class="acf-star-rating-picker" data-target="%s" data-max="%d" data-half="%s" style="--star-size: %dpx; --color-filled: %s; --color-empty: %s;">',
-            $inputId,
-            $maxStars,
-            $allowHalf ? '1' : '0',
-            $starSize,
-            $colorFilled,
-            $colorEmpty
-        );
-
-        // Render stars
-        for ($i = 1; $i <= $maxStars; ++$i) {
-            $filled = $i <= $currentValue;
-            $halfFilled = $allowHalf && ($i - 0.5) <= $currentValue && $i > $currentValue;
-
-            $starClass = 'acf-star';
-
-            if ($filled) {
-                $starClass .= ' acf-star--filled';
-            } elseif ($halfFilled) {
-                $starClass .= ' acf-star--half';
-            }
-
-            $html .= \sprintf(
-                '<span class="%s" data-value="%d" title="%d star%s">★</span>',
-                $starClass,
-                $i,
-                $i,
-                $i > 1 ? 's' : ''
-            );
-        }
-
-        // Clear button
-        $html .= '<button type="button" class="acf-star-clear btn btn-sm btn-link" title="Clear rating">✕</button>';
-
-        // Current value display
-        $html .= \sprintf('<span class="acf-star-value-display">%s</span>', $currentValue > 0 ? $currentValue . '/' . $maxStars : '');
-
-        $html .= '</div>';
-
-        // Inline styles (scoped to this widget)
-        $html .= $this->getInlineStyles();
-
-        // Inline JavaScript for interactivity
-        $html .= $this->getInlineScript($inputId);
-
-        return $html;
-    }
 
     /**
      * Render stars for frontend display.
@@ -177,7 +103,7 @@ class StarRatingField extends AbstractFieldType
 
         $maxStars = (int) ($fieldConfig['max_stars'] ?? 5);
         $rating = (float) $actualValue;
-        $allowHalf = ! empty($fieldConfig['allow_half']);
+        $allowHalf = !empty($fieldConfig['allow_half']);
         $starSize = (int) ($fieldConfig['star_size'] ?? 24);
         $colorFilled = htmlspecialchars($fieldConfig['color_filled'] ?? '#ffc107', ENT_QUOTES, 'UTF-8');
         $colorEmpty = htmlspecialchars($fieldConfig['color_empty'] ?? '#e0e0e0', ENT_QUOTES, 'UTF-8');
@@ -202,7 +128,7 @@ class StarRatingField extends AbstractFieldType
         }
 
         // Optional: show numeric value
-        if (! empty($renderOptions['show_value'])) {
+        if (!empty($renderOptions['show_value'])) {
             $html .= \sprintf(' <span class="acf-star-rating-value">(%s/%d)</span>', $rating, $maxStars);
         }
 
@@ -216,10 +142,10 @@ class StarRatingField extends AbstractFieldType
 
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed
     {
-        $allowHalf = ! empty($fieldConfig['allow_half']);
+        $allowHalf = !empty($fieldConfig['allow_half']);
         $val = (float) $value;
 
-        if (! $allowHalf) {
+        if (!$allowHalf) {
             $val = round($val);
         }
 
@@ -231,7 +157,7 @@ class StarRatingField extends AbstractFieldType
         $errors = [];
         $maxStars = (int) ($fieldConfig['max_stars'] ?? 5);
 
-        if (! empty($validation['required']) && empty($value)) {
+        if (!empty($validation['required']) && empty($value)) {
             $errors[] = 'Rating is required';
         }
 

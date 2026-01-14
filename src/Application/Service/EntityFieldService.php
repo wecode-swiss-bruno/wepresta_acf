@@ -10,6 +10,8 @@ use Exception;
 use Language;
 use Module;
 use PrestaShopLogger;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface;
@@ -32,7 +34,9 @@ final class EntityFieldService
         private readonly FieldTypeRegistry $fieldTypeRegistry,
         private readonly ValueProvider $valueProvider,
         private readonly ValueHandler $valueHandler,
-        private readonly FileUploadService $fileUploadService
+        private readonly FileUploadService $fileUploadService,
+        private readonly RequestStack $requestStack,
+        private readonly CsrfTokenManagerInterface $csrfTokenManager
     ) {
     }
 
@@ -163,6 +167,7 @@ final class EntityFieldService
 
                     // Basic field data
                     $fieldData = $field;
+                    $fieldData['id'] = $fieldId;
                     $fieldData['slug'] = $slug;
                     $fieldData['translatable'] = $isTranslatable;
                     // Ensure boolean types
@@ -175,6 +180,7 @@ final class EntityFieldService
                             if (isset($child['config']) && is_string($child['config'])) {
                                 $child['config'] = json_decode($child['config'], true) ?: [];
                             }
+                            $child['id'] = (int) $child['id_wepresta_acf_field'];
                             $child['translatable'] = (bool) ($child['value_translatable'] ?? $child['translatable'] ?? false);
                             return $child;
                         }, $children);
@@ -232,6 +238,8 @@ final class EntityFieldService
                 'base_url' => $contextObj->shop->getBaseURL(),
                 'acf_api_base_url' => $this->getAdminApiBaseUrl($module),
                 'acf_shop_id' => (int) $contextObj->shop->id,
+                'acf_current_lang' => (int) $contextObj->language->id,
+                'acf_token' => $this->getCsrfToken($module),
             ];
 
             // Add entity-specific IDs for backward compatibility
@@ -574,7 +582,7 @@ final class EntityFieldService
                 $router = $container->get('router');
                 $url = $router->generate('wepresta_acf_api_relation_search');
 
-                return preg_replace('/\/relation\/search$/', '', $url);
+                return preg_replace('/\/relation\/search(\/)?(\?.*)?$/', '', $url);
             }
         } catch (Exception $e) {
             // Fallback
@@ -587,5 +595,25 @@ final class EntityFieldService
         $baseAdmin = preg_replace('/\/configure\/.*$/', '', $baseAdmin);
 
         return rtrim($baseAdmin, '/') . '/modules/' . $module->name . '/api';
+    }
+
+    private function getCsrfToken(Module $module): string
+    {
+        // 1. Try to get the current request's _token (verified by PS8 Admin Firewall)
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request && $request->query->has('_token')) {
+            return (string) $request->query->get('_token');
+        }
+
+        // 2. Fallback: Generate token using employee email (matching AcfBuilderController)
+        try {
+            $context = Context::getContext();
+            if (isset($context->employee) && $context->employee->id && $context->employee->email) {
+                return $this->csrfTokenManager->getToken($context->employee->email)->getValue();
+            }
+        } catch (Exception $e) {
+        }
+
+        return '';
     }
 }

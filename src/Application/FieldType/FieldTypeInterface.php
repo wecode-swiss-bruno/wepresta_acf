@@ -165,24 +165,7 @@ interface FieldTypeInterface
      */
     public function getIcon(): string;
 
-    /**
-     * Render the admin input HTML for this field.
-     *
-     * This method generates the complete HTML input element(s) for
-     * the back-office product form. Centralizes rendering logic
-     * that was previously duplicated in Smarty templates.
-     *
-     * @param array<string, mixed> $field Complete field data (slug, title, config, etc.)
-     * @param mixed $value Current field value
-     * @param array<string, mixed> $context Rendering context:
-     *                                      - 'size': 'sm' for compact inputs (table mode)
-     *                                      - 'prefix': name prefix (default 'acf_')
-     *                                      - 'dataSubfield': bool, use data-subfield instead of name attr
-     *                                      - 'idPrefix': custom ID prefix
-     *
-     * @return string HTML output (already escaped)
-     */
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string;
+
 
     /**
      * Get JavaScript template for dynamic row creation in repeaters.

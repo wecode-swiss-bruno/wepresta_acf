@@ -62,7 +62,7 @@ final class NumberField extends AbstractFieldType
             $options['attr']['max'] = $validation['max'];
         }
 
-        if (! empty($fieldConfig['step'])) {
+        if (!empty($fieldConfig['step'])) {
             $options['attr']['step'] = $fieldConfig['step'];
         } elseif ($decimals > 0) {
             // Calculate step based on decimals
@@ -70,7 +70,7 @@ final class NumberField extends AbstractFieldType
         }
 
         // Suffix
-        if (! empty($fieldConfig['suffix'])) {
+        if (!empty($fieldConfig['suffix'])) {
             $options['attr']['data-suffix'] = $fieldConfig['suffix'];
         }
 
@@ -246,18 +246,7 @@ final class NumberField extends AbstractFieldType
         return 'numbers';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
 
-        return $this->renderPartial('number.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $value,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

@@ -10,47 +10,61 @@ use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use WeprestaAcf\Application\Service\CptTypeService;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 /**
- * CPT Builder Controller - Vue.js SPA for managing CPT types
+ * CPT Builder Controller - Single Page Application Entry Point
  */
 final class CptBuilderController extends FrameworkBundleAdminController
 {
     public function __construct(
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
-        private readonly RequestStack $requestStack
+        private readonly RequestStack $requestStack,
+        private readonly CptTypeService $typeService
     ) {
         // Note: parent::__construct() is NOT called for PS8/PS9 compatibility
     }
+
     /**
-     * CPT Builder main page (Vue.js SPA)
-     *
-     * @return Response
+     * SPA Entry point for CPT Management
      */
     #[AdminSecurity("is_granted('read', 'AdminWeprestaAcfBuilder')", redirectRoute: 'admin_dashboard')]
-    public function index(): Response
+    public function list(string $typeSlug): Response
     {
+        $type = $this->typeService->getTypeBySlug($typeSlug);
+
+        if (!$type) {
+            $this->addFlash('error', $this->trans('CPT Type not found', 'Modules.Weprestaacf.Admin'));
+            return $this->redirectToRoute('wepresta_acf_builder');
+        }
+
         // Generate CSRF token compatible PS8/PS9
         $csrfToken = $this->generateCsrfToken();
 
-        // Fetch active languages
-        $languages = array_values(\Language::getLanguages(true, Context::getContext()->shop->id));
+        // Fetch active languages for current shop
+        $shopId = (int) Context::getContext()->shop->id;
+        $languages = array_values(\Language::getLanguages(true, $shopId));
         $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
 
+        $adminApiUrl = Context::getContext()->link->getAdminLink('WeprestaAcfApi');
+
         return $this->render('@Modules/wepresta_acf/views/templates/admin/cpt-builder.html.twig', [
-            'layoutTitle' => $this->trans('CPT Builder', 'Modules.Weprestaacf.Admin'),
-            'requireBulkActions' => false,
-            'showContentHeader' => true,
-            'enableSidebar' => false,
-            'help_link' => false,
+            'type' => [
+                'id' => $type->getId(),
+                'slug' => $type->getSlug(),
+                'name' => $type->getName(),
+            ],
             'csrfToken' => $csrfToken,
-            'layoutHeaderToolbarBtn' => [],
             'languages' => $languages,
             'defaultLangId' => $defaultLangId,
+            'shopId' => $shopId,
+            'apiUrl' => $adminApiUrl,
+            'layoutTitle' => $type->getName(),
+            'enableSidebar' => false,
         ]);
     }
 

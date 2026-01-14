@@ -242,19 +242,7 @@ final class DateField extends AbstractFieldType
         return 'calendar_today';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $dateValue = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('date.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $dateValue,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

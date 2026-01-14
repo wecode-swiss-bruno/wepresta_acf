@@ -45,8 +45,8 @@ final class ValueHandler
             'lang_id' => $langId,
         ]);
 
-        foreach ($values as $slug => $value) {
-            $this->saveEntityFieldValue($entityType, $entityId, $slug, $value, $shopId, $langId);
+        foreach ($values as $identifier => $value) {
+            $this->saveEntityFieldValue($entityType, $entityId, $identifier, $value, $shopId, $langId);
         }
     }
 
@@ -58,18 +58,23 @@ final class ValueHandler
     /**
      * Saves a field value for any entity type.
      */
-    public function saveEntityFieldValue(string $entityType, int $entityId, string $slug, mixed $value, ?int $shopId = null, ?int $langId = null): bool
+    public function saveEntityFieldValue(string $entityType, int $entityId, string|int $identifier, mixed $value, ?int $shopId = null, ?int $langId = null): bool
     {
-        $field = $this->fieldRepository->findBySlug($slug);
+        if (is_numeric($identifier)) {
+            $field = $this->fieldRepository->findById((int) $identifier);
+        } else {
+            $field = $this->fieldRepository->findBySlug((string) $identifier);
+        }
 
-        if (! $field) {
-            $this->logWarning('Field not found for slug', ['slug' => $slug, 'entity_type' => $entityType, 'entity_id' => $entityId]);
+        if (!$field) {
+            $this->logWarning('Field not found', ['identifier' => $identifier, 'entity_type' => $entityType, 'entity_id' => $entityId]);
 
             return false;
         }
 
         $fieldId = (int) $field['id_wepresta_acf_field'];
         $fieldType = $field['type'];
+        $fieldSlug = $field['slug'];
         $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
         $config = $this->parseJsonConfig($field['config'] ?? '{}');
 
@@ -84,7 +89,7 @@ final class ValueHandler
 
                 $result = $this->valueRepository->saveEntity($fieldId, $entityType, $entityId, $storableValue, $shopId, (int) $langId, $isTranslatable, $indexValue);
 
-                if (! $result) {
+                if (!$result) {
                     $allSuccess = false;
                 }
             }
@@ -101,7 +106,7 @@ final class ValueHandler
 
         $this->logDebug('Field value saved', [
             'field_id' => $fieldId,
-            'slug' => $slug,
+            'slug' => $fieldSlug,
             'entity_type' => $entityType,
             'entity_id' => $entityId,
             'success' => $result,
@@ -117,11 +122,15 @@ final class ValueHandler
         return $this->valueRepository->deleteByProduct($productId, $shopId);
     }
 
-    public function deleteFieldValue(int $productId, string $slug, ?int $shopId = null, ?int $langId = null): bool
+    public function deleteFieldValue(int $productId, string|int $identifier, ?int $shopId = null, ?int $langId = null): bool
     {
-        $field = $this->fieldRepository->findBySlug($slug);
+        if (is_numeric($identifier)) {
+            $field = $this->fieldRepository->findById((int) $identifier);
+        } else {
+            $field = $this->fieldRepository->findBySlug((string) $identifier);
+        }
 
-        if (! $field) {
+        if (!$field) {
             return false;
         }
 
@@ -135,10 +144,15 @@ final class ValueHandler
     {
         $errors = [];
 
-        foreach ($values as $slug => $value) {
-            $field = $this->fieldRepository->findBySlug($slug);
+        foreach ($values as $identifier => $value) {
+            // Identifier can be slug (string) or field ID (int)
+            if (is_numeric($identifier)) {
+                $field = $this->fieldRepository->findById((int) $identifier);
+            } else {
+                $field = $this->fieldRepository->findBySlug((string) $identifier);
+            }
 
-            if (! $field) {
+            if (!$field) {
                 continue;
             }
 
@@ -153,20 +167,20 @@ final class ValueHandler
                 foreach ($value as $langId => $langValue) {
                     $langErrors = $this->fieldTypeRegistry->validate($field['type'], $langValue, $config, $validation);
 
-                    if (! empty($langErrors)) {
+                    if (!empty($langErrors)) {
                         $fieldErrors[$langId] = $langErrors;
                     }
                 }
 
-                if (! empty($fieldErrors)) {
-                    $errors[$slug] = $fieldErrors;
+                if (!empty($fieldErrors)) {
+                    $errors[$identifier] = $fieldErrors;
                 }
             } else {
                 // Non-translatable field: validate single value
                 $fieldErrors = $this->fieldTypeRegistry->validate($field['type'], $value, $config, $validation);
 
-                if (! empty($fieldErrors)) {
-                    $errors[$slug] = $fieldErrors;
+                if (!empty($fieldErrors)) {
+                    $errors[$identifier] = $fieldErrors;
                 }
             }
         }
@@ -179,13 +193,13 @@ final class ValueHandler
      */
     private function isLangValueArray(mixed $value): bool
     {
-        if (! \is_array($value) || empty($value)) {
+        if (!\is_array($value) || empty($value)) {
             return false;
         }
 
         // Check if all keys are numeric (language IDs)
         foreach (array_keys($value) as $key) {
-            if (! is_numeric($key)) {
+            if (!is_numeric($key)) {
                 return false;
             }
         }

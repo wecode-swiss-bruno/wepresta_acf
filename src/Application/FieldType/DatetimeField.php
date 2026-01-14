@@ -207,19 +207,7 @@ final class DatetimeField extends AbstractFieldType
         return 'event';
     }
 
-    public function renderAdminInput(array $field, mixed $value, array $context = []): string
-    {
-        $config = $this->getFieldConfig($field);
-        $datetimeValue = $this->denormalizeValue($value, $config);
 
-        return $this->renderPartial('datetime.tpl', [
-            'field' => $field,
-            'fieldConfig' => $config,
-            'prefix' => $context['prefix'] ?? 'acf_',
-            'value' => $datetimeValue,
-            'context' => $context,
-        ]);
-    }
 
     public function getJsTemplate(array $field): string
     {

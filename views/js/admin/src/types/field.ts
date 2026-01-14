@@ -23,6 +23,8 @@ export interface AcfField {
   dateAdd?: string
   dateUpd?: string
   children?: AcfField[]  // Subfields for repeaters
+  value_translatable?: boolean
+  translatable?: boolean
 }
 
 /**
