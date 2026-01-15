@@ -73,12 +73,16 @@ final class CptPostApiController extends AbstractApiController
             }
 
             $data = array_map(function ($post) use ($type) {
+                $viewUrl = $post->isPublished()
+                    ? $this->urlService->getFriendlyUrl($type, $post)
+                    : $this->urlService->getPreviewUrl($post, $type);
+
                 return [
                     'id' => $post->getId(),
                     'slug' => $post->getSlug(),
                     'title' => $post->getTitle(),
                     'status' => $post->getStatus(),
-                    'view_url' => $this->urlService->getPostUrl($post, $type),
+                    'view_url' => $viewUrl,
                 ];
             }, $posts);
 
@@ -91,7 +95,8 @@ final class CptPostApiController extends AbstractApiController
     public function show(int $id, Request $request): JsonResponse
     {
         try {
-            $post = $this->repository->find($id, $this->context->getLangId(), $this->context->getShopId());
+            // Pass null for langId to fetch all translations
+            $post = $this->repository->find($id, null, $this->context->getShopId());
             if (!$post) {
                 return $this->jsonError('Post not found', Response::HTTP_NOT_FOUND);
             }
@@ -131,11 +136,14 @@ final class CptPostApiController extends AbstractApiController
                 'seo_title' => $post->getSeoTitle(),
                 'seo_description' => $post->getSeoDescription(),
                 'status' => $post->getStatus(),
+                'translations' => $post->getTranslations(),
                 'terms' => $post->getTerms(),
                 'relations' => $relationsData,
                 'acf_groups' => $acfGroupsData,
                 'acf_values' => $acfValues,
-                'view_url' => $type ? $this->urlService->getPostUrl($post, $type) : null,
+                'view_url' => ($type && $post->isPublished())
+                    ? $this->urlService->getFriendlyUrl($type, $post)
+                    : ($type ? $this->urlService->getPreviewUrl($post, $type) : null),
             ];
 
             return $this->jsonSuccess($data);
@@ -163,14 +171,25 @@ final class CptPostApiController extends AbstractApiController
             $post = new \WeprestaAcf\Domain\Entity\CptPost($data);
 
             // Handle translations
-            $languages = \Language::getLanguages(true);
             $translations = [];
-            foreach ($languages as $lang) {
-                $translations[(int) $lang['id_lang']] = [
-                    'title' => $data['title'],
-                    'seo_title' => $data['seo_title'] ?? $data['title'],
-                    'seo_description' => $data['seo_description'] ?? '',
-                ];
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                foreach ($data['translations'] as $langId => $trans) {
+                    $translations[(int) $langId] = [
+                        'title' => $trans['title'] ?? $data['title'],
+                        'seo_title' => $trans['seo_title'] ?? ($trans['title'] ?? $data['title']),
+                        'seo_description' => $trans['seo_description'] ?? '',
+                    ];
+                }
+            } else {
+                // Fallback: Replicate title for all languages
+                $languages = \Language::getLanguages(true);
+                foreach ($languages as $lang) {
+                    $translations[(int) $lang['id_lang']] = [
+                        'title' => $data['title'],
+                        'seo_title' => $data['seo_title'] ?? $data['title'],
+                        'seo_description' => $data['seo_description'] ?? '',
+                    ];
+                }
             }
             $post->setTranslations($translations);
 
@@ -215,18 +234,9 @@ final class CptPostApiController extends AbstractApiController
                 $post->setStatus($data['status']);
             }
 
-            // Update translations if title changed
-            if (isset($data['title'])) {
-                $languages = \Language::getLanguages(true);
-                $translations = [];
-                foreach ($languages as $lang) {
-                    $translations[(int) $lang['id_lang']] = [
-                        'title' => $data['title'],
-                        'seo_title' => $data['seo_title'] ?? $data['title'],
-                        'seo_description' => $data['seo_description'] ?? '',
-                    ];
-                }
-                $post->setTranslations($translations);
+            // Update translations
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                $post->setTranslations($data['translations']);
             }
 
             $this->repository->save($post);

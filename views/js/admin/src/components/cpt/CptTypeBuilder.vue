@@ -15,19 +15,76 @@
           <div class="form-section">
             <h4>General Settings</h4>
 
-            <div class="form-group">
-              <label for="type_name">Name *</label>
-              <input
-                id="type_name"
-                v-model="formData.name"
-                type="text"
-                class="form-control"
-                required
-                @input="generateSlug"
-              />
+            <!-- Translatable Fields -->
+            <div class="translations tabbable" v-if="languages.length > 1">
+              <ul class="translationsLocales nav nav-pills">
+                <li v-for="lang in languages" :key="lang.id_lang" class="nav-item">
+                  <a
+                    href="#"
+                    class="nav-link"
+                    :class="{ active: currentLangCode === lang.iso_code }"
+                    @click.prevent="currentLangCode = lang.iso_code"
+                  >
+                    {{ lang.iso_code.toUpperCase() }}
+                  </a>
+                </li>
+              </ul>
+              <div class="translationsFields tab-content mt-2">
+                <div
+                  v-for="lang in languages"
+                  :key="lang.id_lang"
+                  class="tab-pane"
+                  :class="{ active: currentLangCode === lang.iso_code, show: currentLangCode === lang.iso_code }"
+                >
+                  <div class="form-group">
+                    <label :for="`type_name_${lang.id_lang}`">Name * ({{ lang.iso_code.toUpperCase() }})</label>
+                    <input
+                      :id="`type_name_${lang.id_lang}`"
+                      v-model="translations[lang.id_lang].name"
+                      type="text"
+                      class="form-control"
+                      :required="lang.is_default"
+                      @input="lang.is_default && generateSlug()"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label :for="`type_description_${lang.id_lang}`">Description ({{ lang.iso_code.toUpperCase() }})</label>
+                    <textarea
+                      :id="`type_description_${lang.id_lang}`"
+                      v-model="translations[lang.id_lang].description"
+                      class="form-control"
+                      rows="3"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Single language fallback -->
+            <div v-else>
+              <div class="form-group">
+                <label for="type_name">Name *</label>
+                <input
+                  id="type_name"
+                  v-model="formData.name"
+                  type="text"
+                  class="form-control"
+                  required
+                  @input="generateSlug"
+                />
+              </div>
+              <div class="form-group">
+                <label for="type_description">Description</label>
+                <textarea
+                  id="type_description"
+                  v-model="formData.description"
+                  class="form-control"
+                  rows="3"
+                ></textarea>
+              </div>
             </div>
 
-            <div class="form-group">
+            <!-- Slug field (after translations) -->
+            <div class="form-group mt-3">
               <label for="type_slug">Slug *</label>
               <input
                 id="type_slug"
@@ -36,20 +93,15 @@
                 class="form-control"
                 required
                 pattern="[a-z0-9_-]+"
+                :disabled="isEdit"
               />
-              <small class="form-text text-muted">
+              <small v-if="!isEdit" class="form-text text-muted">
                 Lowercase letters, numbers, hyphens and underscores only
               </small>
-            </div>
-
-            <div class="form-group">
-              <label for="type_description">Description</label>
-              <textarea
-                id="type_description"
-                v-model="formData.description"
-                class="form-control"
-                rows="3"
-              ></textarea>
+              <small v-else class="form-text text-muted">
+                <i class="material-icons" style="font-size: 14px; vertical-align: text-bottom;">lock</i>
+                Slug cannot be modified after creation to ensure DB integrity.
+              </small>
             </div>
 
             <div class="form-group">
@@ -136,29 +188,7 @@
             </div>
           </div>
 
-          <!-- ACF Groups Selection -->
-          <div class="form-section mt-4">
-            <h4>ACF Groups</h4>
-            <p class="text-muted">Select which ACF groups to display when editing posts of this type</p>
-            
-            <div v-if="availableGroups.length > 0" class="acf-groups-list">
-              <div v-for="group in availableGroups" :key="group.id" class="form-check">
-                <input
-                  :id="`group_${group.id}`"
-                  v-model="formData.acf_groups"
-                  type="checkbox"
-                  class="form-check-input"
-                  :value="group.id"
-                />
-                <label :for="`group_${group.id}`" class="form-check-label">
-                  {{ group.title }}
-                </label>
-              </div>
-            </div>
-            <div v-else class="alert alert-info">
-              No ACF groups available. Create ACF groups first.
-            </div>
-          </div>
+
 
           <!-- Taxonomies Selection -->
           <div class="form-section mt-4">
@@ -203,7 +233,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
-import { useBuilderStore } from '../../stores/builderStore'
+
 import type { CptType } from '../../types/cpt'
 
 const props = defineProps<{
@@ -216,11 +246,24 @@ const emit = defineEmits<{
 }>()
 
 const cptStore = useCptStore()
-const builderStore = useBuilderStore()
 
 const isEdit = computed(() => !!props.typeId)
 const saving = ref(false)
-const availableGroups = ref<any[]>([])
+
+// Languages
+const languages = computed(() => (window as any).acfConfig?.languages || [])
+const defaultLanguage = computed(() => languages.value.find((l: any) => l.is_default) || languages.value[0])
+const currentLangCode = ref('')
+
+// Initialize currentLangCode when languages load
+watch(languages, (langs) => {
+  if (langs.length > 0 && !currentLangCode.value) {
+    currentLangCode.value = defaultLanguage.value?.iso_code || langs[0].iso_code
+  }
+}, { immediate: true })
+
+// Translations state
+const translations = reactive<Record<number, { name: string; description: string }>>({})
 
 const formData = reactive<Partial<CptType>>({
   name: '',
@@ -232,7 +275,6 @@ const formData = reactive<Partial<CptType>>({
   icon: 'article',
   position: 0,
   active: true,
-  acf_groups: [],
   taxonomies: []
 })
 
@@ -241,32 +283,65 @@ const seoConfig = reactive({
   description_pattern: ''
 })
 
-onMounted(async () => {
-  // Fetch available ACF groups
-  await builderStore.loadGroups()
-  availableGroups.value = builderStore.groups
+import { watch } from 'vue'
 
+const initForm = async () => {
   // Fetch available taxonomies
   await cptStore.fetchTaxonomies()
+
+  // Initialize translations for all languages
+  languages.value.forEach((lang: any) => {
+    if (!translations[lang.id_lang]) {
+      translations[lang.id_lang] = { name: '', description: '' }
+    }
+  })
 
   // Load existing type if editing
   if (isEdit.value || cptStore.currentType) {
     const type = cptStore.currentType || (props.typeId ? await cptStore.fetchType(props.typeId) : null)
     if (type) {
       Object.assign(formData, type)
+      
+      // Fix taxonomies to be array of IDs (API returns objects)
+      if (type.taxonomies && Array.isArray(type.taxonomies)) {
+        formData.taxonomies = type.taxonomies.map((t: any) => {
+          return typeof t === 'object' ? (t.id_wepresta_acf_cpt_taxonomy || t.id) : t
+        })
+      }
+
       if (type.seo_config) {
         Object.assign(seoConfig, type.seo_config)
       }
+      // Load translations
+      if (type.translations) {
+        Object.keys(type.translations).forEach((langId) => {
+          const id = parseInt(langId)
+          translations[id] = {
+            name: type.translations[id]?.name || '',
+            description: type.translations[id]?.description || ''
+          }
+        })
+      }
     }
   }
-})
+}
+
+watch(() => props.typeId, initForm)
+
+onMounted(initForm)
 
 function generateSlug() {
   if (!isEdit.value) {
-    formData.slug = formData.name
-      ?.toLowerCase()
+    // Use default language name for slug
+    const defaultLangId = defaultLanguage.value?.id_lang
+    const sourceName = defaultLangId && translations[defaultLangId]
+      ? translations[defaultLangId].name
+      : formData.name
+    
+    formData.slug = (sourceName || '')
+      .toLowerCase()
       .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_|_$/g, '') || ''
+      .replace(/^_|_$/g, '')
     
     formData.url_prefix = formData.slug
   }
@@ -276,10 +351,18 @@ async function handleSubmit() {
   saving.value = true
 
   try {
+    // Set default name/description from default language translation
+    const defaultLangId = defaultLanguage.value?.id_lang
+    if (defaultLangId && translations[defaultLangId]) {
+      formData.name = translations[defaultLangId].name
+      formData.description = translations[defaultLangId].description
+    }
+
     // Prepare data
     const typeData = {
       ...formData,
-      seo_config: seoConfig
+      seo_config: seoConfig,
+      translations: { ...translations }
     }
 
     let result
@@ -310,7 +393,6 @@ async function handleSubmit() {
   border-bottom: none;
 }
 
-.acf-groups-list,
 .taxonomies-list {
   max-height: 300px;
   overflow-y: auto;

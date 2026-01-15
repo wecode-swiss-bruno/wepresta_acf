@@ -64,22 +64,49 @@
 if (!window.acfEntityFieldsLoaded) {
     window.acfEntityFieldsLoaded = true;
     
-    // Load the Vue.js app script as ES module
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = '{{ asset('modules/wepresta_acf/views/js/admin/dist/entity-fields.js') }}';
-    script.onload = function() {
-        console.log('ACF: Entity fields script loaded');
-    };
-    script.onerror = function() {
-        console.error('ACF: Failed to load entity fields script');
-        // Show fallback message
-        const container = document.getElementById('acf-entity-fields-vue');
-        if (container) {
-            container.innerHTML = '<div class="alert alert-danger">{{ "Failed to load custom fields editor. Please refresh the page."|trans({}, "Modules.Weprestaacf.Admin") }}</div>';
-        }
-    };
-    document.head.appendChild(script);
+    // Resolve the script URL from manifest
+    const manifestPath = '{{ asset('modules/wepresta_acf/views/js/admin/dist/manifest-entity.json') }}';
+    
+    fetch(manifestPath)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load manifest');
+            }
+            return response.json();
+        })
+        .then(manifest => {
+            // Get the correct file from manifest
+            const entry = manifest['src/entity-fields.ts'];
+            if (!entry || !entry.file) {
+                throw new Error('No entry point found in manifest');
+            }
+            
+            // Load the Vue.js app script as ES module
+            const scriptPath = '{{ asset('modules/wepresta_acf/views/js/admin/dist/') }}' + entry.file;
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = scriptPath;
+            script.onload = function() {
+                console.log('ACF: Entity fields script loaded from:', scriptPath);
+            };
+            script.onerror = function() {
+                console.error('ACF: Failed to load entity fields script from:', scriptPath);
+                // Show fallback message
+                const container = document.getElementById('acf-entity-fields-vue');
+                if (container) {
+                    container.innerHTML = '<div class="alert alert-danger">{{ "Failed to load custom fields editor. Please refresh the page."|trans({}, "Modules.Weprestaacf.Admin") }}</div>';
+                }
+            };
+            document.head.appendChild(script);
+        })
+        .catch(error => {
+            console.error('ACF: Error loading manifest:', error);
+            // Fallback: try loading the script directly with a hash-busting approach
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = '{{ asset('modules/wepresta_acf/views/js/admin/dist/entity-fields.js') }}?t=' + Date.now();
+            document.head.appendChild(script);
+        });
 }
 </script>
 

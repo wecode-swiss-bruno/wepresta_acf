@@ -33,7 +33,6 @@
     {* Display all ACF fields from assigned groups *}
     <div class="cpt-post-fields">
         {assign var="groups" value=$acf->getActiveGroupsArray()}
-        <!-- DEBUG: Found {$groups|@count} active groups -->
         {foreach $groups as $group}
         {foreach $group.fields as $field}
         {if $field.has_value && $field.slug != 'featured_image' && $field.slug != 'content'}

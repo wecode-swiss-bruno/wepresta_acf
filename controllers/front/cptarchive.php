@@ -58,16 +58,17 @@ class Wepresta_AcfCptarchiveModuleFrontController extends ModuleFrontController
                 'id' => $post->getId(),
                 'title' => $post->getTitle(),
                 'slug' => $post->getSlug(),
-                'url' => $cptUrlService->getPostUrl($post, $type),
+                'url' => $cptUrlService->getFriendlyUrl($type, $post),
                 'date_add' => $post->getDateAdd()?->format('Y-m-d H:i:s'),
                 'date_upd' => $post->getDateUpd()?->format('Y-m-d H:i:s'),
             ];
         }, $posts);
 
         // SEO
+        $langId = (int) $this->context->language->id;
         $this->context->smarty->assign([
-            'meta_title' => $type->getName() . ' - ' . Configuration::get('PS_SHOP_NAME'),
-            'meta_description' => $type->getDescription() ?: '',
+            'meta_title' => $type->getName($langId) . ' - ' . Configuration::get('PS_SHOP_NAME'),
+            'meta_description' => $type->getDescription($langId) ?: '',
         ]);
 
         // Assign to template
@@ -75,8 +76,8 @@ class Wepresta_AcfCptarchiveModuleFrontController extends ModuleFrontController
             'cpt_type' => [
                 'id' => $type->getId(),
                 'slug' => $type->getSlug(),
-                'name' => $type->getName(),
-                'description' => $type->getDescription(),
+                'name' => $type->getName($langId),
+                'description' => $type->getDescription($langId),
             ],
             'cpt_posts' => $postsData,
             'cpt_pagination' => [
@@ -93,21 +94,22 @@ class Wepresta_AcfCptarchiveModuleFrontController extends ModuleFrontController
 
     private function getArchiveTemplate(string $typeSlug): string
     {
-        // Template hierarchy:
-        // 1. theme/modules/wepresta_acf/cpt/archive-{type}.tpl
-        // 2. theme/modules/wepresta_acf/cpt/archive.tpl
-        // 3. module/views/templates/front/cpt/archive.tpl
+        // Template hierarchy (PS8 & PS9 compatible):
+        // PrestaShop automatically handles theme overrides for module templates
+        // Theme override path: themes/{theme}/modules/wepresta_acf/views/templates/front/cpt/archive.tpl
+        //
+        // 1. module:wepresta_acf/views/templates/front/cpt/archive-{type}.tpl (type-specific)
+        // 2. module:wepresta_acf/views/templates/front/cpt/archive.tpl (generic fallback)
 
-        $themeDir = _PS_THEME_DIR_ . 'modules/wepresta_acf/cpt/';
+        $moduleDir = $this->module->getLocalPath() . 'views/templates/front/cpt/';
 
-        if (file_exists($themeDir . 'archive-' . $typeSlug . '.tpl')) {
+        // 1. Check for specific CPT template in MODULE (or theme override)
+        $specificModuleTemplate = $moduleDir . 'archive-' . $typeSlug . '.tpl';
+        if (file_exists($specificModuleTemplate)) {
             return 'module:wepresta_acf/views/templates/front/cpt/archive-' . $typeSlug . '.tpl';
         }
 
-        if (file_exists($themeDir . 'archive.tpl')) {
-            return 'module:wepresta_acf/views/templates/front/cpt/archive.tpl';
-        }
-
+        // 2. Fallback to generic MODULE template (or theme override)
         return 'module:wepresta_acf/views/templates/front/cpt/archive.tpl';
     }
 }

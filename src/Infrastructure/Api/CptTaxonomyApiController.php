@@ -41,7 +41,8 @@ final class CptTaxonomyApiController extends AbstractApiController
     public function show(int $id, Request $request): JsonResponse
     {
         try {
-            $taxonomy = $this->repository->findWithTerms($id, $this->context->getLangId());
+            // Pass null for langId to fetch all translations for editor
+            $taxonomy = $this->repository->findWithTerms($id, null);
             if (!$taxonomy) {
                 return $this->jsonError('Taxonomy not found', Response::HTTP_NOT_FOUND);
             }
@@ -49,6 +50,11 @@ final class CptTaxonomyApiController extends AbstractApiController
                 'id' => $taxonomy->getId(),
                 'slug' => $taxonomy->getSlug(),
                 'name' => $taxonomy->getName(),
+                'description' => $taxonomy->getDescription(),
+                'hierarchical' => $taxonomy->isHierarchical(),
+                'active' => $taxonomy->isActive(),
+                'config' => $taxonomy->getConfig(),
+                'translations' => $taxonomy->getTranslations(),
                 'terms' => $taxonomy->getTerms(),
             ]);
         } catch (\Exception $e) {
@@ -82,8 +88,27 @@ final class CptTaxonomyApiController extends AbstractApiController
                 return $this->jsonError('Taxonomy not found', Response::HTTP_NOT_FOUND);
             }
             $data = json_decode($request->getContent(), true);
-            if (isset($data['name']))
+            if (isset($data['name'])) {
                 $taxonomy->setName($data['name']);
+            }
+            if (isset($data['slug'])) {
+                $taxonomy->setSlug($data['slug']);
+            }
+            if (isset($data['description'])) {
+                $taxonomy->setDescription($data['description']);
+            }
+            if (isset($data['hierarchical'])) {
+                $taxonomy->setHierarchical((bool) $data['hierarchical']);
+            }
+            if (isset($data['active'])) {
+                $taxonomy->setActive((bool) $data['active']);
+            }
+            if (isset($data['config'])) {
+                $taxonomy->setConfig(is_string($data['config']) ? json_decode($data['config'], true) : $data['config']);
+            }
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                $taxonomy->setTranslations($data['translations']);
+            }
             $this->repository->save($taxonomy);
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {

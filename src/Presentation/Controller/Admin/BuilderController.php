@@ -98,6 +98,7 @@ final class BuilderController extends FrameworkBundleAdminController
             'currentLangId' => (int) Configuration::get('PS_LANG_DEFAULT'),
             'csrfToken' => $csrfToken,
             'currentShopId' => (int) Context::getContext()->shop->id,
+            'entityFieldsScriptUrl' => $this->resolveManifestFile('entity-fields'),
             // Toolbar buttons are now handled dynamically via Vue.js and DOM manipulation
             // The buttons are injected via header_toolbar_btn block and controlled by Vue state
             'layoutHeaderToolbarBtn' => [],

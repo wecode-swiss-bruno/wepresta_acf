@@ -65,6 +65,10 @@ final class CptPost
                 ? $data['date_upd']
                 : new \DateTimeImmutable($data['date_upd']);
         }
+
+        if (isset($data['translations']) && is_array($data['translations'])) {
+            $this->setTranslations($data['translations']);
+        }
     }
 
     // Getters

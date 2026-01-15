@@ -18,16 +18,42 @@
           <div class="row">
             <!-- Main Content -->
             <div class="col-md-9">
-              <div class="form-group">
-                <label class="form-control-label">Title</label>
-                <input 
-                  v-model="formData.title" 
-                  type="text" 
-                  class="form-control" 
-                  placeholder="Enter title here"
-                  required
-                  @input="handleTitleInput"
+              <!-- Translation Tabs -->
+              <div class="translations tabbable mb-3" v-if="languages.length > 1">
+                  <ul class="translationsLocales nav nav-pills mb-3">
+                    <li v-for="lang in languages" :key="lang.id_lang" class="nav-item">
+                      <a 
+                        href="#" 
+                        class="nav-link" 
+                        :class="{ active: currentLangCode === lang.iso_code }" 
+                        @click.prevent="currentLangCode = lang.iso_code"
+                      >
+                        {{ lang.iso_code.toUpperCase() }}
+                      </a>
+                    </li>
+                  </ul>
+              </div>
+
+              <div class="tab-content">
+                <div 
+                  v-for="lang in languages" 
+                  :key="lang.id_lang" 
+                  class="tab-pane fade" 
+                  :class="{ 'show active': currentLangCode === lang.iso_code }"
                 >
+                  <div class="form-group">
+                    <label class="form-control-label">Title <span v-if="lang.id_lang === defaultLanguage.id_lang" class="text-danger">*</span></label>
+                    <input 
+                      v-if="translations[lang.id_lang]"
+                      v-model="translations[lang.id_lang].title" 
+                      type="text" 
+                      class="form-control" 
+                      placeholder="Enter title here"
+                      :required="lang.id_lang === defaultLanguage.id_lang"
+                      @input="onTitleInput($event, lang.id_lang)"
+                    >
+                  </div>
+                </div>
               </div>
 
               <div class="form-group">
@@ -60,13 +86,33 @@
               <div class="card mt-4">
                 <div class="card-header">SEO Metadata</div>
                 <div class="card-body">
-                  <div class="form-group">
-                    <label class="form-control-label">SEO Title</label>
-                    <input v-model="formData.seo_title" type="text" class="form-control" :placeholder="formData.title">
-                  </div>
-                  <div class="form-group">
-                    <label class="form-control-label">SEO Description</label>
-                    <textarea v-model="formData.seo_description" class="form-control" rows="3"></textarea>
+                   <div class="tab-content">
+                    <div 
+                      v-for="lang in languages" 
+                      :key="lang.id_lang" 
+                      class="tab-pane fade" 
+                      :class="{ 'show active': currentLangCode === lang.iso_code }"
+                    >
+                      <div class="form-group">
+                        <label class="form-control-label">SEO Title</label>
+                        <input 
+                          v-if="translations[lang.id_lang]"
+                          v-model="translations[lang.id_lang].seo_title" 
+                          type="text" 
+                          class="form-control" 
+                          :placeholder="translations[lang.id_lang].title"
+                        >
+                      </div>
+                      <div class="form-group">
+                        <label class="form-control-label">SEO Description</label>
+                        <textarea 
+                          v-if="translations[lang.id_lang]"
+                          v-model="translations[lang.id_lang].seo_description" 
+                          class="form-control" 
+                          rows="3"
+                        ></textarea>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -178,6 +224,8 @@ const activeRelations = ref<any[]>([])
 const acfGroups = ref<any[]>([])
 const languages = ref<any[]>([])
 const defaultLanguage = ref<any>(null)
+const currentLangCode = ref('en')
+const translations = ref<Record<number, any>>({})
 
 const formData = ref({
   title: '',
@@ -202,11 +250,21 @@ onMounted(async () => {
   if (config && config.languages) {
      languages.value = config.languages
      defaultLanguage.value = languages.value.find((l: any) => l.id_lang === config.defaultLangId) || languages.value[0]
+     currentLangCode.value = defaultLanguage.value.iso_code
   } else {
      // Fallback if config issues
      defaultLanguage.value = { id_lang: 1, iso_code: 'en', is_default: 1 }
      languages.value = [defaultLanguage.value]
   }
+
+  // Initialize translations
+  languages.value.forEach((lang: any) => {
+    translations.value[lang.id_lang] = { 
+      title: '', 
+      seo_title: '', 
+      seo_description: '' 
+    }
+  })
 
   // Fetch relations for this type
   if (cptStore.currentType?.id) {
@@ -227,6 +285,30 @@ onMounted(async () => {
           terms: post.terms || [],
           relations: {}, // Initialize empty
           acf: post.acf_values || {} 
+        }
+
+        // Populate translations
+        if (post.translations) {
+            Object.keys(post.translations).forEach((langId) => {
+                const id = parseInt(langId)
+                if (translations.value[id]) {
+                    translations.value[id] = {
+                        title: post.translations[langId].title || '',
+                        seo_title: post.translations[langId].seo_title || '',
+                        seo_description: post.translations[langId].seo_description || ''
+                    }
+                }
+            })
+        }
+
+        // Fallback for current language if empty (legacy data)
+        const defId = defaultLanguage.value?.id_lang
+        if (defId && (!translations.value[defId]?.title || translations.value[defId].title === '') && post.title) {
+           translations.value[defId] = {
+               title: post.title,
+               seo_title: post.seo_title || '',
+               seo_description: post.seo_description || ''
+           }
         }
 
         // Set ACF Groups definition
@@ -332,19 +414,39 @@ watch(relatedTaxonomies, (taxos) => {
   })
 }, { immediate: true })
 
-async function handleTitleInput() {
-  if (!isEdit.value && formData.value.title) {
-    formData.value.slug = await slugify(formData.value.title)
+async function handleTitleInput(title: string) {
+  if (!isEdit.value && title) {
+    formData.value.slug = await slugify(title)
   }
+}
+
+function onTitleInput(event: Event, langId: number) {
+    if (defaultLanguage.value && langId === defaultLanguage.value.id_lang) {
+        const target = event.target as HTMLInputElement
+        handleTitleInput(target.value)
+    }
 }
 
 async function handleSubmit() {
   saving.value = true
   try {
+    // Add translations to payload
+    const payload = {
+        ...formData.value,
+        translations: translations.value
+    }
+    // Update main fields from default language for backward compatibility / list view
+    if (defaultLanguage.value && translations.value[defaultLanguage.value.id_lang]) {
+        const defTrans = translations.value[defaultLanguage.value.id_lang]
+        payload.title = defTrans.title
+        payload.seo_title = defTrans.seo_title
+        payload.seo_description = defTrans.seo_description
+    }
+
     if (isEdit.value) {
-      await cptStore.updatePost(props.postId!, cptStore.currentType!.slug, formData.value)
+      await cptStore.updatePost(props.postId!, cptStore.currentType!.slug, payload)
     } else {
-      await cptStore.createPost(cptStore.currentType!.slug, formData.value)
+      await cptStore.createPost(cptStore.currentType!.slug, payload)
     }
     emit('saved')
   } catch (e) {

@@ -185,18 +185,30 @@ final class CptPostRepository extends AbstractRepository implements CptPostRepos
     private function hydratePost(array $row, ?int $langId = null): CptPost
     {
         $post = new CptPost($row);
-        if ($langId !== null) {
-            $post->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_post'], $langId));
-        }
+        $post->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_post'], $langId));
         $post->setTerms($this->getAttachedTerms((int) $row['id_wepresta_acf_cpt_post']));
         return $post;
     }
 
-    private function getTranslations(int $id, int $langId): array
+    private function getTranslations(int $id, ?int $langId): array
     {
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'wepresta_acf_cpt_post_lang 
-                WHERE id_wepresta_acf_cpt_post = ' . (int) $id . ' AND id_lang = ' . (int) $langId;
-        return \Db::getInstance()->getRow($sql) ?: [];
+                WHERE id_wepresta_acf_cpt_post = ' . (int) $id;
+
+        if ($langId !== null) {
+            $sql .= ' AND id_lang = ' . (int) $langId;
+            $row = \Db::getInstance()->getRow($sql);
+            return $row ? [$langId => $row] : [];
+        }
+
+        $rows = \Db::getInstance()->executeS($sql);
+        $translations = [];
+        if ($rows) {
+            foreach ($rows as $row) {
+                $translations[$row['id_lang']] = $row;
+            }
+        }
+        return $translations;
     }
 
     private function saveTranslations(int $id, array $translations): void

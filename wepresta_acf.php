@@ -373,6 +373,7 @@ class WeprestaAcf extends Module
     {
         try {
             $cptTypeService = AcfServiceContainer::getTypeService();
+            $cptTaxonomyService = AcfServiceContainer::getTaxonomyService();
 
             if (!$cptTypeService) {
                 return [];
@@ -385,28 +386,122 @@ class WeprestaAcf extends Module
                 $urlPrefix = $type->getUrlPrefix();
                 $typeSlug = $type->getSlug();
 
+                // =====================================================================
+                // ARCHIVE ROUTE: /blog/
+                // =====================================================================
                 if ($type->hasArchive()) {
                     $routes["module-wepresta_acf-cpt-{$typeSlug}-archive"] = [
                         'controller' => 'cptarchive',
                         'rule' => $urlPrefix,
-                        'keywords' => ['type' => ['regexp' => '[_a-zA-Z0-9-\pL]*', 'param' => 'type']],
-                        'params' => ['fc' => 'module', 'module' => 'wepresta_acf', 'controller' => 'cptarchive', 'type' => $typeSlug],
+                        'keywords' => [],
+                        'params' => [
+                            'fc' => 'module',
+                            'module' => 'wepresta_acf',
+                            'controller' => 'cptarchive',
+                            'type' => $typeSlug,
+                        ],
                     ];
                 }
 
+                // =====================================================================
+                // SINGLE POST ROUTE: /blog/{slug}/
+                // =====================================================================
                 $routes["module-wepresta_acf-cpt-{$typeSlug}-single"] = [
                     'controller' => 'cptsingle',
                     'rule' => $urlPrefix . '/{slug}',
                     'keywords' => [
-                        'slug' => ['regexp' => '[_a-zA-Z0-9-\pL]*', 'param' => 'slug'],
-                        'type' => ['regexp' => '[_a-zA-Z0-9-\pL]*', 'param' => 'type'],
+                        'slug' => [
+                            'regexp' => '[_a-zA-Z0-9-\pL]*',
+                            'param' => 'slug',
+                        ],
                     ],
-                    'params' => ['fc' => 'module', 'module' => 'wepresta_acf', 'controller' => 'cptsingle', 'type' => $typeSlug],
+                    'params' => [
+                        'fc' => 'module',
+                        'module' => 'wepresta_acf',
+                        'controller' => 'cptsingle',
+                        'type' => $typeSlug,
+                    ],
                 ];
+
+                // =====================================================================
+                // TAXONOMY ROUTES: /blog/category/{term}/ and /blog/category/{term}/page/{page}/
+                // =====================================================================
+                if ($cptTaxonomyService) {
+                    $taxonomies = $cptTaxonomyService->getTaxonomiesByType($type->getId());
+
+                    foreach ($taxonomies as $taxonomy) {
+                        $taxonomySlug = $taxonomy->getSlug();
+
+                        // Route: /blog/category/{term}/
+                        $routes["module-wepresta_acf-cpt-{$typeSlug}-taxonomy-{$taxonomySlug}"] = [
+                            'controller' => 'cpttaxonomy',
+                            'rule' => $urlPrefix . '/' . $taxonomySlug . '/{term}',
+                            'keywords' => [
+                                'term' => [
+                                    'regexp' => '[_a-zA-Z0-9-\pL]*',
+                                    'param' => 'term',
+                                ],
+                            ],
+                            'params' => [
+                                'fc' => 'module',
+                                'module' => 'wepresta_acf',
+                                'controller' => 'cpttaxonomy',
+                                'type' => $typeSlug,
+                                'taxonomy' => $taxonomy->getId(),
+                            ],
+                        ];
+
+                        // Route with pagination: /blog/category/{term}/page/{page}/
+                        $routes["module-wepresta_acf-cpt-{$typeSlug}-taxonomy-{$taxonomySlug}-page"] = [
+                            'controller' => 'cpttaxonomy',
+                            'rule' => $urlPrefix . '/' . $taxonomySlug . '/{term}/page/{page}',
+                            'keywords' => [
+                                'term' => [
+                                    'regexp' => '[_a-zA-Z0-9-\pL]*',
+                                    'param' => 'term',
+                                ],
+                                'page' => [
+                                    'regexp' => '[0-9]*',
+                                    'param' => 'p',
+                                ],
+                            ],
+                            'params' => [
+                                'fc' => 'module',
+                                'module' => 'wepresta_acf',
+                                'controller' => 'cpttaxonomy',
+                                'type' => $typeSlug,
+                                'taxonomy' => $taxonomy->getId(),
+                            ],
+                        ];
+                    }
+                }
+
+                // =====================================================================
+                // PAGINATION ROUTE: /blog/page/{page}/
+                // =====================================================================
+                if ($type->hasArchive()) {
+                    $routes["module-wepresta_acf-cpt-{$typeSlug}-archive-page"] = [
+                        'controller' => 'cptarchive',
+                        'rule' => $urlPrefix . '/page/{page}',
+                        'keywords' => [
+                            'page' => [
+                                'regexp' => '[0-9]*',
+                                'param' => 'p',
+                            ],
+                        ],
+                        'params' => [
+                            'fc' => 'module',
+                            'module' => 'wepresta_acf',
+                            'controller' => 'cptarchive',
+                            'type' => $typeSlug,
+                        ],
+                    ];
+                }
             }
 
             return $routes;
         } catch (\Exception $e) {
+            // Log error but don't break the system
             return [];
         }
     }

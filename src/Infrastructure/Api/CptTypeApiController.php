@@ -52,7 +52,7 @@ final class CptTypeApiController extends AbstractApiController
                     'url_prefix' => $type->getUrlPrefix(),
                     'has_archive' => $type->hasArchive(),
                     'active' => $type->isActive(),
-                    'view_url' => $type->hasArchive() ? $this->urlService->getArchiveUrl($type) : null,
+                    'view_url' => $type->hasArchive() ? $this->urlService->getFriendlyUrl($type) : null,
                 ];
             }, $types);
             return $this->jsonSuccess($data);
@@ -82,7 +82,8 @@ final class CptTypeApiController extends AbstractApiController
                 'acf_groups' => $type->getAcfGroups(),
                 'acf_groups_full' => $this->getHydratedAcfGroups($type->getAcfGroups()),
                 'taxonomies' => $type->getTaxonomies(),
-                'view_url' => $type->hasArchive() ? $this->urlService->getArchiveUrl($type) : null,
+                'translations' => $type->getTranslations(),
+                'view_url' => $type->hasArchive() ? $this->urlService->getFriendlyUrl($type) : null,
             ];
             return $this->jsonSuccess($data);
         } catch (\Exception $e) {
@@ -137,6 +138,9 @@ final class CptTypeApiController extends AbstractApiController
                 $type->setHasArchive((bool) $data['has_archive']);
             if (isset($data['active']))
                 $type->setActive((bool) $data['active']);
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                $type->setTranslations($data['translations']);
+            }
             $this->repository->save($type);
             if (isset($data['acf_groups'])) {
                 $this->repository->syncGroups($id, $data['acf_groups']);

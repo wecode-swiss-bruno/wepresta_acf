@@ -170,7 +170,7 @@ onMounted(() => {
             type="button"
             class="btn btn-sm"
             :class="cptView === 'types' ? 'btn-primary' : 'btn-outline-secondary'"
-            @click="cptView = 'types'"
+            @click="cptView = 'types'; cptStore.viewMode = 'list'"
           >
             <i class="material-icons">article</i>
             Post Types

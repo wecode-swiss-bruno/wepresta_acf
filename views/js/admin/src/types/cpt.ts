@@ -21,6 +21,7 @@ export interface CptType {
   active?: boolean
   acf_groups?: number[]
   taxonomies?: number[]
+  translations?: Record<number, { name: string; description: string }>
   date_add?: string
   date_upd?: string
 }
@@ -51,6 +52,7 @@ export interface CptTaxonomy {
   config?: Record<string, any>
   active?: boolean
   terms?: CptTerm[]
+  translations?: Record<number, { name: string; description: string }>
   date_add?: string
   date_upd?: string
 }
@@ -66,6 +68,7 @@ export interface CptTerm {
   active?: boolean
   children?: CptTerm[]
   post_count?: number
+  translations?: Record<number, { name: string; description: string }>
 }
 
 export interface CptRelation {

@@ -110,26 +110,29 @@ class Wepresta_AcfCpttaxonomyModuleFrontController extends ModuleFrontController
 
     private function getTaxonomyTemplate(string $typeSlug, string $taxonomySlug): string
     {
-        // Template hierarchy:
-        // 1. theme/modules/wepresta_acf/cpt/taxonomy-{type}-{taxonomy}.tpl
-        // 2. theme/modules/wepresta_acf/cpt/taxonomy-{type}.tpl
-        // 3. theme/modules/wepresta_acf/cpt/taxonomy.tpl
-        // 4. module/views/templates/front/cpt/taxonomy.tpl
+        // Template hierarchy (PS8 & PS9 compatible):
+        // PrestaShop automatically handles theme overrides for module templates
+        // Theme override path: themes/{theme}/modules/wepresta_acf/views/templates/front/cpt/taxonomy.tpl
+        //
+        // 1. module:wepresta_acf/views/templates/front/cpt/taxonomy-{type}-{taxonomy}.tpl
+        // 2. module:wepresta_acf/views/templates/front/cpt/taxonomy-{type}.tpl
+        // 3. module:wepresta_acf/views/templates/front/cpt/taxonomy.tpl (generic fallback)
 
-        $themeDir = _PS_THEME_DIR_ . 'modules/wepresta_acf/cpt/';
+        $moduleDir = $this->module->getLocalPath() . 'views/templates/front/cpt/';
 
-        if (file_exists($themeDir . 'taxonomy-' . $typeSlug . '-' . $taxonomySlug . '.tpl')) {
+        // 1. Check for specific type-taxonomy template in MODULE
+        $specificModuleTemplate = $moduleDir . 'taxonomy-' . $typeSlug . '-' . $taxonomySlug . '.tpl';
+        if (file_exists($specificModuleTemplate)) {
             return 'module:wepresta_acf/views/templates/front/cpt/taxonomy-' . $typeSlug . '-' . $taxonomySlug . '.tpl';
         }
 
-        if (file_exists($themeDir . 'taxonomy-' . $typeSlug . '.tpl')) {
+        // 2. Check for specific type template in MODULE
+        $typeModuleTemplate = $moduleDir . 'taxonomy-' . $typeSlug . '.tpl';
+        if (file_exists($typeModuleTemplate)) {
             return 'module:wepresta_acf/views/templates/front/cpt/taxonomy-' . $typeSlug . '.tpl';
         }
 
-        if (file_exists($themeDir . 'taxonomy.tpl')) {
-            return 'module:wepresta_acf/views/templates/front/cpt/taxonomy.tpl';
-        }
-
+        // 3. Fallback to generic MODULE template (or theme override)
         return 'module:wepresta_acf/views/templates/front/cpt/taxonomy.tpl';
     }
 }

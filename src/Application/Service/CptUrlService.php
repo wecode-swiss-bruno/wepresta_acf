@@ -85,4 +85,24 @@ final class CptUrlService
 
         return '/' . $prefix;
     }
+    /**
+     * Get preview token for post
+     */
+    public function getPreviewToken(CptPost $post): string
+    {
+        return hash_hmac('sha256', (string) $post->getId(), _COOKIE_KEY_);
+    }
+
+    /**
+     * Get preview URL for post
+     */
+    public function getPreviewUrl(CptPost $post, CptType $type): string
+    {
+        $token = $this->getPreviewToken($post);
+        $url = $this->getFriendlyUrl($type, $post);
+
+        // Append token
+        $separator = (strpos($url, '?') === false) ? '?' : '&';
+        return $url . $separator . 'preview_token=' . $token;
+    }
 }

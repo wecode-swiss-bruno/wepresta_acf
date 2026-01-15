@@ -42,7 +42,21 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
         // Get post
         $post = $cptPostService->getPostBySlug($postSlug, $type->getId());
 
-        if (!$post || !$post->isPublished()) {
+        // Get preview token
+        $previewToken = Tools::getValue('preview_token');
+
+        // Check availability
+        $isPublished = $post && $post->isPublished();
+        $isValidPreview = false;
+
+        if (!$isPublished && $post && $previewToken) {
+            $expectedToken = $cptUrlService->getPreviewToken($post);
+            if (hash_equals($expectedToken, $previewToken)) {
+                $isValidPreview = true;
+            }
+        }
+
+        if (!$post || (!$isPublished && !$isValidPreview)) {
             Tools::redirect('404');
         }
 
@@ -70,7 +84,7 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
                 'id' => $type->getId(),
                 'slug' => $type->getSlug(),
                 'name' => $type->getName(),
-                'url' => $cptUrlService->getArchiveUrl($type),
+                'url' => $cptUrlService->getFriendlyUrl($type),
             ],
             'cpt_post' => [
                 'id' => $post->getId(),
@@ -89,21 +103,22 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
 
     private function getSingleTemplate(string $typeSlug): string
     {
-        // Template hierarchy:
-        // 1. theme/modules/wepresta_acf/cpt/single-{type}.tpl
-        // 2. theme/modules/wepresta_acf/cpt/single.tpl
-        // 3. module/views/templates/front/cpt/single.tpl
+        // Template hierarchy (PS8 & PS9 compatible):
+        // PrestaShop automatically handles theme overrides for module templates
+        // Theme override path: themes/{theme}/modules/wepresta_acf/views/templates/front/cpt/single.tpl
+        //
+        // 1. module:wepresta_acf/views/templates/front/cpt/single-{type}.tpl (type-specific)
+        // 2. module:wepresta_acf/views/templates/front/cpt/single.tpl (generic fallback)
 
-        $themeDir = _PS_THEME_DIR_ . 'modules/wepresta_acf/cpt/';
+        $moduleDir = $this->module->getLocalPath() . 'views/templates/front/cpt/';
 
-        if (file_exists($themeDir . 'single-' . $typeSlug . '.tpl')) {
+        // 1. Check for specific CPT template in MODULE (or theme override)
+        $specificModuleTemplate = $moduleDir . 'single-' . $typeSlug . '.tpl';
+        if (file_exists($specificModuleTemplate)) {
             return 'module:wepresta_acf/views/templates/front/cpt/single-' . $typeSlug . '.tpl';
         }
 
-        if (file_exists($themeDir . 'single.tpl')) {
-            return 'module:wepresta_acf/views/templates/front/cpt/single.tpl';
-        }
-
+        // 2. Fallback to generic MODULE template (or theme override)
         return 'module:wepresta_acf/views/templates/front/cpt/single.tpl';
     }
 

@@ -258,6 +258,19 @@ export const useCptStore = defineStore('cpt', () => {
     }
   }
 
+  async function fetchTerm(id: number) {
+    loading.value = true
+    try {
+      const data = await fetchJson<{ data: CptTerm }>(`/cpt/terms/${id}`)
+      return data.data
+    } catch (e: any) {
+      console.error('Error fetching term:', e)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function createTerm(taxonomyId: number, termData: Partial<CptTerm>) {
     loading.value = true
     try {
@@ -407,8 +420,8 @@ export const useCptStore = defineStore('cpt', () => {
     viewMode.value = 'edit'
   }
 
-  function editType(id: number) {
-    fetchType(id)
+  async function editType(id: number) {
+    await fetchType(id)
     viewMode.value = 'edit'
   }
 
@@ -497,6 +510,7 @@ export const useCptStore = defineStore('cpt', () => {
     createTerm,
     updateTerm,
     deleteTerm,
+    fetchTerm,
 
     // Post actions
     fetchPostsByType,

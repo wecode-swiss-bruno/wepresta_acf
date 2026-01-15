@@ -11,15 +11,13 @@ if (!defined('_PS_VERSION_')) {
 }
 
 /**
- * Location Provider for Custom Post Types.
- *
- * Dynamically exposes all CPT types as location options in the ACF Builder.
- * This allows ACF groups to target specific CPT types via Location Rules.
+ * Location provider for Custom Post Types.
+ * Dynamically loads CPT types from database and exposes them as ACF locations.
  */
 final class CptLocationProvider implements LocationProviderInterface
 {
     public function __construct(
-        private readonly CptTypeRepositoryInterface $typeRepository
+        private readonly ?CptTypeRepositoryInterface $typeRepository = null
     ) {
     }
 
@@ -33,35 +31,35 @@ final class CptLocationProvider implements LocationProviderInterface
         return 'Custom Post Types';
     }
 
-    public function getPriority(): int
-    {
-        return 50; // After core providers
-    }
-
-    /**
-     * Get all CPT types as location options.
-     *
-     * @return array<array{type: string, value: string, label: string, group: string, icon?: string, description?: string}>
-     */
     public function getLocations(): array
     {
         $locations = [];
 
         try {
-            $types = $this->typeRepository->findActive();
+            $types = $this->typeRepository?->findAll() ?? [];
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
 
             foreach ($types as $type) {
+                if (!$type->isActive()) {
+                    continue;
+                }
+
+                // Get name for current language (getName() can return array or string)
+                $name = $type->getName($defaultLangId);
+                if (is_array($name)) {
+                    $name = reset($name) ?: $type->getSlug();
+                }
+
+                // Add each CPT type as a location option
+                // Format: cpt_post:slug (e.g., cpt_post:blog)
                 $locations[] = [
-                    'type' => 'cpt_type',
+                    'type' => 'entity_type',
                     'value' => 'cpt_post:' . $type->getSlug(),
-                    'label' => $type->getName() ?: $type->getSlug(),
+                    'label' => $name,
                     'group' => 'Custom Post Types',
                     'icon' => $type->getIcon() ?: 'article',
-                    'description' => sprintf('Display on %s posts', $type->getName() ?: $type->getSlug()),
+                    'description' => sprintf('Display fields on %s posts', $name),
                     'enabled' => true,
-                    'integration_type' => 'active',
-                    'cpt_type_id' => $type->getId(),
-                    'cpt_type_slug' => $type->getSlug(),
                 ];
             }
         } catch (\Exception $e) {
@@ -71,40 +69,37 @@ final class CptLocationProvider implements LocationProviderInterface
         return $locations;
     }
 
-    /**
-     * Match a location rule against the current context.
-     *
-     * Supports rules like:
-     * - {"==": [{"var": "entity_type"}, "cpt_post:blog_articles"]}
-     * - Legacy: {"type": "cpt_type", "operator": "equals", "value": "blog_articles"}
-     *
-     * @param array<string, mixed> $rule
-     * @param array<string, mixed> $context
-     */
     public function matchLocation(array $rule, array $context): bool
     {
         $ruleType = $rule['type'] ?? '';
         $ruleValue = $rule['value'] ?? '';
         $ruleOperator = $rule['operator'] ?? 'equals';
 
-        // Only handle CPT type rules
-        if ($ruleType !== 'cpt_type') {
-            return false;
-        }
-
-        // Check if context is for a CPT post
+        // Handle cpt_post:slug format
+        if ($ruleType === 'entity_type' && str_starts_with($ruleValue, 'cpt_post:')) {
         $contextEntityType = $context['entity_type'] ?? '';
+
+            // First check if we're dealing with a cpt_post entity
         if ($contextEntityType !== 'cpt_post') {
+                return $ruleOperator === 'not_equals';
+            }
+
+            // Extract the slug from the rule value
+            $ruleSlug = substr($ruleValue, strlen('cpt_post:'));
+            $contextSlug = $context['cpt_type_slug'] ?? '';
+
+            return match ($ruleOperator) {
+                'equals' => $ruleSlug === $contextSlug,
+                'not_equals' => $ruleSlug !== $contextSlug,
+                default => false,
+            };
+        }
+
             return false;
         }
 
-        // Get the CPT type slug from context
-        $contextCptSlug = $context['cpt_type_slug'] ?? '';
-
-        return match ($ruleOperator) {
-            'equals' => $ruleValue === $contextCptSlug,
-            'not_equals' => $ruleValue !== $contextCptSlug,
-            default => false,
-        };
+    public function getPriority(): int
+    {
+        return 10; // Higher priority than core provider
     }
 }

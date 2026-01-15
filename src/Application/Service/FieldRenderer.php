@@ -746,6 +746,11 @@ final class FieldRenderer
         $multiple = $config['multiple'] ?? false;
         $langId = $this->getCurrentLangId();
 
+        // Convert string "4,2" to array [4, 2]
+        if (\is_string($value) && !empty($value)) {
+            $value = array_map('intval', array_filter(array_map('trim', explode(',', $value))));
+        }
+
         // Handle array of IDs
         if (\is_array($value)) {
             // Check if already enriched (has 'id' key in first item)

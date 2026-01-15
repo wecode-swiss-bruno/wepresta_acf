@@ -551,7 +551,7 @@ final class AcfFrontService
     public function getActiveGroupsArray(): array
     {
         return iterator_to_array($this->getActiveGroups());
-    }
+        }
 
     /**
      * Check if group matches current context location rules.
@@ -565,8 +565,8 @@ final class AcfFrontService
         $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
 
         if (empty($locationRules)) {
-            return false;
-        }
+                return false;
+            }
 
         // Location rules use OR logic: any rule matching = group is shown
         return $this->locationProviderRegistry->matchLocation($locationRules, array_merge($this->extraContext, [

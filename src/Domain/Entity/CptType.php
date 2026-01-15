@@ -51,8 +51,26 @@ final class CptType
 
         $this->uuid = $data['uuid'] ?? $this->generateUuid();
         $this->slug = $data['slug'] ?? '';
-        $this->setName($data['name'] ?? '');
-        $this->setDescription($data['description'] ?? null);
+        
+        // Decode JSON for name if it's a string
+        $name = $data['name'] ?? '';
+        if (is_string($name) && !empty($name)) {
+            $decoded = json_decode($name, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $name = $decoded;
+            }
+        }
+        $this->setName($name);
+        
+        // Decode JSON for description if it's a string
+        $description = $data['description'] ?? null;
+        if (is_string($description) && !empty($description)) {
+            $decoded = json_decode($description, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $description = $decoded;
+            }
+        }
+        $this->setDescription($description);
 
         if (isset($data['config'])) {
             $this->config = is_string($data['config']) ? json_decode($data['config'], true) : $data['config'];
@@ -80,6 +98,11 @@ final class CptType
             $this->dateUpd = $data['date_upd'] instanceof \DateTimeImmutable
                 ? $data['date_upd']
                 : new \DateTimeImmutable($data['date_upd']);
+        }
+
+        // Handle translations
+        if (isset($data['translations']) && is_array($data['translations'])) {
+            $this->setTranslations($data['translations']);
         }
     }
 

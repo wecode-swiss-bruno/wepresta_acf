@@ -3,7 +3,8 @@
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-header-title">Taxonomies</h3>
-        <button class="btn btn-primary btn-sm" @click="showCreateTaxonomy = true">
+        <h3 class="card-header-title">Taxonomies</h3>
+        <button class="btn btn-primary btn-sm" @click="openCreateModal">
           <i class="material-icons">add</i>
           New Taxonomy
         </button>
@@ -37,6 +38,13 @@
                 Terms
               </button>
               <button
+                class="btn btn-sm btn-outline-primary"
+                @click="editTaxonomy(taxonomy)"
+                title="Edit"
+              >
+                <i class="material-icons">edit</i>
+              </button>
+              <button
                 class="btn btn-sm btn-outline-danger"
                 @click="deleteTaxonomy(taxonomy)"
                 title="Delete"
@@ -54,51 +62,102 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">New Taxonomy</h5>
+            <h5 class="modal-title">{{ isEdit ? 'Edit Taxonomy' : 'New Taxonomy' }}</h5>
             <button type="button" class="close" @click="showCreateTaxonomy = false">
               <span>&times;</span>
             </button>
           </div>
           <div class="modal-body">
-            <div class="form-group">
-              <label for="tax_name">Name *</label>
-              <input
-                id="tax_name"
-                v-model="taxonomyForm.name"
-                type="text"
-                class="form-control"
-                required
-                @input="generateTaxSlug"
-              />
+            <!-- Translatable Fields -->
+            <div class="translations tabbable" v-if="languages.length > 1">
+              <ul class="translationsLocales nav nav-pills">
+                <li v-for="lang in languages" :key="lang.id_lang" class="nav-item">
+                  <a
+                    href="#"
+                    class="nav-link"
+                    :class="{ active: currentLangCode === lang.iso_code }"
+                    @click.prevent="currentLangCode = lang.iso_code"
+                  >
+                    {{ lang.iso_code.toUpperCase() }}
+                  </a>
+                </li>
+              </ul>
+              <div class="translationsFields tab-content mt-2">
+                <div
+                  v-for="lang in languages"
+                  :key="lang.id_lang"
+                  class="tab-pane"
+                  :class="{ active: currentLangCode === lang.iso_code, show: currentLangCode === lang.iso_code }"
+                >
+                  <div class="form-group">
+                    <label :for="`tax_name_${lang.id_lang}`">Name * ({{ lang.iso_code.toUpperCase() }})</label>
+                    <input
+                      :id="`tax_name_${lang.id_lang}`"
+                      v-model="taxTranslations[lang.id_lang].name"
+                      type="text"
+                      class="form-control"
+                      :required="lang.is_default"
+                      @input="lang.is_default && generateTaxSlug()"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label :for="`tax_description_${lang.id_lang}`">Description ({{ lang.iso_code.toUpperCase() }})</label>
+                    <textarea
+                      :id="`tax_description_${lang.id_lang}`"
+                      v-model="taxTranslations[lang.id_lang].description"
+                      class="form-control"
+                      rows="2"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Single language fallback -->
+            <div v-else>
+              <div class="form-group">
+                <label for="tax_name">Name *</label>
+                <input
+                  id="tax_name"
+                  v-model="taxonomyForm.name"
+                  type="text"
+                  class="form-control"
+                  required
+                  @input="generateTaxSlug"
+                />
+              </div>
+              <div class="form-group">
+                <label for="tax_description">Description</label>
+                <textarea
+                  id="tax_description"
+                  v-model="taxonomyForm.description"
+                  class="form-control"
+                  rows="2"
+                ></textarea>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="tax_slug">Slug *</label>
+            <div class="form-group mt-3">
+              <label for="taxonomy_slug">Slug *</label>
               <input
-                id="tax_slug"
+                id="taxonomy_slug"
                 v-model="taxonomyForm.slug"
                 type="text"
                 class="form-control"
                 required
+                :disabled="isEdit"
               />
-            </div>
-
-            <div class="form-group">
-              <label for="tax_description">Description</label>
-              <textarea
-                id="tax_description"
-                v-model="taxonomyForm.description"
-                class="form-control"
-                rows="2"
-              ></textarea>
+              <small v-if="isEdit" class="form-text text-muted">
+                <i class="material-icons" style="font-size: 14px; vertical-align: text-bottom;">lock</i>
+                Slug cannot be modified after creation.
+              </small>
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showCreateTaxonomy = false">
               Cancel
             </button>
-            <button type="button" class="btn btn-primary" @click="createTaxonomy">
-              Create
+            <button type="button" class="btn btn-primary" @click="saveTaxonomy">
+              {{ isEdit ? 'Update' : 'Create' }}
             </button>
           </div>
         </div>
@@ -108,11 +167,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
 
 const cptStore = useCptStore()
 const showCreateTaxonomy = ref(false)
+const isEdit = ref(false)
+const editId = ref<number | null>(null)
+
+// Languages
+const languages = computed(() => (window as any).acfConfig?.languages || [])
+const defaultLanguage = computed(() => languages.value.find((l: any) => l.is_default) || languages.value[0])
+const currentLangCode = ref('')
+
+watch(languages, (langs) => {
+  if (langs.length > 0 && !currentLangCode.value) {
+    currentLangCode.value = defaultLanguage.value?.iso_code || langs[0].iso_code
+  }
+}, { immediate: true })
+
+// Translations state
+const taxTranslations = reactive<Record<number, { name: string; description: string }>>({})
+
+// Initialize translations when modal opens
+watch(showCreateTaxonomy, (show) => {
+  if (show) {
+    languages.value.forEach((lang: any) => {
+      if (!taxTranslations[lang.id_lang]) {
+        taxTranslations[lang.id_lang] = { name: '', description: '' }
+      }
+    })
+  }
+})
 
 const taxonomyForm = reactive({
   name: '',
@@ -122,25 +208,116 @@ const taxonomyForm = reactive({
 })
 
 function generateTaxSlug() {
-  taxonomyForm.slug = taxonomyForm.name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '')
+  if (!isEdit.value) {
+    const defaultLangId = defaultLanguage.value?.id_lang
+    const sourceName = defaultLangId && taxTranslations[defaultLangId]
+      ? taxTranslations[defaultLangId].name
+      : taxonomyForm.name
+    
+    taxonomyForm.slug = (sourceName || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '')
+  }
 }
 
-async function createTaxonomy() {
-  const success = await cptStore.createTaxonomy(taxonomyForm)
+function resetForm() {
+  taxonomyForm.name = ''
+  taxonomyForm.slug = ''
+  taxonomyForm.description = ''
+  taxonomyForm.hierarchical = true
+  isEdit.value = false
+  editId.value = null
+  
+  // Reset translations
+  Object.keys(taxTranslations).forEach((key) => {
+    taxTranslations[parseInt(key)] = { name: '', description: '' }
+  })
+}
+
+function openCreateModal() {
+  resetForm()
+  showCreateTaxonomy.value = true
+}
+
+async function editTaxonomy(taxonomy: any) {
+  resetForm()
+  isEdit.value = true
+  editId.value = taxonomy.id
+  
+  // Ensure translations are initialized
+  languages.value.forEach((lang: any) => {
+    if (!taxTranslations[lang.id_lang]) {
+      taxTranslations[lang.id_lang] = { name: '', description: '' }
+    }
+  })
+  
+  // Fetch full taxonomy data including translations
+  const fullTaxonomy = await cptStore.fetchTaxonomy(taxonomy.id)
+  
+  if (fullTaxonomy) {
+    taxonomyForm.name = fullTaxonomy.name
+    taxonomyForm.slug = fullTaxonomy.slug
+    taxonomyForm.description = fullTaxonomy.description || ''
+    taxonomyForm.hierarchical = fullTaxonomy.hierarchical !== false
+    
+    // Load translations
+    if (fullTaxonomy.translations) {
+      const translations = fullTaxonomy.translations
+      Object.keys(translations).forEach((langId) => {
+        const id = parseInt(langId)
+        if (taxTranslations[id]) {
+          taxTranslations[id] = {
+            name: translations[langId]?.name || '',
+            description: translations[langId]?.description || ''
+          }
+        }
+      })
+    }
+
+    // Fallback for legacy data (if translations missing)
+    const defaultLangId = defaultLanguage.value?.id_lang
+    if (defaultLangId && (!taxTranslations[defaultLangId]?.name || taxTranslations[defaultLangId].name === '') && fullTaxonomy.name) {
+      if (taxTranslations[defaultLangId]) {
+        taxTranslations[defaultLangId].name = fullTaxonomy.name
+        if (fullTaxonomy.description) {
+           taxTranslations[defaultLangId].description = fullTaxonomy.description
+        }
+      }
+    }
+    
+    showCreateTaxonomy.value = true
+  }
+}
+
+async function saveTaxonomy() {
+  // Set default name/description from default language translation
+  const defaultLangId = defaultLanguage.value?.id_lang
+  if (defaultLangId && taxTranslations[defaultLangId]) {
+    taxonomyForm.name = taxTranslations[defaultLangId].name
+    taxonomyForm.description = taxTranslations[defaultLangId].description
+  }
+
+  const payload = {
+    ...taxonomyForm,
+    translations: { ...taxTranslations }
+  }
+
+  let success = false
+  if (isEdit.value && editId.value) {
+    success = await cptStore.updateTaxonomy(editId.value, payload)
+  } else {
+    success = await cptStore.createTaxonomy(payload)
+  }
   
   if (success) {
     showCreateTaxonomy.value = false
-    taxonomyForm.name = ''
-    taxonomyForm.slug = ''
-    taxonomyForm.description = ''
+    resetForm()
   }
 }
 
 function manageTerms(taxonomy: any) {
-  cptStore.manageTaxonomyTerms(taxonomy)
+  cptStore.manageTerms(taxonomy)
 }
 
 function deleteTaxonomy(taxonomy: any) {
