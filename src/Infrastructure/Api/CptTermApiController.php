@@ -47,7 +47,8 @@ final class CptTermApiController extends AbstractApiController
     public function show(int $id, Request $request): JsonResponse
     {
         try {
-            $term = $this->repository->find($id, $this->context->getLangId());
+            // Pass null for langId to fetch all translations
+            $term = $this->repository->find($id, null);
             if (!$term) {
                 return $this->jsonError('Term not found', Response::HTTP_NOT_FOUND);
             }
@@ -85,13 +86,17 @@ final class CptTermApiController extends AbstractApiController
     public function update(int $id, Request $request): JsonResponse
     {
         try {
-            $term = $this->repository->find($id);
+            // Load with all translations (null = all langs)
+            $term = $this->repository->find($id, null);
             if (!$term) {
                 return $this->jsonError('Term not found', Response::HTTP_NOT_FOUND);
             }
             $data = json_decode($request->getContent(), true);
             if (isset($data['name']))
                 $term->setName($data['name']);
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                $term->setTranslations($data['translations']);
+            }
             $this->repository->save($term);
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
@@ -119,6 +124,7 @@ final class CptTermApiController extends AbstractApiController
             'slug' => $term->getSlug(),
             'name' => $term->getName(),
             'description' => $term->getDescription(),
+            'translations' => $term->getTranslations(),
             'parent_id' => $term->getParentId(),
         ];
         if (!empty($term->getChildren())) {

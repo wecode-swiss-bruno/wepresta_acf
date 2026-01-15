@@ -55,6 +55,11 @@ final class CptTerm
                 ? $data['date_upd']
                 : new \DateTimeImmutable($data['date_upd']);
         }
+
+        // Handle translations
+        if (isset($data['translations']) && is_array($data['translations'])) {
+            $this->setTranslations($data['translations']);
+        }
     }
 
     // Getters
@@ -80,12 +85,12 @@ final class CptTerm
 
     public function getName(): string
     {
-        return $this->translations['name'] ?? $this->name;
+        return $this->name;
     }
 
     public function getDescription(): ?string
     {
-        return $this->translations['description'] ?? $this->description;
+        return $this->description;
     }
 
     public function getPosition(): int

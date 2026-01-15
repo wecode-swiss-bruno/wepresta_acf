@@ -66,7 +66,10 @@ final class CptTaxonomyRepository extends AbstractRepository implements CptTaxon
     {
         $rows = $this->findBy([], null, $limit);
         return array_map(function ($row) {
-            return new CptTaxonomy($row);
+            $taxonomy = new CptTaxonomy($row);
+            // Load all translations for each taxonomy
+            $taxonomy->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_taxonomy']));
+            return $taxonomy;
         }, $rows);
     }
 
@@ -87,12 +90,19 @@ final class CptTaxonomyRepository extends AbstractRepository implements CptTaxon
 
     public function findWithTerms(int $id, ?int $langId = null): ?CptTaxonomy
     {
-        $taxonomy = $this->find($id, $langId);
-        if (!$taxonomy) {
+        $row = $this->findOneBy([$this->getPrimaryKey() => $id]);
+        if (!$row) {
             return null;
         }
-        $terms = $this->getTerms($id);
+        $taxonomy = new CptTaxonomy($row);
+        
+        // Always load all translations for editor
+        $taxonomy->setTranslations($this->getTranslations($id));
+        
+        // Load terms with translations
+        $terms = $this->getTermsWithTranslations($id);
         $taxonomy->setTerms($terms);
+        
         return $taxonomy;
     }
 
@@ -133,11 +143,25 @@ final class CptTaxonomyRepository extends AbstractRepository implements CptTaxon
         return true;
     }
 
-    private function getTranslations(int $id, int $langId): array
+    private function getTranslations(int $id, ?int $langId = null): array
     {
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'wepresta_acf_cpt_taxonomy_lang 
-                WHERE id_wepresta_acf_cpt_taxonomy = ' . (int) $id . ' AND id_lang = ' . (int) $langId;
-        return \Db::getInstance()->getRow($sql) ?: [];
+                WHERE id_wepresta_acf_cpt_taxonomy = ' . (int) $id;
+
+        if ($langId !== null) {
+            $sql .= ' AND id_lang = ' . (int) $langId;
+            $row = \Db::getInstance()->getRow($sql);
+            return $row ? [$langId => $row] : [];
+        }
+
+        $rows = \Db::getInstance()->executeS($sql);
+        $translations = [];
+        if ($rows) {
+            foreach ($rows as $row) {
+                $translations[$row['id_lang']] = $row;
+            }
+        }
+        return $translations;
     }
 
     private function saveTranslations(int $id, array $translations): void
@@ -159,5 +183,30 @@ final class CptTaxonomyRepository extends AbstractRepository implements CptTaxon
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'wepresta_acf_cpt_term 
                 WHERE id_wepresta_acf_cpt_taxonomy = ' . (int) $taxonomyId . ' ORDER BY position ASC';
         return \Db::getInstance()->executeS($sql) ?: [];
+    }
+
+    private function getTermsWithTranslations(int $taxonomyId): array
+    {
+        $terms = $this->getTerms($taxonomyId);
+        return array_map(function ($row) {
+            $term = new \WeprestaAcf\Domain\Entity\CptTerm($row);
+            // Load all translations
+            $term->setTranslations($this->getTermTranslations((int) $row['id_wepresta_acf_cpt_term']));
+            return $term;
+        }, $terms);
+    }
+
+    private function getTermTranslations(int $termId): array
+    {
+        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'wepresta_acf_cpt_term_lang 
+                WHERE id_wepresta_acf_cpt_term = ' . (int) $termId;
+        $rows = \Db::getInstance()->executeS($sql);
+        $translations = [];
+        if ($rows) {
+            foreach ($rows as $row) {
+                $translations[$row['id_lang']] = $row;
+            }
+        }
+        return $translations;
     }
 }

@@ -90,9 +90,9 @@ final class CptTermRepository extends AbstractRepository implements CptTermRepos
 
     public function getTree(int $taxonomyId, ?int $langId = null): array
     {
-        $topLevelTerms = $this->findTopLevel($taxonomyId, $langId);
+        $topLevelTerms = $this->findTopLevel($taxonomyId, null);
         foreach ($topLevelTerms as $term) {
-            $this->loadChildren($term, $langId);
+            $this->loadChildren($term, null);
         }
         return $topLevelTerms;
     }
@@ -145,18 +145,33 @@ final class CptTermRepository extends AbstractRepository implements CptTermRepos
         if ($term->getId() === null) {
             return;
         }
-        $children = $this->findChildren($term->getId(), $langId);
+        // Always load all translations
+        $children = $this->findChildren($term->getId(), null);
         $term->setChildren($children);
         foreach ($children as $child) {
-            $this->loadChildren($child, $langId);
+            $this->loadChildren($child, null);
         }
     }
 
-    private function getTranslations(int $id, int $langId): array
+    private function getTranslations(int $id, ?int $langId = null): array
     {
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'wepresta_acf_cpt_term_lang 
-                WHERE id_wepresta_acf_cpt_term = ' . (int) $id . ' AND id_lang = ' . (int) $langId;
-        return \Db::getInstance()->getRow($sql) ?: [];
+                WHERE id_wepresta_acf_cpt_term = ' . (int) $id;
+
+        if ($langId !== null) {
+            $sql .= ' AND id_lang = ' . (int) $langId;
+            $row = \Db::getInstance()->getRow($sql);
+            return $row ? [$langId => $row] : [];
+        }
+
+        $rows = \Db::getInstance()->executeS($sql);
+        $translations = [];
+        if ($rows) {
+            foreach ($rows as $row) {
+                $translations[$row['id_lang']] = $row;
+            }
+        }
+        return $translations;
     }
 
     private function saveTranslations(int $id, array $translations): void
