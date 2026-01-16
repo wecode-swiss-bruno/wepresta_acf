@@ -520,11 +520,16 @@ onMounted(initForm)
 
 function generateSlug() {
   if (!isEdit.value) {
-    // Use default language name for slug
-    const defaultLangId = defaultLanguage.value?.id_lang
-    const sourceName = defaultLangId && translations[defaultLangId]
-      ? translations[defaultLangId].name
-      : formData.name
+    // In single-language mode, use formData.name directly
+    let sourceName = formData.name
+    
+    // In multi-language mode, use translations
+    if (languages.value.length > 1) {
+      const defaultLangId = defaultLanguage.value?.id_lang
+      if (defaultLangId && translations[defaultLangId] && translations[defaultLangId].name) {
+        sourceName = translations[defaultLangId].name
+      }
+    }
     
     formData.slug = (sourceName || '')
       .toLowerCase()

@@ -386,10 +386,16 @@ async function bulkDelete(ids: number[]): Promise<void> {
 
 function generateSlug() {
   if (!isEdit.value) {
-    const defaultLangId = defaultLanguage.value?.id_lang
-    const sourceName = defaultLangId && termTranslations[defaultLangId]
-      ? termTranslations[defaultLangId].name
-      : termForm.name
+    // In single-language mode, use termForm.name directly
+    let sourceName = termForm.name
+    
+    // In multi-language mode, use translations
+    if (languages.value.length > 1) {
+      const defaultLangId = defaultLanguage.value?.id_lang
+      if (defaultLangId && termTranslations[defaultLangId] && termTranslations[defaultLangId].name) {
+        sourceName = termTranslations[defaultLangId].name
+      }
+    }
 
     termForm.slug = (sourceName || '')
       .toLowerCase()

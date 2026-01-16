@@ -269,6 +269,8 @@ onMounted(async () => {
       seo_description: '' 
     }
   })
+  
+  console.log('[CptPostBuilder] Initialized translations for languages:', languages.value, 'translations:', translations.value)
 
   // Fetch relations for this type
   if (cptStore.currentType?.id) {
@@ -439,16 +441,8 @@ function onTitleInput(event: Event, langId: number) {
 async function handleSubmit() {
   saving.value = true
   try {
-    // In single-language mode, sync formData to translations first
-    if (defaultLanguage.value && languages.value.length === 1) {
-      const langId = defaultLanguage.value.id_lang
-      if (!translations.value[langId]) {
-        translations.value[langId] = { title: '', seo_title: '', seo_description: '' }
-      }
-      translations.value[langId].title = formData.value.title || ''
-      translations.value[langId].seo_title = formData.value.seo_title || ''
-      translations.value[langId].seo_description = formData.value.seo_description || ''
-    }
+    console.log('[CptPostBuilder] Before submit - translations:', JSON.stringify(translations.value))
+    console.log('[CptPostBuilder] Before submit - formData:', JSON.stringify(formData.value))
     
     // Add translations to payload
     const payload = {
@@ -462,6 +456,8 @@ async function handleSubmit() {
         payload.seo_title = defTrans.seo_title
         payload.seo_description = defTrans.seo_description
     }
+    
+    console.log('[CptPostBuilder] Final payload:', JSON.stringify(payload))
 
     if (isEdit.value) {
       await cptStore.updatePost(props.postId!, cptStore.currentType!.slug, payload)

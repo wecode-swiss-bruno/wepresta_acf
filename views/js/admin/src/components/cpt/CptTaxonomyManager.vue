@@ -383,10 +383,16 @@ async function bulkDelete(ids: number[]): Promise<void> {
 
 function generateTaxSlug() {
   if (!isEdit.value) {
-    const defaultLangId = defaultLanguage.value?.id_lang
-    const sourceName = defaultLangId && taxTranslations[defaultLangId]
-      ? taxTranslations[defaultLangId].name
-      : taxonomyForm.name
+    // In single-language mode, use taxonomyForm.name directly
+    let sourceName = taxonomyForm.name
+    
+    // In multi-language mode, use translations
+    if (languages.value.length > 1) {
+      const defaultLangId = defaultLanguage.value?.id_lang
+      if (defaultLangId && taxTranslations[defaultLangId] && taxTranslations[defaultLangId].name) {
+        sourceName = taxTranslations[defaultLangId].name
+      }
+    }
     
     taxonomyForm.slug = (sourceName || '')
       .toLowerCase()
