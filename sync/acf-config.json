@@ -1,6 +1,6 @@
 {
     "version": "1.0",
-    "exported_at": "2026-01-16T15:08:58+01:00",
+    "exported_at": "2026-01-16T16:09:15+01:00",
     "module_version": "1.0.0",
     "prestashop_version": "9.0.2",
     "groups": [
@@ -103,9 +103,110 @@
                     "value_index": "dedede"
                 }
             ]
+        },
+        {
+            "uuid": "639613fc-8fda-4f08-9b54-888ee111481c",
+            "title": "test (Copy)",
+            "slug": "test_copy",
+            "description": "",
+            "location_rules": [
+                {
+                    "==": [
+                        {
+                            "var": "entity_type"
+                        },
+                        "cpt_post:blog"
+                    ]
+                }
+            ],
+            "placement_tab": "extra",
+            "placement_position": "",
+            "position": 10,
+            "priority": 10,
+            "active": false,
+            "bo_options": [],
+            "fo_options": [],
+            "shop_ids": [
+                1
+            ],
+            "fields": [
+                {
+                    "id": 7,
+                    "uuid": "193c087f-4050-44c3-8862-3848513169e9",
+                    "id_parent": null,
+                    "type": "text",
+                    "title": "Text Field",
+                    "slug": "text_field",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": []
+                },
+                {
+                    "id": 8,
+                    "uuid": "223860ed-d656-4166-9aca-77751f46ad5e",
+                    "id_parent": null,
+                    "type": "richtext",
+                    "title": "Rich Text Editor",
+                    "slug": "rich_text_editor",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": []
+                }
+            ],
+            "field_values": []
         }
     ],
-    "cpt_types": [],
+    "cpt_types": [
+        {
+            "uuid": "4c153dd5-a328-4ed6-b89b-14bba46ef5a5",
+            "slug": "dede",
+            "name": {
+                "2": "dede"
+            },
+            "description": {
+                "2": "ded"
+            },
+            "config": [],
+            "url_prefix": "dede",
+            "has_archive": true,
+            "archive_slug": "",
+            "seo_config": {
+                "title_pattern": "{title} - {shop_name}",
+                "description_pattern": ""
+            },
+            "icon": "article",
+            "position": 0,
+            "active": true,
+            "translations": {
+                "2": {
+                    "id_wepresta_acf_cpt_type": 5,
+                    "id_lang": 2,
+                    "name": "dede",
+                    "description": "ded"
+                }
+            },
+            "acf_groups": [],
+            "taxonomies": []
+        }
+    ],
     "cpt_taxonomies": [
         {
             "uuid": "ca7afadc-0472-4b70-8044-dfe4a9d91363",
@@ -142,6 +243,6 @@
         }
     ],
     "cpt_posts": [],
-    "timestamp": 1768572538,
-    "updated_at": "2026-01-16T15:08:58+01:00"
+    "timestamp": 1768576155,
+    "updated_at": "2026-01-16T16:09:15+01:00"
 }

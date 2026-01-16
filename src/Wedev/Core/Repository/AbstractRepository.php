@@ -418,6 +418,9 @@ abstract class AbstractRepository
                 $escaped[pSQL($key)] = $value ? 1 : 0;
             } elseif (\is_int($value) || \is_float($value)) {
                 $escaped[pSQL($key)] = $value;
+            } elseif (\is_array($value)) {
+                // Convert arrays to JSON strings before escaping
+                $escaped[pSQL($key)] = pSQL(json_encode($value));
             } else {
                 $escaped[pSQL($key)] = pSQL((string) $value);
             }
