@@ -2,16 +2,15 @@
   <div class="cpt-taxonomy-manager">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-header-title">Taxonomies</h3>
-        <h3 class="card-header-title">Taxonomies</h3>
+        <h3 class="card-header-title">{{ t('taxonomies') }}</h3>
         <button class="btn btn-primary btn-sm" @click="openCreateModal">
           <i class="material-icons">add</i>
-          New Taxonomy
+          {{ t('newTaxonomy') }}
         </button>
       </div>
       <div class="card-body">
         <div v-if="cptStore.taxonomies.length === 0" class="alert alert-info">
-          No taxonomies yet. Create your first one!
+          {{ t('noTaxonomiesYet') }}
         </div>
 
         <div v-else class="list-group">
@@ -32,22 +31,22 @@
               <button
                 class="btn btn-sm btn-outline-secondary"
                 @click="manageTerms(taxonomy)"
-                title="Manage Terms"
+                :title="t('manageTerms')"
               >
                 <i class="material-icons">category</i>
-                Terms
+                {{ t('terms') }}
               </button>
               <button
                 class="btn btn-sm btn-outline-primary"
                 @click="editTaxonomy(taxonomy)"
-                title="Edit"
+                :title="t('edit')"
               >
                 <i class="material-icons">edit</i>
               </button>
               <button
                 class="btn btn-sm btn-outline-danger"
                 @click="deleteTaxonomy(taxonomy)"
-                title="Delete"
+                :title="t('delete')"
               >
                 <i class="material-icons">delete</i>
               </button>
@@ -62,7 +61,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ isEdit ? 'Edit Taxonomy' : 'New Taxonomy' }}</h5>
+            <h5 class="modal-title">{{ isEdit ? t('editTaxonomy') : t('newTaxonomy') }}</h5>
             <button type="button" class="close" @click="showCreateTaxonomy = false">
               <span>&times;</span>
             </button>
@@ -90,7 +89,7 @@
                   :class="{ active: currentLangCode === lang.iso_code, show: currentLangCode === lang.iso_code }"
                 >
                   <div class="form-group">
-                    <label :for="`tax_name_${lang.id_lang}`">Name * ({{ lang.iso_code.toUpperCase() }})</label>
+                    <label :for="`tax_name_${lang.id_lang}`">{{ t('name') }} * ({{ lang.iso_code.toUpperCase() }})</label>
                     <input
                       :id="`tax_name_${lang.id_lang}`"
                       v-model="taxTranslations[lang.id_lang].name"
@@ -101,7 +100,7 @@
                     />
                   </div>
                   <div class="form-group">
-                    <label :for="`tax_description_${lang.id_lang}`">Description ({{ lang.iso_code.toUpperCase() }})</label>
+                    <label :for="`tax_description_${lang.id_lang}`">{{ t('description') }} ({{ lang.iso_code.toUpperCase() }})</label>
                     <textarea
                       :id="`tax_description_${lang.id_lang}`"
                       v-model="taxTranslations[lang.id_lang].description"
@@ -115,7 +114,7 @@
             <!-- Single language fallback -->
             <div v-else>
               <div class="form-group">
-                <label for="tax_name">Name *</label>
+                <label for="tax_name">{{ t('name') }} *</label>
                 <input
                   id="tax_name"
                   v-model="taxonomyForm.name"
@@ -126,7 +125,7 @@
                 />
               </div>
               <div class="form-group">
-                <label for="tax_description">Description</label>
+                <label for="tax_description">{{ t('description') }}</label>
                 <textarea
                   id="tax_description"
                   v-model="taxonomyForm.description"
@@ -137,7 +136,7 @@
             </div>
 
             <div class="form-group mt-3">
-              <label for="taxonomy_slug">Slug *</label>
+              <label for="taxonomy_slug">{{ t('slug') }} *</label>
               <input
                 id="taxonomy_slug"
                 v-model="taxonomyForm.slug"
@@ -148,16 +147,16 @@
               />
               <small v-if="isEdit" class="form-text text-muted">
                 <i class="material-icons" style="font-size: 14px; vertical-align: text-bottom;">lock</i>
-                Slug cannot be modified after creation.
+                {{ t('slugLockHelper') }}
               </small>
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showCreateTaxonomy = false">
-              Cancel
+              {{ t('cancel') }}
             </button>
             <button type="button" class="btn btn-primary" @click="saveTaxonomy">
-              {{ isEdit ? 'Update' : 'Create' }}
+              {{ isEdit ? t('update') : t('create') }}
             </button>
           </div>
         </div>
@@ -169,8 +168,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
+import { useTranslations } from '../../composables/useTranslations'
 
 const cptStore = useCptStore()
+const { t } = useTranslations()
 const showCreateTaxonomy = ref(false)
 const isEdit = ref(false)
 const editId = ref<number | null>(null)
@@ -266,8 +267,8 @@ async function editTaxonomy(taxonomy: any) {
       const translations = fullTaxonomy.translations
       Object.keys(translations).forEach((langId) => {
         const id = parseInt(langId)
-        if (taxTranslations[id]) {
-          taxTranslations[id] = {
+        if (taxTranslations[id as unknown as number]) {
+          taxTranslations[id as unknown as number] = {
             name: translations[langId]?.name || '',
             description: translations[langId]?.description || ''
           }
@@ -321,7 +322,7 @@ function manageTerms(taxonomy: any) {
 }
 
 function deleteTaxonomy(taxonomy: any) {
-  if (confirm(`Delete taxonomy "${taxonomy.name}"?`)) {
+  if (confirm(t('confirmDeleteTaxonomy', 'Delete taxonomy "{name}"?', { name: taxonomy.name }))) {
     cptStore.deleteTaxonomy(taxonomy.id)
   }
 }

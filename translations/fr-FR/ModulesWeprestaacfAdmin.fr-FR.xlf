@@ -3470,6 +3470,150 @@
         <source>Icon</source>
         <target>Icône</target>
       </trans-unit>
+      <trans-unit id="868" resname="Edit CPT Type">
+        <source>Edit CPT Type</source>
+        <target>Modifier le type de publication</target>
+      </trans-unit>
+      <trans-unit id="869" resname="General Settings">
+        <source>General Settings</source>
+        <target>Paramètres généraux</target>
+      </trans-unit>
+      <trans-unit id="870" resname="Lowercase letters, numbers, hyphens and underscores only">
+        <source>Lowercase letters, numbers, hyphens and underscores only</source>
+        <target>Lettres minuscules, chiffres, tirets et underscores uniquement</target>
+      </trans-unit>
+      <trans-unit id="871" resname="Slug cannot be modified after creation.">
+        <source>Slug cannot be modified after creation.</source>
+        <target>Le slug ne peut pas être modifié après la création.</target>
+      </trans-unit>
+      <trans-unit id="872" resname="Material icon name (e.g., article, event, folder)">
+        <source>Material icon name (e.g., article, event, folder)</source>
+        <target>Nom de l'icône Material (ex: article, event, folder)</target>
+      </trans-unit>
+      <trans-unit id="873" resname="URL Settings">
+        <source>URL Settings</source>
+        <target>Paramètres URL</target>
+      </trans-unit>
+      <trans-unit id="874" resname="Posts will be accessible at: /{prefix}/post-slug">
+        <source>Posts will be accessible at: /{prefix}/post-slug</source>
+        <target>Les publications seront accessibles à : /{prefix}/post-slug</target>
+      </trans-unit>
+      <trans-unit id="875" resname="Enable Archive Page">
+        <source>Enable Archive Page</source>
+        <target>Activer la page d'archive</target>
+      </trans-unit>
+      <trans-unit id="876" resname="Archive Slug (optional)">
+        <source>Archive Slug (optional)</source>
+        <target>Slug d'archive (optionnel)</target>
+      </trans-unit>
+      <trans-unit id="877" resname="SEO Settings">
+        <source>SEO Settings</source>
+        <target>Paramètres SEO</target>
+      </trans-unit>
+      <trans-unit id="878" resname="Title Pattern">
+        <source>Title Pattern</source>
+        <target>Modèle de titre</target>
+      </trans-unit>
+      <trans-unit id="879" resname="Description Pattern">
+        <source>Description Pattern</source>
+        <target>Modèle de description</target>
+      </trans-unit>
+      <trans-unit id="880" resname="Taxonomies">
+        <source>Taxonomies</source>
+        <target>Taxonomies</target>
+      </trans-unit>
+      <trans-unit id="881" resname="Select which taxonomies to use with this post type">
+        <source>Select which taxonomies to use with this post type</source>
+        <target>Sélectionnez les taxonomies à utiliser avec ce type de publication</target>
+      </trans-unit>
+      <trans-unit id="882" resname="No taxonomies available. Create taxonomies first.">
+        <source>No taxonomies available. Create taxonomies first.</source>
+        <target>Aucune taxonomie disponible. Créez d'abord des taxonomies.</target>
+      </trans-unit>
+      <trans-unit id="883" resname="Enter title here">
+        <source>Enter title here</source>
+        <target>Entrez le titre ici</target>
+      </trans-unit>
+      <trans-unit id="884" resname="Permalink">
+        <source>Permalink</source>
+        <target>Permalien</target>
+      </trans-unit>
+      <trans-unit id="885" resname="Custom Fields">
+        <source>Custom Fields</source>
+        <target>Champs personnalisés</target>
+      </trans-unit>
+      <trans-unit id="886" resname="SEO Metadata">
+        <source>SEO Metadata</source>
+        <target>Métadonnées SEO</target>
+      </trans-unit>
+      <trans-unit id="887" resname="SEO Title">
+        <source>SEO Title</source>
+        <target>Titre SEO</target>
+      </trans-unit>
+      <trans-unit id="888" resname="SEO Description">
+        <source>SEO Description</source>
+        <target>Description SEO</target>
+      </trans-unit>
+      <trans-unit id="889" resname="Publish">
+        <source>Publish</source>
+        <target>Publier</target>
+      </trans-unit>
+      <trans-unit id="890" resname="No terms found.">
+        <source>No terms found.</source>
+        <target>Aucun terme trouvé.</target>
+      </trans-unit>
+      <trans-unit id="891" resname="Search {name}...">
+        <source>Search {name}...</source>
+        <target>Rechercher {name}...</target>
+      </trans-unit>
+      <trans-unit id="892" resname="New Taxonomy">
+        <source>New Taxonomy</source>
+        <target>Nouvelle taxonomie</target>
+      </trans-unit>
+      <trans-unit id="893" resname="No taxonomies yet. Create your first one!">
+        <source>No taxonomies yet. Create your first one!</source>
+        <target>Aucune taxonomie pour l'instant. Créez votre première !</target>
+      </trans-unit>
+      <trans-unit id="894" resname="Manage Terms">
+        <source>Manage Terms</source>
+        <target>Gérer les termes</target>
+      </trans-unit>
+      <trans-unit id="895" resname="Terms">
+        <source>Terms</source>
+        <target>Termes</target>
+      </trans-unit>
+      <trans-unit id="896" resname="Edit Taxonomy">
+        <source>Edit Taxonomy</source>
+        <target>Modifier la taxonomie</target>
+      </trans-unit>
+      <trans-unit id="897" resname="Delete taxonomy &quot;{name}&quot;?">
+        <source>Delete taxonomy "{name}"?</source>
+        <target>Supprimer la taxonomie « {name} » ?</target>
+      </trans-unit>
+      <trans-unit id="898" resname="Terms for:">
+        <source>Terms for:</source>
+        <target>Termes pour :</target>
+      </trans-unit>
+      <trans-unit id="899" resname="New Term">
+        <source>New Term</source>
+        <target>Nouveau terme</target>
+      </trans-unit>
+      <trans-unit id="900" resname="No terms found for this taxonomy.">
+        <source>No terms found for this taxonomy.</source>
+        <target>Aucun terme trouvé pour cette taxonomie.</target>
+      </trans-unit>
+      <trans-unit id="901" resname="Edit Term">
+        <source>Edit Term</source>
+        <target>Modifier le terme</target>
+      </trans-unit>
+      <trans-unit id="902" resname="Delete term &quot;{name}&quot;?">
+        <source>Delete term "{name}"?</source>
+        <target>Supprimer le terme « {name} » ?</target>
+      </trans-unit>
+      <trans-unit id="903" resname="Type">
+        <source>Type</source>
+        <target>Type</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

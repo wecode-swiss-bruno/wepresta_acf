@@ -3,7 +3,7 @@
     <div class="card">
       <div class="card-header">
         <h3 class="card-header-title">
-          {{ isEdit ? 'Edit CPT Type' : 'New CPT Type' }}
+          {{ isEdit ? t('editCptType') : t('newCptType') }}
         </h3>
       </div>
       <div class="card-body">
@@ -13,7 +13,7 @@
           </div>
           <!-- General Settings -->
           <div class="form-section">
-            <h4>General Settings</h4>
+            <h4>{{ t('generalSettings') }}</h4>
 
             <!-- Translatable Fields -->
             <div class="translations tabbable" v-if="languages.length > 1">
@@ -37,7 +37,7 @@
                   :class="{ active: currentLangCode === lang.iso_code, show: currentLangCode === lang.iso_code }"
                 >
                   <div class="form-group">
-                    <label :for="`type_name_${lang.id_lang}`">Name * ({{ lang.iso_code.toUpperCase() }})</label>
+                    <label :for="`type_name_${lang.id_lang}`">{{ t('name') }} * ({{ lang.iso_code.toUpperCase() }})</label>
                     <input
                       :id="`type_name_${lang.id_lang}`"
                       v-model="translations[lang.id_lang].name"
@@ -48,7 +48,7 @@
                     />
                   </div>
                   <div class="form-group">
-                    <label :for="`type_description_${lang.id_lang}`">Description ({{ lang.iso_code.toUpperCase() }})</label>
+                    <label :for="`type_description_${lang.id_lang}`">{{ t('description') }} ({{ lang.iso_code.toUpperCase() }})</label>
                     <textarea
                       :id="`type_description_${lang.id_lang}`"
                       v-model="translations[lang.id_lang].description"
@@ -62,7 +62,7 @@
             <!-- Single language fallback -->
             <div v-else>
               <div class="form-group">
-                <label for="type_name">Name *</label>
+                <label for="type_name">{{ t('name') }} *</label>
                 <input
                   id="type_name"
                   v-model="formData.name"
@@ -73,7 +73,7 @@
                 />
               </div>
               <div class="form-group">
-                <label for="type_description">Description</label>
+                <label for="type_description">{{ t('description') }}</label>
                 <textarea
                   id="type_description"
                   v-model="formData.description"
@@ -85,7 +85,7 @@
 
             <!-- Slug field (after translations) -->
             <div class="form-group mt-3">
-              <label for="type_slug">Slug *</label>
+              <label for="type_slug">{{ t('slug') }} *</label>
               <input
                 id="type_slug"
                 v-model="formData.slug"
@@ -96,16 +96,16 @@
                 :disabled="isEdit"
               />
               <small v-if="!isEdit" class="form-text text-muted">
-                Lowercase letters, numbers, hyphens and underscores only
+                {{ t('slugHelper') }}
               </small>
               <small v-else class="form-text text-muted">
                 <i class="material-icons" style="font-size: 14px; vertical-align: text-bottom;">lock</i>
-                Slug cannot be modified after creation to ensure DB integrity.
+                {{ t('slugLockHelper') }}
               </small>
             </div>
 
             <div class="form-group">
-              <label for="type_icon">Icon</label>
+              <label for="type_icon">{{ t('icon') }}</label>
               <input
                 id="type_icon"
                 v-model="formData.icon"
@@ -114,17 +114,17 @@
                 placeholder="article"
               />
               <small class="form-text text-muted">
-                Material icon name (e.g., article, event, folder)
+                {{ t('iconHelper') }}
               </small>
             </div>
           </div>
 
           <!-- URL Settings -->
           <div class="form-section mt-4">
-            <h4>URL Settings</h4>
+            <h4>{{ t('urlSettings') }}</h4>
 
             <div class="form-group">
-              <label for="url_prefix">URL Prefix *</label>
+              <label for="url_prefix">{{ t('urlPrefix') }} *</label>
               <input
                 id="url_prefix"
                 v-model="formData.url_prefix"
@@ -133,7 +133,7 @@
                 required
               />
               <small class="form-text text-muted">
-                Posts will be accessible at: /{{ formData.url_prefix }}/post-slug
+                {{ t('urlPrefixHelper', 'Posts will be accessible at: /{prefix}/post-slug', { prefix: formData.url_prefix || '' }) }}
               </small>
             </div>
 
@@ -145,12 +145,12 @@
                 class="form-check-input"
               />
               <label for="has_archive" class="form-check-label">
-                Enable Archive Page
+                {{ t('enableArchivePage') }}
               </label>
             </div>
 
             <div v-if="formData.has_archive" class="form-group mt-2">
-              <label for="archive_slug">Archive Slug (optional)</label>
+              <label for="archive_slug">{{ t('archiveSlugOptional') }}</label>
               <input
                 id="archive_slug"
                 v-model="formData.archive_slug"
@@ -163,10 +163,10 @@
 
           <!-- SEO Settings -->
           <div class="form-section mt-4">
-            <h4>SEO Settings</h4>
+            <h4>{{ t('seoSettings') }}</h4>
 
             <div class="form-group">
-              <label for="seo_title_pattern">Title Pattern</label>
+              <label for="seo_title_pattern">{{ t('titlePattern') }}</label>
               <input
                 id="seo_title_pattern"
                 v-model="seoConfig.title_pattern"
@@ -177,7 +177,7 @@
             </div>
 
             <div class="form-group">
-              <label for="seo_desc_pattern">Description Pattern</label>
+              <label for="seo_desc_pattern">{{ t('descriptionPattern') }}</label>
               <input
                 id="seo_desc_pattern"
                 v-model="seoConfig.description_pattern"
@@ -192,8 +192,8 @@
 
           <!-- Taxonomies Selection -->
           <div class="form-section mt-4">
-            <h4>Taxonomies</h4>
-            <p class="text-muted">Select which taxonomies to use with this post type</p>
+            <h4>{{ t('taxonomies') }}</h4>
+            <p class="text-muted">{{ t('selectTaxonomiesHelper') }}</p>
             
             <div v-if="cptStore.taxonomies.length > 0" class="taxonomies-list">
               <div v-for="taxonomy in cptStore.taxonomies" :key="taxonomy.id" class="form-check">
@@ -210,18 +210,18 @@
               </div>
             </div>
             <div v-else class="alert alert-info">
-              No taxonomies available. Create taxonomies first.
+              {{ t('noTaxonomiesAvailable') }}
             </div>
           </div>
 
           <!-- Actions -->
           <div class="form-actions mt-4">
             <button type="submit" class="btn btn-primary" :disabled="saving">
-              <span v-if="saving">Saving...</span>
-              <span v-else>{{ isEdit ? 'Update' : 'Create' }} Type</span>
+              <span v-if="saving">{{ t('saving') }}</span>
+              <span v-else>{{ isEdit ? t('update') : t('create') }} {{ t('type') }}</span>
             </button>
             <button type="button" class="btn btn-secondary ml-2" @click="$emit('cancel')">
-              Cancel
+              {{ t('cancel') }}
             </button>
           </div>
         </form>
@@ -231,8 +231,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
+import { useTranslations } from '../../composables/useTranslations'
 
 import type { CptType } from '../../types/cpt'
 
@@ -246,6 +247,7 @@ const emit = defineEmits<{
 }>()
 
 const cptStore = useCptStore()
+const { t } = useTranslations()
 
 const isEdit = computed(() => !!props.typeId)
 const saving = ref(false)
@@ -282,8 +284,6 @@ const seoConfig = reactive({
   title_pattern: '{title} - {shop_name}',
   description_pattern: ''
 })
-
-import { watch } from 'vue'
 
 const initForm = async () => {
   // Fetch available taxonomies

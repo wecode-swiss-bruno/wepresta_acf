@@ -3,10 +3,10 @@
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-header-title mb-0">
-          {{ isEdit ? 'Edit' : 'Add New' }} {{ cptStore.currentType?.name }}
+          {{ isEdit ? t('edit') : t('addNew') }} {{ cptStore.currentType?.name }}
         </h3>
         <button class="btn btn-outline-secondary btn-sm" @click="cancel">
-          Cancel
+          {{ t('cancel') }}
         </button>
       </div>
       <div class="card-body">
@@ -42,13 +42,13 @@
                   :class="{ 'show active': currentLangCode === lang.iso_code }"
                 >
                   <div class="form-group">
-                    <label class="form-control-label">Title <span v-if="lang.id_lang === defaultLanguage.id_lang" class="text-danger">*</span></label>
+                    <label class="form-control-label">{{ t('title') }} <span v-if="lang.id_lang === defaultLanguage.id_lang" class="text-danger">*</span></label>
                     <input 
                       v-if="translations[lang.id_lang]"
                       v-model="translations[lang.id_lang].title" 
                       type="text" 
                       class="form-control" 
-                      placeholder="Enter title here"
+                      :placeholder="t('enterTitleHere')"
                       :required="lang.id_lang === defaultLanguage.id_lang"
                       @input="onTitleInput($event, lang.id_lang)"
                     >
@@ -57,7 +57,7 @@
               </div>
 
               <div class="form-group">
-                <label class="form-control-label">Permalink</label>
+                <label class="form-control-label">{{ t('permalink') }}</label>
                 <div class="input-group">
                   <div class="input-group-prepend">
                     <span class="input-group-text">{{ cptStore.currentType?.url_prefix }}/</span>
@@ -68,7 +68,7 @@
 
                <!-- ACF Fields -->
                <div v-if="acfGroups.length > 0" class="mt-4">
-                  <h4 class="mb-3">Custom Fields</h4>
+                  <h4 class="mb-3">{{ t('customFields') }}</h4>
                   <AcfEntityFields
                     :groups="acfGroups"
                     :initial-values="formData.acf"
@@ -84,7 +84,7 @@
 
               <!-- Meta Box: SEO -->
               <div class="card mt-4">
-                <div class="card-header">SEO Metadata</div>
+                <div class="card-header">{{ t('seoMetadata') }}</div>
                 <div class="card-body">
                    <div class="tab-content">
                     <div 
@@ -94,7 +94,7 @@
                       :class="{ 'show active': currentLangCode === lang.iso_code }"
                     >
                       <div class="form-group">
-                        <label class="form-control-label">SEO Title</label>
+                        <label class="form-control-label">{{ t('seoTitle') }}</label>
                         <input 
                           v-if="translations[lang.id_lang]"
                           v-model="translations[lang.id_lang].seo_title" 
@@ -104,7 +104,7 @@
                         >
                       </div>
                       <div class="form-group">
-                        <label class="form-control-label">SEO Description</label>
+                        <label class="form-control-label">{{ t('seoDescription') }}</label>
                         <textarea 
                           v-if="translations[lang.id_lang]"
                           v-model="translations[lang.id_lang].seo_description" 
@@ -121,17 +121,17 @@
             <!-- Sidebar -->
             <div class="col-md-3">
               <div class="card">
-                <div class="card-header">Publish</div>
+                <div class="card-header">{{ t('publish') }}</div>
                 <div class="card-body">
                   <div class="form-group">
-                    <label class="form-control-label">Status</label>
+                    <label class="form-control-label">{{ t('status') }}</label>
                     <select v-model="formData.status" class="form-control">
-                      <option value="draft">Draft</option>
-                      <option value="published">Published</option>
+                      <option value="draft">{{ t('draft') }}</option>
+                      <option value="published">{{ t('published') }}</option>
                     </select>
                   </div>
                   <button type="submit" class="btn btn-primary btn-block" :disabled="saving">
-                    {{ saving ? 'Saving...' : (isEdit ? 'Update' : 'Publish') }}
+                    {{ saving ? t('saving') : (isEdit ? t('update') : t('publish')) }}
                   </button>
                 </div>
               </div>
@@ -151,7 +151,7 @@
                     <label class="custom-control-label" :for="'term-' + term.id">{{ term.name }}</label>
                   </div>
                   <div v-if="!taxonomy.terms?.length" class="text-muted small">
-                    No terms found.
+                    {{ t('noTermsFound') }}
                   </div>
                 </div>
               </div>
@@ -164,6 +164,7 @@
                   <div class="mb-2">
                     <div v-for="post in selectedRelationsDisplay[relation.id]" :key="post.id" class="badge badge-primary mr-1 mb-1 p-2 d-inline-flex align-items-center">
                       <span class="mr-2">{{ post.title }}</span>
+                      <span class="sr-only">{{ t('loading') }}</span>
                       <span class="cursor-pointer font-weight-bold" @click="removeRelation(relation.id, post.id)" style="cursor: pointer;">&times;</span>
                     </div>
                   </div>
@@ -174,7 +175,7 @@
                       v-model="searchQueries[relation.id]" 
                       type="text" 
                       class="form-control" 
-                      :placeholder="'Search ' + (relation.target_type_name || 'posts') + '...'"
+                      :placeholder="t('searchPlaceholder', 'Search {name}...', { name: relation.target_type_name || 'posts' })"
                       @input="handleRelationSearch(relation.id, relation.target_type_slug)"
                     >
                   </div>
@@ -205,6 +206,7 @@
 import { ref, computed, onMounted, watch, inject } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
 import { useApi } from '../../composables/useApi'
+import { useTranslations } from '../../composables/useTranslations'
 import AcfEntityFields from '@/components/renderer/AcfEntityFields.vue'
 
 const props = defineProps<{
@@ -214,6 +216,7 @@ const props = defineProps<{
 const emit = defineEmits(['cancel', 'saved'])
 
 const cptStore = useCptStore()
+const { t } = useTranslations()
 const { slugify } = useApi()
 const config = inject('cptConfig') as any
 

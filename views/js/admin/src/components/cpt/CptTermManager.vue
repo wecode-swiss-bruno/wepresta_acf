@@ -7,32 +7,32 @@
             <i class="material-icons">arrow_back</i>
           </button>
           <h3 class="card-header-title">
-            Terms for: <strong>{{ cptStore.currentTaxonomy?.name }}</strong>
+            {{ t('termsFor') }} <strong>{{ cptStore.currentTaxonomy?.name }}</strong>
           </h3>
         </div>
         <button class="btn btn-primary btn-sm" @click="openCreateModal">
           <i class="material-icons">add</i>
-          New Term
+          {{ t('newTerm') }}
         </button>
       </div>
       <div class="card-body">
         <div v-if="cptStore.loading" class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Loading...</span>
+            <span class="sr-only">{{ t('loading') }}</span>
           </div>
         </div>
 
         <div v-else-if="cptStore.terms.length === 0" class="alert alert-info">
-          No terms found for this taxonomy.
+          {{ t('noTermsFoundForTaxonomy') }}
         </div>
 
         <table v-else class="table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Slug</th>
-              <th>Description</th>
-              <th class="text-right">Actions</th>
+              <th>{{ t('name') }}</th>
+              <th>{{ t('slug') }}</th>
+              <th>{{ t('description') }}</th>
+              <th class="text-right">{{ t('actions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -47,7 +47,7 @@
                 <button
                   class="btn btn-sm btn-outline-danger"
                   @click="handleDelete(term)"
-                  title="Delete"
+                  :title="t('delete')"
                 >
                   <i class="material-icons">delete</i>
                 </button>
@@ -63,7 +63,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ isEdit ? 'Edit Term' : 'New Term' }}</h5>
+            <h4 class="modal-title">{{ isEdit ? t('editTerm') : t('newTerm') }}</h4>
             <button type="button" class="close" @click="showCreateTerm = false">
               <span>&times;</span>
             </button>
@@ -91,7 +91,7 @@
                   :class="{ active: currentLangCode === lang.iso_code, show: currentLangCode === lang.iso_code }"
                 >
                   <div class="form-group">
-                    <label :for="`term_name_${lang.id_lang}`">Name * ({{ lang.iso_code.toUpperCase() }})</label>
+                    <label :for="`term_name_${lang.id_lang}`">{{ t('name') }} * ({{ lang.iso_code.toUpperCase() }})</label>
                     <input
                       :id="`term_name_${lang.id_lang}`"
                       v-model="termTranslations[lang.id_lang].name"
@@ -102,7 +102,7 @@
                     />
                   </div>
                   <div class="form-group">
-                    <label :for="`term_description_${lang.id_lang}`">Description ({{ lang.iso_code.toUpperCase() }})</label>
+                    <label :for="`term_description_${lang.id_lang}`">{{ t('description') }} ({{ lang.iso_code.toUpperCase() }})</label>
                     <textarea
                       :id="`term_description_${lang.id_lang}`"
                       v-model="termTranslations[lang.id_lang].description"
@@ -116,7 +116,7 @@
             <!-- Single language fallback -->
             <div v-else>
               <div class="form-group">
-                <label for="term_name">Name *</label>
+                <label for="term_name">{{ t('name') }} *</label>
                 <input
                   id="term_name"
                   v-model="termForm.name"
@@ -127,7 +127,7 @@
                 />
               </div>
               <div class="form-group">
-                <label for="term_description">Description</label>
+                <label for="term_description">{{ t('description') }}</label>
                 <textarea
                   id="term_description"
                   v-model="termForm.description"
@@ -138,7 +138,7 @@
             </div>
 
             <div class="form-group mt-3">
-              <label for="term_slug">Slug *</label>
+              <label for="term_slug">{{ t('slug') }} *</label>
               <input
                 id="term_slug"
                 v-model="termForm.slug"
@@ -149,16 +149,16 @@
               />
               <small v-if="isEdit" class="form-text text-muted">
                 <i class="material-icons" style="font-size: 14px; vertical-align: text-bottom;">lock</i>
-                Slug cannot be modified after creation.
+                {{ t('slugLockHelper') }}
               </small>
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showCreateTerm = false">
-              Cancel
+              {{ t('cancel') }}
             </button>
             <button type="button" class="btn btn-primary" :disabled="saving" @click="handleSave">
-              {{ saving ? 'Saving...' : (isEdit ? 'Save' : 'Create') }}
+              {{ saving ? t('saving') : (isEdit ? t('save') : t('create')) }}
             </button>
           </div>
         </div>
@@ -170,9 +170,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
+import { useTranslations } from '../../composables/useTranslations'
 import type { CptTerm } from '../../types/cpt'
 
 const cptStore = useCptStore()
+const { t } = useTranslations()
 const showCreateTerm = ref(false)
 const saving = ref(false)
 const isEdit = ref(false)
@@ -245,7 +247,7 @@ function openCreateModal() {
 async function editTerm(term: CptTerm) {
   resetForm()
   isEdit.value = true
-  editId.value = term.id
+  editId.value = term.id || null
   
   // Ensure translations are initialized
   languages.value.forEach((lang: any) => {
@@ -260,7 +262,7 @@ async function editTerm(term: CptTerm) {
   termForm.description = term.description || ''
 
   // Fetch full details including translations
-  const fullTerm = await cptStore.fetchTerm(term.id)
+  const fullTerm = term.id ? await cptStore.fetchTerm(term.id) : null
   
   if (fullTerm) {
     // Update main fields in case list was outdated
@@ -314,7 +316,7 @@ async function handleSave() {
   let success = false
   if (isEdit.value && editId.value) {
     success = await cptStore.updateTerm(editId.value, payload)
-  } else {
+  } else if (cptStore.currentTaxonomy?.id) {
     success = await cptStore.createTerm(cptStore.currentTaxonomy.id, payload)
   }
   
@@ -327,7 +329,7 @@ async function handleSave() {
 }
 
 async function handleDelete(term: CptTerm) {
-  if (confirm(`Delete term "${term.name}"?`)) {
+  if (term.id && confirm(t('confirmDeleteTerm', 'Delete term "{name}"?', { name: term.name }))) {
     await cptStore.deleteTerm(term.id)
   }
 }
