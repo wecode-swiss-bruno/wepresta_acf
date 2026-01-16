@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FieldConfig } from '@/types'
+import { useTranslations } from '@/composables/useTranslations'
 
 const props = defineProps<{
   config: FieldConfig
@@ -8,6 +9,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:config': [config: FieldConfig]
 }>()
+
+const { t } = useTranslations()
 
 const mimeOptions = [
   { value: 'application/pdf', label: 'PDF' },
@@ -62,7 +65,7 @@ function isMimeSelected(mime: string): boolean {
 <template>
   <div class="files-field-config">
     <div class="form-group">
-      <label class="form-control-label">Allowed File Types</label>
+      <label class="form-control-label">{{ t('allowedFileTypes') }}</label>
       <div class="acf-mime-checkboxes">
         <div 
           v-for="option in mimeOptions" 
@@ -84,7 +87,7 @@ function isMimeSelected(mime: string): boolean {
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Max File Size (MB)</label>
+      <label class="form-control-label">{{ t('maxFileSize') }}</label>
       <input 
         type="number"
         class="form-control"
@@ -98,26 +101,26 @@ function isMimeSelected(mime: string): boolean {
     <div class="row">
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-control-label">Minimum Files</label>
+          <label class="form-control-label">{{ t('minFiles') }}</label>
           <input 
             type="number"
             class="form-control"
             min="0"
             :value="config.minItems || ''"
-            placeholder="No minimum"
+            :placeholder="t('noMinimum')"
             @input="updateConfig('minItems', parseInt(($event.target as HTMLInputElement).value) || null)"
           >
         </div>
       </div>
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-control-label">Maximum Files</label>
+          <label class="form-control-label">{{ t('maxFiles') }}</label>
           <input 
             type="number"
             class="form-control"
             min="1"
             :value="config.maxItems || ''"
-            placeholder="No limit"
+            :placeholder="t('noLimit')"
             @input="updateConfig('maxItems', parseInt(($event.target as HTMLInputElement).value) || null)"
           >
         </div>
@@ -125,7 +128,7 @@ function isMimeSelected(mime: string): boolean {
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">File Metadata</h6>
+    <h6 class="text-muted mb-3">{{ t('fileMetadata') }}</h6>
 
     <div class="form-group">
       <label class="form-control-label d-flex align-items-center gap-2">
@@ -135,10 +138,10 @@ function isMimeSelected(mime: string): boolean {
           :checked="config.enableTitle !== false"
           @change="updateConfig('enableTitle', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Title Field
+        {{ t('enableTitleField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a custom title for each file.
+        {{ t('enableTitleFileHelp') }}
       </small>
     </div>
 
@@ -150,10 +153,10 @@ function isMimeSelected(mime: string): boolean {
           :checked="config.enableDescription !== false"
           @change="updateConfig('enableDescription', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Description Field
+        {{ t('enableDescriptionField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a description for each file.
+        {{ t('enableDescriptionFileHelp') }}
       </small>
     </div>
   </div>

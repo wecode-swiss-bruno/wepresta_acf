@@ -27,7 +27,6 @@ const searchQuery = ref('')
 const searchResults = ref<any[]>([])
 const isLoading = ref(false)
 const selectedItems = ref<any[]>([])
-const selectedItemsMap = ref<Map<number, any>>(new Map()) // optimization
 const showDropdown = ref(false)
 const searchInput = ref<HTMLInputElement | null>(null)
 
@@ -40,6 +39,27 @@ const hasMinItems = computed(() => {
 const hasMaxItems = computed(() => {
   const max = parseInt(String(config.value.max || 0))
   return max > 0 && selectedItems.value.length >= max
+})
+
+// Helper text for constraints
+const helperText = computed(() => {
+  const parts: string[] = []
+  const min = parseInt(String(config.value.min || config.value.minElements || 0))
+  const max = parseInt(String(config.value.max || config.value.maxElements || 0))
+  
+  if (min > 0) {
+    parts.push(t('minItems', undefined, { count: min }))
+  }
+  if (max > 0) {
+    parts.push(t('maxItems', undefined, { count: max }))
+  }
+  
+  const current = selectedItems.value.length
+  if (current > 0) {
+    parts.push(t('selectedCount', undefined, { count: selectedItems.value.length }))
+  }
+  
+  return parts.join(' | ')
 })
 
 // Initial load
@@ -202,6 +222,7 @@ function updateValue() {
         
         <!-- Info -->
         <div class="item-info flex-grow-1">
+          <span class="sr-only">{{ t('loading') }}</span>
           <div class="font-weight-bold">{{ item.name }}</div>
           <div v-if="item.reference" class="small text-muted">{{ item.reference }}</div>
         </div>
@@ -229,7 +250,7 @@ function updateValue() {
           ref="searchInput"
           type="text"
           class="form-control"
-          :placeholder="t('search' + (entityType === 'category' ? 'Category' : 'Product')) || 'Search...'"
+          :placeholder="t('search' + ((entityType as string).charAt(0).toUpperCase() + (entityType as string).slice(1)))"
           v-model="searchQuery"
           @input="onSearchInput"
           @focus="() => showDropdown = (searchQuery.length >= 2)"
@@ -263,18 +284,23 @@ function updateValue() {
       
       <div v-if="showDropdown && searchResults.length === 0 && !isLoading" class="dropdown-menu show w-100">
         <div class="dropdown-item text-muted text-center disabled">
-          {{ t('noResults') || 'No results found' }}
+          {{ t('noResultsFound') }}
         </div>
       </div>
     </div>
     
     <!-- Validation feedback -->
     <div v-if="hasMaxItems" class="text-danger small mt-1">
-      {{ t('maxItemsReached') || 'Maximum items reached' }}
+      {{ t('maxItemsReached') }}
     </div>
     <div v-if="hasMinItems" class="text-warning small mt-1">
-      {{ t('minItemsRequired') || 'Minimum items required' }}
+      {{ t('minItemsRequired') }}
     </div>
+    
+    <!-- Helper text with constraints -->
+    <small v-if="helperText" class="form-text text-muted mt-1">
+      {{ helperText }}
+    </small>
   </div>
 </template>
 
@@ -286,15 +312,30 @@ function updateValue() {
   border: 1px solid #dee2e6;
   background: #f8f9fa;
   transition: all 0.2s;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
 }
 .selected-item:hover {
   background: #fff;
   border-color: #adb5bd;
+}
+.item-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.item-info .font-weight-bold {
+  font-weight: 600;
 }
 .dropdown-menu {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
   border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+.selected-item .btn-outline-danger {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 </style>

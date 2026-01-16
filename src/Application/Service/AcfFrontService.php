@@ -551,7 +551,7 @@ final class AcfFrontService
     public function getActiveGroupsArray(): array
     {
         return iterator_to_array($this->getActiveGroups());
-        }
+    }
 
     /**
      * Check if group matches current context location rules.
@@ -565,8 +565,8 @@ final class AcfFrontService
         $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
 
         if (empty($locationRules)) {
-                return false;
-            }
+            return false;
+        }
 
         // Location rules use OR logic: any rule matching = group is shown
         return $this->locationProviderRegistry->matchLocation($locationRules, array_merge($this->extraContext, [
@@ -802,7 +802,21 @@ final class AcfFrontService
     {
         $this->loadValues();
 
-        return $this->cachedValues[$slug] ?? null;
+        $value = $this->cachedValues[$slug] ?? null;
+
+        // If no value found, try to get default value from field config
+        if ($value === null || $value === '') {
+            $fieldDef = $this->getFieldDefinition($slug);
+            if ($fieldDef !== null) {
+                $config = $fieldDef['config'] ?? [];
+                if (is_string($config)) {
+                    $config = json_decode($config, true) ?: [];
+                }
+                $value = $config['defaultValue'] ?? null;
+            }
+        }
+
+        return $value;
     }
 
     /**

@@ -115,7 +115,7 @@ const subfieldsIndentStyle = computed(() => ({
       <span class="drag-handle material-icons">drag_indicator</span>
       
       <!-- Warning icon for incomplete fields -->
-      <span v-if="!field.title?.trim()" class="material-icons text-warning incomplete-icon" title="Title required">
+      <span v-if="!field.title?.trim()" class="material-icons text-warning incomplete-icon" :title="t('titleRequired')">
         warning
       </span>
       
@@ -136,8 +136,10 @@ const subfieldsIndentStyle = computed(() => ({
           {{ field.title || t('untitled') }}
         </span>
         <span class="field-type">{{ field.type }}</span>
-        <span v-if="field.type === 'repeater' && getSubfields(field).length > 0" class="subfield-count">
-          ({{ getSubfields(field).length }} subfields)
+        <span v-if="field.type === 'repeater' && getSubfields(field).length > 0">
+          <small class="text-muted ml-2">
+            ({{ t('subfieldsCount', undefined, { count: getSubfields(field).length }) }})
+          </small>
         </span>
       </div>
       <span class="field-slug">{{ field.slug }}</span>
@@ -181,8 +183,8 @@ const subfieldsIndentStyle = computed(() => ({
         class="btn btn-outline-secondary btn-sm add-nested-subfield-btn"
         @click.stop="openAddSubfield"
       >
-        <span class="material-icons">add</span>
-        Add Subfield
+        <i class="material-icons" style="font-size: 16px;">add</i>
+        {{ t('addSubfield') }}
       </button>
     </div>
 

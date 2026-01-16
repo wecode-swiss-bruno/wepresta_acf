@@ -130,9 +130,9 @@ watch(activeTab, (newTab) => {
         {{ store.currentGroup?.title || t('addGroup') }}
         <span v-if="store.saving" class="spinner-border spinner-border-sm ml-2"></span>
         <!-- ✅ Badge unsaved changes -->
-        <span v-if="store.hasUnsavedChanges && !store.saving" class="badge badge-warning ml-2" title="Unsaved changes">
+        <span v-if="store.hasUnsavedChanges && !store.saving" class="badge badge-warning ml-2" :title="t('unsavedChanges')">
           <span class="material-icons" style="font-size: 14px; vertical-align: middle;">warning</span>
-          Not saved
+          {{ t('notSaved') }}
         </span>
       </h5>
       
@@ -140,10 +140,10 @@ watch(activeTab, (newTab) => {
       <button 
         class="btn btn-outline-info btn-sm docs-btn"
         @click="showDocs = true"
-        title="View front-office documentation"
+        :title="t('viewDocs')"
       >
         <span class="material-icons">menu_book</span>
-        <span class="btn-text">Docs</span>
+        <span class="btn-text">{{ t('docs') }}</span>
       </button>
     </div>
     

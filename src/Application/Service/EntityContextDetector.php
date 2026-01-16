@@ -46,6 +46,10 @@ final class EntityContextDetector
             'entity_type' => 'cms_page',
             'id_param' => 'id_cms',
         ],
+        'page' => [
+            'entity_type' => 'cms_page',
+            'id_param' => 'id_cms',
+        ],
         'manufacturer' => [
             'entity_type' => 'manufacturer',
             'id_param' => 'id_manufacturer',
@@ -62,11 +66,41 @@ final class EntityContextDetector
             'entity_type' => 'cart',
             'id_param' => 'id_cart',
         ],
-        'myaccount' => [
+        // Customer account pages (all use logged-in customer)
+
+        'my-account' => [
             'entity_type' => 'customer',
             'id_param' => '', // Use logged-in customer
         ],
         'identity' => [
+            'entity_type' => 'customer',
+            'id_param' => '', // Use logged-in customer
+        ],
+        'history' => [
+            'entity_type' => 'customer',
+            'id_param' => '', // Use logged-in customer
+        ],
+        'order-detail' => [
+            'entity_type' => 'customer',
+            'id_param' => '', // Use logged-in customer (order context available via id_order)
+        ],
+        'order-follow' => [
+            'entity_type' => 'customer',
+            'id_param' => '', // Use logged-in customer
+        ],
+        'order-return' => [
+            'entity_type' => 'customer',
+            'id_param' => '', // Use logged-in customer
+        ],
+        'order-slip' => [
+            'entity_type' => 'customer',
+            'id_param' => '', // Use logged-in customer
+        ],
+        'addresses' => [
+            'entity_type' => 'customer',
+            'id_param' => '', // Use logged-in customer
+        ],
+        'discount' => [
             'entity_type' => 'customer',
             'id_param' => '', // Use logged-in customer
         ],
@@ -109,7 +143,7 @@ final class EntityContextDetector
 
         if (\is_array($hookResult)) {
             foreach ($hookResult as $moduleResult) {
-                if (\is_array($moduleResult) && ! empty($moduleResult['entity_type'])) {
+                if (\is_array($moduleResult) && !empty($moduleResult['entity_type'])) {
                     $result = array_merge($result, $moduleResult);
 
                     break;
@@ -245,13 +279,49 @@ final class EntityContextDetector
     private function getEntityId(array $mapping, ?Context $context): ?int
     {
         $idParam = $mapping['id_param'];
+        $entityType = $mapping['entity_type'];
 
         // Special case: customer from session
-        if ($idParam === '' && $mapping['entity_type'] === 'customer') {
+        if ($idParam === '' && $entityType === 'customer') {
             return $this->getLoggedInCustomerId($context);
         }
 
-        return $this->getEntityIdFromParam($idParam);
+        // Try URL parameter first
+        $id = $this->getEntityIdFromParam($idParam);
+        if ($id !== null) {
+            return $id;
+        }
+
+        // Fallback: try to get ID from controller's loaded object
+        if ($context !== null && isset($context->controller)) {
+            $controller = $context->controller;
+
+            // CMS pages: $controller->cms->id
+            if ($entityType === 'cms_page' && isset($controller->cms) && is_object($controller->cms)) {
+                $cmsId = (int) ($controller->cms->id ?? 0);
+                if ($cmsId > 0) {
+                    return $cmsId;
+                }
+            }
+
+            // Products: $controller->product->id
+            if ($entityType === 'product' && isset($controller->product) && is_object($controller->product)) {
+                $productId = (int) ($controller->product->id ?? 0);
+                if ($productId > 0) {
+                    return $productId;
+                }
+            }
+
+            // Categories: $controller->category->id
+            if ($entityType === 'category' && isset($controller->category) && is_object($controller->category)) {
+                $categoryId = (int) ($controller->category->id ?? 0);
+                if ($categoryId > 0) {
+                    return $categoryId;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -273,7 +343,7 @@ final class EntityContextDetector
      */
     private function getLoggedInCustomerId(?Context $context): ?int
     {
-        if ($context === null || ! isset($context->customer)) {
+        if ($context === null || !isset($context->customer)) {
             return null;
         }
 
@@ -287,7 +357,7 @@ final class EntityContextDetector
      */
     private function getShopId(?Context $context): ?int
     {
-        if ($context === null || ! isset($context->shop)) {
+        if ($context === null || !isset($context->shop)) {
             return null;
         }
 
@@ -301,7 +371,7 @@ final class EntityContextDetector
      */
     private function getLangId(?Context $context): ?int
     {
-        if ($context === null || ! isset($context->language)) {
+        if ($context === null || !isset($context->language)) {
             return null;
         }
 

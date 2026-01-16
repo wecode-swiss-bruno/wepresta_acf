@@ -14,10 +14,18 @@ export function useTranslations() {
   }
 
   /**
-   * Get a translated string with HTML entities decoded
+   * Get a translated string with HTML entities decoded and placeholders replaced
    */
-  function t(key: string, fallback?: string): string {
-    const rawTranslation = translations[key] || fallback || key
+  function t(key: string, fallback?: string, params?: Record<string, string | number>): string {
+    let rawTranslation = translations[key] || fallback || key
+
+    // Replace placeholders if params provided
+    if (params) {
+      Object.entries(params).forEach(([name, value]) => {
+        rawTranslation = rawTranslation.replace(`%${name}%`, String(value))
+      })
+    }
+
     return decodeHtmlEntities(rawTranslation)
   }
 

@@ -13,7 +13,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const { updateConfig, createBooleanRef, createStringRef } = useFieldConfig(props, emit)
+const { createBooleanRef, createStringRef } = useFieldConfig(props, emit)
 
 // Boolean with auto-conversion
 const defaultValue = createBooleanRef('defaultValue')
@@ -31,32 +31,32 @@ const falseLabel = createStringRef('falseLabel')
         v-model="defaultValue"
         id="boolean-default"
       />
-      <small class="form-text text-muted">{{ t('Default to checked') }}</small>
+      <small class="form-text text-muted">{{ t('defaultToChecked') }}</small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">{{ t('trueLabel') || 'True Label' }}</label>
+      <label class="form-control-label">{{ t('trueLabel') }}</label>
       <input
         v-model="trueLabel"
         type="text"
         class="form-control"
-        :placeholder="t('yes') || 'Yes'"
+        :placeholder="t('yes')"
       >
       <small class="form-text text-muted">
-        {{ t('trueLabelHelp') || 'Text to display when value is true/checked.' }}
+        {{ t('trueLabelHelp') }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">{{ t('falseLabel') || 'False Label' }}</label>
+      <label class="form-control-label">{{ t('falseLabel') }}</label>
       <input
         v-model="falseLabel"
         type="text"
         class="form-control"
-        :placeholder="t('no') || 'No'"
+        :placeholder="t('no')"
       >
       <small class="form-text text-muted">
-        {{ t('falseLabelHelp') || 'Text to display when value is false/unchecked.' }}
+        {{ t('falseLabelHelp') }}
       </small>
     </div>
   </div>

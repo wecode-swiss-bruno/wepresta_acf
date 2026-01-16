@@ -61,7 +61,7 @@ function isFormatSelected(format: string): boolean {
 <template>
   <div class="image-field-config">
     <div class="form-group">
-      <label class="form-control-label">Allowed Formats</label>
+      <label class="form-control-label">{{ t('allowedFormats') }}</label>
       <div class="acf-format-checkboxes">
         <div 
           v-for="option in formatOptions" 
@@ -85,29 +85,29 @@ function isFormatSelected(format: string): boolean {
     <div class="row">
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-control-label">Max Width (px)</label>
+          <label class="form-control-label">{{ t('maxWidthPx') }}</label>
           <input 
             type="number"
             class="form-control"
             min="0"
             :value="config.maxWidth || ''"
-            placeholder="No limit"
+            :placeholder="t('noLimit')"
             @input="updateConfig('maxWidth', parseInt(($event.target as HTMLInputElement).value) || null)"
           >
           <small class="form-text text-muted">
-            Images larger will be resized.
+            {{ t('maxWidthHelp') }}
           </small>
         </div>
       </div>
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-control-label">Max Height (px)</label>
+          <label class="form-control-label">{{ t('maxHeightPx') }}</label>
           <input 
             type="number"
             class="form-control"
             min="0"
             :value="config.maxHeight || ''"
-            placeholder="No limit"
+            :placeholder="t('noLimit')"
             @input="updateConfig('maxHeight', parseInt(($event.target as HTMLInputElement).value) || null)"
           >
         </div>
@@ -115,7 +115,7 @@ function isFormatSelected(format: string): boolean {
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Max File Size (MB)</label>
+      <label class="form-control-label">{{ t('maxFileSize') }}</label>
       <input 
         type="number"
         class="form-control"
@@ -134,19 +134,18 @@ function isFormatSelected(format: string): boolean {
           :checked="config.useFixedPath !== false"
           @change="updateConfig('useFixedPath', ($event.target as HTMLInputElement).checked)"
         >
-        Use Fixed File Path
+        {{ t('useFixedPath') }}
       </label>
       <small class="form-text text-muted">
-        When enabled, images use a predictable path - better for caching. 
-        When disabled, images get unique names - avoids browser cache issues after delete/re-upload.
+        {{ t('useFixedPathHelp') }}
       </small>
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">Input Methods</h6>
+    <h6 class="text-muted mb-3">{{ t('inputMethods') }}</h6>
 
     <div class="form-group">
-      <label class="form-control-label">Allowed Input Methods</label>
+      <label class="form-control-label">{{ t('allowedInputMethods') }}</label>
       <div class="acf-method-checkboxes">
         <div class="form-check">
           <input 
@@ -157,7 +156,7 @@ function isFormatSelected(format: string): boolean {
             @change="updateConfig('allowUpload', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="img-method-upload">
-            <strong>Upload</strong> - Direct image upload from computer
+            <strong>{{ t('inputMethodUpload') }}</strong> - {{ t('inputMethodUploadHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -169,7 +168,7 @@ function isFormatSelected(format: string): boolean {
             @change="updateConfig('allowUrlImport', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="img-method-import">
-            <strong>Import from URL</strong> - Download image from URL and store locally
+            <strong>{{ t('inputMethodImport') }}</strong> - {{ t('inputMethodImportHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -181,7 +180,7 @@ function isFormatSelected(format: string): boolean {
             @change="updateConfig('allowUrlLink', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="img-method-link">
-            <strong>External Link</strong> - Reference URL without downloading
+            <strong>{{ t('inputMethodLink') }}</strong> - {{ t('inputMethodLinkHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -193,33 +192,33 @@ function isFormatSelected(format: string): boolean {
             @change="updateConfig('allowAttachment', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="img-method-attachment">
-            <strong>PrestaShop Attachment</strong> - Choose from product attachments
+            <strong>{{ t('inputMethodAttachment') }}</strong> - {{ t('inputMethodAttachmentHelp') }}
           </label>
         </div>
       </div>
       <small class="form-text text-muted">
-        Select which input methods are available to users. At least one must be enabled.
+        {{ t('inputMethodsAtLeastOne') }}
       </small>
     </div>
 
     <div class="form-group" v-if="hasMultipleMethods">
-      <label class="form-control-label">Default Input Method</label>
+      <label class="form-control-label">{{ t('defaultInputMethod') }}</label>
       <select 
         class="form-control"
         :value="config.defaultInputMethod || 'upload'"
         @change="updateConfig('defaultInputMethod', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="upload" v-if="config.allowUpload !== false">Upload</option>
-        <option value="import" v-if="config.allowUrlImport">Import from URL</option>
-        <option value="link" v-if="config.allowUrlLink">External Link</option>
+        <option value="upload" v-if="config.allowUpload !== false">{{ t('inputMethodUpload') }}</option>
+        <option value="import" v-if="config.allowUrlImport">{{ t('inputMethodImport') }}</option>
+        <option value="link" v-if="config.allowUrlLink">{{ t('inputMethodLink') }}</option>
       </select>
       <small class="form-text text-muted">
-        The default tab/option shown when editing a product.
+        {{ t('defaultInputMethodHelp') }}
       </small>
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">Image Metadata Options</h6>
+    <h6 class="text-muted mb-3">{{ t('imageMetadata') }}</h6>
 
     <div class="form-group">
       <label class="form-control-label d-flex align-items-center gap-2">
@@ -229,10 +228,10 @@ function isFormatSelected(format: string): boolean {
           :checked="config.enableTitle === true"
           @change="updateConfig('enableTitle', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Title Field
+        {{ t('enableTitleField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a custom title (alt text) for the image.
+        {{ t('enableTitleImageHelp') }}
       </small>
     </div>
 
@@ -244,10 +243,10 @@ function isFormatSelected(format: string): boolean {
           :checked="config.enableDescription === true"
           @change="updateConfig('enableDescription', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Description Field
+        {{ t('enableDescriptionField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a caption/description for the image.
+        {{ t('enableDescriptionImageHelp') }}
       </small>
     </div>
   </div>

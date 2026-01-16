@@ -23,26 +23,26 @@ const defaultValue = createStringRef('defaultValue')
 <template>
   <div class="datetime-field-config">
     <div class="form-group">
-      <label class="form-control-label">Minimum Date/Time</label>
+      <label class="form-control-label">{{ t('minDateTime') }}</label>
       <input 
         v-model="minDate"
         type="datetime-local"
         class="form-control"
       >
       <small class="form-text text-muted">
-        Earliest selectable date and time (optional).
+        {{ t('minDateTimeHelp') }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Maximum Date/Time</label>
+      <label class="form-control-label">{{ t('maxDateTime') }}</label>
       <input 
         v-model="maxDate"
         type="datetime-local"
         class="form-control"
       >
       <small class="form-text text-muted">
-        Latest selectable date and time (optional).
+        {{ t('maxDateTimeHelp') }}
       </small>
     </div>
 
@@ -54,7 +54,7 @@ const defaultValue = createStringRef('defaultValue')
         class="form-control"
       >
       <small class="form-text text-muted">
-        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
+        {{ t('defaultValueHelp') }}
       </small>
     </div>
   </div>

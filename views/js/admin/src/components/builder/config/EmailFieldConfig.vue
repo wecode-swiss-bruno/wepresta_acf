@@ -12,10 +12,10 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const { createLocalRef } = useFieldConfig(props, emit)
+const { createStringRef } = useFieldConfig(props, emit)
 
 // Local reactive values using the composable
-const placeholder = createLocalRef('placeholder', '')
+const placeholder = createStringRef('placeholder', '')
 </script>
 
 <template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { FieldConfig } from '@/types'
+import { useTranslations } from '@/composables/useTranslations'
 
 const props = defineProps<{
   config: FieldConfig
@@ -10,24 +11,16 @@ const emit = defineEmits<{
   'update:config': [config: FieldConfig]
 }>()
 
+const { t } = useTranslations()
+
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
   emit('update:config', { ...props.config, [key]: value })
 }
-
-// Count enabled sources
-const enabledSourcesCount = computed(() => {
-  let count = 0
-  if (props.config.allowYouTube !== false) count++
-  if (props.config.allowVimeo !== false) count++
-  if (props.config.allowUpload !== false) count++
-  if (props.config.allowUrl !== false) count++
-  return count
-})
 </script>
 
 <template>
   <div class="video-field-config">
-    <h6 class="text-muted mb-3">Video Sources</h6>
+    <h6 class="text-muted mb-3">{{ t('videoSources') }}</h6>
     
     <div class="form-group">
       <div class="acf-source-checkboxes">
@@ -40,7 +33,7 @@ const enabledSourcesCount = computed(() => {
             @change="updateConfig('allowYouTube', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="video-youtube">
-            <strong>YouTube</strong> - YouTube video URLs
+            <strong>{{ t('videoSourceYouTube') }}</strong> - {{ t('videoSourceYouTubeHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -52,7 +45,7 @@ const enabledSourcesCount = computed(() => {
             @change="updateConfig('allowVimeo', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="video-vimeo">
-            <strong>Vimeo</strong> - Vimeo video URLs
+            <strong>{{ t('videoSourceVimeo') }}</strong> - {{ t('videoSourceVimeoHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -64,7 +57,7 @@ const enabledSourcesCount = computed(() => {
             @change="updateConfig('allowUpload', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="video-upload">
-            <strong>Upload</strong> - Direct video file upload (MP4, WebM, OGG)
+            <strong>{{ t('inputMethodUpload') }}</strong> - {{ t('videoSourceUploadHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -76,17 +69,17 @@ const enabledSourcesCount = computed(() => {
             @change="updateConfig('allowUrl', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="video-url">
-            <strong>Video URL</strong> - Direct link to video file
+            <strong>{{ t('videoSourceUrl') }}</strong> - {{ t('videoSourceUrlHelp') }}
           </label>
         </div>
       </div>
       <small class="form-text text-muted">
-        Select which video sources are allowed. At least one must be enabled.
+        {{ t('videoSourcesHelp') }}
       </small>
     </div>
 
     <div class="form-group" v-if="config.allowUpload !== false">
-      <label class="form-control-label">Max File Size (MB)</label>
+      <label class="form-control-label">{{ t('maxFileSize') }}</label>
       <input 
         type="number"
         class="form-control"
@@ -96,12 +89,12 @@ const enabledSourcesCount = computed(() => {
         @input="updateConfig('maxSizeMB', parseInt(($event.target as HTMLInputElement).value) || 100)"
       >
       <small class="form-text text-muted">
-        Maximum file size for uploaded videos.
+        {{ t('videoMaxFileSizeHelp') }}
       </small>
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">Video Metadata</h6>
+    <h6 class="text-muted mb-3">{{ t('videoMetadata') }}</h6>
 
     <div class="form-group">
       <label class="form-control-label d-flex align-items-center gap-2">
@@ -111,10 +104,10 @@ const enabledSourcesCount = computed(() => {
           :checked="config.enableTitle === true"
           @change="updateConfig('enableTitle', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Title Field
+        {{ t('enableTitleField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a custom title for the video.
+        {{ t('enableTitleFileHelp') }}
       </small>
     </div>
 
@@ -126,15 +119,15 @@ const enabledSourcesCount = computed(() => {
           :checked="config.enableDescription === true"
           @change="updateConfig('enableDescription', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Description Field
+        {{ t('enableDescriptionField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a description for the video.
+        {{ t('enableDescriptionFileHelp') }}
       </small>
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">Display Options</h6>
+    <h6 class="text-muted mb-3">{{ t('displayOptions') }}</h6>
 
     <div class="form-group">
       <label class="form-control-label d-flex align-items-center gap-2">
@@ -144,10 +137,10 @@ const enabledSourcesCount = computed(() => {
           :checked="config.coverPoster === true"
           @change="updateConfig('coverPoster', ($event.target as HTMLInputElement).checked)"
         >
-        Cover Poster
+        {{ t('coverPoster') }}
       </label>
       <small class="form-text text-muted">
-        Use object-fit: cover for poster image (fills the video area, may crop edges).
+        {{ t('coverPosterHelp') }}
       </small>
     </div>
   </div>

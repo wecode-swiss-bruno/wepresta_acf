@@ -56,7 +56,7 @@ watch([min, max], ([newMin, newMax]) => {
           :max="max || undefined"
         >
         <small class="form-text text-muted">
-          Minimum allowed value (optional).
+          {{ t('minValHelp') }}
         </small>
       </div>
       <div class="form-group col-4">
@@ -68,7 +68,7 @@ watch([min, max], ([newMin, newMax]) => {
           :min="min || undefined"
         >
         <small class="form-text text-muted">
-          Maximum allowed value (optional).
+          {{ t('maxValHelp') }}
         </small>
       </div>
       <div class="form-group col-4">
@@ -81,7 +81,7 @@ watch([min, max], ([newMin, newMax]) => {
           min="0"
         >
         <small class="form-text text-muted">
-          Increment step (optional).
+          {{ t('stepHelp') }}
         </small>
       </div>
     </div>
@@ -113,10 +113,10 @@ watch([min, max], ([newMin, newMax]) => {
         v-model="defaultValue"
         type="number"
         class="form-control"
-        :placeholder="t('defaultValuePlaceholder') || 'Default value for all entities'"
+        :placeholder="t('defaultValuePlaceholder')"
       >
       <small class="form-text text-muted">
-        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
+        {{ t('defaultValueHelp') }}
       </small>
     </div>
   </div>

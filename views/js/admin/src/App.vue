@@ -135,7 +135,7 @@ onMounted(() => {
         type="button"
       >
         <i class="material-icons">view_list</i>
-        ACF
+        Advanced Custom Fields
       </button>
       <button
         class="nav-link"
@@ -144,7 +144,7 @@ onMounted(() => {
         type="button"
       >
         <i class="material-icons">article</i>
-        CPT
+        Custom Post Types
       </button>
     </div>
 
@@ -173,7 +173,7 @@ onMounted(() => {
             @click="cptView = 'types'; cptStore.viewMode = 'list'"
           >
             <i class="material-icons">article</i>
-            Post Types
+            {{ t('postTypes') }}
           </button>
           <button
             type="button"
@@ -182,7 +182,7 @@ onMounted(() => {
             @click="cptView = 'taxonomies'"
           >
             <i class="material-icons">category</i>
-            Taxonomies
+            {{ t('taxonomies') }}
           </button>
         </div>
 

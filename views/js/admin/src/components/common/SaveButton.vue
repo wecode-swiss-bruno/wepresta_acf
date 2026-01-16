@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useTranslations } from '@/composables/useTranslations'
 
 const props = defineProps<{
   saving: boolean
@@ -11,20 +12,22 @@ const emit = defineEmits<{
   (e: 'save'): void
 }>()
 
+const { t } = useTranslations()
+
 // ...
 
 const statusText = computed(() => {
-  if (props.saving) return 'Saving changes...'
+  if (props.saving) return t('savingChanges')
   if (props.error) {
     if (Array.isArray(props.error)) {
-        return props.error.length + ' errors found'
+        return t('errorsFound', undefined, { count: props.error.length })
     }
     return props.error
   }
   if (props.lastSaved) {
-    return `Last saved: ${props.lastSaved.toLocaleTimeString()}`
+    return t('lastSavedAt', undefined, { time: props.lastSaved.toLocaleTimeString() })
   }
-  return 'Unsaved changes'
+  return t('unsavedChanges')
 })
 // ...
 
@@ -69,7 +72,7 @@ const statusIcon = computed(() => {
         <span v-if="hasMultipleErrors" class="status-detail status-error-detail" v-html="Array.isArray(error) ? error[0] : ''">
         </span>
         
-        <span v-if="lastSaved && !saving && !error" class="status-time">Success</span>
+        <span v-if="lastSaved && !saving && !error" class="status-time">{{ t('success') }}</span>
       </div>
     </div>
     
@@ -82,7 +85,7 @@ const statusIcon = computed(() => {
       <div class="btn-background"></div>
       <div class="btn-content">
         <i class="material-icons">{{ saving ? 'hourglass_empty' : 'save' }}</i>
-        <span>{{ saving ? 'Saving...' : 'Save Changes' }}</span>
+        <span>{{ saving ? t('saving') : t('saveChanges') }}</span>
       </div>
     </button>
   </div>

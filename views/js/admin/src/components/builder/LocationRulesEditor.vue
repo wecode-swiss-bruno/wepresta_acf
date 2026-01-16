@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useBuilderStore } from '@/stores/builderStore'
 import { useTranslations } from '@/composables/useTranslations'
-import { useApi } from '@/composables/useApi'
 import type { JsonLogicRule } from '@/types'
 import type { LocationOption } from '@/types/api'
 
@@ -13,10 +12,6 @@ const emit = defineEmits<{
 
 const store = useBuilderStore()
 const { t } = useTranslations()
-const api = useApi()
-
-// Access group for placement settings
-const group = computed(() => store.currentGroup)
 
 // Auto-save state for rule addition
 const savingRule = ref(false)
@@ -65,19 +60,6 @@ const rules = computed(() => {
 // Check if at least one entity type is defined
 const hasEntityType = computed(() => rules.value.length > 0)
 
-// Get ALL entity types from rules (not just the first one!)
-const activeEntityTypes = computed(() => {
-  const types: string[] = []
-  for (const rule of rules.value) {
-    if (rule['=='] && Array.isArray(rule['=='])) {
-      const entityType = rule['=='][1] as string
-      if (entityType && !types.includes(entityType)) {
-        types.push(entityType)
-      }
-    }
-  }
-  return types
-})
 
 
 // Validation: can proceed to next step if entity types are selected
@@ -127,7 +109,7 @@ async function addRule(event?: Event): Promise<void> {
     selectedEntityType.value = ruleType
     selectedOperator.value = ruleOperator
 
-    alert(t('saveError') || 'Failed to save location rule. Please try again.')
+    alert(t('saveError'))
   } finally {
     savingRule.value = false
   }
@@ -154,17 +136,17 @@ function getRuleLabel(rule: JsonLogicRule): string {
     const entityValue = rule['=='][1]
     const location = findLocationByValue(entityValue)
     if (location) {
-      return `Show on ${location.label}`
+      return t('showOnEntity', undefined, { entity: location.label })
     }
-    return `Entity = ${entityValue}`
+    return `${t('entityType')} ${t('entityEquals')} ${entityValue}`
   }
   if (rule['!='] && Array.isArray(rule['!='])) {
     const entityValue = rule['!='][1]
     const location = findLocationByValue(entityValue)
     if (location) {
-      return `Exclude ${location.label}`
+      return t('excludeEntity', undefined, { entity: location.label })
     }
-    return `Entity ≠ ${entityValue}`
+    return `${t('entityType')} ${t('entityNotEquals')} ${entityValue}`
   }
   return JSON.stringify(rule)
 }
@@ -181,13 +163,6 @@ function findLocationByValue(value: string): LocationOption | undefined {
 }
 
 
-/**
- * Get label for entity type
- */
-function getEntityTypeLabel(entityType: string): string {
-  const location = findLocationByValue(entityType)
-  return location?.label || entityType
-}
 </script>
 
 <template>
@@ -260,8 +235,8 @@ function getEntityTypeLabel(entityType: string): string {
                 :disabled="!location.enabled"
               >
                 {{ location.label }}
-                {{ !location.enabled ? ' (coming soon...)' : '' }}
-                {{ location.enabled && location.integration_type === 'legacy' ? ' (legacy)' : '' }}
+                {{ !location.enabled ? t('comingSoon') : '' }}
+                {{ location.enabled && location.integration_type === 'legacy' ? t('legacy') : '' }}
               </option>
             </optgroup>
           </select>
@@ -273,7 +248,7 @@ function getEntityTypeLabel(entityType: string): string {
         <div class="form-group mb-3">
           <label class="form-control-label">
             <i class="material-icons mr-1" style="font-size: 16px; vertical-align: middle;">filter_list</i>
-            {{ t('operator') || 'Condition' }}
+            {{ t('operator') }}
           </label>
           <select v-model="selectedOperator" class="form-control">
             <option
@@ -281,7 +256,7 @@ function getEntityTypeLabel(entityType: string): string {
               :key="op.value"
               :value="op.value"
             >
-              {{ t(op.label) || op.label }}
+              {{ t(op.label, op.label) }}
             </option>
           </select>
           <small class="form-text text-muted">
@@ -297,11 +272,11 @@ function getEntityTypeLabel(entityType: string): string {
         >
           <span v-if="savingRule">
             <i class="material-icons mr-1" style="font-size: 18px; vertical-align: middle;">sync</i>
-            {{ t('saving') || 'Saving...' }}
+            {{ t('saving') }}
           </span>
           <span v-else>
             <i class="material-icons mr-1" style="font-size: 18px; vertical-align: middle;">add</i>
-            {{ t('addRule') || 'Add Location Rule' }}
+            {{ t('addRule') }}
           </span>
         </button>
       </div>
@@ -321,7 +296,7 @@ function getEntityTypeLabel(entityType: string): string {
         @click="emit('next-step')"
         :title="!hasEntityType ? t('defineEntityTypeFirst') : ''"
       >
-        Next: {{ t('fields') }}
+        {{ t('next') }} {{ t('fields') }}
         <span class="material-icons">arrow_forward</span>
       </button>
     </div>

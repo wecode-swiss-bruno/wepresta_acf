@@ -30,11 +30,11 @@ const defaultValue = createStringRef('defaultValue')
           id="showHex"
         >
         <label class="form-check-label" for="showHex">
-          Show Hex Value
+          {{ t('showHexValue') }}
         </label>
       </div>
       <small class="form-text text-muted">
-        Display the hex code alongside the color swatch on the frontend.
+        {{ t('showHexValueHelp') }}
       </small>
     </div>
 
@@ -55,7 +55,7 @@ const defaultValue = createStringRef('defaultValue')
         >
       </div>
       <small class="form-text text-muted">
-        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
+        {{ t('defaultValueHelp') }}
       </small>
     </div>
   </div>

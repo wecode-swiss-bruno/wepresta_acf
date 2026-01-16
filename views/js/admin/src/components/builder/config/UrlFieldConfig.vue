@@ -62,25 +62,25 @@ watch(linkText, (newVal) => {
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Link Target</label>
+      <label class="form-control-label">{{ t('linkTarget') }}</label>
       <select
         v-model="target"
         class="form-control"
       >
-        <option value="_blank">New Tab (_blank)</option>
-        <option value="_self">Same Tab (_self)</option>
+        <option value="_blank">{{ t('linkTargetBlank') }}</option>
+        <option value="_self">{{ t('linkTargetSelf') }}</option>
       </select>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Link Text</label>
+      <label class="form-control-label">{{ t('linkText') }}</label>
       <input 
         v-model="linkText"
         type="text"
         class="form-control"
       >
       <small class="form-text text-muted">
-        Custom text to display instead of the URL (optional).
+        {{ t('linkTextHelp') }}
       </small>
     </div>
   </div>

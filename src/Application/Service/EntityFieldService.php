@@ -146,6 +146,7 @@ final class EntityFieldService
 
             // Build groups data
             $groupsData = [];
+            $acfValues = [];
 
             foreach ($matchingGroups as $group) {
                 $groupId = (int) $group['id_wepresta_acf_group'];

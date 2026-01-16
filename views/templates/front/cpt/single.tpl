@@ -7,14 +7,7 @@
 {block name='page_content'}
 <article class="cpt-single cpt-single-{$cpt_type.slug}" id="cpt-post-{$cpt_post.id}">
 
-    <div class="cpt-post-meta">
-        <time datetime="{$cpt_post.date_upd}">
-            {$cpt_post.date_upd|date_format:'%d/%m/%Y'}
-        </time>
-        <a href="{$cpt_type.url}" class="cpt-back-link">
-            &larr; {l s='Back to' d='Modules.Weprestaacf.Front'} {$cpt_type.name}
-        </a>
-    </div>
+
 
     {* Featured Image ACF field *}
     {if $acf->has('featured_image')}
@@ -31,17 +24,51 @@
     {/if}
 
     {* Display all ACF fields from assigned groups *}
+    {* Note: Repeater fields are excluded here as they require special handling *}
     <div class="cpt-post-fields">
         {assign var="groups" value=$acf->getActiveGroupsArray()}
         {foreach $groups as $group}
         {foreach $group.fields as $field}
-        {if $field.has_value && $field.slug != 'featured_image' && $field.slug != 'content'}
+        {if $field.has_value && $field.slug != 'featured_image' && $field.slug != 'content' && $field.type !=
+        'repeater'}
         <div class="acf-field acf-field-{$field.type}">
             {if $field.title}
             <h3 class="acf-field-title">{$field.title}</h3>
             {/if}
             <div class="acf-field-value">
                 {$field.rendered nofilter}
+            </div>
+        </div>
+        {/if}
+        {/foreach}
+        {/foreach}
+
+        {* Auto-render repeater fields *}
+        {foreach $groups as $group}
+        {foreach $group.fields as $field}
+        {if $field.type == 'repeater' && $field.has_value}
+        <div class="acf-field acf-field-repeater">
+            {if $field.title}
+            <h3 class="acf-field-title">{$field.title}</h3>
+            {/if}
+            <div class="acf-repeater-rows">
+                <p class="text-muted">{$field.row_count|default:0} {l s='items' d='Modules.Weprestaacf.Front'}</p>
+                {foreach $acf->repeater($field.slug) as $row}
+                <div class="acf-repeater-row">
+                    {foreach $row as $subfield_slug => $subfield_value}
+                    {if $subfield_value}
+                    <div class="acf-subfield">
+                        <strong>{$subfield_slug|replace:'_':' '|capitalize}:</strong>
+                        {if is_array($subfield_value)}
+                        {$subfield_value|@json_encode nofilter}
+                        {else}
+                        {$subfield_value nofilter}
+                        {/if}
+                    </div>
+                    {/if}
+                    {/foreach}
+                </div>
+                {/foreach}
             </div>
         </div>
         {/if}
@@ -68,4 +95,16 @@
     </div>
     {/if}
 </article>
+
+<div class="cpt-post-meta">
+    {if $cpt_post.date_upd}
+    <time datetime="{$cpt_post.date_upd}">
+        {$cpt_post.date_upd|date_format:'%d/%m/%Y'}
+    </time>
+    {/if}
+    <a href="{$cpt_type.url}" class="cpt-back-link">
+        &larr; {l s='Back to' d='Modules.Weprestaacf.Front'} {$cpt_type.name}
+    </a>
+</div>
+
 {/block}

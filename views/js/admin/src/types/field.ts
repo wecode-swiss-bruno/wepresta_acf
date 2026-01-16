@@ -53,6 +53,7 @@ export interface FieldConfig {
   prefix?: string
   suffix?: string
   rows?: number
+  filters?: Record<string, any>
   [key: string]: unknown
 }
 

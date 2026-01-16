@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { AcfField } from '@/types'
 import AcfFileUploadField from './AcfFileUploadField.vue'
+import { useTranslations } from '@/composables/useTranslations'
 
 interface RepeaterRow {
   row_id: string
@@ -20,6 +21,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: any]
 }>()
+
+const { t } = useTranslations()
 
 const rows = ref<RepeaterRow[]>([])
 const currentLangByField = ref<Record<string, number>>({})
@@ -76,7 +79,7 @@ const canAddRow = computed(() => {
 })
 
 // Check if can remove rows
-const canRemoveRow = (index: number) => {
+const canRemoveRow = () => {
   const min = repeaterConfig.value.min
   return rows.value.length > min
 }
@@ -188,7 +191,7 @@ function addRow(): void {
 
 // Remove row
 function removeRow(index: number): void {
-  if (!canRemoveRow(index)) return
+  if (!canRemoveRow()) return
 
   const rowId = rows.value[index].row_id
   expandedRows.value.delete(rowId)
@@ -269,17 +272,16 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
     <!-- Info alert -->
     <div class="alert alert-info mb-3">
       <i class="material-icons mr-2" style="vertical-align: middle; font-size: 18px;">info</i>
-      <strong>Repeater Field</strong>
+      <strong>{{ t('repeaterTitle') }}</strong>
       <p class="mb-0 mt-2 small">
-        Add multiple rows of {{ subfields.length }} field{{ subfields.length !== 1 ? 's' : '' }}.
-        These rows will be displayed for all entities globally.
+        {{ t('repeaterGlobalInfo', undefined, { count: subfields.length }) }}
       </p>
     </div>
 
     <!-- No subfields warning -->
     <div v-if="!subfields || subfields.length === 0" class="alert alert-warning">
       <i class="material-icons mr-2" style="vertical-align: middle;">warning</i>
-      No subfields defined for this repeater. Please add subfields in the field builder.
+      {{ t('noSubfieldsWarning') }}
     </div>
 
     <!-- Rows container -->
@@ -287,7 +289,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
       <!-- Empty state -->
       <div v-if="rows.length === 0" class="alert alert-secondary">
         <i class="material-icons mr-2" style="vertical-align: middle;">info</i>
-        No rows added yet. Click "{{ repeaterConfig.buttonLabel }}" to add the first row.
+        {{ t('noRowsAdded', undefined, { label: repeaterConfig.buttonLabel }) }}
       </div>
 
       <!-- Rows -->
@@ -304,7 +306,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
               type="button"
               class="repeater-toggle-btn"
               @click="toggleRow(row.row_id)"
-              title="Toggle expand/collapse"
+              :title="t('toggleExpandCollapse')"
             >
               <i class="material-icons">
                 {{ expandedRows.has(row.row_id) ? 'expand_more' : 'chevron_right' }}
@@ -321,7 +323,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                 type="button"
                 class="btn btn-link btn-sm p-0 mr-2"
                 @click="moveRow(index, index - 1)"
-                title="Move up"
+                :title="t('moveUp')"
               >
                 <i class="material-icons">arrow_upward</i>
               </button>
@@ -331,17 +333,17 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                 type="button"
                 class="btn btn-link btn-sm p-0 mr-2"
                 @click="moveRow(index, index + 1)"
-                title="Move down"
+                :title="t('moveDown')"
               >
                 <i class="material-icons">arrow_downward</i>
               </button>
 
               <button
-                v-if="canRemoveRow(index)"
+                v-if="canRemoveRow()"
                 type="button"
                 class="btn btn-link btn-sm text-danger p-0"
                 @click="removeRow(index)"
-                title="Delete row"
+                :title="t('deleteRow')"
               >
                 <i class="material-icons">delete</i>
               </button>
@@ -367,7 +369,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                     <i class="material-icons" style="font-size: 12px; vertical-align: middle;">
                       language
                     </i>
-                    Translatable
+                    {{ t('translatableBadge') }}
                   </span>
                 </label>
 
@@ -513,7 +515,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                     )
                   "
                 >
-                  <option value="">-- None --</option>
+                  <option value="">-- {{ t('none') }} --</option>
                   <option
                     v-for="choice in parseChoices(subfield.config?.choices)"
                     :key="choice.value"
@@ -523,32 +525,26 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                   </option>
                 </select>
 
-                <!-- File Upload -->
+                <!-- Files (multiple) -->
                 <AcfFileUploadField
-                  v-else-if="subfield.type === 'file'"
+                  v-else-if="subfield.type === 'files'"
+                  :field="subfield"
                   :model-value="getSubfieldValue(row, subfield)"
-                  :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
+                  :field-slug="subfield.slug"
                   field-type="file"
+                  :multiple="true"
                   @update:model-value="setSubfieldValue(row, subfield, $event)"
                 />
 
-                <!-- Image Upload -->
+                <!-- Gallery (multiple images) -->
                 <AcfFileUploadField
-                  v-else-if="subfield.type === 'image'"
+                  v-else-if="subfield.type === 'gallery'"
+                  :field="subfield"
                   :model-value="getSubfieldValue(row, subfield)"
-                  :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
+                  :field-slug="subfield.slug"
                   field-type="image"
                   accept="image/*"
-                  @update:model-value="setSubfieldValue(row, subfield, $event)"
-                />
-
-                <!-- Video Upload -->
-                <AcfFileUploadField
-                  v-else-if="subfield.type === 'video'"
-                  :model-value="getSubfieldValue(row, subfield)"
-                  :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
-                  field-type="video"
-                  accept="video/*"
+                  :multiple="true"
                   @update:model-value="setSubfieldValue(row, subfield, $event)"
                 />
 
@@ -651,7 +647,7 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                       ($event.target as HTMLTextAreaElement).value,
                     )
                   "
-                  placeholder="Enter HTML content..."
+                  :placeholder="t('enterHtmlContent')"
                 />
 
                 <!-- Star Rating -->
@@ -699,25 +695,29 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                         .filter((v: string) => v.trim()),
                     )
                   "
-                  placeholder="One value per line"
+                  :placeholder="t('oneValuePerLine')"
                 />
 
                 <!-- Files (multiple) -->
                 <AcfFileUploadField
                   v-else-if="subfield.type === 'files'"
+                  :field="subfield"
                   :model-value="getSubfieldValue(row, subfield)"
-                  :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
+                  :field-slug="subfield.slug"
                   field-type="file"
+                  :multiple="true"
                   @update:model-value="setSubfieldValue(row, subfield, $event)"
                 />
 
                 <!-- Gallery (multiple images) -->
                 <AcfFileUploadField
                   v-else-if="subfield.type === 'gallery'"
+                  :field="subfield"
                   :model-value="getSubfieldValue(row, subfield)"
-                  :field-slug="`${field.slug}-${row.row_id}-${subfield.slug}`"
+                  :field-slug="subfield.slug"
                   field-type="image"
                   accept="image/*"
+                  :multiple="true"
                   @update:model-value="setSubfieldValue(row, subfield, $event)"
                 />
 
@@ -725,15 +725,15 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                 <div v-else-if="subfield.type === 'relation'" class="relation-field-placeholder">
                   <small class="text-muted">
                     <i class="material-icons" style="font-size: 14px; vertical-align: middle;">link</i>
-                    Relation field ({{ subfield.config?.entityType || 'entity' }})
-                    - Use entity editor for full selection
+                    {{ t('relationField', undefined, { type: (subfield.config?.entityType as string | number) || 'entity' }) }}
+                    - {{ t('useEntityEditorSelection') }}
                   </small>
                 </div>
 
                 <!-- Unsupported type -->
                 <div v-else class="alert alert-warning">
                   <small class="text-muted">
-                    Subfield type <code>{{ subfield.type }}</code> not yet supported
+                    {{ t('unsupportedSubfield', undefined, { type: subfield.type }) }}
                   </small>
                 </div>
               </div>
@@ -757,13 +757,13 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
       <small v-if="repeaterConfig.min > 0 || repeaterConfig.max > 0" class="form-text text-muted d-block mt-2">
         <i class="material-icons" style="font-size: 12px; vertical-align: middle;">info</i>
         <span v-if="repeaterConfig.min > 0 && repeaterConfig.max > 0">
-          Between {{ repeaterConfig.min }} and {{ repeaterConfig.max }} rows
+          {{ t('betweenMinMaxRows', undefined, { min: repeaterConfig.min, max: repeaterConfig.max }) }}
         </span>
         <span v-else-if="repeaterConfig.min > 0">
-          Minimum {{ repeaterConfig.min }} row{{ repeaterConfig.min !== 1 ? 's' : '' }}
+          {{ t('minRowsLimit', undefined, { min: repeaterConfig.min }) }}
         </span>
         <span v-else>
-          Maximum {{ repeaterConfig.max }} row{{ repeaterConfig.max !== 1 ? 's' : '' }}
+          {{ t('maxRowsLimit', undefined, { max: repeaterConfig.max }) }}
         </span>
       </small>
     </div>

@@ -180,6 +180,9 @@ function getGlobalIndex(category: string, typeIndex: number): number {
 }
 
 function getFieldTypeDescription(type: FieldTypeDefinition): string {
+  const typeKey = type.type.charAt(0).toUpperCase() + type.type.slice(1).replace(/_([a-z])/g, (g) => g[1].toUpperCase())
+  const key = `desc${typeKey}`
+  
   const descriptions: Record<string, string> = {
     text: 'Single line text input for short content',
     textarea: 'Multi-line text area for longer content',
@@ -205,7 +208,13 @@ function getFieldTypeDescription(type: FieldTypeDefinition): string {
     list: 'Repeatable list of subfields',
     repeater: 'Advanced repeater with flexible layouts'
   }
-  return descriptions[type.type] || `Configure ${type.label} field settings`
+  
+  const fallback = descriptions[type.type]
+  if (!fallback) {
+     return t('configureFieldSettings', undefined, { label: type.label })
+  }
+  
+  return t(key)
 }
 
 // Lifecycle
@@ -248,7 +257,7 @@ watch(() => props.show, (newVal) => {
               v-model="searchQuery"
               type="text"
               class="form-control"
-              :placeholder="t('searchFieldTypes') || 'Search field types...'"
+              :placeholder="t('searchFieldTypes')"
               @input="selectedIndex = 0"
             >
             <button
@@ -266,7 +275,7 @@ watch(() => props.show, (newVal) => {
         <div v-if="!searchQuery && recentlyUsedTypes.length > 0" class="recently-used-section">
           <div class="category-header">
             <span class="material-icons category-icon" style="color: #6c757d;">history</span>
-            <h6 class="category-title">{{ t('recentlyUsed') || 'Recently Used' }}</h6>
+            <h6 class="category-title">{{ t('recentlyUsed') }}</h6>
           </div>
           <div class="acfps-type-grid">
             <button
@@ -300,7 +309,7 @@ watch(() => props.show, (newVal) => {
               </span>
             </div>
             <h6 class="category-title">
-              {{ fieldTypeCategories[category as keyof typeof fieldTypeCategories] || category }}
+              {{ t('category' + category.charAt(0).toUpperCase() + category.slice(1)) }}
             </h6>
             <span class="category-count">{{ types.length }}</span>
           </div>
@@ -327,10 +336,10 @@ watch(() => props.show, (newVal) => {
         <div v-if="Object.keys(groupedTypes).length === 0 && searchQuery" class="no-results">
           <div class="no-results-content">
             <span class="material-icons">search_off</span>
-            <h6>{{ t('noFieldTypesFound') || 'No field types found' }}</h6>
-            <p>{{ t('tryDifferentSearch') || 'Try a different search term' }}</p>
+            <h6>{{ t('noFieldTypesFound') }}</h6>
+            <p>{{ t('tryDifferentSearch') }}</p>
             <button class="btn btn-outline-primary btn-sm" @click="clearSearch">
-              {{ t('clearSearch') || 'Clear search' }}
+              {{ t('clearSearch') }}
             </button>
           </div>
         </div>
@@ -339,7 +348,7 @@ watch(() => props.show, (newVal) => {
         <div class="keyboard-hint">
           <small class="text-muted">
             <span class="material-icons">keyboard</span>
-            {{ t('useArrowsToNavigate') || 'Use ↑↓ arrows to navigate, Enter to select, Esc to close' }}
+            {{ t('useArrowsToNavigate') }}
           </small>
         </div>
       </div>

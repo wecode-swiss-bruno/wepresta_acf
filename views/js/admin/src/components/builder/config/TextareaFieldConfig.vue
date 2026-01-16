@@ -32,7 +32,7 @@ const defaultValue = createStringRef('defaultValue')
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Rows</label>
+      <label class="form-control-label">{{ t('rows') }}</label>
       <input 
         v-model.number="rows"
         type="number"
@@ -41,7 +41,7 @@ const defaultValue = createStringRef('defaultValue')
         max="20"
       >
       <small class="form-text text-muted">
-        Number of visible text lines (2-20).
+        {{ t('rowsHelp') }}
       </small>
     </div>
 
@@ -51,10 +51,10 @@ const defaultValue = createStringRef('defaultValue')
         v-model="defaultValue"
         class="form-control"
         rows="3"
-        :placeholder="t('defaultValuePlaceholder') || 'Default value for all entities'"
+        :placeholder="t('defaultValuePlaceholder')"
       ></textarea>
       <small class="form-text text-muted">
-        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
+        {{ t('defaultValueHelp') }}
       </small>
     </div>
   </div>

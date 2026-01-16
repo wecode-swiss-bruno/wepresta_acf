@@ -96,15 +96,13 @@ final class FormModifierService
                 $locationRules = json_decode($group['location_rules'] ?? '[]', true) ?: [];
 
                 // Check if group matches location rules
-                if (! $this->locationProviderRegistry->matchLocation($locationRules, $context)) {
+                if (!$this->locationProviderRegistry->matchLocation($locationRules, $context)) {
                     continue;
                 }
 
                 $foOptions = json_decode($group['fo_options'] ?? '{}', true);
 
                 if (($foOptions['valueScope'] ?? 'entity') === 'global') {
-                    PrestaShopLogger::addLog('[ACF modifyForm] Skipping group "' . $group['title'] . '" (global scope)', 1);
-
                     continue;
                 }
 
@@ -112,27 +110,18 @@ final class FormModifierService
             }
 
             if (empty($matchingGroups)) {
-                PrestaShopLogger::addLog('[ACF modifyForm] No matching groups', 1);
-
                 return;
             }
 
-            PrestaShopLogger::addLog('[ACF modifyForm] Found ' . \count($matchingGroups) . ' matching groups', 1);
-
             // Render ACF fields using Twig for full field support
-            $html = $this->renderAcfFields($matchingGroups, $entityType, $entityId);
+            // Use improved token retrieval logic mirroring EntityFieldService
+            $csrfToken = $this->getCsrfToken();
 
-            PrestaShopLogger::addLog('[ACF modifyForm] Rendered HTML length: ' . \strlen($html), 1);
-            // Log meaningful preview - skip leading whitespace
-            $trimmedHtml = ltrim($html);
-            PrestaShopLogger::addLog('[ACF modifyForm] HTML preview: ' . substr($trimmedHtml, 0, 400), 1);
+            $html = $this->renderAcfFields($matchingGroups, $entityType, $entityId, $csrfToken);
 
-            // Add container with pre-rendered HTML
             $formBuilder->add('acf_fields', AcfContainerType::class, [
                 'acf_html' => $html,
             ]);
-
-            PrestaShopLogger::addLog('[ACF modifyForm] Added acf_fields to form', 1);
         } catch (Exception $e) {
             PrestaShopLogger::addLog(
                 'ACF FormModifierService error: ' . $e->getMessage(),
@@ -141,6 +130,40 @@ final class FormModifierService
         }
     }
 
+    /**
+     * Get CSRF token for API.
+     * Mirrors logic from EntityFieldService to ensure compatibility with AdminWeprestaAcfBuilder.
+     */
+    private function getCsrfToken(): string
+    {
+        // 1. Try to get the current request's _token (verified by PS8 Admin Firewall)
+        try {
+            $sfContainer = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance();
+            if ($sfContainer && $sfContainer->has('request_stack')) {
+                $request = $sfContainer->get('request_stack')->getCurrentRequest();
+                if ($request && $request->query->has('_token')) {
+                    return (string) $request->query->get('_token');
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignore
+        }
+
+        // 2. Fallback: Generate token using employee email (matching AcfBuilderController intention)
+        try {
+            $context = Context::getContext();
+            if (isset($context->employee) && $context->employee->id && $context->employee->email) {
+                $sfContainer = \PrestaShop\PrestaShop\Adapter\SymfonyContainer::getInstance();
+                if ($sfContainer && $sfContainer->has('security.csrf.token_manager')) {
+                    return $sfContainer->get('security.csrf.token_manager')->getToken($context->employee->email)->getValue();
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignore
+        }
+
+        return '';
+    }
     /**
      * Extracts ACF field data from submitted form data.
      *
@@ -271,8 +294,18 @@ final class FormModifierService
      *
      * @return string Rendered HTML
      */
-    private function renderAcfFields(array $matchingGroups, string $entityType, ?int $entityId): string
-    {
+    /**
+     * Renders ACF fields HTML using Twig.
+     */
+    /**
+     * Renders ACF fields HTML using Twig.
+     */
+    private function renderAcfFields(
+        array $matchingGroups,
+        string $entityType,
+        ?int $entityId,
+        string $csrfToken = ''
+    ): string {
         $languages = Language::getLanguages(true);
         $defaultLangId = (int) Configuration::get('PS_LANG_DEFAULT');
         $currentLangId = (int) Context::getContext()->language->id;
@@ -312,11 +345,11 @@ final class FormModifierService
                 if ($currentLangIso && isset($fieldTranslations[$currentLangIso])) {
                     $translation = $fieldTranslations[$currentLangIso];
 
-                    if (! empty($translation['title'])) {
+                    if (!empty($translation['title'])) {
                         $fieldTitle = $translation['title'];
                     }
 
-                    if (! empty($translation['instructions'])) {
+                    if (!empty($translation['instructions'])) {
                         $fieldInstructions = $translation['instructions'];
                     }
                 }
@@ -417,8 +450,15 @@ final class FormModifierService
             'languages' => $languagesData,
             'default_lang_id' => $defaultLangId,
             'shop_id' => $shopId,
+            'entityFieldsScriptUrl' => _MODULE_DIR_ . 'wepresta_acf/views/js/admin/dist/entity-fields.js',
+            'token' => $csrfToken,
         ]);
     }
+
+    /**
+     * Get CSRF token for API.
+     */
+
 
     /**
      * Gets the admin API base URL.
@@ -439,6 +479,8 @@ final class FormModifierService
             if ($router) {
                 // Use values route and strip /values to get base URL
                 $url = $router->generate('wepresta_acf_api_values_save');
+                // Remove query string (if any) to prevent double token or malformed URL
+                $url = strtok($url, '?');
 
                 return preg_replace('/\/values$/', '', $url);
             }

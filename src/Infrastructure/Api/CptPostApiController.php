@@ -343,9 +343,10 @@ final class CptPostApiController extends AbstractApiController
 
             $fieldsData = [];
             foreach ($fields as $field) {
-                $fieldsData[] = [
-                    'key' => 'field_' . $field['id_wepresta_acf_field'],
-                    'id' => $field['id_wepresta_acf_field'],
+                $fieldId = (int) $field['id_wepresta_acf_field'];
+                $fieldData = [
+                    'key' => 'field_' . $fieldId,
+                    'id' => $fieldId,
                     'slug' => $field['slug'],
                     'type' => $field['type'],
                     'label' => $field['title'],
@@ -355,6 +356,27 @@ final class CptPostApiController extends AbstractApiController
                     'config' => json_decode($field['config'] ?? '{}', true),
                     'value_translatable' => (bool) ($field['value_translatable'] ?? false),
                 ];
+
+                // Handle Repeater: fetch children (subfields)
+                if ($field['type'] === 'repeater') {
+                    $children = $this->fieldRepository->findByParent($fieldId);
+                    $fieldData['children'] = array_map(function ($child) {
+                        $childConfig = json_decode($child['config'] ?? '{}', true) ?: [];
+                        return [
+                            'id' => (int) $child['id_wepresta_acf_field'],
+                            'slug' => $child['slug'],
+                            'type' => $child['type'],
+                            'label' => $child['title'],
+                            'title' => $child['title'],
+                            'instructions' => $child['instructions'] ?? '',
+                            'config' => $childConfig,
+                            'translatable' => (bool) ($child['value_translatable'] ?? $child['translatable'] ?? false),
+                            'value_translatable' => (bool) ($child['value_translatable'] ?? false),
+                        ];
+                    }, $children);
+                }
+
+                $fieldsData[] = $fieldData;
             }
 
             $matchingGroups[] = [

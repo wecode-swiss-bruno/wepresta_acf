@@ -60,7 +60,7 @@ function isMimeSelected(mime: string): boolean {
 <template>
   <div class="file-field-config">
     <div class="form-group">
-      <label class="form-control-label">Allowed File Types</label>
+      <label class="form-control-label">{{ t('allowedFileTypes') }}</label>
       <div class="acf-checkbox-list">
         <div 
           v-for="option in fileTypeOptions" 
@@ -80,12 +80,12 @@ function isMimeSelected(mime: string): boolean {
         </div>
       </div>
       <small class="form-text text-muted">
-        Select which file types users can upload.
+        {{ t('allowedFileTypesHelp') }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Max File Size (MB)</label>
+      <label class="form-control-label">{{ t('maxFileSize') }}</label>
       <input 
         type="number"
         class="form-control"
@@ -95,7 +95,7 @@ function isMimeSelected(mime: string): boolean {
         @input="updateConfig('maxSizeMB', parseInt(($event.target as HTMLInputElement).value) || 10)"
       >
       <small class="form-text text-muted">
-        Maximum file size in megabytes (1-50 MB).
+        {{ t('maxFileSizeHelp') }}
       </small>
     </div>
 
@@ -107,19 +107,18 @@ function isMimeSelected(mime: string): boolean {
           :checked="config.useFixedPath !== false"
           @change="updateConfig('useFixedPath', ($event.target as HTMLInputElement).checked)"
         >
-        Use Fixed File Path
+        {{ t('useFixedPath') }}
       </label>
       <small class="form-text text-muted">
-        When enabled, files use a predictable path (field_product_shop.ext) - better for caching. 
-        When disabled, files get unique names - avoids browser cache issues after delete/re-upload.
+        {{ t('useFixedPathHelp') }}
       </small>
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">Input Methods</h6>
+    <h6 class="text-muted mb-3">{{ t('inputMethods') }}</h6>
 
     <div class="form-group">
-      <label class="form-control-label">Allowed Input Methods</label>
+      <label class="form-control-label">{{ t('allowedInputMethods') }}</label>
       <div class="acf-method-checkboxes">
         <div class="form-check">
           <input 
@@ -130,7 +129,7 @@ function isMimeSelected(mime: string): boolean {
             @change="updateConfig('allowUpload', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="method-upload">
-            <strong>Upload</strong> - Direct file upload from computer
+            <strong>{{ t('inputMethodUpload') }}</strong> - {{ t('inputMethodUploadHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -142,7 +141,7 @@ function isMimeSelected(mime: string): boolean {
             @change="updateConfig('allowUrlImport', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="method-import">
-            <strong>Import from URL</strong> - Download file from URL and store locally
+            <strong>{{ t('inputMethodImport') }}</strong> - {{ t('inputMethodImportHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -154,7 +153,7 @@ function isMimeSelected(mime: string): boolean {
             @change="updateConfig('allowUrlLink', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="method-link">
-            <strong>External Link</strong> - Reference URL without downloading
+            <strong>{{ t('inputMethodLink') }}</strong> - {{ t('inputMethodLinkHelp') }}
           </label>
         </div>
         <div class="form-check">
@@ -166,33 +165,33 @@ function isMimeSelected(mime: string): boolean {
             @change="updateConfig('allowAttachment', ($event.target as HTMLInputElement).checked)"
           >
           <label class="form-check-label" for="method-attachment">
-            <strong>PrestaShop Attachment</strong> - Choose from product attachments
+            <strong>{{ t('inputMethodAttachment') }}</strong> - {{ t('inputMethodAttachmentHelp') }}
           </label>
         </div>
       </div>
       <small class="form-text text-muted">
-        Select which input methods are available to users. At least one must be enabled.
+        {{ t('inputMethodsAtLeastOne') }}
       </small>
     </div>
 
     <div class="form-group" v-if="hasMultipleMethods">
-      <label class="form-control-label">Default Input Method</label>
+      <label class="form-control-label">{{ t('defaultInputMethod') }}</label>
       <select 
         class="form-control"
         :value="config.defaultInputMethod || 'upload'"
         @change="updateConfig('defaultInputMethod', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="upload" v-if="config.allowUpload !== false">Upload</option>
-        <option value="import" v-if="config.allowUrlImport">Import from URL</option>
-        <option value="link" v-if="config.allowUrlLink">External Link</option>
+        <option value="upload" v-if="config.allowUpload !== false">{{ t('inputMethodUpload') }}</option>
+        <option value="import" v-if="config.allowUrlImport">{{ t('inputMethodImport') }}</option>
+        <option value="link" v-if="config.allowUrlLink">{{ t('inputMethodLink') }}</option>
       </select>
       <small class="form-text text-muted">
-        The default tab/option shown when editing a product.
+        {{ t('defaultInputMethodHelp') }}
       </small>
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">File Metadata Options</h6>
+    <h6 class="text-muted mb-3">{{ t('fileMetadata') }}</h6>
 
     <div class="form-group">
       <label class="form-control-label d-flex align-items-center gap-2">
@@ -202,10 +201,10 @@ function isMimeSelected(mime: string): boolean {
           :checked="config.enableTitle === true"
           @change="updateConfig('enableTitle', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Title Field
+        {{ t('enableTitleField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a custom title for the file.
+        {{ t('enableTitleFileHelp') }}
       </small>
     </div>
 
@@ -217,10 +216,10 @@ function isMimeSelected(mime: string): boolean {
           :checked="config.enableDescription === true"
           @change="updateConfig('enableDescription', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Description Field
+        {{ t('enableDescriptionField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a description for the file.
+        {{ t('enableDescriptionFileHelp') }}
       </small>
     </div>
   </div>

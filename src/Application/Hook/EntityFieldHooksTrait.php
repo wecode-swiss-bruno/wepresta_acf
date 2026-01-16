@@ -39,21 +39,8 @@ trait EntityFieldHooksTrait
         return $this->renderAdminFields('product', $params);
     }
 
-    /**
-     * Sauvegarde les champs ACF lors de la mise à jour produit.
-     */
-    public function hookActionProductUpdate(array $params): void
-    {
-        $this->saveEntityFields('product', $params);
-    }
-
-    /**
-     * Sauvegarde les champs ACF lors de la création produit.
-     */
-    public function hookActionProductAdd(array $params): void
-    {
-        $this->saveEntityFields('product', $params);
-    }
+    // Legacy hooks removed for harmonization with Symfony FormHandler
+    // hookActionProductUpdate and hookActionProductAdd are no longer needed for PS8+
 
     // =========================================================================
     // CATEGORY HOOKS - ADMIN (Back-Office)
@@ -283,11 +270,11 @@ trait EntityFieldHooksTrait
      */
     private function renderAdminFields(string $entity, array $params): string
     {
-        if (! $this->isActive()) {
+        if (!$this->isActive()) {
             return '';
         }
 
-        if (! EntityHooksConfig::isEnabled($entity)) {
+        if (!EntityHooksConfig::isEnabled($entity)) {
             return '';
         }
 
@@ -320,11 +307,11 @@ trait EntityFieldHooksTrait
      */
     private function saveEntityFields(string $entity, array $params): void
     {
-        if (! $this->isActive()) {
+        if (!$this->isActive()) {
             return;
         }
 
-        if (! EntityHooksConfig::isEnabled($entity)) {
+        if (!EntityHooksConfig::isEnabled($entity)) {
             return;
         }
 
@@ -391,15 +378,15 @@ trait EntityFieldHooksTrait
      */
     private function handleSymfonyFormBuilder(string $entity, array $params): void
     {
-        if (! $this->isActive()) {
+        if (!$this->isActive()) {
             return;
         }
 
-        if (! EntityHooksConfig::isEnabled($entity)) {
+        if (!EntityHooksConfig::isEnabled($entity)) {
             return;
         }
 
-        if (! isset($params['form_builder']) || ! ($params['form_builder'] instanceof FormBuilderInterface)) {
+        if (!isset($params['form_builder']) || !($params['form_builder'] instanceof FormBuilderInterface)) {
             return;
         }
 
@@ -429,11 +416,11 @@ trait EntityFieldHooksTrait
      */
     private function handleSymfonyFormHandler(string $entity, array $params): void
     {
-        if (! $this->isActive()) {
+        if (!$this->isActive()) {
             return;
         }
 
-        if (! EntityHooksConfig::isEnabled($entity)) {
+        if (!EntityHooksConfig::isEnabled($entity)) {
             return;
         }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FieldConfig } from '@/types'
+import { useTranslations } from '@/composables/useTranslations'
 
 const props = defineProps<{
   config: FieldConfig
@@ -9,9 +10,11 @@ const emit = defineEmits<{
   'update:config': [config: FieldConfig]
 }>()
 
+const { t } = useTranslations()
+
 const displayModeOptions = [
-  { value: 'table', label: 'Table (rows)' },
-  { value: 'cards', label: 'Cards' },
+  { value: 'table', label: t('displayModeTable') },
+  { value: 'cards', label: t('displayModeCards') },
 ]
 
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
@@ -22,47 +25,46 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
 <template>
   <div class="repeater-field-config">
     <div class="alert alert-info mb-3">
-      <strong>Repeater Field</strong><br>
-      Add subfields to this repeater using the "Add Subfield" button below after saving.
-      Subfields will be repeated for each row.
+      <strong>{{ t('repeaterAlertTitle') }}</strong><br>
+      {{ t('repeaterAlertContent') }}
     </div>
 
     <div class="row">
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-control-label">Minimum Rows</label>
+          <label class="form-control-label">{{ t('minRows') }}</label>
           <input 
             type="number"
             class="form-control"
             min="0"
             :value="config.min || ''"
-            placeholder="No minimum"
+            :placeholder="t('noMinimum')"
             @input="updateConfig('min', parseInt(($event.target as HTMLInputElement).value) || 0)"
           >
-          <small class="form-text text-muted">{{ t('0 = no minimum') }}</small>
+          <small class="form-text text-muted">{{ t('noMinimum') }}</small>
         </div>
       </div>
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-control-label">Maximum Rows</label>
+          <label class="form-control-label">{{ t('maxRows') }}</label>
           <input 
             type="number"
             class="form-control"
             min="0"
             :value="config.max || ''"
-            placeholder="Unlimited"
+            :placeholder="t('unlimited')"
             @input="updateConfig('max', parseInt(($event.target as HTMLInputElement).value) || 0)"
           >
-          <small class="form-text text-muted">{{ t('0 = unlimited') }}</small>
+          <small class="form-text text-muted">{{ t('unlimitedZero') }}</small>
         </div>
       </div>
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">Display Options</h6>
+    <h6 class="text-muted mb-3">{{ t('displayOptions') }}</h6>
 
     <div class="form-group">
-      <label class="form-control-label">Display Mode</label>
+      <label class="form-control-label">{{ t('displayMode') }}</label>
       <select 
         class="form-control"
         :value="config.displayMode || 'table'"
@@ -77,7 +79,7 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
         </option>
       </select>
       <small class="form-text text-muted">
-        Table: fields in columns like a spreadsheet. Cards: each row as a separate card.
+        {{ t('displayModeHelp') }}
       </small>
     </div>
 
@@ -89,35 +91,34 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
           :checked="config.collapsed === true"
           @change="updateConfig('collapsed', ($event.target as HTMLInputElement).checked)"
         >
-        Collapsed by Default
+        {{ t('collapsedByDefault') }}
       </label>
       <small class="form-text text-muted">
-        New rows will be collapsed when added (cards mode only).
+        {{ t('collapsedHelp') }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Row Title Template</label>
+      <label class="form-control-label">{{ t('rowTitleTemplate') }}</label>
       <input 
         type="text"
         class="form-control"
         :value="config.rowTitle || ''"
-        placeholder="Row {#}"
+        :placeholder="t('rowTitlePlaceholder')"
         @input="updateConfig('rowTitle', ($event.target as HTMLInputElement).value)"
       >
       <small class="form-text text-muted">
-        Use <code>{`{#}`}</code> for row number or <code>{`{field_slug}`}</code> to display a field value.<br>
-        Example: <code>{`{title}`}</code> will show the value of the "title" subfield.
+        <span v-html="t('rowTitleHelp')"></span>
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Add Button Label</label>
+      <label class="form-control-label">{{ t('addButtonLabel') }}</label>
       <input 
         type="text"
         class="form-control"
-        :value="config.buttonLabel || 'Add Row'"
-        placeholder="Add Row"
+        :value="config.buttonLabel || t('addRow')"
+        :placeholder="t('addRow')"
         @input="updateConfig('buttonLabel', ($event.target as HTMLInputElement).value)"
       >
     </div>

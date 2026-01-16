@@ -1092,7 +1092,7 @@ class WeprestaAcf extends Module
         $today = date('Y-m-d');
 
         if ($lastCheck === $today) {
-            return; // Already checked today
+            // return; // Force check for debugging
         }
 
         try {

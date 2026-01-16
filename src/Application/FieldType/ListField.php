@@ -66,9 +66,7 @@ final class ListField extends AbstractFieldType
 
     public function supportsTranslation(): bool
     {
-        // List fields should not be value_translatable at the field level
-        // Translations should be handled within each item's JSON structure
-        return false;
+        return true;
     }
 
     public function normalizeValue(mixed $value, array $fieldConfig = []): mixed

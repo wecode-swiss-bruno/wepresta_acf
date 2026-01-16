@@ -13,6 +13,32 @@ const emit = defineEmits<{
 
 const config = computed(() => props.field.config || {})
 
+// Get current language ID from global config
+const currentLangId = computed(() => {
+  return (window as any).acfConfig?.currentLangId || '1'
+})
+
+// Resolve label from translations or fallback
+const resolveLabel = (item: any): string => {
+  const langId = String(currentLangId.value)
+  
+  // Try translations first
+  if (item.translations && typeof item.translations === 'object') {
+    const translatedLabel = item.translations[langId]
+    if (translatedLabel && translatedLabel.trim() !== '') {
+      return translatedLabel
+    }
+  }
+  
+  // Fallback to label
+  if (item.label && item.label.trim() !== '') {
+    return item.label
+  }
+  
+  // Fallback to value
+  return item.value || ''
+}
+
 const parsedChoices = computed(() => {
   const choices = config.value.choices
   if (!choices) return []
@@ -20,7 +46,7 @@ const parsedChoices = computed(() => {
   if (Array.isArray(choices)) {
     return choices.map((item: any) => {
       if (typeof item === 'object' && item !== null) {
-        return { value: item.value || '', label: item.value || '' } 
+        return { value: item.value || '', label: resolveLabel(item) } 
       }
       return { value: String(item), label: String(item) }
     })

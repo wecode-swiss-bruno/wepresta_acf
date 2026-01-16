@@ -161,7 +161,7 @@ function updateHiddenInputs(
 /**
  * Initialize ACF Entity Fields on page load
  */
-function initAcfEntityFields(): void {
+function _mountAllContainers(): void {
   const containers = document.querySelectorAll<HTMLElement>(
     '.acf-entity-fields-vue-container:not(.acf-vue-initialized)'
   )
@@ -181,6 +181,14 @@ function initAcfEntityFields(): void {
   })
 }
 
+/**
+ * Main init function: unpacks hidden containers then mounts apps
+ */
+function initAcfEntityFields(): void {
+  unpackAcfContainers()
+  _mountAllContainers()
+}
+
 // Initialize on DOM ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initAcfEntityFields)
@@ -188,12 +196,67 @@ if (document.readyState === 'loading') {
   initAcfEntityFields()
 }
 
-// Also observe for dynamically added containers (AJAX loaded forms)
+/**
+ * Unpack hidden ACF containers (Symfony Forms)
+ * 
+ * Looks for .acf-container-data elements, decodes their base64 content,
+ * and injects the resulting HTML into the DOM.
+ */
+function unpackAcfContainers(root: HTMLElement | Document = document): void {
+  const hiddenContainers = root.querySelectorAll<HTMLElement>('.acf-container-data')
+
+  if (hiddenContainers.length === 0) {
+    return
+  }
+
+  console.log(`ACF: Found ${hiddenContainers.length} hidden container(s) to unpack`)
+
+  hiddenContainers.forEach(container => {
+    try {
+      // 1. Get base64 content
+      const base64Content = container.dataset.acfHtml
+      if (!base64Content) {
+        return
+      }
+
+      // 2. Decode content
+      const decodedHtml = atob(base64Content)
+
+      // 3. Create wrapper
+      const wrapper = document.createElement('div')
+      wrapper.innerHTML = decodedHtml
+
+      // 4. Find the actual Vue container within the decoded HTML
+      const vueContainer = wrapper.querySelector('.acf-entity-fields-vue-container')
+
+      if (vueContainer) {
+        // 5. Inject after the hidden input (or replace it if you prefer, but keeping it is safer for form submission context)
+        container.insertAdjacentElement('afterend', vueContainer)
+
+        // 6. Mark original as processed to avoid double unpacking
+        container.classList.remove('acf-container-data')
+        container.classList.add('acf-container-data-processed')
+
+        console.log('ACF: Unpacked container successfully')
+      }
+    } catch (e) {
+      console.error('ACF: Failed to unpack container:', e)
+    }
+  })
+}
+
+// Update observer to also unpack
 const observer = new MutationObserver((mutations) => {
+  let shouldUnpack = false
+
   for (const mutation of mutations) {
     if (mutation.type === 'childList') {
       mutation.addedNodes.forEach((node) => {
         if (node instanceof HTMLElement) {
+          if (node.classList.contains('acf-container-data') || node.querySelector('.acf-container-data')) {
+            shouldUnpack = true
+          }
+
           // Check if the added node is a container
           if (node.classList.contains('acf-entity-fields-vue-container')) {
             if (!node.classList.contains('acf-vue-initialized')) {
@@ -214,6 +277,12 @@ const observer = new MutationObserver((mutations) => {
         }
       })
     }
+  }
+
+  if (shouldUnpack) {
+    unpackAcfContainers()
+    // After unpacking, we need to init the new containers
+    _mountAllContainers()
   }
 })
 

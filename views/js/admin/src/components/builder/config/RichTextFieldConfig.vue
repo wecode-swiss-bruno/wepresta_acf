@@ -20,7 +20,7 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
 <template>
   <div class="richtext-field-config">
     <div class="form-group">
-      <label class="form-control-label">Editor Height (rows)</label>
+      <label class="form-control-label">{{ t('editorHeight') }}</label>
       <input 
         type="number"
         class="form-control"
@@ -30,29 +30,29 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
         @input="updateConfig('rows', parseInt(($event.target as HTMLInputElement).value) || 10)"
       >
       <small class="form-text text-muted">
-        Number of text rows for the editor (5-30).
+        {{ t('editorHeightHelp') }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Toolbar Style</label>
+      <label class="form-control-label">{{ t('toolbarStyle') }}</label>
       <select
         class="form-control"
         :value="config.toolbar || 'standard'"
         @change="updateConfig('toolbar', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="basic">Basic (bold, italic, links)</option>
-        <option value="standard">Standard</option>
-        <option value="full">Full (all options)</option>
+        <option value="basic">{{ t('toolbarBasic') }}</option>
+        <option value="standard">{{ t('toolbarStandard') }}</option>
+        <option value="full">{{ t('toolbarFull') }}</option>
       </select>
       <small class="form-text text-muted">
-        Note: Toolbar configuration depends on PrestaShop TinyMCE settings.
+        {{ t('toolbarHelp') }}
       </small>
     </div>
 
     <div class="alert alert-info mt-3">
       <span class="material-icons" style="vertical-align: middle;">info</span>
-      <strong>Security Note:</strong> HTML content is automatically sanitized when saved to prevent XSS attacks.
+      <strong>{{ t('securityNote') }}</strong> {{ t('securityNoteContent') }}
     </div>
   </div>
 </template>

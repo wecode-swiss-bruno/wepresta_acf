@@ -8,6 +8,7 @@
 
 import { ref, computed } from 'vue'
 import { useCodeGenerator } from '@/composables/useCodeGenerator'
+import { useTranslations } from '@/composables/useTranslations'
 import type { AcfField } from '@/types'
 
 const props = defineProps<{
@@ -22,6 +23,8 @@ const {
   getQuickCode, 
   copyToClipboard 
 } = useCodeGenerator()
+
+const { t } = useTranslations()
 
 const showDropdown = ref(false)
 const showAllSnippets = ref(false)
@@ -58,8 +61,8 @@ function closeDropdown() {
       v-if="compact"
       class="btn btn-link btn-sm copy-code-btn"
       :class="{ copied: isCopied }"
+      :title="isCopied ? t('copied') : t('copyLanguageCode', undefined, { lang: selectedLanguage })"
       @click.stop="handleQuickCopy"
-      :title="isCopied ? 'Copied!' : `Copy ${selectedLanguage} code`"
     >
       <span class="material-icons">
         {{ isCopied ? 'check' : 'content_copy' }}
@@ -74,7 +77,7 @@ function closeDropdown() {
         @click.stop="toggleDropdown"
       >
         <span class="material-icons">code</span>
-        <span class="btn-text">Copy Code</span>
+        <span class="btn-text">{{ t('copyCode') }}</span>
         <span class="material-icons dropdown-arrow">
           {{ showDropdown ? 'expand_less' : 'expand_more' }}
         </span>
@@ -83,7 +86,7 @@ function closeDropdown() {
       <div v-if="showDropdown" class="dropdown-menu show">
         <!-- Language selector -->
         <div class="dropdown-header">
-          <span>Language</span>
+          <span>{{ t('language') }}</span>
           <div class="btn-group btn-group-sm">
             <button 
               class="btn btn-xs"
@@ -104,7 +107,7 @@ function closeDropdown() {
               :class="selectedLanguage === 'shortcode' ? 'btn-primary' : 'btn-outline-secondary'"
               @click="selectedLanguage = 'shortcode'"
             >
-              Shortcode
+              {{ t('shortcode') }}
             </button>
           </div>
         </div>
@@ -118,11 +121,12 @@ function closeDropdown() {
             class="btn btn-sm btn-primary copy-btn"
             :class="{ copied: isCopied }"
             @click="handleQuickCopy"
+            :title="isCopied ? t('copied') : t('copy')"
           >
             <span class="material-icons">
               {{ isCopied ? 'check' : 'content_copy' }}
             </span>
-            {{ isCopied ? 'Copied!' : 'Copy' }}
+            {{ isCopied ? t('copied') : t('copy') }}
           </button>
         </div>
 
@@ -132,7 +136,7 @@ function closeDropdown() {
           class="btn btn-link btn-sm show-more-btn"
           @click="showAllSnippets = !showAllSnippets"
         >
-          {{ showAllSnippets ? 'Hide' : 'Show all' }} snippets
+          {{ showAllSnippets ? t('hide') : t('showAll') }} {{ t('snippets') }}
           <span class="material-icons">
             {{ showAllSnippets ? 'expand_less' : 'expand_more' }}
           </span>

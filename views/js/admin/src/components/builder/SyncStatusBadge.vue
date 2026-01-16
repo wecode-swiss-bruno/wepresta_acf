@@ -12,6 +12,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useTranslations } from '@/composables/useTranslations'
 
 interface Props {
   status: string
@@ -24,53 +25,56 @@ const props = withDefaults(defineProps<Props>(), {
   syncEnabled: true
 })
 
+const { t } = useTranslations()
+
 interface StatusInfo {
   label: string
   icon: string
-  color: string
+  color?: string
+  class?: string
 }
 
 const statusInfo = computed<StatusInfo>(() => {
   switch (props.status) {
     case 'synced':
       return {
-        label: 'Synced',
-        icon: 'check_circle',
-        color: 'success'
+        label: t('synced'),
+        class: 'badge-success',
+        icon: 'check_circle'
       }
     case 'modified':
       return {
-        label: 'Modified',
-        icon: 'edit',
-        color: 'warning'
+        label: t('modified'),
+        class: 'badge-info',
+        icon: 'edit'
       }
-    case 'need_push':
+    case 'not_in_theme':
       return {
-        label: 'Not in theme',
-        icon: 'cloud_upload',
-        color: 'info'
+        label: t('notInTheme'),
+        class: 'badge-warning',
+        icon: 'warning'
       }
     case 'theme_only':
       return {
-        label: 'Theme only',
+        label: t('themeOnly'),
         icon: 'cloud_download',
         color: 'primary'
       }
     case 'conflict':
       return {
-        label: 'Conflict',
-        icon: 'warning',
-        color: 'danger'
+        label: t('conflict'),
+        class: 'badge-danger',
+        icon: 'error'
       }
-    case 'disabled':
+    case 'sync_disabled':
       return {
-        label: 'Sync disabled',
-        icon: 'sync_disabled',
-        color: 'secondary'
+        label: t('syncDisabled'),
+        class: 'badge-secondary',
+        icon: 'sync_disabled'
       }
     default:
       return {
-        label: 'Unknown',
+        label: t('unknown'),
         icon: 'help',
         color: 'secondary'
       }

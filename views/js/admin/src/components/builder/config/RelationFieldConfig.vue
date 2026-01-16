@@ -40,7 +40,7 @@ watch(filterActive, (val) => updateFilter('active', !!val))
 watch(filterInStock, (val) => updateFilter('in_stock', !!val))
 watch(filterExcludeCurrent, (val) => updateFilter('exclude_current', !!val))
 
-function updateFilter(key: string, value: boolean): void {
+function updateFilter(key: string, value: any): void {
   const filters = { ...(props.config.filters || {}), [key]: value }
   emit('update:config', { ...props.config, filters })
 }
@@ -49,50 +49,50 @@ function updateFilter(key: string, value: boolean): void {
 <template>
   <div class="relation-field-config">
     <div class="form-group">
-      <label class="form-control-label">{{ t('entityType') || 'Entity Type' }} *</label>
+      <label class="form-control-label">{{ t('entityType') }} *</label>
       <select
         class="form-control"
         :value="config.entityType || 'product'"
         @change="updateConfig('entityType', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="product">Product</option>
-        <option value="category">Category</option>
+        <option value="product">{{ t('entityProduct') }}</option>
+        <option value="category">{{ t('entityCategory') }}</option>
       </select>
       <small class="form-text text-muted">
-        Select the type of entity to relate to.
+        {{ t('entityTypeHelp') }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">{{ t('allowMultiple') || 'Allow Multiple' }}</label>
+      <label class="form-control-label">{{ t('allowMultiple') }}</label>
       <PsSwitch
         v-model="multiple"
         id="relation-multiple"
       />
       <small class="form-text text-muted">
-        Allow selecting multiple items.
+        {{ t('allowMultipleRelHelp') }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">{{ t('displayFormat') || 'Display Format' }}</label>
+      <label class="form-control-label">{{ t('displayFormat') }}</label>
       <select
         class="form-control"
         :value="config.displayFormat || 'name'"
         @change="updateConfig('displayFormat', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="name">Name only</option>
-        <option value="name_reference">Name + Reference</option>
-        <option value="thumbnail_name">Thumbnail + Name</option>
+        <option value="name">{{ t('formatNameOnly') }}</option>
+        <option value="name_reference">{{ t('formatNameRef') }}</option>
+        <option value="thumbnail_name">{{ t('formatThumbName') }}</option>
       </select>
       <small class="form-text text-muted">
-        How to display selected items in the back-office.
+        {{ t('displayFormatHelp') }}
       </small>
     </div>
 
     <div v-if="config.multiple" class="form-row">
       <div class="form-group col-6">
-        <label class="form-control-label">{{ t('minItems') || 'Minimum items' }}</label>
+        <label class="form-control-label">{{ t('minItems') }}</label>
         <input
           type="number"
           class="form-control"
@@ -102,7 +102,7 @@ function updateFilter(key: string, value: boolean): void {
         >
       </div>
       <div class="form-group col-6">
-        <label class="form-control-label">{{ t('maxItems') || 'Maximum items' }}</label>
+        <label class="form-control-label">{{ t('maxItems') }}</label>
         <input
           type="number"
           class="form-control"
@@ -110,58 +110,58 @@ function updateFilter(key: string, value: boolean): void {
           :value="config.max || ''"
           @input="updateConfig('max', parseInt(($event.target as HTMLInputElement).value) || null)"
         >
-        <small class="form-text text-muted">{{ t('Leave empty for unlimited.') }}</small>
+        <small class="form-text text-muted">{{ t('leaveEmptyUnlimited') }}</small>
       </div>
     </div>
 
     <hr>
 
-    <h5>{{ t('filters') || 'Filters' }}</h5>
+    <h5>{{ t('filters') }}</h5>
 
     <div class="form-group">
-      <label class="form-control-label">{{ t('activeOnly') || 'Active only' }}</label>
+      <label class="form-control-label">{{ t('activeOnly') }}</label>
       <PsSwitch
         v-model="filterActive"
         id="filter-active"
       />
       <small class="form-text text-muted">
-        Only show active products/categories.
+        {{ t('activeOnlyHelp') }}
       </small>
     </div>
 
     <div v-if="config.entityType === 'product'" class="form-group">
-      <label class="form-control-label">{{ t('inStockOnly') || 'In stock only' }}</label>
+      <label class="form-control-label">{{ t('inStockOnly') }}</label>
       <PsSwitch
         v-model="filterInStock"
         id="filter-stock"
       />
       <small class="form-text text-muted">
-        Only show products with stock available.
+        {{ t('inStockOnlyHelp') }}
       </small>
     </div>
 
     <div v-if="config.entityType === 'product'" class="form-group">
-      <label class="form-control-label">{{ t('excludeCurrent') || 'Exclude current product' }}</label>
+      <label class="form-control-label">{{ t('excludeCurrent') }}</label>
       <PsSwitch
         v-model="filterExcludeCurrent"
         id="filter-exclude"
       />
       <small class="form-text text-muted">
-        Don't show the current product in the search results.
+        {{ t('excludeCurrentHelp') }}
       </small>
     </div>
 
     <div v-if="config.entityType === 'product'" class="form-group">
-      <label class="form-control-label">{{ t('limitCategories') || 'Limit to categories' }}</label>
+      <label class="form-control-label">{{ t('limitToCategories') }}</label>
       <input
         type="text"
         class="form-control"
-        placeholder="e.g., 3, 5, 12"
+        :placeholder="t('categoriesExample')"
         :value="config.filters?.categories || ''"
         @input="updateFilter('categories', ($event.target as HTMLInputElement).value)"
       >
       <small class="form-text text-muted">
-        Comma-separated category IDs. Leave empty for all categories.
+        {{ t('limitToCategoriesHelp') }}
       </small>
     </div>
   </div>

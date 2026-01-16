@@ -155,4 +155,32 @@ final class BuilderController extends FrameworkBundleAdminController
         // Last resort
         return '';
     }
+
+    /**
+     * Resolve the correct script file URL from Vite manifest.
+     * 
+     * Handles both hashed filenames (from Vite build) and direct URLs.
+     */
+    private function resolveManifestFile(string $entryName): string
+    {
+        try {
+            $moduleDir = _PS_MODULE_DIR_ . 'wepresta_acf/';
+            $manifestPath = $moduleDir . 'views/js/admin/dist/manifest-' . $entryName . '.json';
+
+            if (!file_exists($manifestPath)) {
+                // Fallback to direct URL without manifest
+                return '/modules/wepresta_acf/views/js/admin/dist/' . $entryName . '.js';
+            }
+
+            $manifest = json_decode(file_get_contents($manifestPath), true);
+            if (!isset($manifest['src/' . $entryName . '.ts']['file'])) {
+                return '/modules/wepresta_acf/views/js/admin/dist/' . $entryName . '.js';
+            }
+
+            $filename = $manifest['src/' . $entryName . '.ts']['file'];
+            return '/modules/wepresta_acf/views/js/admin/dist/' . $filename;
+        } catch (\Exception $e) {
+            return '/modules/wepresta_acf/views/js/admin/dist/' . $entryName . '.js';
+        }
+    }
 }

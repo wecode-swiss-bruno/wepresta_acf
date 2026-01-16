@@ -95,7 +95,7 @@ function onSlugChange(): void {
           <i v-if="isGroupSaved"
              class="material-icons text-warning ml-1"
              style="font-size: 16px; vertical-align: middle;"
-             :title="t('slugLockedTitle', 'Slug is locked because group is saved')">
+             :title="t('slugLockedTitle')">
             lock
           </i>
         </label>
@@ -119,7 +119,7 @@ function onSlugChange(): void {
           <div v-if="isGroupSaved" class="input-group-append">
             <span class="input-group-text bg-secondary text-white">
               <i class="material-icons" style="font-size: 14px;">lock</i>
-              {{ t('locked', 'Locked') }}
+              {{ t('locked') }}
             </span>
           </div>
         </div>
@@ -128,10 +128,10 @@ function onSlugChange(): void {
         <small class="form-text" :class="{ 'text-muted': !isGroupSaved, 'text-warning': isGroupSaved }">
           <span v-if="isGroupSaved">
             <i class="material-icons" style="font-size: 12px; vertical-align: middle;">info</i>
-            {{ t('slugLockedExplanation', 'This slug cannot be changed because the group has been saved. Changing it could break existing code that references this group.') }}
+            {{ t('slugLockedExplanation') }}
           </span>
           <span v-else>
-            Unique identifier used in templates: acf('{{ group.slug || 'slug' }}', 'field_name')
+            {{ t('slugUsageHelp') }} acf('{{ group.slug || 'slug' }}', 'field_name')
           </span>
         </small>
 
@@ -175,7 +175,7 @@ function onSlugChange(): void {
         @click="handleNextStep"
       >
         <span v-if="store.saving">{{ t('saving') }}</span>
-        <span v-else>Next: {{ t('location') }}</span>
+        <span v-else>{{ t('next') }} {{ t('location') }}</span>
         <span v-if="!store.saving" class="material-icons">arrow_forward</span>
       </button>
     </div>

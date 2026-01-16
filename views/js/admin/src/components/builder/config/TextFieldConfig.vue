@@ -40,7 +40,7 @@ const defaultValue = createStringRef('defaultValue')
         class="form-control"
       >
       <small class="form-text text-muted">
-        Text to display before the field value.
+        {{ t('prefixHelp') }}
       </small>
     </div>
 
@@ -52,7 +52,7 @@ const defaultValue = createStringRef('defaultValue')
         class="form-control"
       >
       <small class="form-text text-muted">
-        Text to display after the field value.
+        {{ t('suffixHelp') }}
       </small>
     </div>
 
@@ -62,10 +62,10 @@ const defaultValue = createStringRef('defaultValue')
         v-model="defaultValue"
         type="text"
         class="form-control"
-        :placeholder="t('defaultValuePlaceholder') || 'Default value for all entities'"
+        :placeholder="t('defaultValuePlaceholder')"
       >
       <small class="form-text text-muted">
-        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
+        {{ t('defaultValueHelp') }}
       </small>
     </div>
   </div>

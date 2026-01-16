@@ -68,13 +68,10 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
         $seoMeta = $cptSeoService->generateMetaTags($post, $type);
         $schemaOrg = $cptSeoService->generateSchemaOrg($post, $type);
 
-        // Assign meta tags
-        $this->context->smarty->assign([
-            'meta_title' => $seoMeta['title'],
-            'meta_description' => $seoMeta['description'],
-        ]);
+        // Store SEO data for getTemplateVarPage()
+        $this->seoMeta = $seoMeta;
 
-        // Add meta tags to head
+        // Add social meta tags to head
         $this->addMetaTags($seoMeta);
         $this->addSchemaOrg($schemaOrg);
 
@@ -83,7 +80,7 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
             'cpt_type' => [
                 'id' => $type->getId(),
                 'slug' => $type->getSlug(),
-                'name' => $type->getName(),
+                'name' => $type->getName($this->context->language->id),
                 'url' => $cptUrlService->getFriendlyUrl($type),
             ],
             'cpt_post' => [
@@ -100,6 +97,28 @@ class Wepresta_AcfCptsingleModuleFrontController extends ModuleFrontController
         // Set template
         $this->setTemplate($this->getSingleTemplate($typeSlug));
     }
+
+    /**
+     * Override to set proper page meta (PrestaShop 8/9 way)
+     */
+    public function getTemplateVarPage(): array
+    {
+        $page = parent::getTemplateVarPage();
+
+        if (isset($this->seoMeta)) {
+            $page['meta']['title'] = $this->seoMeta['title'] ?? $page['meta']['title'];
+            $page['meta']['description'] = $this->seoMeta['description'] ?? $page['meta']['description'];
+            $page['meta']['robots'] = 'index, follow';
+        }
+
+        // Set page name for CSS targeting
+        $page['page_name'] = 'module-wepresta_acf-cptsingle';
+
+        return $page;
+    }
+
+    /** @var array<string, string>|null */
+    private ?array $seoMeta = null;
 
     private function getSingleTemplate(string $typeSlug): string
     {

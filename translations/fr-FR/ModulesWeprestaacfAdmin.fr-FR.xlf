@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
   <file source-language="en-US" target-language="fr-FR" datatype="plaintext" original="Modules.Weprestaacf.Admin">
     <body>
-      <!-- Module Information -->
+      
       <trans-unit id="1" resname="ACF (Advanced Custom Fields) for PrestaShop">
         <source>ACF (Advanced Custom Fields) for PrestaShop</source>
         <target>ACF (Advanced Custom Fields) pour PrestaShop</target>
@@ -16,7 +16,7 @@
         <target>Supprimer tous les champs personnalisés et leurs valeurs ?</target>
       </trans-unit>
 
-      <!-- Configuration -->
+      
       <trans-unit id="4" resname="ACF Configuration">
         <source>ACF Configuration</source>
         <target>Configuration ACF</target>
@@ -38,7 +38,7 @@
         <target>Taille maximale des fichiers pour les téléchargements en mégaoctets.</target>
       </trans-unit>
 
-      <!-- Builder -->
+      
       <trans-unit id="9" resname="ACF Field Builder">
         <source>ACF Field Builder</source>
         <target>Constructeur de champs ACF</target>
@@ -52,7 +52,7 @@
         <target>Chargement du constructeur ACF...</target>
       </trans-unit>
 
-      <!-- Sync -->
+      
       <trans-unit id="12" resname="Export / Import">
         <source>Export / Import</source>
         <target>Export / Import</target>
@@ -98,7 +98,7 @@
         <target>Échec de la synchronisation</target>
       </trans-unit>
 
-      <!-- Sync Interface -->
+      
       <trans-unit id="23" resname="When enabled, the configuration will be automatically exported to /modules/wepresta_acf/sync/acf-config.json after each modification (create, update, or delete) of a group or field. This file can be versioned in Git to synchronize configurations between staging and production environments. The export runs in the background and does not slow down your operations.">
         <source>When enabled, the configuration will be automatically exported to /modules/wepresta_acf/sync/acf-config.json after each modification (create, update, or delete) of a group or field. This file can be versioned in Git to synchronize configurations between staging and production environments. The export runs in the background and does not slow down your operations.</source>
         <target>Lorsqu'activé, la configuration sera automatiquement exportée vers /modules/wepresta_acf/sync/acf-config.json après chaque modification (création, mise à jour ou suppression) d'un groupe ou champ. Ce fichier peut être versionné dans Git pour synchroniser les configurations entre les environnements de développement et de production. L'export s'exécute en arrière-plan et ne ralentit pas vos opérations.</target>
@@ -131,7 +131,7 @@
         <source>Export your field groups to JSON files or import them from JSON files.</source>
         <target>Exportez vos groupes de champs vers des fichiers JSON ou importez-les depuis des fichiers JSON.</target>
       </trans-unit>
-      <!-- Configuration Interface -->
+      
       <trans-unit id="31" resname="General">
         <source>General</source>
         <target>Général</target>
@@ -213,7 +213,7 @@
         <target>Supprimer ce type de champ ?</target>
       </trans-unit>
 
-      <!-- Export/Import -->
+      
       <trans-unit id="51" resname="Export All">
         <source>Export All</source>
         <target>Tout exporter</target>
@@ -235,7 +235,7 @@
         <target>Export en cours...</target>
       </trans-unit>
 
-      <!-- Import -->
+      
       <trans-unit id="56" resname="Drop JSON file here or click to select">
         <source>Drop JSON file here or click to select</source>
         <target>Déposez le fichier JSON ici ou cliquez pour sélectionner</target>
@@ -265,7 +265,7 @@
         <target>Cette action supprimera tous les groupes existants puis importera. Cette action est irréversible.</target>
       </trans-unit>
 
-      <!-- Sync Status -->
+      
       <trans-unit id="63" resname="File:">
         <source>File:</source>
         <target>Fichier :</target>
@@ -311,7 +311,7 @@
         <target>Aucun fichier de configuration trouvé. Exportez pour créer le fichier.</target>
       </trans-unit>
 
-      <!-- Sync Notifications -->
+      
       <trans-unit id="74" resname="Newer configuration detected">
         <source>Newer configuration detected</source>
         <target>Nouvelle configuration détectée</target>
@@ -325,7 +325,7 @@
         <target>Un fichier de configuration plus récent a été détecté.</target>
       </trans-unit>
 
-      <!-- Items Management -->
+      
       <trans-unit id="77" resname="Module Starter Items">
         <source>Module Starter Items</source>
         <target>Éléments du module</target>
@@ -355,7 +355,7 @@
         <target>Une description optionnelle à des fins administratives.</target>
       </trans-unit>
 
-      <!-- Custom Fields - Common -->
+      
       <trans-unit id="84" resname="Save Custom Fields">
         <source>Save Custom Fields</source>
         <target>Enregistrer les champs personnalisés</target>
@@ -373,7 +373,7 @@
         <target>Aucun groupe de champs personnalisés défini pour ce produit.</target>
       </trans-unit>
 
-      <!-- JavaScript Messages -->
+      
       <trans-unit id="88" resname="Saving...">
         <source>Saving...</source>
         <target>Enregistrement...</target>
@@ -399,7 +399,7 @@
         <target>Envoi vers le serveur...</target>
       </trans-unit>
 
-      <!-- Field Types - Common -->
+      
       <trans-unit id="94" resname="Select">
         <source>Select</source>
         <target>Sélectionner</target>
@@ -417,7 +417,7 @@
         <target>Ouvrir l'URL</target>
       </trans-unit>
 
-      <!-- Text/Number Fields -->
+      
       <trans-unit id="98" resname="Maximum %length% characters">
         <source>Maximum %length% characters</source>
         <target>Maximum %length% caractères</target>
@@ -443,7 +443,7 @@
         <target>Pas d'incrémentation : %step%</target>
       </trans-unit>
 
-      <!-- Date/Time Fields -->
+      
       <trans-unit id="104" resname="Date and time must be between %min% and %max%">
         <source>Date and time must be between %min% and %max%</source>
         <target>La date et l'heure doivent être comprises entre %min% et %max%</target>
@@ -473,7 +473,7 @@
         <target>Incrément de temps : %step% minutes</target>
       </trans-unit>
 
-      <!-- List/Repeater Fields -->
+      
       <trans-unit id="111" resname="Add Item">
         <source>Add Item</source>
         <target>Ajouter un élément</target>
@@ -511,13 +511,13 @@
         <target>Aucun sous-champ défini pour ce répéteur.</target>
       </trans-unit>
 
-      <!-- Radio/Select Fields -->
+      
       <trans-unit id="120" resname="No choices defined">
         <source>No choices defined</source>
         <target>Aucun choix défini</target>
       </trans-unit>
 
-      <!-- Image Fields -->
+      
       <trans-unit id="121" resname="Alt Text / Title">
         <source>Alt Text / Title</source>
         <target>Texte alternatif / Titre</target>
@@ -535,7 +535,7 @@
         <target>Copier l'URL</target>
       </trans-unit>
 
-      <!-- File Fields -->
+      
       <trans-unit id="125" resname="Drop file here or click to upload">
         <source>Drop file here or click to upload</source>
         <target>Déposez un fichier ici ou cliquez pour télécharger</target>
@@ -569,7 +569,7 @@
         <target>Copier le lien de téléchargement</target>
       </trans-unit>
 
-      <!-- Video Fields -->
+      
       <trans-unit id="133" resname="Uploaded">
         <source>Uploaded</source>
         <target>Téléchargé</target>
@@ -639,7 +639,7 @@
         <target>URL de l'affiche</target>
       </trans-unit>
 
-      <!-- URL Fields -->
+      
       <trans-unit id="150" resname="Icon">
         <source>Icon</source>
         <target>Icône</target>
@@ -649,7 +649,7 @@
         <target>URL</target>
       </trans-unit>
 
-      <!-- Relation Fields -->
+      
       <trans-unit id="152" resname="Search categories...">
         <source>Search categories...</source>
         <target>Rechercher des catégories...</target>
@@ -659,7 +659,7 @@
         <target>Rechercher des produits...</target>
       </trans-unit>
 
-      <!-- Front-end -->
+      
       <trans-unit id="154" resname="Bienvenue sur la page du module.">
         <source>Bienvenue sur la page du module.</source>
         <target>Bienvenue sur la page du module.</target>
@@ -673,7 +673,7 @@
         <target>Propulsé par Module Starter</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Common -->
+      
       <trans-unit id="157" resname="Minimum Rows">
         <source>Minimum Rows</source>
         <target>Lignes minimum</target>
@@ -719,7 +719,7 @@
         <target>0 = illimité</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Text/Number -->
+      
       <trans-unit id="168" resname="Prepend">
         <source>Prepend</source>
         <target>Préfixe</target>
@@ -765,7 +765,7 @@
         <target>Texte à afficher avant la saisie (ex. : symbole monétaire)</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Textarea -->
+      
       <trans-unit id="179" resname="Rows">
         <source>Rows</source>
         <target>Lignes</target>
@@ -775,7 +775,7 @@
         <target>Nombre de lignes de texte visibles</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Select/Radio -->
+      
       <trans-unit id="181" resname="Choices">
         <source>Choices</source>
         <target>Choix</target>
@@ -821,7 +821,7 @@
         <target>Horizontal</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Files/Images -->
+      
       <trans-unit id="192" resname="Allowed Formats">
         <source>Allowed Formats</source>
         <target>Formats autorisés</target>
@@ -891,7 +891,7 @@
         <target>Fichiers maximum</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - File Types -->
+      
       <trans-unit id="209" resname="Allowed File Types">
         <source>Allowed File Types</source>
         <target>Types de fichiers autorisés</target>
@@ -904,2388 +904,2389 @@
         <source>Allowed image formats:</source>
         <target>Formats d'images autorisés :</target>
       </trans-unit>
-      <trans-unit id="636" resname="No images in gallery. Upload new images below.">
+      <trans-unit id="212" resname="No images in gallery. Upload new images below.">
         <source>No images in gallery. Upload new images below.</source>
         <target>Aucune image dans la galerie. Uploadez de nouvelles images ci-dessous.</target>
       </trans-unit>
-      <trans-unit id="212" resname="PDF">
+      <trans-unit id="213" resname="PDF">
         <source>PDF</source>
         <target>PDF</target>
       </trans-unit>
-      <trans-unit id="213" resname="Word (.doc)">
+      <trans-unit id="214" resname="Word (.doc)">
         <source>Word (.doc)</source>
         <target>Word (.doc)</target>
       </trans-unit>
-      <trans-unit id="214" resname="Word (.docx)">
+      <trans-unit id="215" resname="Word (.docx)">
         <source>Word (.docx)</source>
         <target>Word (.docx)</target>
       </trans-unit>
-      <trans-unit id="215" resname="Excel (.xls)">
+      <trans-unit id="216" resname="Excel (.xls)">
         <source>Excel (.xls)</source>
         <target>Excel (.xls)</target>
       </trans-unit>
-      <trans-unit id="216" resname="CSV">
+      <trans-unit id="217" resname="CSV">
         <source>CSV</source>
         <target>CSV</target>
       </trans-unit>
-      <trans-unit id="217" resname="ZIP">
+      <trans-unit id="218" resname="ZIP">
         <source>ZIP</source>
         <target>ZIP</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Video -->
-      <trans-unit id="218" resname="Allow YouTube">
+      
+      <trans-unit id="219" resname="Allow YouTube">
         <source>Allow YouTube</source>
         <target>Autoriser YouTube</target>
       </trans-unit>
-      <trans-unit id="219" resname="Allow Vimeo">
+      <trans-unit id="220" resname="Allow Vimeo">
         <source>Allow Vimeo</source>
         <target>Autoriser Vimeo</target>
       </trans-unit>
-      <trans-unit id="220" resname="Allow Video Upload">
+      <trans-unit id="221" resname="Allow Video Upload">
         <source>Allow Video Upload</source>
         <target>Autoriser le téléchargement de vidéos</target>
       </trans-unit>
-      <trans-unit id="221" resname="Allow Video URL">
+      <trans-unit id="222" resname="Allow Video URL">
         <source>Allow Video URL</source>
         <target>Autoriser l'URL de vidéo</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - URL -->
-      <trans-unit id="222" resname="Link Target">
+      
+      <trans-unit id="223" resname="Link Target">
         <source>Link Target</source>
         <target>Cible du lien</target>
       </trans-unit>
-      <trans-unit id="223" resname="New Tab (_blank)">
+      <trans-unit id="224" resname="New Tab (_blank)">
         <source>New Tab (_blank)</source>
         <target>Nouvel onglet (_blank)</target>
       </trans-unit>
-      <trans-unit id="224" resname="Same Tab (_self)">
+      <trans-unit id="225" resname="Same Tab (_self)">
         <source>Same Tab (_self)</source>
         <target>Même onglet (_self)</target>
       </trans-unit>
-      <trans-unit id="225" resname="Link Text">
+      <trans-unit id="226" resname="Link Text">
         <source>Link Text</source>
         <target>Texte du lien</target>
       </trans-unit>
-      <trans-unit id="226" resname="Custom text to display instead of URL (optional)">
+      <trans-unit id="227" resname="Custom text to display instead of URL (optional)">
         <source>Custom text to display instead of URL (optional)</source>
         <target>Texte personnalisé à afficher au lieu de l'URL (optionnel)</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Time -->
-      <trans-unit id="227" resname="Time Format">
+      
+      <trans-unit id="228" resname="Time Format">
         <source>Time Format</source>
         <target>Format d'heure</target>
       </trans-unit>
-      <trans-unit id="228" resname="24 Hour (14:30)">
+      <trans-unit id="229" resname="24 Hour (14:30)">
         <source>24 Hour (14:30)</source>
         <target>24 heures (14:30)</target>
       </trans-unit>
-      <trans-unit id="229" resname="12 Hour (2:30 PM)">
+      <trans-unit id="230" resname="12 Hour (2:30 PM)">
         <source>12 Hour (2:30 PM)</source>
         <target>12 heures (2:30 PM)</target>
       </trans-unit>
-      <trans-unit id="230" resname="Minute Step">
+      <trans-unit id="231" resname="Minute Step">
         <source>Minute Step</source>
         <target>Pas des minutes</target>
       </trans-unit>
-      <trans-unit id="231" resname="1 minute">
+      <trans-unit id="232" resname="1 minute">
         <source>1 minute</source>
         <target>1 minute</target>
       </trans-unit>
-      <trans-unit id="232" resname="5 minutes">
+      <trans-unit id="233" resname="5 minutes">
         <source>5 minutes</source>
         <target>5 minutes</target>
       </trans-unit>
-      <trans-unit id="233" resname="15 minutes">
+      <trans-unit id="234" resname="15 minutes">
         <source>15 minutes</source>
         <target>15 minutes</target>
       </trans-unit>
-      <trans-unit id="234" resname="30 minutes">
+      <trans-unit id="235" resname="30 minutes">
         <source>30 minutes</source>
         <target>30 minutes</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Rich Text -->
-      <trans-unit id="235" resname="Editor Height (rows)">
+      
+      <trans-unit id="236" resname="Editor Height (rows)">
         <source>Editor Height (rows)</source>
         <target>Hauteur de l'éditeur (lignes)</target>
       </trans-unit>
-      <trans-unit id="236" resname="Number of text rows for the editor">
+      <trans-unit id="237" resname="Number of text rows for the editor">
         <source>Number of text rows for the editor</source>
         <target>Nombre de lignes de texte pour l'éditeur</target>
       </trans-unit>
-      <trans-unit id="237" resname="Toolbar Style">
+      <trans-unit id="238" resname="Toolbar Style">
         <source>Toolbar Style</source>
         <target>Style de la barre d'outils</target>
       </trans-unit>
-      <trans-unit id="238" resname="Basic (bold, italic, links)">
+      <trans-unit id="239" resname="Basic (bold, italic, links)">
         <source>Basic (bold, italic, links)</source>
         <target>Basique (gras, italique, liens)</target>
       </trans-unit>
-      <trans-unit id="239" resname="Standard">
+      <trans-unit id="240" resname="Standard">
         <source>Standard</source>
         <target>Standard</target>
       </trans-unit>
-      <trans-unit id="240" resname="Full (all options)">
+      <trans-unit id="241" resname="Full (all options)">
         <source>Full (all options)</source>
         <target>Complet (toutes les options)</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Boolean -->
-      <trans-unit id="241" resname="Default Value">
+      
+      <trans-unit id="242" resname="Default Value">
         <source>Default Value</source>
         <target>Valeur par défaut</target>
       </trans-unit>
-      <trans-unit id="242" resname="True Label">
+      <trans-unit id="243" resname="True Label">
         <source>True Label</source>
         <target>Libellé vrai</target>
       </trans-unit>
-      <trans-unit id="243" resname="Text to display when value is true">
+      <trans-unit id="244" resname="Text to display when value is true">
         <source>Text to display when value is true</source>
         <target>Texte à afficher quand la valeur est vraie</target>
       </trans-unit>
-      <trans-unit id="244" resname="False Label">
+      <trans-unit id="245" resname="False Label">
         <source>False Label</source>
         <target>Libellé faux</target>
       </trans-unit>
-      <trans-unit id="245" resname="Text to display when value is false">
+      <trans-unit id="246" resname="Text to display when value is false">
         <source>Text to display when value is false</source>
         <target>Texte à afficher quand la valeur est fausse</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Star Rating -->
-      <trans-unit id="246" resname="Maximum Stars">
+      
+      <trans-unit id="247" resname="Maximum Stars">
         <source>Maximum Stars</source>
         <target>Étoiles maximum</target>
       </trans-unit>
-      <trans-unit id="247" resname="Allow Half Stars">
+      <trans-unit id="248" resname="Allow Half Stars">
         <source>Allow Half Stars</source>
         <target>Autoriser les demi-étoiles</target>
       </trans-unit>
-      <trans-unit id="248" resname="Star Size (px)">
+      <trans-unit id="249" resname="Star Size (px)">
         <source>Star Size (px)</source>
         <target>Taille des étoiles (px)</target>
       </trans-unit>
-      <trans-unit id="249" resname="Filled Star Color">
+      <trans-unit id="250" resname="Filled Star Color">
         <source>Filled Star Color</source>
         <target>Couleur des étoiles remplies</target>
       </trans-unit>
-      <trans-unit id="250" resname="Empty Star Color">
+      <trans-unit id="251" resname="Empty Star Color">
         <source>Empty Star Color</source>
         <target>Couleur des étoiles vides</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - List -->
-      <trans-unit id="251" resname="Minimum Items">
+      
+      <trans-unit id="252" resname="Minimum Items">
         <source>Minimum Items</source>
         <target>Éléments minimum</target>
       </trans-unit>
-      <trans-unit id="252" resname="Maximum Items">
+      <trans-unit id="253" resname="Maximum Items">
         <source>Maximum Items</source>
         <target>Éléments maximum</target>
       </trans-unit>
-      <trans-unit id="253" resname="Show Icon Field">
+      <trans-unit id="254" resname="Show Icon Field">
         <source>Show Icon Field</source>
         <target>Afficher le champ icône</target>
       </trans-unit>
-      <trans-unit id="254" resname="Show Link Field">
+      <trans-unit id="255" resname="Show Link Field">
         <source>Show Link Field</source>
         <target>Afficher le champ lien</target>
       </trans-unit>
-      <trans-unit id="255" resname="Icon Set">
+      <trans-unit id="256" resname="Icon Set">
         <source>Icon Set</source>
         <target>Jeu d'icônes</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Color -->
-      <trans-unit id="256" resname="Display the hex code alongside the color swatch on frontend">
+      
+      <trans-unit id="257" resname="Display the hex code alongside the color swatch on frontend">
         <source>Display the hex code alongside the color swatch on frontend</source>
         <target>Afficher le code hexadécimal à côté de l'échantillon de couleur sur le frontend</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Date -->
-      <trans-unit id="257" resname="Earliest selectable date">
+      
+      <trans-unit id="258" resname="Earliest selectable date">
         <source>Earliest selectable date</source>
         <target>Date sélectionnable la plus ancienne</target>
       </trans-unit>
-      <trans-unit id="258" resname="Latest selectable date">
+      <trans-unit id="259" resname="Latest selectable date">
         <source>Latest selectable date</source>
         <target>Date sélectionnable la plus récente</target>
       </trans-unit>
 
-      <!-- PHP Field Configuration - Relation -->
-      <trans-unit id="259" resname="Entity Type">
+      
+      <trans-unit id="260" resname="Entity Type">
         <source>Entity Type</source>
         <target>Type d'entité</target>
       </trans-unit>
-      <trans-unit id="260" resname="Type of entity to relate">
+      <trans-unit id="261" resname="Type of entity to relate">
         <source>Type of entity to relate</source>
         <target>Type d'entité à relier</target>
       </trans-unit>
-      <trans-unit id="261" resname="Product">
+      <trans-unit id="262" resname="Product">
         <source>Product</source>
         <target>Produit</target>
       </trans-unit>
-      <trans-unit id="262" resname="Category">
+      <trans-unit id="263" resname="Category">
         <source>Category</source>
         <target>Catégorie</target>
       </trans-unit>
-      <trans-unit id="263" resname="Allow selecting multiple items">
+      <trans-unit id="264" resname="Allow selecting multiple items">
         <source>Allow selecting multiple items</source>
         <target>Autoriser la sélection de plusieurs éléments</target>
       </trans-unit>
-      <trans-unit id="264" resname="Display Format">
+      <trans-unit id="265" resname="Display Format">
         <source>Display Format</source>
         <target>Format d'affichage</target>
       </trans-unit>
-      <trans-unit id="265" resname="How to display selected items">
+      <trans-unit id="266" resname="How to display selected items">
         <source>How to display selected items</source>
         <target>Comment afficher les éléments sélectionnés</target>
       </trans-unit>
-      <trans-unit id="266" resname="Name only">
+      <trans-unit id="267" resname="Name only">
         <source>Name only</source>
         <target>Nom uniquement</target>
       </trans-unit>
-      <trans-unit id="267" resname="Name + Reference">
+      <trans-unit id="268" resname="Name + Reference">
         <source>Name + Reference</source>
         <target>Nom + Référence</target>
       </trans-unit>
-      <trans-unit id="268" resname="Thumbnail + Name">
+      <trans-unit id="269" resname="Thumbnail + Name">
         <source>Thumbnail + Name</source>
         <target>Miniature + Nom</target>
       </trans-unit>
-      <trans-unit id="269" resname="Minimum items">
+      <trans-unit id="270" resname="Minimum items">
         <source>Minimum items</source>
         <target>Éléments minimum</target>
       </trans-unit>
-      <trans-unit id="270" resname="Minimum number of items required (0 = no minimum)">
+      <trans-unit id="271" resname="Minimum number of items required (0 = no minimum)">
         <source>Minimum number of items required (0 = no minimum)</source>
         <target>Nombre minimum d'éléments requis (0 = aucun minimum)</target>
       </trans-unit>
-      <trans-unit id="271" resname="Maximum items">
+      <trans-unit id="272" resname="Maximum items">
         <source>Maximum items</source>
         <target>Éléments maximum</target>
       </trans-unit>
-      <trans-unit id="272" resname="Maximum number of items allowed (empty = unlimited)">
+      <trans-unit id="273" resname="Maximum number of items allowed (empty = unlimited)">
         <source>Maximum number of items allowed (empty = unlimited)</source>
         <target>Nombre maximum d'éléments autorisés (vide = illimité)</target>
       </trans-unit>
-      <trans-unit id="273" resname="Filters">
+      <trans-unit id="274" resname="Filters">
         <source>Filters</source>
         <target>Filtres</target>
       </trans-unit>
-      <trans-unit id="274" resname="Filter options for the relation picker">
+      <trans-unit id="275" resname="Filter options for the relation picker">
         <source>Filter options for the relation picker</source>
         <target>Options de filtrage pour le sélecteur de relation</target>
       </trans-unit>
-      <trans-unit id="275" resname="Active only">
+      <trans-unit id="276" resname="Active only">
         <source>Active only</source>
         <target>Actifs uniquement</target>
       </trans-unit>
-      <trans-unit id="276" resname="In stock only">
+      <trans-unit id="277" resname="In stock only">
         <source>In stock only</source>
         <target>En stock uniquement</target>
       </trans-unit>
-      <trans-unit id="277" resname="Exclude current product">
+      <trans-unit id="278" resname="Exclude current product">
         <source>Exclude current product</source>
         <target>Exclure le produit actuel</target>
       </trans-unit>
-      <trans-unit id="278" resname="Category IDs (comma-separated)">
+      <trans-unit id="279" resname="Category IDs (comma-separated)">
         <source>Category IDs (comma-separated)</source>
         <target>IDs de catégories (séparés par des virgules)</target>
       </trans-unit>
 
-      <!-- PHP Front Hooks Configuration -->
-      <trans-unit id="279" resname="Product Additional Info">
+      
+      <trans-unit id="280" resname="Product Additional Info">
         <source>Product Additional Info</source>
         <target>Informations supplémentaires produit</target>
       </trans-unit>
-      <trans-unit id="280" resname="Product Extra Content (Tabs)">
+      <trans-unit id="281" resname="Product Extra Content (Tabs)">
         <source>Product Extra Content (Tabs)</source>
         <target>Contenu supplémentaire produit (Onglets)</target>
       </trans-unit>
-      <trans-unit id="281" resname="Product Action Buttons">
+      <trans-unit id="282" resname="Product Action Buttons">
         <source>Product Action Buttons</source>
         <target>Boutons d'action produit</target>
       </trans-unit>
-      <trans-unit id="282" resname="Product Actions Area">
+      <trans-unit id="283" resname="Product Actions Area">
         <source>Product Actions Area</source>
         <target>Zone d'actions produit</target>
       </trans-unit>
-      <trans-unit id="283" resname="Product Price Block">
+      <trans-unit id="284" resname="Product Price Block">
         <source>Product Price Block</source>
         <target>Bloc prix produit</target>
       </trans-unit>
-      <trans-unit id="284" resname="After Product Thumbnails">
+      <trans-unit id="285" resname="After Product Thumbnails">
         <source>After Product Thumbnails</source>
         <target>Après les miniatures produit</target>
       </trans-unit>
-      <trans-unit id="285" resname="Reassurance Block">
+      <trans-unit id="286" resname="Reassurance Block">
         <source>Reassurance Block</source>
         <target>Bloc de réassurance</target>
       </trans-unit>
-      <trans-unit id="286" resname="Product List Reviews">
+      <trans-unit id="287" resname="Product List Reviews">
         <source>Product List Reviews</source>
         <target>Avis liste produits</target>
       </trans-unit>
-      <trans-unit id="287" resname="Product List Functional Buttons">
+      <trans-unit id="288" resname="Product List Functional Buttons">
         <source>Product List Functional Buttons</source>
         <target>Boutons fonctionnels liste produits</target>
       </trans-unit>
-      <trans-unit id="288" resname="Product Footer">
+      <trans-unit id="289" resname="Product Footer">
         <source>Product Footer</source>
         <target>Pied de page produit</target>
       </trans-unit>
-      <trans-unit id="289" resname="Category Footer">
+      <trans-unit id="290" resname="Category Footer">
         <source>Category Footer</source>
         <target>Pied de page catégorie</target>
       </trans-unit>
-      <trans-unit id="290" resname="Category Header">
+      <trans-unit id="291" resname="Category Header">
         <source>Category Header</source>
         <target>En-tête catégorie</target>
       </trans-unit>
-      <trans-unit id="291" resname="Customer Account Page">
+      <trans-unit id="292" resname="Customer Account Page">
         <source>Customer Account Page</source>
         <target>Page compte client</target>
       </trans-unit>
-      <trans-unit id="292" resname="Customer Account Form">
+      <trans-unit id="293" resname="Customer Account Form">
         <source>Customer Account Form</source>
         <target>Formulaire compte client</target>
       </trans-unit>
-      <trans-unit id="293" resname="Customer Account Form Top">
+      <trans-unit id="294" resname="Customer Account Form Top">
         <source>Customer Account Form Top</source>
         <target>Haut du formulaire compte client</target>
       </trans-unit>
-      <trans-unit id="294" resname="Customer Account Top">
+      <trans-unit id="295" resname="Customer Account Top">
         <source>Customer Account Top</source>
         <target>Haut du compte client</target>
       </trans-unit>
-      <trans-unit id="295" resname="Customer Login Form After">
+      <trans-unit id="296" resname="Customer Login Form After">
         <source>Customer Login Form After</source>
         <target>Après le formulaire de connexion client</target>
       </trans-unit>
 
-      <!-- PHP Entity Types -->
-      <trans-unit id="296" resname="Product">
+      
+      <trans-unit id="297" resname="Product">
         <source>Product</source>
         <target>Produit</target>
       </trans-unit>
-      <trans-unit id="297" resname="Category">
+      <trans-unit id="298" resname="Category">
         <source>Category</source>
         <target>Catégorie</target>
       </trans-unit>
-      <trans-unit id="298" resname="Customer">
+      <trans-unit id="299" resname="Customer">
         <source>Customer</source>
         <target>Client</target>
       </trans-unit>
 
-      <!-- PHP Sync Status Labels -->
-      <trans-unit id="299" resname="Sync disabled">
+      
+      <trans-unit id="300" resname="Sync disabled">
         <source>Sync disabled</source>
         <target>Synchronisation désactivée</target>
       </trans-unit>
-      <trans-unit id="300" resname="Group not found">
+      <trans-unit id="301" resname="Group not found">
         <source>Group not found</source>
         <target>Groupe non trouvé</target>
       </trans-unit>
-      <trans-unit id="301" resname="Synced">
+      <trans-unit id="302" resname="Synced">
         <source>Synced</source>
         <target>Synchronisé</target>
       </trans-unit>
-      <trans-unit id="302" resname="Modified">
+      <trans-unit id="303" resname="Modified">
         <source>Modified</source>
         <target>Modifié</target>
       </trans-unit>
-      <trans-unit id="303" resname="Not in theme">
+      <trans-unit id="304" resname="Not in theme">
         <source>Not in theme</source>
         <target>Pas dans le thème</target>
       </trans-unit>
-      <trans-unit id="304" resname="Theme only">
+      <trans-unit id="305" resname="Theme only">
         <source>Theme only</source>
         <target>Thème uniquement</target>
       </trans-unit>
-      <trans-unit id="305" resname="Conflict">
+      <trans-unit id="306" resname="Conflict">
         <source>Conflict</source>
         <target>Conflit</target>
       </trans-unit>
-      <trans-unit id="306" resname="Unknown">
+      <trans-unit id="307" resname="Unknown">
         <source>Unknown</source>
         <target>Inconnu</target>
       </trans-unit>
 
-      <!-- PHP Boolean Default Values -->
-      <trans-unit id="307" resname="Yes">
+      
+      <trans-unit id="308" resname="Yes">
         <source>Yes</source>
         <target>Oui</target>
       </trans-unit>
-      <trans-unit id="308" resname="No">
+      <trans-unit id="309" resname="No">
         <source>No</source>
         <target>Non</target>
       </trans-unit>
 
-      <!-- Global/Common -->
-      <trans-unit id="309" resname="Back">
+      
+      <trans-unit id="310" resname="Back">
         <source>Back</source>
         <target>Retour</target>
       </trans-unit>
-      <trans-unit id="310" resname="Cancel">
+      <trans-unit id="311" resname="Cancel">
         <source>Cancel</source>
         <target>Annuler</target>
       </trans-unit>
-      <trans-unit id="311" resname="Description">
+      <trans-unit id="312" resname="Description">
         <source>Description</source>
         <target>Description</target>
       </trans-unit>
-      <trans-unit id="312" resname="Help">
+      <trans-unit id="313" resname="Help">
         <source>Help</source>
         <target>Aide</target>
       </trans-unit>
-      <trans-unit id="313" resname="Name">
+      <trans-unit id="314" resname="Name">
         <source>Name</source>
         <target>Nom</target>
       </trans-unit>
-      <trans-unit id="314" resname="Save">
+      <trans-unit id="315" resname="Save">
         <source>Save</source>
         <target>Enregistrer</target>
       </trans-unit>
-      <trans-unit id="315" resname="Upload">
+      <trans-unit id="316" resname="Upload">
         <source>Upload</source>
         <target>Télécharger</target>
       </trans-unit>
-      <trans-unit id="316" resname="Actions">
+      <trans-unit id="317" resname="Actions">
         <source>Actions</source>
         <target>Actions</target>
       </trans-unit>
-      <trans-unit id="317" resname="Label">
+      <trans-unit id="318" resname="Label">
         <source>Label</source>
         <target>Libellé</target>
       </trans-unit>
-      <trans-unit id="318" resname="Not found">
+      <trans-unit id="319" resname="Not found">
         <source>Not found</source>
         <target>Non trouvé</target>
       </trans-unit>
-      <trans-unit id="319" resname="Add new">
+      <trans-unit id="320" resname="Add new">
         <source>Add new</source>
         <target>Ajouter nouveau</target>
       </trans-unit>
-      <trans-unit id="320" resname="Clear">
+      <trans-unit id="321" resname="Clear">
         <source>Clear</source>
         <target>Effacer</target>
       </trans-unit>
-      <trans-unit id="321" resname="Import">
+      <trans-unit id="322" resname="Import">
         <source>Import</source>
         <target>Importer</target>
       </trans-unit>
-      <trans-unit id="322" resname="Dismiss">
+      <trans-unit id="323" resname="Dismiss">
         <source>Dismiss</source>
         <target>Rejeter</target>
       </trans-unit>
-      <trans-unit id="customClass">
+      <trans-unit id="324">
         <source>Custom CSS Class</source>
         <target>Classe CSS personnalisée</target>
       </trans-unit>
-      <trans-unit id="customId">
+      <trans-unit id="325">
         <source>Custom HTML ID</source>
         <target>ID HTML personnalisé</target>
       </trans-unit>
-      <trans-unit id="presentation">
+      <trans-unit id="326">
         <source>Presentation</source>
         <target>Présentation</target>
       </trans-unit>
-      <trans-unit id="metadata">
+      <trans-unit id="327">
         <source>Field Metadata</source>
         <target>Métadonnées du champ</target>
       </trans-unit>
-      <trans-unit id="enableDisableField">
+      <trans-unit id="328">
         <source>Enable or disable this field.</source>
         <target>Activer ou désactiver ce champ.</target>
       </trans-unit>
-      <trans-unit id="fieldNotSaved">
+      <trans-unit id="329">
         <source>This field hasn't been saved yet</source>
         <target>Ce champ n'a pas encore été sauvegardé</target>
       </trans-unit>
-      <trans-unit id="defaultLanguageHelp">
+      <trans-unit id="330">
         <source>This is the default language. Title is also used as fallback.</source>
         <target>Ceci est la langue par défaut. Le titre est également utilisé comme solution de secours.</target>
       </trans-unit>
-      <trans-unit id="slugAutoGenerated">
+      <trans-unit id="331">
         <source>Auto-generated from title. Click to edit manually.</source>
         <target>Généré automatiquement à partir du titre. Cliquez pour modifier manuellement.</target>
       </trans-unit>
-      <trans-unit id="slugFormatHelp">
+      <trans-unit id="332">
         <source>Use lowercase letters, numbers, and underscores only.</source>
         <target>Utilisez uniquement des lettres minuscules, des chiffres et des traits de soulignement.</target>
       </trans-unit>
-      <trans-unit id="customClassHelp">
+      <trans-unit id="333">
         <source>Add custom CSS classes to the field container for styling.</source>
         <target>Ajoutez des classes CSS personnalisées au conteneur du champ pour le style.</target>
       </trans-unit>
-      <trans-unit id="customIdHelp">
+      <trans-unit id="334">
         <source>Add a custom HTML ID to the field for JavaScript targeting.</source>
         <target>Ajoutez un ID HTML personnalisé au champ pour le ciblage JavaScript.</target>
       </trans-unit>
-      <trans-unit id="valueTranslatable">
+      <trans-unit id="335">
         <source>Value translatable</source>
         <target>Valeur traduisible</target>
       </trans-unit>
-      <trans-unit id="valueTranslatableHelp">
+      <trans-unit id="336">
         <source>Enable to allow translation of field values for multi-language support.</source>
         <target>Activez pour permettre la traduction des valeurs de champ pour le support multilingue.</target>
       </trans-unit>
-      <trans-unit id="showTitle">
+      <trans-unit id="337">
         <source>Show field title</source>
         <target>Afficher le titre du champ</target>
       </trans-unit>
-      <trans-unit id="showTitleHelp">
+      <trans-unit id="338">
         <source>Display the field title in front-office rendering.</source>
         <target>Afficher le titre du champ dans le rendu front-office.</target>
       </trans-unit>
-      <trans-unit id="translationNotSupported">
+      <trans-unit id="339">
         <source>This field type does not support translation.</source>
         <target>Ce type de champ ne prend pas en charge la traduction.</target>
       </trans-unit>
 
-      <!-- Twig Builder - Additional Missing Strings -->
-      <trans-unit id="323" resname="Field Groups">
+      
+      <trans-unit id="340" resname="Field Groups">
         <source>Field Groups</source>
         <target>Groupes de champs</target>
       </trans-unit>
-      <trans-unit id="324" resname="No field groups yet. Create your first one!">
+      <trans-unit id="341" resname="No field groups yet. Create your first one!">
         <source>No field groups yet. Create your first one!</source>
         <target>Aucun groupe de champs pour le moment. Créez le premier !</target>
       </trans-unit>
-      <trans-unit id="325" resname="Slug">
+      <trans-unit id="342" resname="Slug">
         <source>Slug</source>
         <target>Slug</target>
       </trans-unit>
-      <trans-unit id="326" resname="Tab">
+      <trans-unit id="343" resname="Tab">
         <source>Tab</source>
         <target>Onglet</target>
       </trans-unit>
-      <trans-unit id="327" resname="Are you sure you want to delete this group?">
+      <trans-unit id="344" resname="Are you sure you want to delete this group?">
         <source>Are you sure you want to delete this group?</source>
         <target>Êtes-vous sûr de vouloir supprimer ce groupe ?</target>
       </trans-unit>
-      <trans-unit id="328" resname="Add Field">
+      <trans-unit id="345" resname="Add Field">
         <source>Add Field</source>
         <target>Ajouter un champ</target>
       </trans-unit>
-      <trans-unit id="329" resname="No fields yet">
+      <trans-unit id="346" resname="No fields yet">
         <source>No fields yet</source>
         <target>Aucun champ pour le moment</target>
       </trans-unit>
-      <trans-unit id="330" resname="Select a field type">
+      <trans-unit id="347" resname="Select a field type">
         <source>Select a field type</source>
         <target>Sélectionner un type de champ</target>
       </trans-unit>
-      <trans-unit id="331" resname="Select a field to edit">
+      <trans-unit id="348" resname="Select a field to edit">
         <source>Select a field to edit</source>
         <target>Sélectionner un champ à modifier</target>
       </trans-unit>
-      <trans-unit id="332" resname="Fields">
+      <trans-unit id="349" resname="Fields">
         <source>Fields</source>
         <target>Champs</target>
       </trans-unit>
-      <trans-unit id="333" resname="General Settings">
+      <trans-unit id="350" resname="General Settings">
         <source>General Settings</source>
         <target>Paramètres généraux</target>
       </trans-unit>
-      <trans-unit id="334" resname="Location">
+      <trans-unit id="351" resname="Location">
         <source>Location</source>
         <target>Emplacement</target>
       </trans-unit>
-      <trans-unit id="335" resname="Choose where your custom fields will appear in the admin interface. Select the type of content (products, categories, etc.) where these fields should be available.">
+      <trans-unit id="352" resname="Choose where your custom fields will appear in the admin interface. Select the type of content (products, categories, etc.) where these fields should be available.">
         <source>Choose where your custom fields will appear in the admin interface. Select the type of content (products, categories, etc.) where these fields should be available.</source>
         <target>Choisissez où vos champs personnalisés apparaîtront dans l'interface d'administration. Sélectionnez le type de contenu (produits, catégories, etc.) où ces champs seront disponibles.</target>
       </trans-unit>
-      <trans-unit id="336" resname="Apply to">
+      <trans-unit id="353" resname="Apply to">
         <source>Apply to</source>
         <target>Appliquer à</target>
       </trans-unit>
-      <trans-unit id="337" resname="Content Type determines where your custom fields will appear in the admin. Choose &quot;Product&quot; to add fields to product edit pages, &quot;Category&quot; for category management, &quot;Customer&quot; for customer profiles, or any other content type in your store. Your fields will only show on the selected content types.">
+      <trans-unit id="354" resname="Content Type determines where your custom fields will appear in the admin. Choose &quot;Product&quot; to add fields to product edit pages, &quot;Category&quot; for category management, &quot;Customer&quot; for customer profiles, or any other content type in your store. Your fields will only show on the selected content types.">
         <source>Content Type determines where your custom fields will appear in the admin. Choose "Product" to add fields to product edit pages, "Category" for category management, "Customer" for customer profiles, or any other content type in your store. Your fields will only show on the selected content types.</source>
         <target>Le type de contenu détermine où vos champs personnalisés apparaîtront dans l'administration. Choisissez "Produit" pour ajouter des champs aux pages d'édition de produit, "Catégorie" pour la gestion des catégories, "Client" pour les profils clients, ou tout autre type de contenu dans votre boutique. Vos champs n'apparaîtront que sur les types de contenu sélectionnés.</target>
       </trans-unit>
-      <trans-unit id="338" resname="Choose whether to show fields on this content type (equals) or exclude it (not equals).">
+      <trans-unit id="355" resname="Choose whether to show fields on this content type (equals) or exclude it (not equals).">
         <source>Choose whether to show fields on this content type (equals) or exclude it (not equals).</source>
         <target>Choisissez d'afficher les champs sur ce type de contenu (égal) ou de l'exclure (différent).</target>
       </trans-unit>
-      <trans-unit id="339" resname="Add Location Rule">
+      <trans-unit id="356" resname="Add Location Rule">
         <source>Add Location Rule</source>
         <target>Ajouter une règle d'emplacement</target>
       </trans-unit>
-      <trans-unit id="340" resname="Choose content type...">
+      <trans-unit id="357" resname="Choose content type...">
         <source>Choose content type...</source>
         <target>Choisir le type de contenu...</target>
       </trans-unit>
-      <trans-unit id="341" resname="Condition">
+      <trans-unit id="358" resname="Condition">
         <source>Condition</source>
         <target>Condition</target>
       </trans-unit>
-      <trans-unit id="342" resname="Validation">
+      <trans-unit id="359" resname="Validation">
         <source>Validation</source>
         <target>Validation</target>
       </trans-unit>
-      <trans-unit id="343" resname="Conditions">
+      <trans-unit id="360" resname="Conditions">
         <source>Conditions</source>
         <target>Conditions</target>
       </trans-unit>
-      <trans-unit id="344" resname="Field Title">
+      <trans-unit id="361" resname="Field Title">
         <source>Field Title</source>
         <target>Titre du champ</target>
       </trans-unit>
-      <trans-unit id="345" resname="Field Name">
+      <trans-unit id="362" resname="Field Name">
         <source>Field Name</source>
         <target>Nom du champ</target>
       </trans-unit>
-      <trans-unit id="346" resname="Field Type">
+      <trans-unit id="363" resname="Field Type">
         <source>Field Type</source>
         <target>Type de champ</target>
       </trans-unit>
-      <trans-unit id="347" resname="Instructions">
+      <trans-unit id="364" resname="Instructions">
         <source>Instructions</source>
         <target>Instructions</target>
       </trans-unit>
-      <trans-unit id="348" resname="Min Length">
+      <trans-unit id="365" resname="Min Length">
         <source>Min Length</source>
         <target>Longueur min</target>
       </trans-unit>
-      <trans-unit id="349" resname="Max Length">
+      <trans-unit id="366" resname="Max Length">
         <source>Max Length</source>
         <target>Longueur max</target>
       </trans-unit>
-      <trans-unit id="350" resname="Min Value">
+      <trans-unit id="367" resname="Min Value">
         <source>Min Value</source>
         <target>Valeur min</target>
       </trans-unit>
-      <trans-unit id="351" resname="Max Value">
+      <trans-unit id="368" resname="Max Value">
         <source>Max Value</source>
         <target>Valeur max</target>
       </trans-unit>
-      <trans-unit id="352" resname="Pattern">
+      <trans-unit id="369" resname="Pattern">
         <source>Pattern</source>
         <target>Motif</target>
       </trans-unit>
-      <trans-unit id="353" resname="Error Message">
+      <trans-unit id="370" resname="Error Message">
         <source>Error Message</source>
         <target>Message d'erreur</target>
       </trans-unit>
-      <trans-unit id="354" resname="CSS Class">
+      <trans-unit id="371" resname="CSS Class">
         <source>CSS Class</source>
         <target>Classe CSS</target>
       </trans-unit>
-      <trans-unit id="355" resname="CSS ID">
+      <trans-unit id="372" resname="CSS ID">
         <source>CSS ID</source>
         <target>ID CSS</target>
       </trans-unit>
-      <trans-unit id="356" resname="Frontend Options">
+      <trans-unit id="373" resname="Frontend Options">
         <source>Frontend Options</source>
         <target>Options frontend</target>
       </trans-unit>
-      <trans-unit id="357" resname="Translatable">
+      <trans-unit id="374" resname="Translatable">
         <source>Translatable</source>
         <target>Traduisible</target>
       </trans-unit>
-      <trans-unit id="358" resname="Show on Frontend">
+      <trans-unit id="375" resname="Show on Frontend">
         <source>Show on Frontend</source>
         <target>Afficher en frontend</target>
       </trans-unit>
-      <trans-unit id="359" resname="Sync">
+      <trans-unit id="376" resname="Sync">
         <source>Sync</source>
         <target>Synchronisation</target>
       </trans-unit>
-      <trans-unit id="360" resname="Sync Actions">
+      <trans-unit id="377" resname="Sync Actions">
         <source>Sync Actions</source>
         <target>Actions de synchronisation</target>
       </trans-unit>
-      <trans-unit id="361" resname="Push to Theme">
+      <trans-unit id="378" resname="Push to Theme">
         <source>Push to Theme</source>
         <target>Pousser vers le thème</target>
       </trans-unit>
-      <trans-unit id="362" resname="Pull from Theme">
+      <trans-unit id="379" resname="Pull from Theme">
         <source>Pull from Theme</source>
         <target>Tirer depuis le thème</target>
       </trans-unit>
-      <trans-unit id="363" resname="Export JSON">
+      <trans-unit id="380" resname="Export JSON">
         <source>Export JSON</source>
         <target>Exporter JSON</target>
       </trans-unit>
-      <trans-unit id="364" resname="Groups available in theme">
+      <trans-unit id="381" resname="Groups available in theme">
         <source>Groups available in theme</source>
         <target>Groupes disponibles dans le thème</target>
       </trans-unit>
-      <trans-unit id="365" resname="Group pushed to theme successfully">
+      <trans-unit id="382" resname="Group pushed to theme successfully">
         <source>Group pushed to theme successfully</source>
         <target>Groupe poussé vers le thème avec succès</target>
       </trans-unit>
-      <trans-unit id="366" resname="Group imported from theme successfully">
+      <trans-unit id="383" resname="Group imported from theme successfully">
         <source>Group imported from theme successfully</source>
         <target>Groupe importé depuis le thème avec succès</target>
       </trans-unit>
-      <trans-unit id="367" resname="Sync error">
+      <trans-unit id="384" resname="Sync error">
         <source>Sync error</source>
         <target>Erreur de synchronisation</target>
       </trans-unit>
-      <trans-unit id="368" resname="Export error">
+      <trans-unit id="385" resname="Export error">
         <source>Export error</source>
         <target>Erreur d'export</target>
       </trans-unit>
-      <trans-unit id="369" resname="Are you sure? This will overwrite the current group.">
+      <trans-unit id="386" resname="Are you sure? This will overwrite the current group.">
         <source>Are you sure? This will overwrite the current group.</source>
         <target>Êtes-vous sûr ? Cela écrasera le groupe actuel.</target>
       </trans-unit>
-      <trans-unit id="370" resname="Choices">
+      <trans-unit id="387" resname="Choices">
         <source>Choices</source>
         <target>Choix</target>
       </trans-unit>
-      <trans-unit id="371" resname="Define the available options">
+      <trans-unit id="388" resname="Define the available options">
         <source>Define the available options</source>
         <target>Définir les options disponibles</target>
       </trans-unit>
-      <trans-unit id="372" resname="Add Option">
+      <trans-unit id="389" resname="Add Option">
         <source>Add Option</source>
         <target>Ajouter une option</target>
       </trans-unit>
-      <trans-unit id="373" resname="No options defined yet">
+      <trans-unit id="390" resname="No options defined yet">
         <source>No options defined yet</source>
         <target>Aucune option définie pour le moment</target>
       </trans-unit>
-      <trans-unit id="374" resname="Allow selecting multiple values">
+      <trans-unit id="391" resname="Allow selecting multiple values">
         <source>Allow selecting multiple values</source>
         <target>Autoriser la sélection de plusieurs valeurs</target>
       </trans-unit>
-      <trans-unit id="375" resname="Select the default option">
+      <trans-unit id="392" resname="Select the default option">
         <source>Select the default option</source>
         <target>Sélectionner l'option par défaut</target>
       </trans-unit>
-      <trans-unit id="376" resname="⚠️ Save required: Click the Save button above to unlock Fields and Location tabs">
+      <trans-unit id="393" resname="⚠️ Save required: Click the Save button above to unlock Fields and Location tabs">
         <source>⚠️ Save required: Click the Save button above to unlock Fields and Location tabs</source>
         <target>⚠️ Sauvegarde requise : Cliquez sur le bouton Enregistrer ci-dessus pour déverrouiller les onglets Champs et Emplacement</target>
       </trans-unit>
-      <trans-unit id="377" resname="⚠️ Entity type required: Define at least one entity type in Location tab to access Fields">
+      <trans-unit id="394" resname="⚠️ Entity type required: Define at least one entity type in Location tab to access Fields">
         <source>⚠️ Entity type required: Define at least one entity type in Location tab to access Fields</source>
         <target>⚠️ Type d'entité requis : Définissez au moins un type d'entité dans l'onglet Emplacement pour accéder aux Champs</target>
       </trans-unit>
-      <trans-unit id="378" resname="Search field types...">
+      <trans-unit id="395" resname="Search field types...">
         <source>Search field types...</source>
         <target>Rechercher des types de champs...</target>
       </trans-unit>
-      <trans-unit id="379" resname="Recently Used">
+      <trans-unit id="396" resname="Recently Used">
         <source>Recently Used</source>
         <target>Récemment utilisés</target>
       </trans-unit>
-      <trans-unit id="380" resname="No field types found">
+      <trans-unit id="397" resname="No field types found">
         <source>No field types found</source>
         <target>Aucun type de champ trouvé</target>
       </trans-unit>
-      <trans-unit id="381" resname="Try a different search term">
+      <trans-unit id="398" resname="Try a different search term">
         <source>Try a different search term</source>
         <target>Essayez un terme de recherche différent</target>
       </trans-unit>
-      <trans-unit id="382" resname="Clear search">
+      <trans-unit id="399" resname="Clear search">
         <source>Clear search</source>
         <target>Effacer la recherche</target>
       </trans-unit>
-      <trans-unit id="383" resname="Use ↑↓ arrows to navigate, Enter to select, Esc to close">
+      <trans-unit id="400" resname="Use ↑↓ arrows to navigate, Enter to select, Esc to close">
         <source>Use ↑↓ arrows to navigate, Enter to select, Esc to close</source>
         <target>Utilisez les flèches ↑↓ pour naviguer, Entrée pour sélectionner, Échap pour fermer</target>
       </trans-unit>
-      <trans-unit id="384" resname="Failed to save location rule. Please try again.">
+      <trans-unit id="401" resname="Failed to save location rule. Please try again.">
         <source>Failed to save location rule. Please try again.</source>
         <target>Échec de la sauvegarde de la règle d'emplacement. Veuillez réessayer.</target>
       </trans-unit>
-      <trans-unit id="385" resname="Presentation">
+      <trans-unit id="402" resname="Presentation">
         <source>Presentation</source>
         <target>Présentation</target>
       </trans-unit>
-      <trans-unit id="386" resname="Custom CSS Class">
+      <trans-unit id="403" resname="Custom CSS Class">
         <source>Custom CSS Class</source>
         <target>Classe CSS personnalisée</target>
       </trans-unit>
-      <trans-unit id="387" resname="Custom HTML ID">
+      <trans-unit id="404" resname="Custom HTML ID">
         <source>Custom HTML ID</source>
         <target>ID HTML personnalisé</target>
       </trans-unit>
-      <trans-unit id="388" resname="Field Metadata">
+      <trans-unit id="405" resname="Field Metadata">
         <source>Field Metadata</source>
         <target>Métadonnées du champ</target>
       </trans-unit>
-      <trans-unit id="389" resname="Enable or disable this field.">
+      <trans-unit id="406" resname="Enable or disable this field.">
         <source>Enable or disable this field.</source>
         <target>Activer ou désactiver ce champ.</target>
       </trans-unit>
-      <trans-unit id="390" resname="This field hasn't been saved yet">
+      <trans-unit id="407" resname="This field hasn't been saved yet">
         <source>This field hasn't been saved yet</source>
         <target>Ce champ n'a pas encore été sauvegardé</target>
       </trans-unit>
-      <trans-unit id="391" resname="This is the default language. Title is also used as fallback.">
+      <trans-unit id="408" resname="This is the default language. Title is also used as fallback.">
         <source>This is the default language. Title is also used as fallback.</source>
         <target>Ceci est la langue par défaut. Le titre est également utilisé comme solution de secours.</target>
       </trans-unit>
-      <trans-unit id="392" resname="Auto-generated from title. Click to edit manually.">
+      <trans-unit id="409" resname="Auto-generated from title. Click to edit manually.">
         <source>Auto-generated from title. Click to edit manually.</source>
         <target>Généré automatiquement à partir du titre. Cliquez pour modifier manuellement.</target>
       </trans-unit>
-      <trans-unit id="393" resname="Use lowercase letters, numbers, and underscores only.">
+      <trans-unit id="410" resname="Use lowercase letters, numbers, and underscores only.">
         <source>Use lowercase letters, numbers, and underscores only.</source>
         <target>Utilisez uniquement des lettres minuscules, des chiffres et des traits de soulignement.</target>
       </trans-unit>
-      <trans-unit id="394" resname="Add custom CSS classes to the field container for styling.">
+      <trans-unit id="411" resname="Add custom CSS classes to the field container for styling.">
         <source>Add custom CSS classes to the field container for styling.</source>
         <target>Ajoutez des classes CSS personnalisées au conteneur du champ pour le style.</target>
       </trans-unit>
-      <trans-unit id="395" resname="Add a custom HTML ID to the field for JavaScript targeting.">
+      <trans-unit id="412" resname="Add a custom HTML ID to the field for JavaScript targeting.">
         <source>Add a custom HTML ID to the field for JavaScript targeting.</source>
         <target>Ajoutez un ID HTML personnalisé au champ pour le ciblage JavaScript.</target>
       </trans-unit>
-      <trans-unit id="396" resname="Value translatable">
+      <trans-unit id="413" resname="Value translatable">
         <source>Value translatable</source>
         <target>Valeur traduisible</target>
       </trans-unit>
-      <trans-unit id="397" resname="Enable to allow translation of field values for multi-language support.">
+      <trans-unit id="414" resname="Enable to allow translation of field values for multi-language support.">
         <source>Enable to allow translation of field values for multi-language support.</source>
         <target>Activez pour permettre la traduction des valeurs de champ pour le support multilingue.</target>
       </trans-unit>
-      <trans-unit id="398" resname="Extra Tab (ACF)">
+      <trans-unit id="415" resname="Extra Tab (ACF)">
         <source>Extra Tab (ACF)</source>
         <target>Onglet supplémentaire (ACF)</target>
       </trans-unit>
-      <trans-unit id="399" resname="Before">
+      <trans-unit id="416" resname="Before">
         <source>Before</source>
         <target>Avant</target>
       </trans-unit>
-      <trans-unit id="400" resname="After">
+      <trans-unit id="417" resname="After">
         <source>After</source>
         <target>Après</target>
       </trans-unit>
-      <trans-unit id="401" resname="Duplicate">
+      <trans-unit id="418" resname="Duplicate">
         <source>Duplicate</source>
         <target>Dupliquer</target>
       </trans-unit>
-      <!-- Vue Components - GroupSettings -->
-      <trans-unit id="402" resname="Slug is locked because group is saved">
+      
+      <trans-unit id="419" resname="Slug is locked because group is saved">
         <source>Slug is locked because group is saved</source>
         <target>Le slug est verrouillé car le groupe est sauvegardé</target>
       </trans-unit>
-      <trans-unit id="403" resname="Locked">
+      <trans-unit id="420" resname="Locked">
         <source>Locked</source>
         <target>Verrouillé</target>
       </trans-unit>
-      <trans-unit id="404" resname="This slug cannot be changed because the group has been saved. Changing it could break existing code that references this group.">
+      <trans-unit id="421" resname="This slug cannot be changed because the group has been saved. Changing it could break existing code that references this group.">
         <source>This slug cannot be changed because the group has been saved. Changing it could break existing code that references this group.</source>
         <target>Ce slug ne peut pas être modifié car le groupe a été sauvegardé. Le changer pourrait casser le code existant qui référence ce groupe.</target>
       </trans-unit>
-      <trans-unit id="405" resname="Description">
+      <trans-unit id="422" resname="Description">
         <source>Description</source>
         <target>Description</target>
       </trans-unit>
-      <trans-unit id="406" resname="Options">
+      <trans-unit id="423" resname="Options">
         <source>Options</source>
         <target>Options</target>
       </trans-unit>
-      <!-- Vue Components - Text not wrapped in trans() function -->
-      <trans-unit id="407" resname="A descriptive name for this field group that will be displayed in the admin interface.">
+      
+      <trans-unit id="424" resname="A descriptive name for this field group that will be displayed in the admin interface.">
         <source>A descriptive name for this field group that will be displayed in the admin interface.</source>
         <target>Un nom descriptif pour ce groupe de champs qui s'affichera dans l'interface d'administration.</target>
       </trans-unit>
-      <trans-unit id="408" resname="Inactive groups are hidden in the product form.">
+      <trans-unit id="425" resname="Inactive groups are hidden in the product form.">
         <source>Inactive groups are hidden in the product form.</source>
         <target>Les groupes inactifs sont masqués dans le formulaire produit.</target>
       </trans-unit>
-      <trans-unit id="409" resname="Next: ">
+      <trans-unit id="426" resname="Next: ">
         <source>Next: </source>
         <target>Suivant : </target>
       </trans-unit>
-      <!-- Vue Components - Additional Missing Strings -->
-      <trans-unit id="410" resname="Content Type Required">
+      
+      <trans-unit id="427" resname="Content Type Required">
         <source>Content Type Required</source>
         <target>Type de contenu requis</target>
       </trans-unit>
-      <trans-unit id="411" resname="Please select a content type above before choosing a display hook.">
+      <trans-unit id="428" resname="Please select a content type above before choosing a display hook.">
         <source>Please select a content type above before choosing a display hook.</source>
         <target>Veuillez sélectionner un type de contenu ci-dessus avant de choisir un hook d'affichage.</target>
       </trans-unit>
-      <trans-unit id="412" resname="Default to checked">
+      <trans-unit id="429" resname="Default to checked">
         <source>Default to checked</source>
         <target>Coché par défaut</target>
       </trans-unit>
-      <trans-unit id="413" resname="Leave empty for unlimited.">
+      <trans-unit id="430" resname="Leave empty for unlimited.">
         <source>Leave empty for unlimited.</source>
         <target>Laisser vide pour illimité.</target>
       </trans-unit>
-      <trans-unit id="414" resname="0 = no minimum">
+      <trans-unit id="431" resname="0 = no minimum">
         <source>0 = no minimum</source>
         <target>0 = aucun minimum</target>
       </trans-unit>
-      <trans-unit id="415" resname="0 = unlimited">
+      <trans-unit id="432" resname="0 = unlimited">
         <source>0 = unlimited</source>
         <target>0 = illimité</target>
       </trans-unit>
 
-      <!-- LocationRulesEditor - Texts that need wrapping in t() -->
-      <trans-unit id="416" resname="Your custom fields will appear on these content types:">
+      
+      <trans-unit id="433" resname="Your custom fields will appear on these content types:">
         <source>Your custom fields will appear on these content types:</source>
         <target>Vos champs personnalisés apparaîtront sur ces types de contenu :</target>
       </trans-unit>
-      <trans-unit id="417" resname="Select content types where your fields should appear">
+      <trans-unit id="434" resname="Select content types where your fields should appear">
         <source>Select content types where your fields should appear</source>
         <target>Sélectionnez les types de contenu où vos champs doivent apparaître</target>
       </trans-unit>
-      <trans-unit id="418" resname="Add multiple rules to show fields on different content types">
+      <trans-unit id="435" resname="Add multiple rules to show fields on different content types">
         <source>Add multiple rules to show fields on different content types</source>
         <target>Ajoutez plusieurs règles pour afficher les champs sur différents types de contenu</target>
       </trans-unit>
-      <trans-unit id="419" resname="Each content type can have its own display hook">
+      <trans-unit id="436" resname="Each content type can have its own display hook">
         <source>Each content type can have its own display hook</source>
         <target>Chaque type de contenu peut avoir son propre hook d'affichage</target>
       </trans-unit>
-      <trans-unit id="420" resname="Use &quot;Exclude&quot; to hide fields from specific content types">
+      <trans-unit id="437" resname="Use &quot;Exclude&quot; to hide fields from specific content types">
         <source>Use "Exclude" to hide fields from specific content types</source>
         <target>Utilisez "Exclure" pour masquer les champs de types de contenu spécifiques</target>
       </trans-unit>
-      <trans-unit id="421" resname="Examples:">
+      <trans-unit id="438" resname="Examples:">
         <source>Examples:</source>
         <target>Exemples :</target>
       </trans-unit>
-      <trans-unit id="422" resname="Active Location Rules">
+      <trans-unit id="439" resname="Active Location Rules">
         <source>Active Location Rules</source>
         <target>Règles d'emplacement actives</target>
       </trans-unit>
-      <trans-unit id="423" resname="Remove this rule">
+      <trans-unit id="440" resname="Remove this rule">
         <source>Remove this rule</source>
         <target>Supprimer cette règle</target>
       </trans-unit>
 
-      <!-- Field Configuration Labels -->
-      <trans-unit id="424" resname="Minimum Items">
+      
+      <trans-unit id="441" resname="Minimum Items">
         <source>Minimum Items</source>
         <target>Éléments minimum</target>
       </trans-unit>
-      <trans-unit id="425" resname="Maximum Items">
+      <trans-unit id="442" resname="Maximum Items">
         <source>Maximum Items</source>
         <target>Éléments maximum</target>
       </trans-unit>
-      <trans-unit id="426" resname="Item Options">
+      <trans-unit id="443" resname="Item Options">
         <source>Item Options</source>
         <target>Options des éléments</target>
       </trans-unit>
-      <trans-unit id="427" resname="Icon Set">
+      <trans-unit id="444" resname="Icon Set">
         <source>Icon Set</source>
         <target>Jeu d'icônes</target>
       </trans-unit>
-      <trans-unit id="428" resname="Placeholder Text">
+      <trans-unit id="445" resname="Placeholder Text">
         <source>Placeholder Text</source>
         <target>Texte d'espace réservé</target>
       </trans-unit>
-      <trans-unit id="429" resname="Repeater Field">
+      <trans-unit id="446" resname="Repeater Field">
         <source>Repeater Field</source>
         <target>Champ répéteur</target>
       </trans-unit>
-      <trans-unit id="430" resname="Minimum Rows">
+      <trans-unit id="447" resname="Minimum Rows">
         <source>Minimum Rows</source>
         <target>Lignes minimum</target>
       </trans-unit>
-      <trans-unit id="431" resname="Maximum Rows">
+      <trans-unit id="448" resname="Maximum Rows">
         <source>Maximum Rows</source>
         <target>Lignes maximum</target>
       </trans-unit>
-      <trans-unit id="432" resname="Display Options">
+      <trans-unit id="449" resname="Display Options">
         <source>Display Options</source>
         <target>Options d'affichage</target>
       </trans-unit>
-      <trans-unit id="433" resname="Display Mode">
+      <trans-unit id="450" resname="Display Mode">
         <source>Display Mode</source>
         <target>Mode d'affichage</target>
       </trans-unit>
-      <trans-unit id="434" resname="Row Title Template">
+      <trans-unit id="451" resname="Row Title Template">
         <source>Row Title Template</source>
         <target>Modèle de titre de ligne</target>
       </trans-unit>
-      <trans-unit id="435" resname="Add Button Label">
+      <trans-unit id="452" resname="Add Button Label">
         <source>Add Button Label</source>
         <target>Libellé du bouton d'ajout</target>
       </trans-unit>
 
-      <!-- Choices/Select Options -->
-      <trans-unit id="436" resname="Product">
+      
+      <trans-unit id="453" resname="Product">
         <source>Product</source>
         <target>Produit</target>
       </trans-unit>
-      <trans-unit id="437" resname="Category">
+      <trans-unit id="454" resname="Category">
         <source>Category</source>
         <target>Catégorie</target>
       </trans-unit>
-      <trans-unit id="438" resname="Name only">
+      <trans-unit id="455" resname="Name only">
         <source>Name only</source>
         <target>Nom uniquement</target>
       </trans-unit>
-      <trans-unit id="439" resname="Name + Reference">
+      <trans-unit id="456" resname="Name + Reference">
         <source>Name + Reference</source>
         <target>Nom + Référence</target>
       </trans-unit>
-      <trans-unit id="440" resname="Thumbnail + Name">
+      <trans-unit id="457" resname="Thumbnail + Name">
         <source>Thumbnail + Name</source>
         <target>Miniature + Nom</target>
       </trans-unit>
-      <trans-unit id="441" resname="New Tab (_blank)">
+      <trans-unit id="458" resname="New Tab (_blank)">
         <source>New Tab (_blank)</source>
         <target>Nouvel onglet (_blank)</target>
       </trans-unit>
-      <trans-unit id="442" resname="Same Tab (_self)">
+      <trans-unit id="459" resname="Same Tab (_self)">
         <source>Same Tab (_self)</source>
         <target>Même onglet (_self)</target>
       </trans-unit>
-      <trans-unit id="443" resname="Basic (bold, italic, links)">
+      <trans-unit id="460" resname="Basic (bold, italic, links)">
         <source>Basic (bold, italic, links)</source>
         <target>Basique (gras, italique, liens)</target>
       </trans-unit>
-      <trans-unit id="444" resname="Standard">
+      <trans-unit id="461" resname="Standard">
         <source>Standard</source>
         <target>Standard</target>
       </trans-unit>
-      <trans-unit id="445" resname="Full (all options)">
+      <trans-unit id="462" resname="Full (all options)">
         <source>Full (all options)</source>
         <target>Complet (toutes les options)</target>
       </trans-unit>
 
-      <!-- Field Configuration Descriptions -->
-      <trans-unit id="446" resname="Security Note: HTML content is automatically sanitized when saved to prevent XSS attacks.">
+      
+      <trans-unit id="463" resname="Security Note: HTML content is automatically sanitized when saved to prevent XSS attacks.">
         <source>Security Note: HTML content is automatically sanitized when saved to prevent XSS attacks.</source>
         <target>Remarque de sécurité : le contenu HTML est automatiquement nettoyé lors de la sauvegarde pour prévenir les attaques XSS.</target>
       </trans-unit>
-      <trans-unit id="447" resname="Default">
+      <trans-unit id="464" resname="Default">
         <source>Default</source>
         <target>Par défaut</target>
       </trans-unit>
-      <trans-unit id="448" resname="Get started by adding your first custom field to this group.">
+      <trans-unit id="465" resname="Get started by adding your first custom field to this group.">
         <source>Get started by adding your first custom field to this group.</source>
         <target>Commencez par ajouter votre premier champ personnalisé à ce groupe.</target>
       </trans-unit>
-      <trans-unit id="449" resname="ID">
+      <trans-unit id="466" resname="ID">
         <source>ID</source>
         <target>ID</target>
       </trans-unit>
-      <trans-unit id="450" resname="Docs">
+      <trans-unit id="467" resname="Docs">
         <source>Docs</source>
         <target>Docs</target>
       </trans-unit>
-      <trans-unit id="451" resname="Copy Code">
+      <trans-unit id="468" resname="Copy Code">
         <source>Copy Code</source>
         <target>Copier le code</target>
       </trans-unit>
-      <trans-unit id="452" resname="Language">
+      <trans-unit id="469" resname="Language">
         <source>Language</source>
         <target>Langue</target>
       </trans-unit>
-      <trans-unit id="453" resname="Method">
+      <trans-unit id="470" resname="Method">
         <source>Method</source>
         <target>Méthode</target>
       </trans-unit>
-      <trans-unit id="454" resname="Get escaped field value">
+      <trans-unit id="471" resname="Get escaped field value">
         <source>Get escaped field value</source>
         <target>Obtenir la valeur du champ échappée</target>
       </trans-unit>
-      <trans-unit id="455" resname="Get raw field value (not escaped)">
+      <trans-unit id="472" resname="Get raw field value (not escaped)">
         <source>Get raw field value (not escaped)</source>
         <target>Obtenir la valeur brute du champ (non échappée)</target>
       </trans-unit>
-      <trans-unit id="456" resname="Render field as HTML">
+      <trans-unit id="473" resname="Render field as HTML">
         <source>Render field as HTML</source>
         <target>Rendre le champ en HTML</target>
       </trans-unit>
-      <trans-unit id="457" resname="Check if field has value">
+      <trans-unit id="474" resname="Check if field has value">
         <source>Check if field has value</source>
         <target>Vérifier si le champ a une valeur</target>
       </trans-unit>
-      <trans-unit id="458" resname="Get repeater rows as iterable">
+      <trans-unit id="475" resname="Get repeater rows as iterable">
         <source>Get repeater rows as iterable</source>
         <target>Obtenir les lignes du répéteur sous forme itérable</target>
       </trans-unit>
-      <trans-unit id="459" resname="Get all fields from a group">
+      <trans-unit id="476" resname="Get all fields from a group">
         <source>Get all fields from a group</source>
         <target>Obtenir tous les champs d'un groupe</target>
       </trans-unit>
-      <trans-unit id="460" resname="Override context for product">
+      <trans-unit id="477" resname="Override context for product">
         <source>Override context for product</source>
         <target>Remplacer le contexte du produit</target>
       </trans-unit>
-      <trans-unit id="461" resname="Override context for category">
+      <trans-unit id="478" resname="Override context for category">
         <source>Override context for category</source>
         <target>Remplacer le contexte de la catégorie</target>
       </trans-unit>
-      <trans-unit id="462" resname="Override context for any entity">
+      <trans-unit id="479" resname="Override context for any entity">
         <source>Override context for any entity</source>
         <target>Remplacer le contexte de toute entité</target>
       </trans-unit>
-      <trans-unit id="463" resname="Uploading...">
+      <trans-unit id="480" resname="Uploading...">
         <source>Uploading...</source>
         <target>Téléchargement...</target>
       </trans-unit>
-      <trans-unit id="464" resname="Minimum Date">
+      <trans-unit id="481" resname="Minimum Date">
         <source>Minimum Date</source>
         <target>Date minimum</target>
       </trans-unit>
-      <trans-unit id="465" resname="Maximum Date">
+      <trans-unit id="482" resname="Maximum Date">
         <source>Maximum Date</source>
         <target>Date maximum</target>
       </trans-unit>
-      <trans-unit id="466" resname="Time Format">
+      <trans-unit id="483" resname="Time Format">
         <source>Time Format</source>
         <target>Format d'heure</target>
       </trans-unit>
-      <trans-unit id="467" resname="Minute Step">
+      <trans-unit id="484" resname="Minute Step">
         <source>Minute Step</source>
         <target>Pas des minutes</target>
       </trans-unit>
-      <trans-unit id="468" resname="Minimum Date/Time">
+      <trans-unit id="485" resname="Minimum Date/Time">
         <source>Minimum Date/Time</source>
         <target>Date/Heure minimum</target>
       </trans-unit>
-      <trans-unit id="469" resname="Maximum Date/Time">
+      <trans-unit id="486" resname="Maximum Date/Time">
         <source>Maximum Date/Time</source>
         <target>Date/Heure maximum</target>
       </trans-unit>
-      <trans-unit id="470" resname="Rows">
+      <trans-unit id="487" resname="Rows">
         <source>Rows</source>
         <target>Lignes</target>
       </trans-unit>
-      <trans-unit id="471" resname="Video Sources">
+      <trans-unit id="488" resname="Video Sources">
         <source>Video Sources</source>
         <target>Sources vidéo</target>
       </trans-unit>
-      <trans-unit id="472" resname="YouTube - YouTube video URLs">
+      <trans-unit id="489" resname="YouTube - YouTube video URLs">
         <source>YouTube - YouTube video URLs</source>
         <target>YouTube - URLs des vidéos YouTube</target>
       </trans-unit>
-      <trans-unit id="473" resname="Vimeo - Vimeo video URLs">
+      <trans-unit id="490" resname="Vimeo - Vimeo video URLs">
         <source>Vimeo - Vimeo video URLs</source>
         <target>Vimeo - URLs des vidéos Vimeo</target>
       </trans-unit>
-      <trans-unit id="474" resname="Upload - Direct video file upload (MP4, WebM, OGG)">
+      <trans-unit id="491" resname="Upload - Direct video file upload (MP4, WebM, OGG)">
         <source>Upload - Direct video file upload (MP4, WebM, OGG)</source>
         <target>Téléchargement - Téléchargement direct de fichier vidéo (MP4, WebM, OGG)</target>
       </trans-unit>
-      <trans-unit id="475" resname="Video URL - Direct link to video file">
+      <trans-unit id="492" resname="Video URL - Direct link to video file">
         <source>Video URL - Direct link to video file</source>
         <target>URL vidéo - Lien direct vers le fichier vidéo</target>
       </trans-unit>
-      <trans-unit id="476" resname="Max File Size (MB)">
+      <trans-unit id="493" resname="Max File Size (MB)">
         <source>Max File Size (MB)</source>
         <target>Taille max du fichier (Mo)</target>
       </trans-unit>
-      <trans-unit id="477" resname="Video Metadata">
+      <trans-unit id="494" resname="Video Metadata">
         <source>Video Metadata</source>
         <target>Métadonnées vidéo</target>
       </trans-unit>
-      <trans-unit id="478" resname="Allowed Formats">
+      <trans-unit id="495" resname="Allowed Formats">
         <source>Allowed Formats</source>
         <target>Formats autorisés</target>
       </trans-unit>
-      <trans-unit id="479" resname="Max Width (px)">
+      <trans-unit id="496" resname="Max Width (px)">
         <source>Max Width (px)</source>
         <target>Largeur max (px)</target>
       </trans-unit>
-      <trans-unit id="480" resname="Max Height (px)">
+      <trans-unit id="497" resname="Max Height (px)">
         <source>Max Height (px)</source>
         <target>Hauteur max (px)</target>
       </trans-unit>
-      <trans-unit id="481" resname="Input Methods">
+      <trans-unit id="498" resname="Input Methods">
         <source>Input Methods</source>
         <target>Méthodes d'entrée</target>
       </trans-unit>
-      <trans-unit id="482" resname="Upload - Direct image upload from computer">
+      <trans-unit id="499" resname="Upload - Direct image upload from computer">
         <source>Upload - Direct image upload from computer</source>
         <target>Téléchargement - Télécharger directement depuis l'ordinateur</target>
       </trans-unit>
-      <trans-unit id="483" resname="Import from URL - Download image from URL and store locally">
+      <trans-unit id="500" resname="Import from URL - Download image from URL and store locally">
         <source>Import from URL - Download image from URL and store locally</source>
         <target>Importer depuis URL - Télécharger l'image depuis URL et stocker localement</target>
       </trans-unit>
-      <trans-unit id="484" resname="External Link - Reference URL without downloading">
+      <trans-unit id="501" resname="External Link - Reference URL without downloading">
         <source>External Link - Reference URL without downloading</source>
         <target>Lien externe - URL de référence sans téléchargement</target>
       </trans-unit>
-      <trans-unit id="485" resname="PrestaShop Attachment - Choose from product attachments">
+      <trans-unit id="502" resname="PrestaShop Attachment - Choose from product attachments">
         <source>PrestaShop Attachment - Choose from product attachments</source>
         <target>Pièce jointe PrestaShop - Choisir parmi les pièces jointes du produit</target>
       </trans-unit>
-      <trans-unit id="486" resname="Default Input Method">
+      <trans-unit id="503" resname="Default Input Method">
         <source>Default Input Method</source>
         <target>Méthode d'entrée par défaut</target>
       </trans-unit>
-      <trans-unit id="487" resname="Image Metadata Options">
+      <trans-unit id="504" resname="Image Metadata Options">
         <source>Image Metadata Options</source>
         <target>Options des métadonnées image</target>
       </trans-unit>
-      <trans-unit id="488" resname="Minimum Images">
+      <trans-unit id="505" resname="Minimum Images">
         <source>Minimum Images</source>
         <target>Images minimum</target>
       </trans-unit>
-      <trans-unit id="489" resname="Maximum Images">
+      <trans-unit id="506" resname="Maximum Images">
         <source>Maximum Images</source>
         <target>Images maximum</target>
       </trans-unit>
-      <trans-unit id="490" resname="Allowed File Types">
+      <trans-unit id="507" resname="Allowed File Types">
         <source>Allowed File Types</source>
         <target>Types de fichiers autorisés</target>
       </trans-unit>
-      <trans-unit id="491" resname="Minimum Files">
+      <trans-unit id="508" resname="Minimum Files">
         <source>Minimum Files</source>
         <target>Fichiers minimum</target>
       </trans-unit>
-      <trans-unit id="492" resname="Maximum Files">
+      <trans-unit id="509" resname="Maximum Files">
         <source>Maximum Files</source>
         <target>Fichiers maximum</target>
       </trans-unit>
-      <trans-unit id="493" resname="File Metadata Options">
+      <trans-unit id="510" resname="File Metadata Options">
         <source>File Metadata Options</source>
         <target>Options des métadonnées fichier</target>
       </trans-unit>
-      <trans-unit id="494" resname="Products: Add custom fields to product pages">
+      <trans-unit id="511" resname="Products: Add custom fields to product pages">
         <source>Products: Add custom fields to product pages</source>
         <target>Produits : Ajouter des champs personnalisés aux pages produit</target>
       </trans-unit>
-      <trans-unit id="495" resname="Categories: Add fields specific to category pages">
+      <trans-unit id="512" resname="Categories: Add fields specific to category pages">
         <source>Categories: Add fields specific to category pages</source>
         <target>Catégories : Ajouter des champs spécifiques aux pages de catégories</target>
       </trans-unit>
-      <trans-unit id="496" resname="Multiple types: Each with its own display location">
+      <trans-unit id="513" resname="Multiple types: Each with its own display location">
         <source>Multiple types: Each with its own display location</source>
         <target>Types multiples : Chacun avec son propre emplacement d'affichage</target>
       </trans-unit>
-      <!-- GroupSettings.vue - Additional Strings -->
-      <trans-unit id="497" resname="A descriptive name for this field group that will be displayed in the admin interface.">
+      
+      <trans-unit id="514" resname="A descriptive name for this field group that will be displayed in the admin interface.">
         <source>A descriptive name for this field group that will be displayed in the admin interface.</source>
         <target>Un nom descriptif pour ce groupe de champs qui s'affichera dans l'interface d'administration.</target>
       </trans-unit>
-      <trans-unit id="498" resname="Optional description to help administrators understand the purpose of this field group.">
+      <trans-unit id="515" resname="Optional description to help administrators understand the purpose of this field group.">
         <source>Optional description to help administrators understand the purpose of this field group.</source>
         <target>Description optionnelle pour aider les administrateurs à comprendre le but de ce groupe de champs.</target>
       </trans-unit>
-      <trans-unit id="499" resname="Inactive groups are hidden in the product form.">
+      <trans-unit id="516" resname="Inactive groups are hidden in the product form.">
         <source>Inactive groups are hidden in the product form.</source>
         <target>Les groupes inactifs sont masqués dans le formulaire produit.</target>
       </trans-unit>
-      <!-- BooleanFieldConfig.vue - Additional Strings -->
-      <trans-unit id="500" resname="defaultValue">
+      
+      <trans-unit id="517" resname="defaultValue">
         <source>Default Value</source>
         <target>Valeur par défaut</target>
       </trans-unit>
-      <trans-unit id="501" resname="trueLabel">
+      <trans-unit id="518" resname="trueLabel">
         <source>True Label</source>
         <target>Libellé vrai</target>
       </trans-unit>
-      <trans-unit id="502" resname="yes">
+      <trans-unit id="519" resname="yes">
         <source>Yes</source>
         <target>Oui</target>
       </trans-unit>
-      <trans-unit id="503" resname="trueLabelHelp">
+      <trans-unit id="520" resname="trueLabelHelp">
         <source>Text to display when value is true/checked.</source>
         <target>Texte à afficher quand la valeur est vraie/cochée.</target>
       </trans-unit>
-      <trans-unit id="504" resname="falseLabel">
+      <trans-unit id="521" resname="falseLabel">
         <source>False Label</source>
         <target>Libellé faux</target>
       </trans-unit>
-      <trans-unit id="505" resname="no">
+      <trans-unit id="522" resname="no">
         <source>No</source>
         <target>Non</target>
       </trans-unit>
-      <trans-unit id="506" resname="falseLabelHelp">
+      <trans-unit id="523" resname="falseLabelHelp">
         <source>Text to display when value is false/unchecked.</source>
         <target>Texte à afficher quand la valeur est fausse/décochée.</target>
       </trans-unit>
-      <!-- RelationFieldConfig.vue - Additional Strings -->
-      <trans-unit id="507" resname="entityType">
+      
+      <trans-unit id="524" resname="entityType">
         <source>Entity Type</source>
         <target>Type d'entité</target>
       </trans-unit>
-      <trans-unit id="508" resname="allowMultiple">
+      <trans-unit id="525" resname="allowMultiple">
         <source>Allow Multiple</source>
         <target>Autoriser plusieurs</target>
       </trans-unit>
-      <trans-unit id="509" resname="displayFormat">
+      <trans-unit id="526" resname="displayFormat">
         <source>Display Format</source>
         <target>Format d'affichage</target>
       </trans-unit>
-      <trans-unit id="510" resname="minItems">
+      <trans-unit id="527" resname="minItems">
         <source>Minimum items</source>
         <target>Éléments minimum</target>
       </trans-unit>
-      <trans-unit id="511" resname="maxItems">
+      <trans-unit id="528" resname="maxItems">
         <source>Maximum items</source>
         <target>Éléments maximum</target>
       </trans-unit>
-      <trans-unit id="512" resname="filters">
+      <trans-unit id="529" resname="filters">
         <source>Filters</source>
         <target>Filtres</target>
       </trans-unit>
-      <trans-unit id="513" resname="activeOnly">
+      <trans-unit id="530" resname="activeOnly">
         <source>Active only</source>
         <target>Actifs uniquement</target>
       </trans-unit>
-      <trans-unit id="514" resname="inStockOnly">
+      <trans-unit id="531" resname="inStockOnly">
         <source>In stock only</source>
         <target>En stock uniquement</target>
       </trans-unit>
-      <trans-unit id="515" resname="excludeCurrent">
+      <trans-unit id="532" resname="excludeCurrent">
         <source>Exclude current product</source>
         <target>Exclure le produit actuel</target>
       </trans-unit>
-      <trans-unit id="516" resname="limitCategories">
+      <trans-unit id="533" resname="limitCategories">
         <source>Limit to categories</source>
         <target>Limiter aux catégories</target>
       </trans-unit>
-      <!-- FieldConfigurator.vue - Additional Strings -->
-      <trans-unit id="517" resname="selectField">
+      
+      <trans-unit id="534" resname="selectField">
         <source>Select a field</source>
         <target>Sélectionner un champ</target>
       </trans-unit>
-      <!-- FieldList.vue - Additional Strings -->
-      <trans-unit id="518" resname="confirmDeleteField">
+      
+      <trans-unit id="535" resname="confirmDeleteField">
         <source>Are you sure you want to delete this field?</source>
         <target>Êtes-vous sûr de vouloir supprimer ce champ ?</target>
       </trans-unit>
-      <trans-unit id="519" resname="noSubfields">
+      <trans-unit id="536" resname="noSubfields">
         <source>No subfields yet. Click the button below to add one.</source>
         <target>Aucun sous-champ pour le moment. Cliquez sur le bouton ci-dessous pour en ajouter un.</target>
       </trans-unit>
-      <!-- GroupList.vue - Additional Strings -->
-      <trans-unit id="520" resname="confirmDeleteGroups">
+      
+      <trans-unit id="537" resname="confirmDeleteGroups">
         <source>Are you sure you want to delete {count} groups?</source>
         <target>Êtes-vous sûr de vouloir supprimer {count} groupes ?</target>
       </trans-unit>
-      <trans-unit id="521" resname="groupSelected">
+      <trans-unit id="538" resname="groupSelected">
         <source>group selected</source>
         <target>groupe sélectionné</target>
       </trans-unit>
-      <trans-unit id="522" resname="groupsSelected">
+      <trans-unit id="539" resname="groupsSelected">
         <source>groups selected</source>
         <target>groupes sélectionnés</target>
       </trans-unit>
-      <trans-unit id="523" resname="bulkActionSuccess">
+      <trans-unit id="540" resname="bulkActionSuccess">
         <source>Bulk action completed successfully</source>
         <target>Action groupée terminée avec succès</target>
       </trans-unit>
-      <trans-unit id="524" resname="bulkActionError">
+      <trans-unit id="541" resname="bulkActionError">
         <source>Bulk action failed</source>
         <target>Échec de l'action groupée</target>
       </trans-unit>
-      <trans-unit id="525" resname="bulkDeleteSuccess">
+      <trans-unit id="542" resname="bulkDeleteSuccess">
         <source>Groups deleted successfully</source>
         <target>Groupes supprimés avec succès</target>
       </trans-unit>
-      <trans-unit id="526" resname="bulkDeleteError">
+      <trans-unit id="543" resname="bulkDeleteError">
         <source>Failed to delete groups</source>
         <target>Échec de la suppression des groupes</target>
       </trans-unit>
-      <trans-unit id="527" resname="selectAll">
+      <trans-unit id="544" resname="selectAll">
         <source>Select All</source>
         <target>Tout sélectionner</target>
       </trans-unit>
-      <trans-unit id="528" resname="selectGroup">
+      <trans-unit id="545" resname="selectGroup">
         <source>Select group</source>
         <target>Sélectionner le groupe</target>
       </trans-unit>
-      <trans-unit id="529" resname="activate">
+      <trans-unit id="546" resname="activate">
         <source>Activate</source>
         <target>Activer</target>
       </trans-unit>
-      <trans-unit id="530" resname="deactivate">
+      <trans-unit id="547" resname="deactivate">
         <source>Deactivate</source>
         <target>Désactiver</target>
       </trans-unit>
-      <trans-unit id="531" resname="edit">
+      <trans-unit id="548" resname="edit">
         <source>Edit</source>
         <target>Éditer</target>
       </trans-unit>
-      <!-- LocationRulesEditor.vue - Additional Strings -->
-      <trans-unit id="532" resname="Content Type Required">
+      
+      <trans-unit id="549" resname="Content Type Required">
         <source>Content Type Required</source>
         <target>Type de contenu requis</target>
       </trans-unit>
-      <trans-unit id="533" resname="Please select a content type above before choosing a display hook.">
+      <trans-unit id="550" resname="Please select a content type above before choosing a display hook.">
         <source>Please select a content type above before choosing a display hook.</source>
         <target>Veuillez sélectionner un type de contenu ci-dessus avant de choisir un hook d'affichage.</target>
       </trans-unit>
-      <!-- Missing Strings from Vue Components -->
-      <trans-unit id="534" resname="Failed to upload file. Please try again.">
+      
+      <trans-unit id="551" resname="Failed to upload file. Please try again.">
         <source>Failed to upload file. Please try again.</source>
         <target>Échec du téléchargement du fichier. Veuillez réessayer.</target>
       </trans-unit>
 
-      <!-- Documentation Panel - Smarty Examples -->
-      <trans-unit id="535" resname="Get field value with default">
+      
+      <trans-unit id="552" resname="Get field value with default">
         <source>Get field value with default</source>
         <target>Obtenir la valeur du champ avec valeur par défaut</target>
       </trans-unit>
-      <trans-unit id="536" resname="Returns field value or default if empty">
+      <trans-unit id="553" resname="Returns field value or default if empty">
         <source>Returns field value or default if empty</source>
         <target>Retourne la valeur du champ ou la valeur par défaut si vide</target>
       </trans-unit>
-      <trans-unit id="537" resname="Loop through repeater with index">
+      <trans-unit id="554" resname="Loop through repeater with index">
         <source>Loop through repeater with index</source>
         <target>Parcourir le répéteur avec l'index</target>
       </trans-unit>
-      <trans-unit id="538" resname="Access row index in repeater loop">
+      <trans-unit id="555" resname="Access row index in repeater loop">
         <source>Access row index in repeater loop</source>
         <target>Accéder à l'index de ligne dans la boucle répéteur</target>
       </trans-unit>
-      <trans-unit id="539" resname="Check repeater count">
+      <trans-unit id="556" resname="Check repeater count">
         <source>Check repeater count</source>
         <target>Vérifier le nombre de répétitions</target>
       </trans-unit>
-      <trans-unit id="540" resname="Check if repeater has rows before displaying">
+      <trans-unit id="557" resname="Check if repeater has rows before displaying">
         <source>Check if repeater has rows before displaying</source>
         <target>Vérifier si le répéteur a des lignes avant d'afficher</target>
       </trans-unit>
-      <trans-unit id="541" resname="Display group by ID">
+      <trans-unit id="558" resname="Display group by ID">
         <source>Display group by ID</source>
         <target>Afficher le groupe par ID</target>
       </trans-unit>
-      <trans-unit id="542" resname="Render all fields from a group by ID">
+      <trans-unit id="559" resname="Render all fields from a group by ID">
         <source>Render all fields from a group by ID</source>
         <target>Rendre tous les champs d'un groupe par ID</target>
       </trans-unit>
-      <trans-unit id="543" resname="Override context (any entity)">
+      <trans-unit id="560" resname="Override context (any entity)">
         <source>Override context (any entity)</source>
         <target>Remplacer le contexte (toute entité)</target>
       </trans-unit>
-      <trans-unit id="544" resname="Get field from any entity type (product, category, cms_page, customer, etc.)">
+      <trans-unit id="561" resname="Get field from any entity type (product, category, cms_page, customer, etc.)">
         <source>Get field from any entity type (product, category, cms_page, customer, etc.)</source>
         <target>Obtenir le champ de tout type d'entité (produit, catégorie, cms_page, client, etc.)</target>
       </trans-unit>
-      <trans-unit id="545" resname="Rich text field (HTML)">
+      <trans-unit id="562" resname="Rich text field (HTML)">
         <source>Rich text field (HTML)</source>
         <target>Champ de texte riche (HTML)</target>
       </trans-unit>
-      <trans-unit id="546" resname="Render rich text/WYSIWYG content with HTML (use render, not field)">
+      <trans-unit id="563" resname="Render rich text/WYSIWYG content with HTML (use render, not field)">
         <source>Render rich text/WYSIWYG content with HTML (use render, not field)</source>
         <target>Rendre le contenu texte riche/WYSIWYG avec HTML (utiliser render, pas field)</target>
       </trans-unit>
-      <trans-unit id="547" resname="Email field with mailto link">
+      <trans-unit id="564" resname="Email field with mailto link">
         <source>Email field with mailto link</source>
         <target>Champ email avec lien mailto</target>
       </trans-unit>
-      <trans-unit id="548" resname="Create mailto link using field value">
+      <trans-unit id="565" resname="Create mailto link using field value">
         <source>Create mailto link using field value</source>
         <target>Créer un lien mailto en utilisant la valeur du champ</target>
       </trans-unit>
-      <trans-unit id="549" resname="URL field with link">
+      <trans-unit id="566" resname="URL field with link">
         <source>URL field with link</source>
         <target>Champ URL avec lien</target>
       </trans-unit>
-      <trans-unit id="550" resname="Create external link using URL field">
+      <trans-unit id="567" resname="Create external link using URL field">
         <source>Create external link using URL field</source>
         <target>Créer un lien externe en utilisant le champ URL</target>
       </trans-unit>
-      <trans-unit id="551" resname="Number field with formatting">
+      <trans-unit id="568" resname="Number field with formatting">
         <source>Number field with formatting</source>
         <target>Champ numérique avec formatage</target>
       </trans-unit>
-      <trans-unit id="552" resname="Format number fields with currency">
+      <trans-unit id="569" resname="Format number fields with currency">
         <source>Format number fields with currency</source>
         <target>Formater les champs numériques avec devise</target>
       </trans-unit>
-      <trans-unit id="553" resname="Date field formatting">
+      <trans-unit id="570" resname="Date field formatting">
         <source>Date field formatting</source>
         <target>Formatage du champ date</target>
       </trans-unit>
-      <trans-unit id="554" resname="Format date fields with custom patterns">
+      <trans-unit id="571" resname="Format date fields with custom patterns">
         <source>Format date fields with custom patterns</source>
         <target>Formater les champs date avec des motifs personnalisés</target>
       </trans-unit>
-      <trans-unit id="555" resname="Boolean field (conditional)">
+      <trans-unit id="572" resname="Boolean field (conditional)">
         <source>Boolean field (conditional)</source>
         <target>Champ booléen (conditionnel)</target>
       </trans-unit>
-      <trans-unit id="556" resname="Conditional display based on boolean field">
+      <trans-unit id="573" resname="Conditional display based on boolean field">
         <source>Conditional display based on boolean field</source>
         <target>Affichage conditionnel basé sur le champ booléen</target>
       </trans-unit>
-      <trans-unit id="557" resname="Boolean field (rendered)">
+      <trans-unit id="574" resname="Boolean field (rendered)">
         <source>Boolean field (rendered)</source>
         <target>Champ booléen (rendu)</target>
       </trans-unit>
-      <trans-unit id="558" resname="Render boolean field with icons/symbols">
+      <trans-unit id="575" resname="Render boolean field with icons/symbols">
         <source>Render boolean field with icons/symbols</source>
         <target>Rendre le champ booléen avec icônes/symboles</target>
       </trans-unit>
-      <trans-unit id="559" resname="Select/Radio field (raw value)">
+      <trans-unit id="576" resname="Select/Radio field (raw value)">
         <source>Select/Radio field (raw value)</source>
         <target>Champ Select/Radio (valeur brute)</target>
       </trans-unit>
-      <trans-unit id="560" resname="Use raw value for conditional logic">
+      <trans-unit id="577" resname="Use raw value for conditional logic">
         <source>Use raw value for conditional logic</source>
         <target>Utiliser la valeur brute pour la logique conditionnelle</target>
       </trans-unit>
-      <trans-unit id="561" resname="Select/Radio field (translated label)">
+      <trans-unit id="578" resname="Select/Radio field (translated label)">
         <source>Select/Radio field (translated label)</source>
         <target>Champ Select/Radio (libellé traduit)</target>
       </trans-unit>
-      <trans-unit id="562" resname="Display translated label for user-friendly output">
+      <trans-unit id="579" resname="Display translated label for user-friendly output">
         <source>Display translated label for user-friendly output</source>
         <target>Afficher le libellé traduit pour une sortie conviviale</target>
       </trans-unit>
-      <trans-unit id="563" resname="Checkbox field (multiple values)">
+      <trans-unit id="580" resname="Checkbox field (multiple values)">
         <source>Checkbox field (multiple values)</source>
         <target>Champ Checkbox (valeurs multiples)</target>
       </trans-unit>
-      <trans-unit id="564" resname="Handle multiple checkbox selections as array">
+      <trans-unit id="581" resname="Handle multiple checkbox selections as array">
         <source>Handle multiple checkbox selections as array</source>
         <target>Gérer les sélections de cases à cocher multiples sous forme de tableau</target>
       </trans-unit>
-      <trans-unit id="565" resname="Image field (custom display)">
+      <trans-unit id="582" resname="Image field (custom display)">
         <source>Image field (custom display)</source>
         <target>Champ image (affichage personnalisé)</target>
       </trans-unit>
-      <trans-unit id="566" resname="Access image properties (url, alt, title, etc.)">
+      <trans-unit id="583" resname="Access image properties (url, alt, title, etc.)">
         <source>Access image properties (url, alt, title, etc.)</source>
         <target>Accéder aux propriétés de l'image (url, alt, titre, etc.)</target>
       </trans-unit>
-      <trans-unit id="567" resname="Gallery field (custom grid)">
+      <trans-unit id="584" resname="Gallery field (custom grid)">
         <source>Gallery field (custom grid)</source>
         <target>Champ galerie (grille personnalisée)</target>
       </trans-unit>
-      <trans-unit id="568" resname="Create custom gallery layout with image arrays">
+      <trans-unit id="585" resname="Create custom gallery layout with image arrays">
         <source>Create custom gallery layout with image arrays</source>
         <target>Créer une mise en page de galerie personnalisée avec des tableaux d'images</target>
       </trans-unit>
-      <trans-unit id="569" resname="Video field (custom player)">
+      <trans-unit id="586" resname="Video field (custom player)">
         <source>Video field (custom player)</source>
         <target>Champ vidéo (lecteur personnalisé)</target>
       </trans-unit>
-      <trans-unit id="570" resname="Access video properties (url, poster, mime type, etc.)">
+      <trans-unit id="587" resname="Access video properties (url, poster, mime type, etc.)">
         <source>Access video properties (url, poster, mime type, etc.)</source>
         <target>Accéder aux propriétés vidéo (url, poster, type mime, etc.)</target>
       </trans-unit>
-      <trans-unit id="571" resname="File field (download link)">
+      <trans-unit id="588" resname="File field (download link)">
         <source>File field (download link)</source>
         <target>Champ fichier (lien de téléchargement)</target>
       </trans-unit>
-      <trans-unit id="572" resname="Create download link with file properties">
+      <trans-unit id="589" resname="Create download link with file properties">
         <source>Create download link with file properties</source>
         <target>Créer un lien de téléchargement avec les propriétés du fichier</target>
       </trans-unit>
-      <trans-unit id="573" resname="Color field (inline style)">
+      <trans-unit id="590" resname="Color field (inline style)">
         <source>Color field (inline style)</source>
         <target>Champ couleur (style en ligne)</target>
       </trans-unit>
-      <trans-unit id="574" resname="Use color field value in CSS styling">
+      <trans-unit id="591" resname="Use color field value in CSS styling">
         <source>Use color field value in CSS styling</source>
         <target>Utiliser la valeur du champ couleur dans le style CSS</target>
       </trans-unit>
-      <trans-unit id="575" resname="Star rating display">
+      <trans-unit id="592" resname="Star rating display">
         <source>Star rating display</source>
         <target>Affichage de notation par étoiles</target>
       </trans-unit>
-      <trans-unit id="576" resname="Display star rating with visual and numeric values">
+      <trans-unit id="593" resname="Display star rating with visual and numeric values">
         <source>Display star rating with visual and numeric values</source>
         <target>Afficher la notation par étoiles avec valeurs visuelles et numériques</target>
       </trans-unit>
-      <trans-unit id="577" resname="List field (custom bullets)">
+      <trans-unit id="594" resname="List field (custom bullets)">
         <source>List field (custom bullets)</source>
         <target>Champ liste (puces personnalisées)</target>
       </trans-unit>
-      <trans-unit id="578" resname="Create custom styled list from list field">
+      <trans-unit id="595" resname="Create custom styled list from list field">
         <source>Create custom styled list from list field</source>
         <target>Créer une liste stylisée personnalisée à partir du champ liste</target>
       </trans-unit>
-      <trans-unit id="579" resname="Relation field (IDs only)">
+      <trans-unit id="596" resname="Relation field (IDs only)">
         <source>Relation field (IDs only)</source>
         <target>Champ relation (IDs uniquement)</target>
       </trans-unit>
-      <trans-unit id="580" resname="Access raw IDs from relation field for custom logic">
+      <trans-unit id="597" resname="Access raw IDs from relation field for custom logic">
         <source>Access raw IDs from relation field for custom logic</source>
         <target>Accéder aux IDs bruts du champ relation pour une logique personnalisée</target>
       </trans-unit>
-      <trans-unit id="581" resname="Relation field (enriched data)">
+      <trans-unit id="598" resname="Relation field (enriched data)">
         <source>Relation field (enriched data)</source>
         <target>Champ relation (données enrichies)</target>
       </trans-unit>
-      <trans-unit id="582" resname="Access enriched relation data with links, images, prices">
+      <trans-unit id="599" resname="Access enriched relation data with links, images, prices">
         <source>Access enriched relation data with links, images, prices</source>
         <target>Accéder aux données de relation enrichies avec liens, images, prix</target>
       </trans-unit>
 
-      <!-- Documentation Panel - Twig Examples -->
-      <trans-unit id="583" resname="Get translated label (select/radio/checkbox)">
+      
+      <trans-unit id="600" resname="Get translated label (select/radio/checkbox)">
         <source>Get translated label (select/radio/checkbox)</source>
         <target>Obtenir le libellé traduit (select/radio/checkbox)</target>
       </trans-unit>
-      <trans-unit id="584" resname="Returns translated label instead of raw value">
+      <trans-unit id="601" resname="Returns translated label instead of raw value">
         <source>Returns translated label instead of raw value</source>
         <target>Retourne le libellé traduit au lieu de la valeur brute</target>
       </trans-unit>
-      <trans-unit id="585" resname="Display image properties in Twig">
+      <trans-unit id="602" resname="Display image properties in Twig">
         <source>Display image properties in Twig</source>
         <target>Afficher les propriétés de l'image dans Twig</target>
       </trans-unit>
-      <trans-unit id="586" resname="Create custom gallery layout with image arrays">
+      <trans-unit id="603" resname="Create custom gallery layout with image arrays">
         <source>Create custom gallery layout with image arrays</source>
         <target>Créer une mise en page de galerie personnalisée avec des tableaux d'images</target>
       </trans-unit>
 
-      <!-- Documentation Panel - Shortcode Examples -->
-      <trans-unit id="587" resname="Display field value in CMS content or product descriptions">
+      
+      <trans-unit id="604" resname="Display field value in CMS content or product descriptions">
         <source>Display field value in CMS content or product descriptions</source>
         <target>Afficher la valeur du champ dans le contenu CMS ou les descriptions de produits</target>
       </trans-unit>
-      <trans-unit id="588" resname="Show default text if field is empty">
+      <trans-unit id="605" resname="Show default text if field is empty">
         <source>Show default text if field is empty</source>
         <target>Afficher le texte par défaut si le champ est vide</target>
       </trans-unit>
-      <trans-unit id="589" resname="Render field as HTML with default">
+      <trans-unit id="606" resname="Render field as HTML with default">
         <source>Render field as HTML with default</source>
         <target>Rendre le champ en HTML avec valeur par défaut</target>
       </trans-unit>
-      <trans-unit id="590" resname="Render field with HTML or show default if empty">
+      <trans-unit id="607" resname="Render field with HTML or show default if empty">
         <source>Render field with HTML or show default if empty</source>
         <target>Rendre le champ avec HTML ou afficher la valeur par défaut si vide</target>
       </trans-unit>
-      <trans-unit id="591" resname="Render complete group">
+      <trans-unit id="608" resname="Render complete group">
         <source>Render complete group</source>
         <target>Rendre le groupe complet</target>
       </trans-unit>
-      <trans-unit id="592" resname="Display all fields from group ID 1">
+      <trans-unit id="609" resname="Display all fields from group ID 1">
         <source>Display all fields from group ID 1</source>
         <target>Afficher tous les champs du groupe ID 1</target>
       </trans-unit>
-      <trans-unit id="593" resname="Render group by slug">
+      <trans-unit id="610" resname="Render group by slug">
         <source>Render group by slug</source>
         <target>Rendre le groupe par slug</target>
       </trans-unit>
-      <trans-unit id="594" resname="Display all fields from group by slug">
+      <trans-unit id="611" resname="Display all fields from group by slug">
         <source>Display all fields from group by slug</source>
         <target>Afficher tous les champs du groupe par slug</target>
       </trans-unit>
-      <trans-unit id="595" resname="Simple repeater loop">
+      <trans-unit id="612" resname="Simple repeater loop">
         <source>Simple repeater loop</source>
         <target>Boucle répéteur simple</target>
       </trans-unit>
-      <trans-unit id="596" resname="Loop through repeater rows in CMS content">
+      <trans-unit id="613" resname="Loop through repeater rows in CMS content">
         <source>Loop through repeater rows in CMS content</source>
         <target>Parcourir les lignes du répéteur dans le contenu CMS</target>
       </trans-unit>
-      <trans-unit id="597" resname="Repeater with conditional">
+      <trans-unit id="614" resname="Repeater with conditional">
         <source>Repeater with conditional</source>
         <target>Répéteur avec conditionnel</target>
       </trans-unit>
-      <trans-unit id="598" resname="Repeater with conditional logic inside the loop">
+      <trans-unit id="615" resname="Repeater with conditional logic inside the loop">
         <source>Repeater with conditional logic inside the loop</source>
         <target>Répéteur avec logique conditionnelle à l'intérieur de la boucle</target>
       </trans-unit>
-      <trans-unit id="599" resname="Field from specific category">
+      <trans-unit id="616" resname="Field from specific category">
         <source>Field from specific category</source>
         <target>Champ d'une catégorie spécifique</target>
       </trans-unit>
-      <trans-unit id="600" resname="Get field value from a specific category">
+      <trans-unit id="617" resname="Get field value from a specific category">
         <source>Get field value from a specific category</source>
         <target>Obtenir la valeur du champ d'une catégorie spécifique</target>
       </trans-unit>
-      <trans-unit id="601" resname="Field from specific CMS page">
+      <trans-unit id="618" resname="Field from specific CMS page">
         <source>Field from specific CMS page</source>
         <target>Champ d'une page CMS spécifique</target>
       </trans-unit>
-      <trans-unit id="602" resname="Render field from a specific CMS page">
+      <trans-unit id="619" resname="Render field from a specific CMS page">
         <source>Render field from a specific CMS page</source>
         <target>Rendre le champ d'une page CMS spécifique</target>
       </trans-unit>
-      <trans-unit id="603" resname="Render repeater from another product">
+      <trans-unit id="620" resname="Render repeater from another product">
         <source>Render repeater from another product</source>
         <target>Rendre le répéteur d'un autre produit</target>
       </trans-unit>
-      <trans-unit id="604" resname="Display repeater from a different entity">
+      <trans-unit id="621" resname="Display repeater from a different entity">
         <source>Display repeater from a different entity</source>
         <target>Afficher le répéteur d'une entité différente</target>
       </trans-unit>
-      <trans-unit id="605" resname="Multiple shortcodes in content">
+      <trans-unit id="622" resname="Multiple shortcodes in content">
         <source>Multiple shortcodes in content</source>
         <target>Shortcodes multiples dans le contenu</target>
       </trans-unit>
-      <trans-unit id="606" resname="Combine multiple ACF shortcodes in rich content">
+      <trans-unit id="623" resname="Combine multiple ACF shortcodes in rich content">
         <source>Combine multiple ACF shortcodes in rich content</source>
         <target>Combiner plusieurs shortcodes ACF dans un contenu riche</target>
       </trans-unit>
-      <trans-unit id="607" resname="FAQ section with repeater">
+      <trans-unit id="624" resname="FAQ section with repeater">
         <source>FAQ section with repeater</source>
         <target>Section FAQ avec répéteur</target>
       </trans-unit>
-      <trans-unit id="608" resname="Create FAQ section using repeater shortcode">
+      <trans-unit id="625" resname="Create FAQ section using repeater shortcode">
         <source>Create FAQ section using repeater shortcode</source>
         <target>Créer une section FAQ en utilisant le shortcode répéteur</target>
       </trans-unit>
 
-      <!-- Documentation Panel - API Reference -->
-      <trans-unit id="609" resname="📝 Field Methods">
+      
+      <trans-unit id="626" resname="📝 Field Methods">
         <source>📝 Field Methods</source>
         <target>📝 Méthodes de champs</target>
       </trans-unit>
-      <trans-unit id="610" resname="🔄 Repeater Methods">
+      <trans-unit id="627" resname="🔄 Repeater Methods">
         <source>🔄 Repeater Methods</source>
         <target>🔄 Méthodes de répéteur</target>
       </trans-unit>
-      <trans-unit id="611" resname="📁 Group Methods">
+      <trans-unit id="628" resname="📁 Group Methods">
         <source>📁 Group Methods</source>
         <target>📁 Méthodes de groupe</target>
       </trans-unit>
-      <trans-unit id="612" resname="🎯 Context Override Methods">
+      <trans-unit id="629" resname="🎯 Context Override Methods">
         <source>🎯 Context Override Methods</source>
         <target>🎯 Méthodes de remplacement de contexte</target>
       </trans-unit>
-      <trans-unit id="613" resname="🏷️ Shortcode Functions">
+      <trans-unit id="630" resname="🏷️ Shortcode Functions">
         <source>🏷️ Shortcode Functions</source>
         <target>🏷️ Fonctions Shortcode</target>
       </trans-unit>
-      <trans-unit id="614" resname="🔧 Twig Functions">
+      <trans-unit id="631" resname="🔧 Twig Functions">
         <source>🔧 Twig Functions</source>
         <target>🔧 Fonctions Twig</target>
       </trans-unit>
-      <trans-unit id="615" resname="Text, numbers, emails, URLs">
+      <trans-unit id="632" resname="Text, numbers, emails, URLs">
         <source>Text, numbers, emails, URLs</source>
         <target>Texte, nombres, emails, URLs</target>
       </trans-unit>
-      <trans-unit id="616" resname="Trusted HTML, arrays, objects">
+      <trans-unit id="633" resname="Trusted HTML, arrays, objects">
         <source>Trusted HTML, arrays, objects</source>
         <target>HTML de confiance, tableaux, objets</target>
       </trans-unit>
-      <trans-unit id="617" resname="Rich text, images, videos, galleries">
+      <trans-unit id="634" resname="Rich text, images, videos, galleries">
         <source>Rich text, images, videos, galleries</source>
         <target>Texte riche, images, vidéos, galeries</target>
       </trans-unit>
-      <trans-unit id="618" resname="User-friendly display of choice fields">
+      <trans-unit id="635" resname="User-friendly display of choice fields">
         <source>User-friendly display of choice fields</source>
         <target>Affichage convivial des champs de choix</target>
       </trans-unit>
-      <trans-unit id="619" resname="Conditional display">
+      <trans-unit id="636" resname="Conditional display">
         <source>Conditional display</source>
         <target>Affichage conditionnel</target>
       </trans-unit>
-      <trans-unit id="620" resname="Iterate over repeater field rows with auto-label resolution">
+      <trans-unit id="637" resname="Iterate over repeater field rows with auto-label resolution">
         <source>Iterate over repeater field rows with auto-label resolution</source>
         <target>Itérer sur les lignes de champ répéteur avec résolution automatique des libellés</target>
       </trans-unit>
-      <trans-unit id="621" resname="Array of row objects">
+      <trans-unit id="638" resname="Array of row objects">
         <source>Array of row objects</source>
         <target>Tableau d'objets ligne</target>
       </trans-unit>
-      <trans-unit id="622" resname="Get repeater rows (raw values)">
+      <trans-unit id="639" resname="Get repeater rows (raw values)">
         <source>Get repeater rows (raw values)</source>
         <target>Obtenir les lignes du répéteur (valeurs brutes)</target>
       </trans-unit>
-      <trans-unit id="623" resname="Count repeater rows">
+      <trans-unit id="640" resname="Count repeater rows">
         <source>Count repeater rows</source>
         <target>Compter les lignes du répéteur</target>
       </trans-unit>
-      <trans-unit id="624" resname="Integer">
+      <trans-unit id="641" resname="Integer">
         <source>Integer</source>
         <target>Entier</target>
       </trans-unit>
-      <trans-unit id="625" resname="Get all fields from group by ID">
+      <trans-unit id="642" resname="Get all fields from group by ID">
         <source>Get all fields from group by ID</source>
         <target>Obtenir tous les champs du groupe par ID</target>
       </trans-unit>
-      <trans-unit id="626" resname="Integer group ID">
+      <trans-unit id="643" resname="Integer group ID">
         <source>Integer group ID</source>
         <target>ID de groupe entier</target>
       </trans-unit>
-      <trans-unit id="627" resname="Get all fields from group by slug">
+      <trans-unit id="644" resname="Get all fields from group by slug">
         <source>Get all fields from group by slug</source>
         <target>Obtenir tous les champs du groupe par slug</target>
       </trans-unit>
-      <trans-unit id="628" resname="String group slug">
+      <trans-unit id="645" resname="String group slug">
         <source>String group slug</source>
         <target>Slug de groupe chaîne</target>
       </trans-unit>
-      <trans-unit id="629" resname="Override context for product">
+      <trans-unit id="646" resname="Override context for product">
         <source>Override context for product</source>
         <target>Remplacer le contexte du produit</target>
       </trans-unit>
-      <trans-unit id="630" resname="Override context for category">
+      <trans-unit id="647" resname="Override context for category">
         <source>Override context for category</source>
         <target>Remplacer le contexte de la catégorie</target>
       </trans-unit>
-      <trans-unit id="631" resname="Override context for CMS page">
+      <trans-unit id="648" resname="Override context for CMS page">
         <source>Override context for CMS page</source>
         <target>Remplacer le contexte de la page CMS</target>
       </trans-unit>
-      <trans-unit id="632" resname="Override context for any entity">
+      <trans-unit id="649" resname="Override context for any entity">
         <source>Override context for any entity</source>
         <target>Remplacer le contexte de toute entité</target>
       </trans-unit>
-      <trans-unit id="633" resname="Display field value">
+      <trans-unit id="650" resname="Display field value">
         <source>Display field value</source>
         <target>Afficher la valeur du champ</target>
       </trans-unit>
-      <trans-unit id="634" resname="Render field as HTML">
+      <trans-unit id="651" resname="Render field as HTML">
         <source>Render field as HTML</source>
         <target>Rendre le champ en HTML</target>
       </trans-unit>
-      <trans-unit id="635" resname="Render complete group">
+      <trans-unit id="652" resname="Render complete group">
         <source>Render complete group</source>
         <target>Rendre le groupe complet</target>
       </trans-unit>
-      <trans-unit id="1101" resname="Loop through repeater">
+      <trans-unit id="653" resname="Loop through repeater">
         <source>Loop through repeater</source>
         <target>Parcourir le répéteur</target>
       </trans-unit>
-      <trans-unit id="637" resname="field, default, entity_type, entity_id">
+      <trans-unit id="654" resname="field, default, entity_type, entity_id">
         <source>field, default, entity_type, entity_id</source>
         <target>field, default, entity_type, entity_id</target>
       </trans-unit>
-      <trans-unit id="638" resname="id or slug, entity_type, entity_id">
+      <trans-unit id="655" resname="id or slug, entity_type, entity_id">
         <source>id or slug, entity_type, entity_id</source>
         <target>id ou slug, entity_type, entity_id</target>
       </trans-unit>
-      <trans-unit id="639" resname="slug, entity_type, entity_id">
+      <trans-unit id="656" resname="slug, entity_type, entity_id">
         <source>slug, entity_type, entity_id</source>
         <target>slug, entity_type, entity_id</target>
       </trans-unit>
-      <trans-unit id="640" resname="Get escaped field value">
+      <trans-unit id="657" resname="Get escaped field value">
         <source>Get escaped field value</source>
         <target>Obtenir la valeur du champ échappée</target>
       </trans-unit>
-      <trans-unit id="641" resname="Get raw field value">
+      <trans-unit id="658" resname="Get raw field value">
         <source>Get raw field value</source>
         <target>Obtenir la valeur brute du champ</target>
       </trans-unit>
-      <trans-unit id="642" resname="Get translated label">
+      <trans-unit id="659" resname="Get translated label">
         <source>Get translated label</source>
         <target>Obtenir le libellé traduit</target>
       </trans-unit>
-      <trans-unit id="643" resname="Check if field has value">
+      <trans-unit id="660" resname="Check if field has value">
         <source>Check if field has value</source>
         <target>Vérifier si le champ a une valeur</target>
       </trans-unit>
-      <trans-unit id="644" resname="Get repeater rows">
+      <trans-unit id="661" resname="Get repeater rows">
         <source>Get repeater rows</source>
         <target>Obtenir les lignes du répéteur</target>
       </trans-unit>
-      <trans-unit id="645" resname="Count repeater rows">
+      <trans-unit id="662" resname="Count repeater rows">
         <source>Count repeater rows</source>
         <target>Compter les lignes du répéteur</target>
       </trans-unit>
-      <trans-unit id="646" resname="Get group fields">
+      <trans-unit id="663" resname="Get group fields">
         <source>Get group fields</source>
         <target>Obtenir les champs du groupe</target>
       </trans-unit>
-      <trans-unit id="1000" resname="Use &quot;Exclude&quot; to hide fields from specific content types">
+      <trans-unit id="664" resname="Use &quot;Exclude&quot; to hide fields from specific content types">
         <source>Use "Exclude" to hide fields from specific content types</source>
         <target>Utilisez « Exclure » pour masquer les champs de types de contenu spécifiques</target>
       </trans-unit>
-      <trans-unit id="1001" resname="actions">
+      <trans-unit id="665" resname="actions">
         <source>Actions</source>
         <target>Actions</target>
       </trans-unit>
-      <trans-unit id="1002" resname="active">
+      <trans-unit id="666" resname="active">
         <source>Active</source>
         <target>Actif</target>
       </trans-unit>
-      <trans-unit id="1003" resname="addField">
+      <trans-unit id="667" resname="addField">
         <source>Add Field</source>
         <target>Ajouter un champ</target>
       </trans-unit>
-      <trans-unit id="1004" resname="addGroup">
+      <trans-unit id="668" resname="addGroup">
         <source>Add Group</source>
         <target>Ajouter un groupe</target>
       </trans-unit>
-      <trans-unit id="1005" resname="addLocationRule">
+      <trans-unit id="669" resname="addLocationRule">
         <source>Add Location Rule</source>
         <target>Ajouter une règle d'emplacement</target>
       </trans-unit>
-      <trans-unit id="1006" resname="addOption">
+      <trans-unit id="670" resname="addOption">
         <source>Add Option</source>
         <target>Ajouter une option</target>
       </trans-unit>
-      <trans-unit id="1007" resname="addRule">
+      <trans-unit id="671" resname="Add Rule">
         <source>Add Rule</source>
         <target>Ajouter une règle</target>
       </trans-unit>
-      <trans-unit id="1008" resname="addSubfield">
+      <trans-unit id="672" resname="addSubfield">
         <source>Add Subfield</source>
         <target>Ajouter un sous-champ</target>
       </trans-unit>
-      <trans-unit id="1009" resname="allowMultipleHelp">
+      <trans-unit id="673" resname="allowMultipleHelp">
         <source>Allow selecting multiple values</source>
         <target>Autoriser la sélection de plusieurs valeurs</target>
       </trans-unit>
-      <trans-unit id="1010" resname="applyTo">
+      <trans-unit id="674" resname="applyTo">
         <source>Apply to</source>
         <target>Appliquer à</target>
       </trans-unit>
-      <trans-unit id="1011" resname="checkboxHelp">
+      <trans-unit id="675" resname="checkboxHelp">
         <source>Users can select multiple options.</source>
         <target>Les utilisateurs peuvent sélectionner plusieurs options.</target>
       </trans-unit>
-      <trans-unit id="1012" resname="choices">
+      <trans-unit id="676" resname="choices">
         <source>Choices</source>
         <target>Choix</target>
       </trans-unit>
-      <trans-unit id="1013" resname="clearSearch">
+      <trans-unit id="677" resname="clearSearch">
         <source>Clear search</source>
         <target>Effacer la recherche</target>
       </trans-unit>
-      <trans-unit id="1014" resname="close">
+      <trans-unit id="678" resname="close">
         <source>Close</source>
         <target>Fermer</target>
       </trans-unit>
-      <trans-unit id="1015" resname="completeGeneralSettingsFirst">
+      <trans-unit id="679" resname="completeGeneralSettingsFirst">
         <source>⚠️ Save required: Click the Save button above to unlock Fields and Location tabs</source>
         <target>⚠️ Sauvegarde requise : Cliquez sur le bouton Enregistrer ci-dessus pour déverrouiller les onglets Champs et Emplacement</target>
       </trans-unit>
-      <trans-unit id="1016" resname="conditionDescription">
+      <trans-unit id="680" resname="conditionDescription">
         <source>Choose whether to show fields on this content type (equals) or exclude it (not equals).</source>
         <target>Choisissez d'afficher les champs sur ce type de contenu (égal) ou de l'exclure (différent).</target>
       </trans-unit>
-      <trans-unit id="1017" resname="confirmDeleteGroup">
+      <trans-unit id="681" resname="confirmDeleteGroup">
         <source>Are you sure you want to delete this group?</source>
         <target>Êtes-vous sûr de vouloir supprimer ce groupe ?</target>
       </trans-unit>
-      <trans-unit id="1018" resname="confirmPullFromTheme">
+      <trans-unit id="682" resname="confirmPullFromTheme">
         <source>Are you sure? This will overwrite the current group.</source>
         <target>Êtes-vous sûr ? Cela écrasera le groupe actuel.</target>
       </trans-unit>
-      <trans-unit id="1019" resname="contentTypeDescription">
+      <trans-unit id="683" resname="contentTypeDescription">
         <source>Content Type determines where your custom fields will appear in the admin. Choose "Product" to add fields to product edit pages, "Category" for category management, "Customer" for customer profiles, or any other content type in your store. Your fields will only show on the selected content types.</source>
         <target>Le type de contenu détermine où vos champs personnalisés apparaîtront dans l'administration. Choisissez "Produit" pour ajouter des champs aux pages d'édition de produit, "Catégorie" pour la gestion des catégories, "Client" pour les profils clients, ou tout autre type de contenu dans votre boutique. Vos champs n'apparaîtront que sur les types de contenu sélectionnés.</target>
       </trans-unit>
-      <trans-unit id="1020" resname="customClass">
+      <trans-unit id="684" resname="customClass">
         <source>Custom CSS Class</source>
         <target>Classe CSS personnalisée</target>
       </trans-unit>
-      <trans-unit id="1021" resname="customClassHelp">
+      <trans-unit id="685" resname="customClassHelp">
         <source>Add custom CSS classes to the field container for styling.</source>
         <target>Ajoutez des classes CSS personnalisées au conteneur du champ pour le style.</target>
       </trans-unit>
-      <trans-unit id="1022" resname="customId">
+      <trans-unit id="686" resname="customId">
         <source>Custom HTML ID</source>
         <target>ID HTML personnalisé</target>
       </trans-unit>
-      <trans-unit id="1023" resname="customIdHelp">
+      <trans-unit id="687" resname="customIdHelp">
         <source>Add a custom HTML ID to the field for JavaScript targeting.</source>
         <target>Ajoutez un ID HTML personnalisé au champ pour le ciblage JavaScript.</target>
       </trans-unit>
-      <trans-unit id="1024" resname="defaultLanguageHelp">
+      <trans-unit id="688" resname="defaultLanguageHelp">
         <source>This is the default language. Title is also used as fallback.</source>
         <target>Ceci est la langue par défaut. Le titre est également utilisé comme solution de secours.</target>
       </trans-unit>
-      <trans-unit id="1025" resname="defaultValueHelp">
+      <trans-unit id="689" resname="defaultValueHelp">
         <source>Select default checked options for new entities.</source>
         <target>Sélectionnez les options cochées par défaut pour les nouvelles entités.</target>
       </trans-unit>
-      <trans-unit id="1026" resname="defaultValuePlaceholder">
+      <trans-unit id="690" resname="defaultValuePlaceholder">
         <source>Default value for all entities</source>
         <target>Valeur par défaut pour toutes les entités</target>
       </trans-unit>
-      <trans-unit id="1027" resname="defineEntityTypeFirst">
+      <trans-unit id="691" resname="defineEntityTypeFirst">
         <source>⚠️ Entity type required: Define at least one entity type in Location tab to access Fields</source>
         <target>⚠️ Type d'entité requis : Définissez au moins un type d'entité dans l'onglet Emplacement pour accéder aux Champs</target>
       </trans-unit>
-      <!-- Remaining Missing Strings -->
-      <trans-unit id="1028" resname="delete">
+      
+      <trans-unit id="692" resname="delete">
         <source>Delete</source>
         <target>Supprimer</target>
       </trans-unit>
-      <trans-unit id="1029" resname="duplicate">
+      <trans-unit id="693" resname="duplicate">
         <source>Duplicate</source>
         <target>Dupliquer</target>
       </trans-unit>
-      <trans-unit id="1030" resname="enableDisableField">
+      <trans-unit id="694" resname="enableDisableField">
         <source>Enable or disable this field.</source>
         <target>Activer ou désactiver ce champ.</target>
       </trans-unit>
-      <trans-unit id="1031" resname="errorMessage">
+      <trans-unit id="695" resname="errorMessage">
         <source>Error Message</source>
         <target>Message d'erreur</target>
       </trans-unit>
-      <trans-unit id="1032" resname="exportError">
+      <trans-unit id="696" resname="exportError">
         <source>Export error</source>
         <target>Erreur d'export</target>
       </trans-unit>
-      <trans-unit id="1033" resname="exportJson">
+      <trans-unit id="697" resname="exportJson">
         <source>Export JSON</source>
         <target>Exporter JSON</target>
       </trans-unit>
-      <trans-unit id="1034" resname="fieldInstructions">
+      <trans-unit id="698" resname="fieldInstructions">
         <source>Instructions</source>
         <target>Instructions</target>
       </trans-unit>
-      <trans-unit id="1035" resname="fieldNotSaved">
+      <trans-unit id="699" resname="fieldNotSaved">
         <source>This field hasn't been saved yet</source>
         <target>Ce champ n'a pas encore été sauvegardé</target>
       </trans-unit>
-      <trans-unit id="1036" resname="fieldSlug">
+      <trans-unit id="700" resname="fieldSlug">
         <source>Field Name</source>
         <target>Nom du champ</target>
       </trans-unit>
-      <trans-unit id="1037" resname="fieldTitle">
+      <trans-unit id="701" resname="fieldTitle">
         <source>Field Title</source>
         <target>Titre du champ</target>
       </trans-unit>
-      <trans-unit id="1038" resname="fieldType">
+      <trans-unit id="702" resname="fieldType">
         <source>Field Type</source>
         <target>Type de champ</target>
       </trans-unit>
-      <trans-unit id="1039" resname="general">
+      <trans-unit id="703" resname="general">
         <source>General Settings</source>
         <target>Paramètres généraux</target>
       </trans-unit>
-      <trans-unit id="1040" resname="groupDescription">
+      <trans-unit id="704" resname="groupDescription">
         <source>Description</source>
         <target>Description</target>
       </trans-unit>
-      <trans-unit id="1041" resname="groupPulledSuccess">
+      <trans-unit id="705" resname="groupPulledSuccess">
         <source>Group imported from theme successfully</source>
         <target>Groupe importé depuis le thème avec succès</target>
       </trans-unit>
-      <trans-unit id="1042" resname="groupPushedSuccess">
+      <trans-unit id="706" resname="groupPushedSuccess">
         <source>Group pushed to theme successfully</source>
         <target>Groupe poussé vers le thème avec succès</target>
       </trans-unit>
-      <trans-unit id="1043" resname="groupSlug">
+      <trans-unit id="707" resname="groupSlug">
         <source>Slug</source>
         <target>Slug</target>
       </trans-unit>
-      <trans-unit id="1044" resname="groupTitle">
+      <trans-unit id="708" resname="groupTitle">
         <source>Title</source>
         <target>Titre</target>
       </trans-unit>
-      <trans-unit id="1045" resname="horizontal">
+      <trans-unit id="709" resname="horizontal">
         <source>Horizontal</source>
         <target>Horizontal</target>
       </trans-unit>
-      <trans-unit id="1046" resname="import">
+      <trans-unit id="710" resname="import">
         <source>Import</source>
         <target>Importer</target>
       </trans-unit>
-      <trans-unit id="1047" resname="important">
+      <trans-unit id="711" resname="important">
         <source>Important:</source>
         <target>Important :</target>
       </trans-unit>
-      <trans-unit id="1048" resname="layout">
+      <trans-unit id="712" resname="layout">
         <source>Layout</source>
         <target>Disposition</target>
       </trans-unit>
-      <trans-unit id="1049" resname="location">
+      <trans-unit id="713" resname="location">
         <source>Location</source>
         <target>Emplacement</target>
       </trans-unit>
-      <trans-unit id="1050" resname="locationRulesHelp">
+      <trans-unit id="714" resname="locationRulesHelp">
         <source>Choose where your custom fields will appear in the admin interface. Select the type of content (products, categories, etc.) where these fields should be available.</source>
         <target>Choisissez où vos champs personnalisés apparaîtront dans l'interface d'administration. Sélectionnez le type de contenu (produits, catégories, etc.) où ces champs seront disponibles.</target>
       </trans-unit>
-      <trans-unit id="1051" resname="locked">
+      <trans-unit id="715" resname="locked">
         <source>Locked</source>
         <target>Verrouillé</target>
       </trans-unit>
-      <trans-unit id="1052" resname="maxLength">
+      <trans-unit id="716" resname="maxLength">
         <source>Max Length</source>
         <target>Longueur max</target>
       </trans-unit>
-      <trans-unit id="1053" resname="maxValue">
+      <trans-unit id="717" resname="maxValue">
         <source>Max Value</source>
         <target>Valeur max</target>
       </trans-unit>
-      <trans-unit id="1054" resname="metadata">
+      <trans-unit id="718" resname="metadata">
         <source>Field Metadata</source>
         <target>Métadonnées du champ</target>
       </trans-unit>
-      <trans-unit id="1055" resname="minLength">
+      <trans-unit id="719" resname="minLength">
         <source>Min Length</source>
         <target>Longueur min</target>
       </trans-unit>
-      <trans-unit id="1056" resname="minValue">
+      <trans-unit id="720" resname="minValue">
         <source>Min Value</source>
         <target>Valeur min</target>
       </trans-unit>
-      <trans-unit id="1057" resname="noChoices">
+      <trans-unit id="721" resname="noChoices">
         <source>No options defined yet</source>
         <target>Aucune option définie pour le moment</target>
       </trans-unit>
-      <trans-unit id="1058" resname="noFieldTypesFound">
+      <trans-unit id="722" resname="noFieldTypesFound">
         <source>No field types found</source>
         <target>Aucun type de champ trouvé</target>
       </trans-unit>
-      <trans-unit id="1059" resname="noFields">
+      <trans-unit id="723" resname="noFields">
         <source>No fields yet</source>
         <target>Aucun champ pour le moment</target>
       </trans-unit>
-      <trans-unit id="1060" resname="noGroups">
+      <trans-unit id="724" resname="noGroups">
         <source>No field groups yet. Create your first one!</source>
         <target>Aucun groupe de champs pour le moment. Créez le premier !</target>
       </trans-unit>
-      <trans-unit id="1061" resname="none">
+      <trans-unit id="725" resname="none">
         <source>None</source>
         <target>Aucun</target>
       </trans-unit>
-      <trans-unit id="1062" resname="operator">
+      <trans-unit id="726" resname="operator">
         <source>Condition</source>
         <target>Condition</target>
       </trans-unit>
-      <trans-unit id="1063" resname="options">
+      <trans-unit id="727" resname="options">
         <source>Options</source>
         <target>Options</target>
       </trans-unit>
-      <trans-unit id="1064" resname="pattern">
+      <trans-unit id="728" resname="pattern">
         <source>Pattern</source>
         <target>Motif</target>
       </trans-unit>
-      <trans-unit id="1065" resname="placeholder">
+      <trans-unit id="729" resname="placeholder">
         <source>Placeholder</source>
         <target>Espace réservé</target>
       </trans-unit>
-      <trans-unit id="1066" resname="placementTab">
+      <trans-unit id="730" resname="placementTab">
         <source>Tab</source>
         <target>Onglet</target>
       </trans-unit>
-      <trans-unit id="1067" resname="prefix">
+      <trans-unit id="731" resname="prefix">
         <source>Prefix</source>
         <target>Préfixe</target>
       </trans-unit>
-      <trans-unit id="1068" resname="presentation">
+      <trans-unit id="732" resname="presentation">
         <source>Presentation</source>
         <target>Présentation</target>
       </trans-unit>
-      <trans-unit id="1069" resname="pullFromTheme">
+      <trans-unit id="733" resname="pullFromTheme">
         <source>Pull from Theme</source>
         <target>Tirer depuis le thème</target>
       </trans-unit>
-      <trans-unit id="1070" resname="pushToTheme">
+      <trans-unit id="734" resname="pushToTheme">
         <source>Push to Theme</source>
         <target>Pousser vers le thème</target>
       </trans-unit>
-      <trans-unit id="1071" resname="radioHelp">
+      <trans-unit id="735" resname="radioHelp">
         <source>User can select only one option.</source>
         <target>L'utilisateur peut sélectionner une seule option.</target>
       </trans-unit>
-      <trans-unit id="1072" resname="recentlyUsed">
+      <trans-unit id="736" resname="recentlyUsed">
         <source>Recently Used</source>
         <target>Récemment utilisés</target>
       </trans-unit>
-      <trans-unit id="1073" resname="required">
+      <trans-unit id="737" resname="required">
         <source>Required</source>
         <target>Requis</target>
       </trans-unit>
-      <trans-unit id="1074" resname="save">
+      <trans-unit id="738" resname="save">
         <source>Save</source>
         <target>Enregistrer</target>
       </trans-unit>
-      <trans-unit id="1075" resname="saveError">
+      <trans-unit id="739" resname="saveError">
         <source>Failed to save location rule. Please try again.</source>
         <target>Échec de la sauvegarde de la règle d'emplacement. Veuillez réessayer.</target>
       </trans-unit>
-      <trans-unit id="1076" resname="saving">
+      <trans-unit id="740" resname="saving">
         <source>Saving...</source>
         <target>Sauvegarde...</target>
       </trans-unit>
-      <trans-unit id="1077" resname="searchFieldTypes">
+      <trans-unit id="741" resname="searchFieldTypes">
         <source>Search field types...</source>
         <target>Rechercher des types de champs...</target>
       </trans-unit>
-      <trans-unit id="1078" resname="select">
+      <trans-unit id="742" resname="select">
         <source>Select</source>
         <target>Sélectionner</target>
       </trans-unit>
-      <trans-unit id="1079" resname="selectDefaultHelp">
+      <trans-unit id="743" resname="selectDefaultHelp">
         <source>Select the default option</source>
         <target>Sélectionner l'option par défaut</target>
       </trans-unit>
-      <trans-unit id="1080" resname="selectEntityType">
+      <trans-unit id="744" resname="selectEntityType">
         <source>Choose content type...</source>
         <target>Choisir le type de contenu...</target>
       </trans-unit>
-      <trans-unit id="1081" resname="showTitle">
+      <trans-unit id="745" resname="showTitle">
         <source>Show field title</source>
         <target>Afficher le titre du champ</target>
       </trans-unit>
-      <trans-unit id="1082" resname="showTitleHelp">
+      <trans-unit id="746" resname="showTitleHelp">
         <source>Display the field title in front-office rendering.</source>
         <target>Afficher le titre du champ dans le rendu front-office.</target>
       </trans-unit>
-      <trans-unit id="1083" resname="slugAutoGenerated">
+      <trans-unit id="747" resname="slugAutoGenerated">
         <source>Auto-generated from title. Click to edit manually.</source>
         <target>Généré automatiquement à partir du titre. Cliquez pour modifier manuellement.</target>
       </trans-unit>
-      <trans-unit id="1084" resname="slugFormatHelp">
+      <trans-unit id="748" resname="slugFormatHelp">
         <source>Use lowercase letters, numbers, and underscores only.</source>
         <target>Utilisez uniquement des lettres minuscules, des chiffres et des traits de soulignement.</target>
       </trans-unit>
-      <trans-unit id="1085" resname="slugLockedExplanation">
+      <trans-unit id="749" resname="slugLockedExplanation">
         <source>This slug cannot be changed because the group has been saved. Changing it could break existing code that references this group.</source>
         <target>Ce slug ne peut pas être modifié car le groupe a été sauvegardé. Le changer pourrait casser le code existant qui référence ce groupe.</target>
       </trans-unit>
-      <trans-unit id="1086" resname="slugLockedTitle">
+      <trans-unit id="750" resname="slugLockedTitle">
         <source>Slug is locked because group is saved</source>
         <target>Le slug est verrouillé car le groupe est sauvegardé</target>
       </trans-unit>
-      <trans-unit id="1087" resname="slugPersistenceNote">
+      <trans-unit id="751" resname="slugPersistenceNote">
         <source>Once saved, the field slug becomes permanent to maintain data integrity.</source>
         <target>Une fois sauvegardé, le slug du champ devient permanent pour maintenir l'intégrité des données.</target>
       </trans-unit>
-      <trans-unit id="1088" resname="step">
+      <trans-unit id="752" resname="step">
         <source>Step</source>
         <target>Pas</target>
       </trans-unit>
-      <trans-unit id="1089" resname="suffix">
+      <trans-unit id="753" resname="suffix">
         <source>Suffix</source>
         <target>Suffixe</target>
       </trans-unit>
-      <trans-unit id="1090" resname="sync">
+      <trans-unit id="754" resname="sync">
         <source>Sync</source>
         <target>Synchronisation</target>
       </trans-unit>
-      <trans-unit id="1091" resname="syncError">
+      <trans-unit id="755" resname="syncError">
         <source>Sync error</source>
         <target>Erreur de synchronisation</target>
       </trans-unit>
-      <trans-unit id="1092" resname="themeOnlyGroups">
+      <trans-unit id="756" resname="themeOnlyGroups">
         <source>Groups available in theme</source>
         <target>Groupes disponibles dans le thème</target>
       </trans-unit>
-      <trans-unit id="1093" resname="translationNotSupported">
+      <trans-unit id="757" resname="translationNotSupported">
         <source>This field type does not support translation.</source>
         <target>Ce type de champ ne prend pas en charge la traduction.</target>
       </trans-unit>
-      <trans-unit id="1094" resname="tryDifferentSearch">
+      <trans-unit id="758" resname="tryDifferentSearch">
         <source>Try a different search term</source>
         <target>Essayez un terme de recherche différent</target>
       </trans-unit>
-      <trans-unit id="1095" resname="untitled">
+      <trans-unit id="759" resname="untitled">
         <source>Untitled</source>
         <target>Sans titre</target>
       </trans-unit>
-      <trans-unit id="1096" resname="useArrowsToNavigate">
+      <trans-unit id="760" resname="useArrowsToNavigate">
         <source>Use ↑↓ arrows to navigate, Enter to select, Esc to close</source>
         <target>Utilisez les flèches ↑↓ pour naviguer, Entrée pour sélectionner, Échap pour fermer</target>
       </trans-unit>
-      <trans-unit id="1097" resname="validation">
+      <trans-unit id="761" resname="validation">
         <source>Validation</source>
         <target>Validation</target>
       </trans-unit>
-      <trans-unit id="1098" resname="valueTranslatable">
+      <trans-unit id="762" resname="valueTranslatable">
         <source>Value translatable</source>
         <target>Valeur traduisible</target>
       </trans-unit>
-      <trans-unit id="1099" resname="valueTranslatableHelp">
+      <trans-unit id="763" resname="valueTranslatableHelp">
         <source>Enable to allow translation of field values for multi-language support.</source>
         <target>Activez pour permettre la traduction des valeurs de champ pour le support multilingue.</target>
       </trans-unit>
-      <trans-unit id="1100" resname="vertical">
+      <trans-unit id="764" resname="vertical">
         <source>Vertical</source>
         <target>Vertical</target>
       </trans-unit>
 
-      <!-- Missing translations from .tpl files -->
-      <trans-unit id="663" resname="Alt source">
+      
+      <trans-unit id="765" resname="Alt source">
         <source>Alt source</source>
         <target>Source alternative</target>
       </trans-unit>
-      <trans-unit id="664" resname="Attachment">
+      <trans-unit id="766" resname="Attachment">
         <source>Attachment</source>
         <target>Pièce jointe</target>
       </trans-unit>
-      <trans-unit id="665" resname="Choose from existing product attachments.">
+      <trans-unit id="767" resname="Choose from existing product attachments.">
         <source>Choose from existing product attachments.</source>
         <target>Choisir parmi les pièces jointes du produit existantes.</target>
       </trans-unit>
-      <trans-unit id="666" resname="Direct Video URL">
+      <trans-unit id="768" resname="Direct Video URL">
         <source>Direct Video URL</source>
         <target>URL vidéo directe</target>
       </trans-unit>
-      <trans-unit id="667" resname="Direct link to video file (MP4, WebM, OGG)">
+      <trans-unit id="769" resname="Direct link to video file (MP4, WebM, OGG)">
         <source>Direct link to video file (MP4, WebM, OGG)</source>
         <target>Lien direct vers le fichier vidéo (MP4, WebM, OGG)</target>
       </trans-unit>
-      <trans-unit id="668" resname="Enter the complete URL of your Vimeo video">
+      <trans-unit id="770" resname="Enter the complete URL of your Vimeo video">
         <source>Enter the complete URL of your Vimeo video</source>
         <target>Entrez l'URL complète de votre vidéo Vimeo</target>
       </trans-unit>
-      <trans-unit id="669" resname="Enter the complete URL of your YouTube video">
+      <trans-unit id="771" resname="Enter the complete URL of your YouTube video">
         <source>Enter the complete URL of your YouTube video</source>
         <target>Entrez l'URL complète de votre vidéo YouTube</target>
       </trans-unit>
-      <trans-unit id="670" resname="External Link">
+      <trans-unit id="772" resname="External Link">
         <source>External Link</source>
         <target>Lien externe</target>
       </trans-unit>
-      <trans-unit id="671" resname="External link">
+      <trans-unit id="773" resname="External link">
         <source>External link</source>
         <target>Lien externe</target>
       </trans-unit>
-      <trans-unit id="672" resname="Image stays on external server">
+      <trans-unit id="774" resname="Image stays on external server">
         <source>Image stays on external server</source>
         <target>L'image reste sur le serveur externe</target>
       </trans-unit>
-      <trans-unit id="673" resname="Image will be downloaded to server">
+      <trans-unit id="775" resname="Image will be downloaded to server">
         <source>Image will be downloaded to server</source>
         <target>L'image sera téléchargée sur le serveur</target>
       </trans-unit>
-      <trans-unit id="674" resname="Import URL">
+      <trans-unit id="776" resname="Import URL">
         <source>Import URL</source>
         <target>Importer l'URL</target>
       </trans-unit>
-      <trans-unit id="675" resname="Imported from URL">
+      <trans-unit id="777" resname="Imported from URL">
         <source>Imported from URL</source>
         <target>Importé depuis l'URL</target>
       </trans-unit>
-      <trans-unit id="676" resname="No attachments found.">
+      <trans-unit id="778" resname="No attachments found.">
         <source>No attachments found.</source>
         <target>Aucune pièce jointe trouvée.</target>
       </trans-unit>
-      <trans-unit id="677" resname="No files uploaded">
+      <trans-unit id="779" resname="No files uploaded">
         <source>No files uploaded</source>
         <target>Aucun fichier téléchargé</target>
       </trans-unit>
-      <trans-unit id="678" resname="No image attachments">
+      <trans-unit id="780" resname="No image attachments">
         <source>No image attachments</source>
         <target>Aucune image jointe</target>
       </trans-unit>
-      <trans-unit id="679" resname="Pending upload">
+      <trans-unit id="781" resname="Pending upload">
         <source>Pending upload</source>
         <target>En attente de téléchargement</target>
       </trans-unit>
-      <trans-unit id="680" resname="Replace existing file">
+      <trans-unit id="782" resname="Replace existing file">
         <source>Replace existing file</source>
         <target>Remplacer le fichier existant</target>
       </trans-unit>
-      <trans-unit id="681" resname="Select an attachment">
+      <trans-unit id="783" resname="Select an attachment">
         <source>Select an attachment</source>
         <target>Sélectionner une pièce jointe</target>
       </trans-unit>
-      <trans-unit id="682" resname="Select attachment">
+      <trans-unit id="784" resname="Select attachment">
         <source>Select attachment</source>
         <target>Sélectionner une pièce jointe</target>
       </trans-unit>
-      <trans-unit id="683" resname="Select files to upload. Drag to reorder.">
+      <trans-unit id="785" resname="Select files to upload. Drag to reorder.">
         <source>Select files to upload. Drag to reorder.</source>
         <target>Sélectionnez les fichiers à télécharger. Glissez pour réorganiser.</target>
       </trans-unit>
-      <trans-unit id="684" resname="Select multiple images. Drag to reorder.">
+      <trans-unit id="786" resname="Select multiple images. Drag to reorder.">
         <source>Select multiple images. Drag to reorder.</source>
         <target>Sélectionnez plusieurs images. Glissez pour réorganiser.</target>
       </trans-unit>
-      <trans-unit id="685" resname="Source URL">
+      <trans-unit id="787" resname="Source URL">
         <source>Source URL</source>
         <target>URL source</target>
       </trans-unit>
-      <trans-unit id="686" resname="The file will be downloaded and stored on this server.">
+      <trans-unit id="788" resname="The file will be downloaded and stored on this server.">
         <source>The file will be downloaded and stored on this server.</source>
         <target>Le fichier sera téléchargé et stocké sur ce serveur.</target>
       </trans-unit>
-      <trans-unit id="687" resname="The file will remain on the external server.">
+      <trans-unit id="789" resname="The file will remain on the external server.">
         <source>The file will remain on the external server.</source>
         <target>Le fichier restera sur le serveur externe.</target>
       </trans-unit>
-      <trans-unit id="688" resname="View file">
+      <trans-unit id="790" resname="View file">
         <source>View file</source>
         <target>Voir le fichier</target>
       </trans-unit>
-      <trans-unit id="689" resname="https://example.com/path/to/file.pdf">
+      <trans-unit id="791" resname="https://example.com/path/to/file.pdf">
         <source>https://example.com/path/to/file.pdf</source>
         <target>https://exemple.com/chemin/vers/fichier.pdf</target>
       </trans-unit>
-    </body>
+    <trans-unit id="792" resname="Front-Office Documentation"><source>Front-Office Documentation</source><target>Documentation Front-Office</target></trans-unit>
+    <trans-unit id="793" resname="Smarty"><source>Smarty</source><target>Smarty</target></trans-unit><trans-unit id="794" resname="Twig"><source>Twig</source><target>Twig</target></trans-unit><trans-unit id="795" resname="Shortcodes"><source>Shortcodes</source><target>Shortcodes</target></trans-unit><trans-unit id="796" resname="API Reference"><source>API Reference</source><target>Référence API</target></trans-unit><trans-unit id="797" resname="Field Methods"><source>Field Methods</source><target>Méthodes de champ</target></trans-unit><trans-unit id="798" resname="Repeater Methods"><source>Repeater Methods</source><target>Méthodes de répéteur</target></trans-unit><trans-unit id="799" resname="Group Methods"><source>Group Methods</source><target>Méthodes de groupe</target></trans-unit><trans-unit id="800" resname="Context Override Methods"><source>Context Override Methods</source><target>Méthodes de surcharge de contexte</target></trans-unit><trans-unit id="801" resname="Shortcode Functions"><source>Shortcode Functions</source><target>Fonctions Shortcode</target></trans-unit><trans-unit id="802" resname="Twig Functions"><source>Twig Functions</source><target>Fonctions Twig</target></trans-unit><trans-unit id="803" resname="Use Case"><source>Use Case</source><target>Cas d'utilisation</target></trans-unit><trans-unit id="804" resname="Returns"><source>Returns</source><target>Retourne</target></trans-unit><trans-unit id="805" resname="Entity Types"><source>Entity Types</source><target>Types d'entité</target></trans-unit><trans-unit id="806" resname="Attribute"><source>Attribute</source><target>Attribut</target></trans-unit><trans-unit id="807" resname="Function"><source>Function</source><target>Fonction</target></trans-unit><trans-unit id="808" resname="Upload %type%"><source>Upload %type%</source><target>Télécharger %type%</target></trans-unit><trans-unit id="809" resname="Accepted formats: JPG, PNG, GIF, WebP"><source>Accepted formats: JPG, PNG, GIF, WebP</source><target>Formats acceptés : JPG, PNG, GIF, WebP</target></trans-unit><trans-unit id="810" resname="Accepted formats: MP4, WebM, OGG"><source>Accepted formats: MP4, WebM, OGG</source><target>Formats acceptés : MP4, WebM, OGG</target></trans-unit><trans-unit id="811" resname="Selected: %count%"><source>Selected: %count%</source><target>Sélectionné(s) : %count%</target></trans-unit><trans-unit id="812" resname="Search Category"><source>Search Category</source><target>Rechercher une catégorie</target></trans-unit><trans-unit id="813" resname="Search Product"><source>Search Product</source><target>Rechercher un produit</target></trans-unit><trans-unit id="814" resname="No results found"><source>No results found</source><target>Aucun résultat trouvé</target></trans-unit><trans-unit id="815" resname="Maximum items reached"><source>Maximum items reached</source><target>Nombre maximum d'éléments atteint</target></trans-unit><trans-unit id="816" resname="Minimum items required"><source>Minimum items required</source><target>Nombre minimum d'éléments requis</target></trans-unit><trans-unit id="817" resname="Saving changes..."><source>Saving changes...</source><target>Enregistrement des modifications...</target></trans-unit><trans-unit id="818" resname="%count% errors found"><source>%count% errors found</source><target>%count% erreur(s) trouvée(s)</target></trans-unit><trans-unit id="819" resname="Last saved: %time%"><source>Last saved: %time%</source><target>Dernier enregistrement : %time%</target></trans-unit><trans-unit id="820" resname="Unsaved changes"><source>Unsaved changes</source><target>Modifications non enregistrées</target></trans-unit><trans-unit id="821" resname="Copied!"><source>Copied!</source><target>Copié !</target></trans-unit><trans-unit id="822" resname="Copy %lang% code"><source>Copy %lang% code</source><target>Copier le code %lang%</target></trans-unit><trans-unit id="823" resname="snippets"><source>snippets</source><target>extraits</target></trans-unit><trans-unit id="826" resname="Post Types"><source>Post Types</source><target>Types de publication</target></trans-unit><trans-unit id="827" resname="Taxonomies"><source>Taxonomies</source><target>Taxonomies</target></trans-unit><trans-unit id="828" resname="No subfields defined"><source>No subfields defined</source><target>Aucun sous-champ défini</target></trans-unit><trans-unit id="829" resname="Subfield type %type% not yet supported"><source>Subfield type %type% not yet supported</source><target>Type de sous-champ %type% non encore supporté</target></trans-unit><trans-unit id="830" resname="Min: %count%"><source>Min: %count%</source><target>Min : %count%</target></trans-unit><trans-unit id="831" resname="Max: %count%"><source>Max: %count%</source><target>Max : %count%</target></trans-unit><trans-unit id="832" resname="Toggle expand/collapse"><source>Toggle expand/collapse</source><target>Basculer étendre/réduire</target></trans-unit><trans-unit id="833" resname="Relation field (%type%)"><source>Relation field (%type%)</source><target>Champ relation (%type%)</target></trans-unit><trans-unit id="834" resname="Use entity editor for full selection"><source>Use entity editor for full selection</source><target>Utiliser l'éditeur d'entité pour la sélection complète</target></trans-unit><trans-unit id="835" resname="Get field value (escaped)"><source>Get field value (escaped)</source><target>Get field value (escaped)</target></trans-unit><trans-unit id="836" resname="Returns the field value with XSS protection"><source>Returns the field value with XSS protection</source><target>Returns the field value with XSS protection</target></trans-unit><trans-unit id="837" resname="Get raw value (not escaped)"><source>Get raw value (not escaped)</source><target>Get raw value (not escaped)</target></trans-unit><trans-unit id="838" resname="Returns raw value - use only for trusted content"><source>Returns raw value - use only for trusted content</source><target>Returns raw value - use only for trusted content</target></trans-unit><trans-unit id="839" resname="Renders field with appropriate HTML (images, videos, etc.)"><source>Renders field with appropriate HTML (images, videos, etc.)</source><target>Renders field with appropriate HTML (images, videos, etc.)</target></trans-unit><trans-unit id="840" resname="Conditional display based on field value"><source>Conditional display based on field value</source><target>Conditional display based on field value</target></trans-unit><trans-unit id="841" resname="Display all group fields"><source>Display all group fields</source><target>Display all group fields</target></trans-unit><trans-unit id="842" resname="Render all fields from a group"><source>Render all fields from a group</source><target>Render all fields from a group</target></trans-unit><trans-unit id="843" resname="Override context (other product)"><source>Override context (other product)</source><target>Override context (other product)</target></trans-unit><trans-unit id="844" resname="Get field from a specific product"><source>Get field from a specific product</source><target>Get field from a specific product</target></trans-unit><trans-unit id="845" resname="Using Smarty function"><source>Using Smarty function</source><target>Using Smarty function</target></trans-unit><trans-unit id="846" resname="Alternative syntax using Smarty function"><source>Alternative syntax using Smarty function</source><target>Alternative syntax using Smarty function</target></trans-unit><trans-unit id="847" resname="Renders field with appropriate HTML"><source>Renders field with appropriate HTML</source><target>Renders field with appropriate HTML</target></trans-unit><trans-unit id="848" resname="Iterate over repeater rows with auto-label resolution"><source>Iterate over repeater rows with auto-label resolution</source><target>Iterate over repeater rows with auto-label resolution</target></trans-unit><trans-unit id="849" resname="Access repeater rows with automatic index"><source>Access repeater rows with automatic index</source><target>Access repeater rows with automatic index</target></trans-unit><trans-unit id="850" resname="Override context (specific entity)"><source>Override context (specific entity)</source><target>Override context (specific entity)</target></trans-unit><trans-unit id="851" resname="Get field from specific entity (product, category, etc.)"><source>Get field from specific entity (product, category, etc.)</source><target>Get field from specific entity (product, category, etc.)</target></trans-unit><trans-unit id="852" resname="Render rich text/WYSIWYG content (use render, not field)"><source>Render rich text/WYSIWYG content (use render, not field)</source><target>Render rich text/WYSIWYG content (use render, not field)</target></trans-unit><trans-unit id="853" resname="Display number field (formatting can be done with filters)"><source>Display number field (formatting can be done with filters)</source><target>Display number field (formatting can be done with filters)</target></trans-unit><trans-unit id="854" resname="Access image properties in Twig"><source>Access image properties in Twig</source><target>Access image properties in Twig</target></trans-unit><trans-unit id="855" resname="Basic field value"><source>Basic field value</source><target>Basic field value</target></trans-unit><trans-unit id="856" resname="Field with default value"><source>Field with default value</source><target>Field with default value</target></trans-unit><trans-unit id="857" resname="Render field with appropriate HTML formatting"><source>Render field with appropriate HTML formatting</source><target>Render field with appropriate HTML formatting</target></trans-unit><trans-unit id="858" resname="Field from specific product"><source>Field from specific product</source><target>Field from specific product</target></trans-unit><trans-unit id="859" resname="Get field value from a specific product"><source>Get field value from a specific product</source><target>Get field value from a specific product</target></trans-unit><trans-unit id="860" resname="Parameters"><source>Parameters</source><target>Parameters</target></trans-unit><trans-unit id="861" resname="Products"><source>Products</source><target>Products</target></trans-unit><trans-unit id="862" resname="Categories"><source>Categories</source><target>Categories</target></trans-unit><trans-unit id="863" resname="CMS pages"><source>CMS pages</source><target>CMS pages</target></trans-unit><trans-unit id="864" resname="All entity types"><source>All entity types</source><target>All entity types</target></trans-unit><trans-unit id="865" resname="Shortcode"><source>Shortcode</source><target>Shortcode</target></trans-unit><trans-unit id="866" resname="Attributes"><source>Attributes</source><target>Attributes</target></trans-unit><trans-unit id="867" resname="Unique identifier used in templates:"><source>Unique identifier used in templates:</source><target>Identifiant unique utilisé dans les modèles :</target></trans-unit></body>
   </file>
 </xliff>

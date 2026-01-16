@@ -23,26 +23,26 @@ const defaultValue = createStringRef('defaultValue')
 <template>
   <div class="time-field-config">
     <div class="form-group">
-      <label class="form-control-label">Time Format</label>
+      <label class="form-control-label">{{ t('timeFormat') }}</label>
       <select
         v-model="format"
         class="form-control"
       >
-        <option value="24h">24 Hour (14:30)</option>
-        <option value="12h">12 Hour (2:30 PM)</option>
+        <option value="24h">{{ t('format24h') }}</option>
+        <option value="12h">{{ t('format12h') }}</option>
       </select>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">Minute Step</label>
+      <label class="form-control-label">{{ t('minuteStep') }}</label>
       <select
         v-model.number="step"
         class="form-control"
       >
-        <option value="1">1 minute</option>
-        <option value="5">5 minutes</option>
-        <option value="15">15 minutes</option>
-        <option value="30">30 minutes</option>
+        <option value="1">1 {{ t('minuteLabel') }}</option>
+        <option value="5">5 {{ t('minutesLabel') }}</option>
+        <option value="15">15 {{ t('minutesLabel') }}</option>
+        <option value="30">30 {{ t('minutesLabel') }}</option>
       </select>
     </div>
 
@@ -54,7 +54,7 @@ const defaultValue = createStringRef('defaultValue')
         class="form-control"
       >
       <small class="form-text text-muted">
-        {{ t('defaultValueHelp') || 'Used when the entity has no specific value.' }}
+        {{ t('defaultValueHelp') }}
       </small>
     </div>
   </div>

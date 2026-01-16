@@ -138,7 +138,7 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
           <span class="drag-handle material-icons">drag_indicator</span>
           
           <!-- ✅ Warning icon pour champs incomplets -->
-          <span v-if="!field.title?.trim()" class="material-icons text-warning incomplete-icon" title="Title required">
+          <span v-if="!field.title?.trim()" class="material-icons text-warning incomplete-icon" :title="t('titleRequired')">
             warning
           </span>
           
@@ -160,7 +160,7 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
             </span>
             <span class="field-type">{{ field.type }}</span>
             <span v-if="field.type === 'repeater' && getSubfields(field).length > 0" class="subfield-count">
-              ({{ getSubfields(field).length }} subfields)
+              {{ t('subfieldsCount', undefined, { count: getSubfields(field).length }) }}
             </span>
           </div>
           <span class="field-slug">{{ field.slug }}</span>
@@ -218,7 +218,7 @@ function reorderSubfields(parent: AcfField, newOrder: AcfField[]): void {
             @click.stop="openAddSubfield(field)"
           >
             <span class="material-icons">add</span>
-            Add Subfield
+            {{ t('addSubfield') }}
           </button>
         </div>
       </div>

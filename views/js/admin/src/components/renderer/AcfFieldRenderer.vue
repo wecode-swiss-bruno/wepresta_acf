@@ -18,6 +18,7 @@ import AcfFileUploadField from '@/components/renderer/inputs/AcfFileUploadField.
 import AcfListField from '@/components/renderer/inputs/AcfListField.vue'
 import AcfRelationField from '@/components/renderer/inputs/AcfRelationField.vue'
 import AcfRepeaterField from '@/components/renderer/inputs/AcfRepeaterField.vue'
+import AcfStarRatingField from './inputs/AcfStarRatingField.vue'
 
 const props = defineProps<{
   field: AcfField
@@ -235,6 +236,14 @@ const processedField = computed(() => {
     <!-- Relation -->
     <AcfRelationField
       v-else-if="processedField.type === 'relation' || processedField.type === 'post_object' || processedField.type === 'page_link' || processedField.type === 'taxonomy'"
+      :field="processedField"
+      :model-value="getValue()"
+      @update:model-value="setValue"
+    />
+
+    <!-- Star Rating -->
+    <AcfStarRatingField
+      v-else-if="processedField.type === 'star_rating'"
       :field="processedField"
       :model-value="getValue()"
       @update:model-value="setValue"

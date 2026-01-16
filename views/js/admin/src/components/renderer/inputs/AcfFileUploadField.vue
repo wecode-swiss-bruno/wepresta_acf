@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useApi } from '@/composables/useApi'
+import { useTranslations } from '@/composables/useTranslations'
 
 const props = defineProps<{
   modelValue: any
@@ -11,34 +11,128 @@ const props = defineProps<{
   field?: any // Using any to avoid importing AcfField here if circular, but best to import
 }>()
 
+const { t } = useTranslations()
+
 const helperText = computed(() => {
   if (!props.field || !props.field.config) return ''
   const conf = props.field.config
-  const parts = []
+  const parts: string[] = []
   
-  if (conf.max_size) {
-    // Format size (assuming bytes or MB?) usually stored as bytes or numeric
-    const size = parseInt(conf.max_size)
-    if (!isNaN(size)) {
-       const sizeMb = (size / 1024 / 1024).toFixed(2)
-       parts.push(`Max size: ${sizeMb} MB`)
+  // Get max size (support multiple naming conventions)
+  const maxSizeValue = conf.maxSize || conf.max_size || conf.maxFileSize
+  if (maxSizeValue) {
+    const sizeMB = parseInt(maxSizeValue)
+    if (!isNaN(sizeMB) && sizeMB > 0) {
+       parts.push(t('maxSize', undefined, { size: sizeMB }))
     }
   }
   
-  if (conf.allowed_types) {
-     // If it's an array or string
-     const types = Array.isArray(conf.allowed_types) ? conf.allowed_types.join(', ') : conf.allowed_types
-     if (types) parts.push(`Types: ${types}`)
+  // Get allowed types/formats (for files)
+  const allowedTypes = conf.allowedTypes || conf.allowed_types
+  if (allowedTypes) {
+    let types: string[] = []
+    if (Array.isArray(allowedTypes)) {
+      types = allowedTypes
+    } else if (typeof allowedTypes === 'string') {
+      types = allowedTypes.split(',').map(type => type.trim())
+    }
+    if (types.length > 0) {
+      parts.push(t('types', undefined, { types: types.join(', ').toUpperCase() }))
+    }
+  }
+  
+  // Get allowed formats (for images/videos)
+  const allowedFormats = conf.allowedFormats || conf.allowed_formats
+  if (allowedFormats) {
+    let formats: string[] = []
+    if (Array.isArray(allowedFormats)) {
+      formats = allowedFormats
+    } else if (typeof allowedFormats === 'object') {
+      // Object format like {jpeg: true, png: true}
+      formats = Object.keys(allowedFormats).filter(k => allowedFormats[k])
+    } else if (typeof allowedFormats === 'string') {
+      formats = allowedFormats.split(',').map(f => f.trim())
+    }
+    if (formats.length > 0) {
+      parts.push(t('formats', undefined, { formats: formats.join(', ').toUpperCase() }))
+    }
+  }
+  
+  // Get max dimensions (for images)
+  const maxWidth = conf.maxWidth || conf.max_width
+  const maxHeight = conf.maxHeight || conf.max_height
+  if (maxWidth || maxHeight) {
+    parts.push(t('maxWidthHeight', undefined, { 
+      width: (maxWidth as string | number) || '?', 
+      height: (maxHeight as string | number) || '?' 
+    }))
+  }
+  
+  // Min dimensions (for images)
+  const minWidth = conf.minWidth || conf.min_width
+  const minHeight = conf.minHeight || conf.min_height
+  if (minWidth || minHeight) {
+    parts.push(t('minWidthHeight', undefined, { 
+      width: (minWidth as string | number) || '?', 
+      height: (minHeight as string | number) || '?' 
+    }))
   }
   
   return parts.join(' | ')
 })
 
+// Get max file size in bytes for validation
+const maxFileSizeBytes = computed(() => {
+  if (!props.field?.config) return 0
+  const conf = props.field.config
+  const maxMB = parseInt(conf.maxSize || conf.max_size || '0')
+  return maxMB * 1024 * 1024 // Convert MB to bytes
+})
+
+// Get allowed extensions
+const allowedExtensions = computed(() => {
+  if (!props.field?.config) return []
+  const conf = props.field.config
+  const allowedTypes = conf.allowedTypes || conf.allowed_types
+  
+  if (!allowedTypes) return []
+  
+  if (Array.isArray(allowedTypes)) {
+    return allowedTypes.map(t => t.toLowerCase())
+  }
+  if (typeof allowedTypes === 'string') {
+    return allowedTypes.split(',').map(ext => ext.trim().toLowerCase())
+  }
+  return []
+})
+
+// Validate file before upload
+const validateFile = (file: File): string | null => {
+  // Check file size
+  if (maxFileSizeBytes.value > 0 && file.size > maxFileSizeBytes.value) {
+    const maxMB = maxFileSizeBytes.value / 1024 / 1024
+    const fileMB = (file.size / 1024 / 1024).toFixed(2)
+    return t('fileTooLarge', undefined, { size: fileMB, max: maxMB })
+  }
+  
+  // Check file extension
+  if (allowedExtensions.value.length > 0) {
+    const extension = file.name.split('.').pop()?.toLowerCase() || ''
+    if (!allowedExtensions.value.includes(extension) && !allowedExtensions.value.includes('.' + extension)) {
+      return t('fileTypeNotAllowed', undefined, { 
+        ext: extension, 
+        types: allowedExtensions.value.join(', ') 
+      })
+    }
+  }
+  
+  return null // Valid
+}
+
 const emit = defineEmits<{
   'update:modelValue': [value: any]
 }>()
 
-const api = useApi()
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -100,6 +194,14 @@ async function handleFileSelect(event: Event): Promise<void> {
   
   if (!file) return
   
+  // Validate file before upload
+  const validationError = validateFile(file)
+  if (validationError) {
+    alert(validationError)
+    if (input) input.value = ''
+    return
+  }
+  
   uploading.value = true
   uploadProgress.value = 0
   
@@ -121,7 +223,7 @@ async function handleFileSelect(event: Event): Promise<void> {
     
   } catch (error) {
     console.error('Upload failed:', error)
-    alert('Failed to upload file. Please try again.')
+    alert(t('uploadFailed'))
   } finally {
     uploading.value = false
     uploadProgress.value = 0
@@ -197,19 +299,64 @@ const fileIcon = computed(() => {
   if (props.fieldType === 'video') return 'video_library'
   return 'insert_drive_file'
 })
+
+// Check allowed input methods
+const allowedInputMethods = computed(() => {
+  const conf = props.field?.config || {}
+  const methods = conf.inputMethods || conf.input_methods || {}
+  
+  // Default to upload if nothing specified
+  if (Object.keys(methods).length === 0) {
+    return { upload: true, url: false, externalLink: false, attachment: false }
+  }
+  
+  return {
+    upload: methods.upload ?? methods.directUpload ?? false,
+    url: methods.url ?? methods.importUrl ?? methods.importFromUrl ?? false,
+    externalLink: methods.externalLink ?? methods.external_link ?? false,
+    attachment: methods.attachment ?? methods.psAttachment ?? false
+  }
+})
+
+// Check if at least one input method
+const hasUploadMethod = computed(() => allowedInputMethods.value.upload)
+const hasUrlMethod = computed(() => allowedInputMethods.value.url || allowedInputMethods.value.externalLink)
+
+// URL input handling
+const urlInput = ref('')
+const showUrlInput = ref(false)
+
+function toggleUrlInput(): void {
+  showUrlInput.value = !showUrlInput.value
+}
+
+function submitUrl(): void {
+  if (!urlInput.value.trim()) return
+  
+  emit('update:modelValue', {
+    url: urlInput.value.trim(),
+    type: 'external',
+    filename: urlInput.value.split('/').pop() || 'external-file'
+  })
+  
+  urlInput.value = ''
+  showUrlInput.value = false
+}
 </script>
 
 <template>
   <div class="file-upload-field">
-    <!-- Upload button (no file) -->
+    <!-- No file yet - show input methods -->
     <div v-if="!hasFile && !uploading" class="upload-button-container">
+      <!-- Upload button (if allowed) -->
       <button
+        v-if="hasUploadMethod"
         type="button"
-        class="btn btn-outline-primary"
+        class="btn btn-outline-primary me-2"
         @click="triggerFileInput"
       >
         <i class="material-icons mr-2">{{ fileIcon }}</i>
-        Upload {{ fieldType }}
+        {{ t('uploadFieldType', undefined, { type: fieldType }) }}
       </button>
       <input
         ref="fileInputRef"
@@ -219,6 +366,36 @@ const fileIcon = computed(() => {
         style="display: none"
         @change="handleFileSelect"
       >
+      
+      <!-- URL button (if allowed) -->
+      <button
+        v-if="hasUrlMethod && !showUrlInput"
+        type="button"
+        class="btn btn-outline-secondary"
+        @click="toggleUrlInput"
+      >
+        <i class="material-icons mr-2">link</i>
+        {{ t('url') }}
+      </button>
+      
+      <!-- URL input field -->
+      <div v-if="showUrlInput" class="url-input-group mt-2">
+        <div class="input-group">
+          <input
+            v-model="urlInput"
+            type="url"
+            class="form-control"
+            placeholder="https://example.com/image.jpg"
+            @keyup.enter="submitUrl"
+          >
+          <button type="button" class="btn btn-primary" @click="submitUrl">
+            {{ t('ok') }}
+          </button>
+          <button type="button" class="btn btn-outline-secondary" @click="toggleUrlInput">
+            ✕
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Uploading progress -->
@@ -231,7 +408,7 @@ const fileIcon = computed(() => {
           {{ Math.round(uploadProgress) }}%
         </div>
       </div>
-      <small class="text-muted">Uploading...</small>
+      <small class="text-muted">{{ t('uploading') }}</small>
     </div>
 
     <!-- File preview -->
@@ -259,7 +436,7 @@ const fileIcon = computed(() => {
           :href="fileUrl"
           target="_blank"
           class="btn btn-sm btn-outline-secondary"
-          title="View file"
+          :title="t('viewFile')"
         >
           <i class="material-icons">visibility</i>
         </a>
@@ -267,7 +444,7 @@ const fileIcon = computed(() => {
           type="button"
           class="btn btn-sm btn-outline-danger"
           @click="removeFile"
-          title="Remove file"
+          :title="t('removeFile')"
         >
           <i class="material-icons">delete</i>
         </button>
@@ -275,16 +452,23 @@ const fileIcon = computed(() => {
           type="button"
           class="btn btn-sm btn-outline-primary"
           @click="triggerFileInput"
-          title="Replace file"
+          :title="t('replaceFile')"
         >
           <i class="material-icons">swap_horiz</i>
         </button>
       </div>
     </div>
+    
+    <!-- Helper text -->
+    <small v-if="helperText" class="form-text text-muted mt-1">
+      {{ helperText }}
+    </small>
+    <small v-else-if="fieldType" class="form-text text-muted mt-1">
+      {{ fieldType === 'image' ? t('acceptedFormatsImage') : 
+         fieldType === 'video' ? t('acceptedFormatsVideo') : 
+         t('clickToSelectFile') }}
+    </small>
   </div>
-  <small v-if="helperText" class="form-text text-muted mt-1">
-    {{ helperText }}
-  </small>
 </template>
 
 <style scoped>

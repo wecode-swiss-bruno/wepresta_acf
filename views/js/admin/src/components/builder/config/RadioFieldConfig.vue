@@ -63,23 +63,23 @@ watch(choices, (newChoices) => {
       <label class="form-control-label">{{ t('choices') }}</label>
       <ChoicesEditor
         v-model="choices"
-        :empty-message="t('noChoices') || 'No options defined yet.'"
-        :add-button-label="t('addOption') || 'Add Option'"
+        :empty-message="t('noChoices')"
+        :add-button-label="t('addOption')"
       />
       <small class="form-text text-muted d-block mt-2">
-        {{ t('radioHelp') || 'User can select only one option.' }}
+        {{ t('radioHelp') }}
       </small>
     </div>
 
     <div class="form-group">
-      <label class="form-control-label">{{ t('layout') || 'Layout' }}</label>
+      <label class="form-control-label">{{ t('layout') }}</label>
       <select
         class="form-control"
         :value="config.layout || 'vertical'"
         @change="updateConfig('layout', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="vertical">{{ t('vertical') || 'Vertical' }}</option>
-        <option value="horizontal">{{ t('horizontal') || 'Horizontal' }}</option>
+        <option value="vertical">{{ t('vertical') }}</option>
+        <option value="horizontal">{{ t('horizontal') }}</option>
       </select>
     </div>
 
@@ -90,7 +90,7 @@ watch(choices, (newChoices) => {
         :value="config.defaultValue"
         @change="updateConfig('defaultValue', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="">-- {{ t('none') || 'None' }} --</option>
+        <option value="">-- {{ t('none') }} --</option>
         <option v-for="choice in choices" :key="choice.value" :value="choice.value">
           {{ choice.label || choice.value }}
         </option>

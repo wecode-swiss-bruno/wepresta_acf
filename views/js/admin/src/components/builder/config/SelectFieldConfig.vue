@@ -39,12 +39,12 @@ function parseChoices(input: unknown): FieldChoice[] {
 
         // Fix: Ensure label is synced with default language translation if empty
         const defaultLang = languages.value.find((l: any) => l.is_default)
-        if (defaultLang && !choice.label && choice.translations[defaultLang.id]) {
+        if (defaultLang && !choice.label && choice.translations && choice.translations[defaultLang.id]) {
           choice.label = choice.translations[defaultLang.id]
         }
 
         // Fix: Ensure default language translation is synced with label if empty
-        if (defaultLang && choice.label && !choice.translations[defaultLang.id]) {
+        if (defaultLang && choice.label && choice.translations && !choice.translations[defaultLang.id]) {
           choice.translations[defaultLang.id] = choice.label
         }
 
@@ -102,8 +102,8 @@ const allowMultiple = createBooleanRef('allowMultiple')
       <label class="form-control-label">{{ t('choices') }}</label>
       <ChoicesEditor
         v-model="choices"
-        :empty-message="t('noChoices') || 'No options defined yet.'"
-        :add-button-label="t('addOption') || 'Add Option'"
+        :empty-message="t('noChoices')"
+        :add-button-label="t('addOption')"
       />
     </div>
 
@@ -114,13 +114,13 @@ const allowMultiple = createBooleanRef('allowMultiple')
         :value="config.defaultValue"
         @change="updateConfig('defaultValue', ($event.target as HTMLSelectElement).value)"
       >
-        <option value="">-- {{ t('none') || 'None' }} --</option>
+        <option value="">-- {{ t('none') }} --</option>
         <option v-for="choice in choices" :key="choice.value" :value="choice.value">
           {{ choice.label || choice.value }}
         </option>
       </select>
       <small class="form-text text-muted">
-        {{ t('selectDefaultHelp') || 'Select the default option.' }}
+        {{ t('selectDefaultHelp') }}
       </small>
     </div>
 
@@ -131,7 +131,7 @@ const allowMultiple = createBooleanRef('allowMultiple')
         id="select-allow-multiple"
       />
       <small class="form-text text-muted">
-        {{ t('allowMultipleHelp') || 'Allow selecting multiple values.' }}
+        {{ t('allowMultipleHelp') }}
       </small>
     </div>
   </div>

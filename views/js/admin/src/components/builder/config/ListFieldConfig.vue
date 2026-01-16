@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FieldConfig } from '@/types'
+import { useTranslations } from '@/composables/useTranslations'
 
 const props = defineProps<{
   config: FieldConfig
@@ -9,10 +10,12 @@ const emit = defineEmits<{
   'update:config': [config: FieldConfig]
 }>()
 
+const { t } = useTranslations()
+
 const iconSetOptions = [
-  { value: 'material', label: 'Material Icons' },
-  { value: 'fontawesome', label: 'Font Awesome' },
-  { value: 'custom', label: 'Custom (text input)' },
+  { value: 'material', label: t('iconSetMaterial') },
+  { value: 'fontawesome', label: t('iconSetFontawesome') },
+  { value: 'custom', label: t('iconSetCustom') },
 ]
 
 function updateConfig(key: keyof FieldConfig, value: unknown): void {
@@ -25,36 +28,36 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
     <div class="row">
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-control-label">Minimum Items</label>
+          <label class="form-control-label">{{ t('minItems') }}</label>
           <input 
             type="number"
             class="form-control"
             min="0"
             :value="config.min || ''"
-            placeholder="No minimum"
+            :placeholder="t('noMinimum')"
             @input="updateConfig('min', parseInt(($event.target as HTMLInputElement).value) || 0)"
           >
-          <small class="form-text text-muted">{{ t('0 = no minimum') }}</small>
+          <small class="form-text text-muted">{{ t('noMinimum') }}</small>
         </div>
       </div>
       <div class="col-md-6">
         <div class="form-group">
-          <label class="form-control-label">Maximum Items</label>
+          <label class="form-control-label">{{ t('maxItems') }}</label>
           <input 
             type="number"
             class="form-control"
             min="0"
             :value="config.max || ''"
-            placeholder="Unlimited"
+            :placeholder="t('unlimited')"
             @input="updateConfig('max', parseInt(($event.target as HTMLInputElement).value) || 0)"
           >
-          <small class="form-text text-muted">{{ t('0 = unlimited') }}</small>
+          <small class="form-text text-muted">{{ t('unlimitedZero') }}</small>
         </div>
       </div>
     </div>
 
     <hr class="my-3">
-    <h6 class="text-muted mb-3">Item Options</h6>
+    <h6 class="text-muted mb-3">{{ t('itemOptions') || 'Item Options' }}</h6>
 
     <div class="form-group">
       <label class="form-control-label d-flex align-items-center gap-2">
@@ -64,15 +67,15 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
           :checked="config.showIcon === true"
           @change="updateConfig('showIcon', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Icon Field
+        {{ t('enableIconField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add an icon for each item.
+        {{ t('enableIconHelp') }}
       </small>
     </div>
 
     <div v-if="config.showIcon" class="form-group ms-4">
-      <label class="form-control-label">Icon Set</label>
+      <label class="form-control-label">{{ t('iconSet') }}</label>
       <select 
         class="form-control"
         :value="config.iconSet || 'material'"
@@ -96,22 +99,22 @@ function updateConfig(key: keyof FieldConfig, value: unknown): void {
           :checked="config.showLink === true"
           @change="updateConfig('showLink', ($event.target as HTMLInputElement).checked)"
         >
-        Enable Link Field
+        {{ t('enableLinkField') }}
       </label>
       <small class="form-text text-muted">
-        Allow users to add a URL link for each item.
+        {{ t('enableLinkHelp') }}
       </small>
     </div>
 
     <hr class="my-3">
     
     <div class="form-group">
-      <label class="form-control-label">Placeholder Text</label>
+      <label class="form-control-label">{{ t('placeholderText') }}</label>
       <input 
         type="text"
         class="form-control"
         :value="config.placeholder || ''"
-        placeholder="e.g., Enter a feature..."
+        :placeholder="t('placeholderExample')"
         @input="updateConfig('placeholder', ($event.target as HTMLInputElement).value)"
       >
     </div>

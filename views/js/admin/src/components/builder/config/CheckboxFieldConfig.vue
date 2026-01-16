@@ -87,11 +87,11 @@ function toggleDefault(value: string) {
       <label class="form-control-label">{{ t('choices') }}</label>
       <ChoicesEditor
         v-model="choices"
-        :empty-message="t('noChoices') || 'No options defined yet.'"
-        :add-button-label="t('addOption') || 'Add Option'"
+        :empty-message="t('noChoices')"
+        :add-button-label="t('addOption')"
       />
       <small class="form-text text-muted d-block mt-2">
-        {{ t('checkboxHelp') || 'Users can select multiple options.' }}
+        {{ t('checkboxHelp') }}
       </small>
     </div>
 
@@ -116,7 +116,7 @@ function toggleDefault(value: string) {
         </div>
       </div>
       <small class="form-text text-muted">
-        {{ t('defaultValueHelp') || 'Select default checked options for new entities.' }}
+        {{ t('defaultValueHelp') }}
       </small>
     </div>
   </div>
