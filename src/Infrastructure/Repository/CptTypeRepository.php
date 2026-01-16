@@ -226,10 +226,21 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
             if (empty($trans['name']) && empty($trans['description'])) {
                 continue;
             }
+
+            $name = $trans['name'] ?? '';
+            if (is_array($name)) {
+                $name = json_encode($name);
+            }
+
+            $description = $trans['description'] ?? '';
+            if (is_array($description)) {
+                $description = json_encode($description);
+            }
+
             $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'wepresta_acf_cpt_type_lang 
                     (id_wepresta_acf_cpt_type, id_lang, name, description) 
-                    VALUES (' . (int) $id . ', ' . (int) $langId . ', "' . pSQL($trans['name'] ?? '') . '", "' . pSQL($trans['description'] ?? '') . '")
-                    ON DUPLICATE KEY UPDATE name = "' . pSQL($trans['name'] ?? '') . '", description = "' . pSQL($trans['description'] ?? '') . '"';
+                    VALUES (' . (int) $id . ', ' . (int) $langId . ', "' . pSQL($name) . '", "' . pSQL($description) . '")
+                    ON DUPLICATE KEY UPDATE name = "' . pSQL($name) . '", description = "' . pSQL($description) . '"';
             \Db::getInstance()->execute($sql);
         }
     }

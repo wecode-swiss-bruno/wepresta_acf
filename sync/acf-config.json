@@ -1,6 +1,6 @@
 {
     "version": "1.0",
-    "exported_at": "2026-01-16T16:09:15+01:00",
+    "exported_at": "2026-01-16T16:13:15+01:00",
     "module_version": "1.0.0",
     "prestashop_version": "9.0.2",
     "groups": [
@@ -240,9 +240,49 @@
                     "translations": []
                 }
             ]
+        },
+        {
+            "uuid": "ced3bb3b-5d2a-4fc8-9e76-2ac646dfc9ca",
+            "slug": "dedede",
+            "name": "dedede",
+            "description": "",
+            "hierarchical": true,
+            "config": [],
+            "active": true,
+            "translations": {
+                "2": {
+                    "id_wepresta_acf_cpt_taxonomy": 4,
+                    "id_lang": 2,
+                    "name": "dedede",
+                    "description": ""
+                }
+            },
+            "terms": []
         }
     ],
-    "cpt_posts": [],
-    "timestamp": 1768576155,
-    "updated_at": "2026-01-16T16:09:15+01:00"
+    "cpt_posts": [
+        {
+            "uuid": "c0a5968b-5bce-41cf-9892-5b5612a16443",
+            "type_slug": "dede",
+            "slug": "dede",
+            "title": "dede",
+            "status": "draft",
+            "seo_title": "",
+            "seo_description": "",
+            "seo_meta": [],
+            "translations": {
+                "2": {
+                    "id_wepresta_acf_cpt_post": 4,
+                    "id_lang": 2,
+                    "title": "dede",
+                    "seo_title": "",
+                    "seo_description": ""
+                }
+            },
+            "terms": [],
+            "acf_values": []
+        }
+    ],
+    "timestamp": 1768576395,
+    "updated_at": "2026-01-16T16:13:15+01:00"
 }
