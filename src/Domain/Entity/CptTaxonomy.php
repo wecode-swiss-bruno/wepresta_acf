@@ -16,8 +16,10 @@ final class CptTaxonomy
     private ?int $id = null;
     private string $uuid;
     private string $slug;
-    private string $name;
-    private ?string $description = null;
+    /** @var array<int, string>|string */
+    private $name;
+    /** @var array<int, string>|string|null */
+    private $description = null;
     private bool $hierarchical = true;
     private array $config = [];
     private bool $active = true;
@@ -36,8 +38,26 @@ final class CptTaxonomy
 
         $this->uuid = $data['uuid'] ?? $this->generateUuid();
         $this->slug = $data['slug'] ?? '';
-        $this->name = $data['name'] ?? '';
-        $this->description = $data['description'] ?? null;
+
+        // Decode JSON for name if it's a string
+        $name = $data['name'] ?? '';
+        if (is_string($name) && !empty($name)) {
+            $decoded = json_decode($name, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $name = $decoded;
+            }
+        }
+        $this->name = $name;
+
+        // Decode JSON for description if it's a string
+        $description = $data['description'] ?? null;
+        if (is_string($description) && !empty($description)) {
+            $decoded = json_decode($description, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $description = $decoded;
+            }
+        }
+        $this->description = $description;
         $this->hierarchical = isset($data['hierarchical']) ? (bool) $data['hierarchical'] : true;
 
         if (isset($data['config'])) {
@@ -80,13 +100,45 @@ final class CptTaxonomy
         return $this->slug;
     }
 
-    public function getName(): string
+    /**
+     * @return array<int, string>|string
+     */
+    public function getName($langId = null)
     {
+        if ($langId !== null && is_array($this->name)) {
+            if (isset($this->name[$langId])) {
+                return $this->name[$langId];
+            }
+            // Fallback to default or first available
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            return $this->name[$defaultLangId] ?? (reset($this->name) ?: '');
+        }
+        // If name is an array, return default language or first available
+        if (is_array($this->name)) {
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            return $this->name[$defaultLangId] ?? (reset($this->name) ?: '');
+        }
         return $this->name;
     }
 
-    public function getDescription(): ?string
+    /**
+     * @return array<int, string>|string|null
+     */
+    public function getDescription($langId = null)
     {
+        if ($langId !== null && is_array($this->description)) {
+            if (isset($this->description[$langId])) {
+                return $this->description[$langId];
+            }
+            // Fallback to default or first available
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            return $this->description[$defaultLangId] ?? (reset($this->description) ?: '');
+        }
+        // If description is an array, return default language or first available
+        if (is_array($this->description)) {
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            return $this->description[$defaultLangId] ?? (reset($this->description) ?: '');
+        }
         return $this->description;
     }
 
@@ -138,15 +190,31 @@ final class CptTaxonomy
         return $this;
     }
 
-    public function setName(string $name): self
+    /**
+     * @param array<int, string>|string $name
+     */
+    public function setName($name): self
     {
         $this->name = $name;
+        if (is_array($name)) {
+            foreach ($name as $langId => $val) {
+                $this->translations[$langId]['name'] = $val;
+            }
+        }
         return $this;
     }
 
-    public function setDescription(?string $description): self
+    /**
+     * @param array<int, string>|string|null $description
+     */
+    public function setDescription($description): self
     {
         $this->description = $description;
+        if (is_array($description)) {
+            foreach ($description as $langId => $val) {
+                $this->translations[$langId]['description'] = $val;
+            }
+        }
         return $this;
     }
 
@@ -171,6 +239,27 @@ final class CptTaxonomy
     public function setTranslations(array $translations): self
     {
         $this->translations = $translations;
+
+        // Also hydrate name and description from translations
+        if (!empty($translations)) {
+            $names = [];
+            $descriptions = [];
+            foreach ($translations as $langId => $trans) {
+                if (isset($trans['name']) && !empty($trans['name'])) {
+                    $names[$langId] = $trans['name'];
+                }
+                if (isset($trans['description'])) {
+                    $descriptions[$langId] = $trans['description'];
+                }
+            }
+            if (!empty($names)) {
+                $this->name = $names;
+            }
+            if (!empty($descriptions)) {
+                $this->description = $descriptions;
+            }
+        }
+
         return $this;
     }
 
@@ -185,12 +274,26 @@ final class CptTaxonomy
      */
     public function toArray(): array
     {
+        // For main table, store only the default language value as simple string (not JSON)
+        // Translations are stored separately in _lang table
+        $nameValue = $this->name;
+        if (is_array($this->name)) {
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            $nameValue = $this->name[$defaultLangId] ?? (reset($this->name) ?: '');
+        }
+
+        $descValue = $this->description;
+        if (is_array($this->description)) {
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            $descValue = $this->description[$defaultLangId] ?? (reset($this->description) ?: '');
+        }
+
         return [
             'id_wepresta_acf_cpt_taxonomy' => $this->id,
             'uuid' => $this->uuid,
             'slug' => $this->slug,
-            'name' => $this->name,
-            'description' => $this->description,
+            'name' => $nameValue,
+            'description' => $descValue,
             'hierarchical' => $this->hierarchical ? 1 : 0,
             'config' => json_encode($this->config),
             'active' => $this->active ? 1 : 0,

@@ -37,7 +37,7 @@ final class ModuleInstaller
     {
         foreach (WeprestaAcf::DEFAULT_CONFIG as $key => $defaultValue) {
             if (Configuration::get($key) === false) {
-                if (! Configuration::updateValue($key, $defaultValue)) {
+                if (!Configuration::updateValue($key, $defaultValue)) {
                     return false;
                 }
             }
@@ -53,7 +53,7 @@ final class ModuleInstaller
     {
         $sqlFile = $this->module->getLocalPath() . 'sql/install.sql';
 
-        if (! file_exists($sqlFile)) {
+        if (!file_exists($sqlFile)) {
             return true;
         }
 
@@ -68,7 +68,7 @@ final class ModuleInstaller
         $tabs = $this->getTabsToInstall();
 
         foreach ($tabs as $tabData) {
-            if (! $this->installTab($tabData)) {
+            if (!$this->installTab($tabData)) {
                 return false;
             }
         }
@@ -78,13 +78,13 @@ final class ModuleInstaller
 
     /**
      * Create theme directories for ACF CPT templates.
-     * Creates: themes/{current_theme}/modules/wepresta_acf/cpt/
+     * Creates: themes/{current_theme}/modules/wepresta_acf/views/templates/front/cpt/
      */
     private function createThemeDirectories(): bool
     {
         try {
             $themePath = _PS_THEME_DIR_;
-            $moduleDir = $themePath . 'modules/wepresta_acf/cpt';
+            $moduleDir = $themePath . 'modules/wepresta_acf/views/templates/front/cpt';
 
             // Create directories if they don't exist
             if (!is_dir($moduleDir)) {
@@ -142,15 +142,15 @@ WePresta ACF uses a template hierarchy to find the correct template for each CPT
 
 ### For a Blog CPT (slug: blog)
 
-Create: `themes/{YOUR_THEME}/modules/wepresta_acf/cpt/single-blog.tpl`
+Create: `themes/{YOUR_THEME}/modules/wepresta_acf/views/templates/front/cpt/single-blog.tpl`
 
 ### For a Portfolio CPT (slug: portfolio)
 
-Create: `themes/{YOUR_THEME}/modules/wepresta_acf/cpt/single-portfolio.tpl`
+Create: `themes/{YOUR_THEME}/modules/wepresta_acf/views/templates/front/cpt/single-portfolio.tpl`
 
 ### For all other CPT (generic)
 
-Create: `themes/{YOUR_THEME}/modules/wepresta_acf/cpt/single.tpl`
+Create: `themes/{YOUR_THEME}/modules/wepresta_acf/views/templates/front/cpt/single.tpl`
 
 ## Template Variables
 
@@ -316,7 +316,7 @@ EOF;
         foreach ($queries as $query) {
             $query = trim($query);
 
-            if (! empty($query) && ! $this->db->execute($query)) {
+            if (!empty($query) && !$this->db->execute($query)) {
                 return false;
             }
         }

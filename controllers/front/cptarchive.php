@@ -95,21 +95,28 @@ class Wepresta_AcfCptarchiveModuleFrontController extends ModuleFrontController
     private function getArchiveTemplate(string $typeSlug): string
     {
         // Template hierarchy (PS8 & PS9 compatible):
-        // PrestaShop automatically handles theme overrides for module templates
-        // Theme override path: themes/{theme}/modules/wepresta_acf/views/templates/front/cpt/archive.tpl
-        //
-        // 1. module:wepresta_acf/views/templates/front/cpt/archive-{type}.tpl (type-specific)
-        // 2. module:wepresta_acf/views/templates/front/cpt/archive.tpl (generic fallback)
+        // 1. themes/{active_theme}/modules/wepresta_acf/views/templates/front/cpt/archive-{type}.tpl
+        // 2. modules/wepresta_acf/views/templates/front/cpt/archive-{type}.tpl
+        // 3. themes/{active_theme}/modules/wepresta_acf/views/templates/front/cpt/archive.tpl
+        // 4. modules/wepresta_acf/views/templates/front/cpt/archive.tpl
 
+        $theme = $this->context->shop->theme_name ?? '';
         $moduleDir = $this->module->getLocalPath() . 'views/templates/front/cpt/';
+        $themeDir = _PS_THEME_DIR_ . 'modules/wepresta_acf/views/templates/front/cpt/';
 
-        // 1. Check for specific CPT template in MODULE (or theme override)
+        // 1. Check type-specific template in THEME
+        $specificThemeTemplate = $themeDir . 'archive-' . $typeSlug . '.tpl';
+        if (file_exists($specificThemeTemplate)) {
+            return 'module:wepresta_acf/views/templates/front/cpt/archive-' . $typeSlug . '.tpl';
+        }
+
+        // 2. Check type-specific template in MODULE
         $specificModuleTemplate = $moduleDir . 'archive-' . $typeSlug . '.tpl';
         if (file_exists($specificModuleTemplate)) {
             return 'module:wepresta_acf/views/templates/front/cpt/archive-' . $typeSlug . '.tpl';
         }
 
-        // 2. Fallback to generic MODULE template (or theme override)
+        // 3. Fallback to generic template (theme override automatically handled by PrestaShop)
         return 'module:wepresta_acf/views/templates/front/cpt/archive.tpl';
     }
 }

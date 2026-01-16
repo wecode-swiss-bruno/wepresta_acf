@@ -1,13 +1,13 @@
 {
     "version": "1.0",
-    "exported_at": "2026-01-16T16:13:15+01:00",
+    "exported_at": "2026-01-16T17:29:04+01:00",
     "module_version": "1.0.0",
     "prestashop_version": "9.0.2",
     "groups": [
         {
-            "uuid": "213289ad-f0d2-41db-84eb-d2d2dbb2ee63",
-            "title": "test",
-            "slug": "test",
+            "uuid": "0c2f2e13-6e7a-499c-8e59-5d98baafb0d1",
+            "title": "Properties",
+            "slug": "properties",
             "description": "",
             "location_rules": [
                 {
@@ -15,7 +15,7 @@
                         {
                             "var": "entity_type"
                         },
-                        "cpt_post:blog"
+                        "cpt_post:property"
                     ]
                 }
             ],
@@ -31,34 +31,86 @@
             ],
             "fields": [
                 {
-                    "id": 3,
-                    "uuid": "d73f52f4-c835-4c32-a286-eb5e5687cce2",
+                    "id": 18,
+                    "uuid": "18bb4482-3664-478e-8e40-46b6e580f423",
                     "id_parent": null,
                     "type": "text",
-                    "title": "Text Field",
-                    "slug": "text_field",
+                    "title": "Reference",
+                    "slug": "reference",
                     "instructions": "",
                     "position": 1,
                     "required": false,
                     "translatable": false,
                     "active": true,
-                    "config": [],
+                    "config": {
+                        "placeholder": "Référence annonce"
+                    },
                     "validation": [],
                     "conditions": [],
                     "wrapper": {
                         "width": "100"
                     },
-                    "fo_options": []
+                    "fo_options": {
+                        "showTitle": true
+                    }
                 },
                 {
-                    "id": 4,
-                    "uuid": "5da4c315-734f-4966-a7b4-934c6aa95fdc",
+                    "id": 19,
+                    "uuid": "58f3d8bf-8c15-423a-aa70-2d80312cbde8",
                     "id_parent": null,
-                    "type": "richtext",
-                    "title": "Rich Text Editor",
-                    "slug": "rich_text_editor",
+                    "type": "number",
+                    "title": "Price",
+                    "slug": "price",
                     "instructions": "",
-                    "position": 1,
+                    "position": 2,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "prefix": "CHF"
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 20,
+                    "uuid": "e8816b43-5cc4-47e8-a62d-2776f9ba3056",
+                    "id_parent": null,
+                    "type": "number",
+                    "title": "Surface",
+                    "slug": "surface",
+                    "instructions": "",
+                    "position": 3,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "suffix": "m2"
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 21,
+                    "uuid": "099286ba-a1d3-4a48-8ab1-84e19df5fd8a",
+                    "id_parent": null,
+                    "type": "number",
+                    "title": "Rooms",
+                    "slug": "rooms",
+                    "instructions": "",
+                    "position": 4,
                     "required": false,
                     "translatable": false,
                     "active": true,
@@ -68,124 +120,740 @@
                     "wrapper": {
                         "width": "100"
                     },
-                    "fo_options": []
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 22,
+                    "uuid": "848f1d60-8562-46f6-a3e0-e41abc978f57",
+                    "id_parent": null,
+                    "type": "number",
+                    "title": "Bedrooms",
+                    "slug": "bedrooms",
+                    "instructions": "",
+                    "position": 5,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 23,
+                    "uuid": "5a5f3054-c0cb-4e25-a929-2c6e7a0ace4c",
+                    "id_parent": null,
+                    "type": "number",
+                    "title": "Bathrooms",
+                    "slug": "bathrooms",
+                    "instructions": "",
+                    "position": 6,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 24,
+                    "uuid": "834bf0bb-f8c4-4f69-b118-25bcecad571f",
+                    "id_parent": null,
+                    "type": "number",
+                    "title": "Floor",
+                    "slug": "floor",
+                    "instructions": "",
+                    "position": 7,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 25,
+                    "uuid": "6429b85c-a28b-4a78-aad0-f57d145aeba7",
+                    "id_parent": null,
+                    "type": "number",
+                    "title": "Construction Year",
+                    "slug": "construction_year",
+                    "instructions": "",
+                    "position": 8,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 26,
+                    "uuid": "1a522d75-f09d-4974-acb7-1b5abbca2895",
+                    "id_parent": null,
+                    "type": "select",
+                    "title": "Energy Rating",
+                    "slug": "energy_rating",
+                    "instructions": "",
+                    "position": 9,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "choices": [
+                            {
+                                "label": "",
+                                "value": "choice_1",
+                                "translations": {
+                                    "1": "A"
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_2",
+                                "translations": {
+                                    "1": "B"
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_3",
+                                "translations": {
+                                    "1": "C"
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_4",
+                                "translations": {
+                                    "1": "D"
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_5",
+                                "translations": {
+                                    "1": "E"
+                                }
+                            }
+                        ]
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 27,
+                    "uuid": "84ae9e02-e02d-4417-9572-cdd6345d6b06",
+                    "id_parent": null,
+                    "type": "text",
+                    "title": "Address",
+                    "slug": "address",
+                    "instructions": "",
+                    "position": 10,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 28,
+                    "uuid": "fa363ab8-c47d-4658-a32a-1b2cffa23814",
+                    "id_parent": null,
+                    "type": "textarea",
+                    "title": "Description",
+                    "slug": "description",
+                    "instructions": "",
+                    "position": 11,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 29,
+                    "uuid": "6ec31c37-58eb-4757-9776-71ba898ce52d",
+                    "id_parent": null,
+                    "type": "checkbox",
+                    "title": "Features",
+                    "slug": "features",
+                    "instructions": "",
+                    "position": 12,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "choices": [
+                            {
+                                "label": "",
+                                "value": "choice_1",
+                                "translations": {
+                                    "1": "Parking"
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_2",
+                                "translations": {
+                                    "1": "Cave"
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_3",
+                                "translations": {
+                                    "1": "Balcon"
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_4",
+                                "translations": {
+                                    "1": "Piscine"
+                                }
+                            }
+                        ]
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 30,
+                    "uuid": "9e120e84-cd33-419a-ad1d-5bad5289b88a",
+                    "id_parent": null,
+                    "type": "gallery",
+                    "title": "Gallery",
+                    "slug": "gallery",
+                    "instructions": "",
+                    "position": 13,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 31,
+                    "uuid": "4a837553-39b5-4d85-9ec0-8b865d8570dd",
+                    "id_parent": null,
+                    "type": "file",
+                    "title": "Plan",
+                    "slug": "plan",
+                    "instructions": "",
+                    "position": 14,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "allowedMimes": [
+                            "application/pdf"
+                        ]
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 32,
+                    "uuid": "3969d24d-c7b5-427f-ab8b-c5f6244903d7",
+                    "id_parent": null,
+                    "type": "date",
+                    "title": "Available Date",
+                    "slug": "available_date",
+                    "instructions": "",
+                    "position": 15,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 33,
+                    "uuid": "3285354a-117b-402d-8319-6d4f6853f143",
+                    "id_parent": null,
+                    "type": "image",
+                    "title": "Image",
+                    "slug": "image",
+                    "instructions": "",
+                    "position": 16,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 34,
+                    "uuid": "3bf0cd92-ce75-41ae-a90d-cc7f9487b670",
+                    "id_parent": null,
+                    "type": "text",
+                    "title": "title",
+                    "slug": "title",
+                    "instructions": "",
+                    "position": 16,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
                 }
             ],
             "field_values": [
                 {
-                    "field_slug": "text_field",
+                    "field_slug": "reference",
                     "entity_type": "cpt_post",
                     "entity_id": 1,
                     "id_product": null,
                     "id_shop": 1,
                     "id_lang": null,
-                    "value": "dedede",
-                    "value_index": "dedede"
+                    "value": "FHDJHEEUDE",
+                    "value_index": "FHDJHEEUDE"
                 },
                 {
-                    "field_slug": "text_field",
+                    "field_slug": "price",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 490000,
+                    "value_index": "+000490000.000000"
+                },
+                {
+                    "field_slug": "surface",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 290,
+                    "value_index": "+000000290.000000"
+                },
+                {
+                    "field_slug": "rooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 5,
+                    "value_index": "+000000005.000000"
+                },
+                {
+                    "field_slug": "bedrooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 4,
+                    "value_index": "+000000004.000000"
+                },
+                {
+                    "field_slug": "bathrooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 4,
+                    "value_index": "+000000004.000000"
+                },
+                {
+                    "field_slug": "floor",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 2,
+                    "value_index": "+000000002.000000"
+                },
+                {
+                    "field_slug": "construction_year",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 2012,
+                    "value_index": "+000002012.000000"
+                },
+                {
+                    "field_slug": "energy_rating",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "choice_2",
+                    "value_index": "choice_2"
+                },
+                {
+                    "field_slug": "address",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "61 Rue des Bains 1205 Genève",
+                    "value_index": "61 Rue des Bains 1205 Genève"
+                },
+                {
+                    "field_slug": "description",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants.\n\nElle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse.",
+                    "value_index": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants.\n\nElle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse."
+                },
+                {
+                    "field_slug": "features",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": [
+                        "choice_1",
+                        "choice_2",
+                        "choice_3",
+                        "choice_4"
+                    ],
+                    "value_index": "choice_1,choice_2,choice_3,choice_4"
+                },
+                {
+                    "field_slug": "gallery",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": [
+                        "13_0_1_1768577711_7ac3f243.png",
+                        "images/13_0_1_1768577711_7ac3f243.png",
+                        "/modules/wepresta_acf/uploads/images/13_0_1_1768577711_7ac3f243.png",
+                        2491311,
+                        "image/png",
+                        "Gemini_Generated_Image_c032tpc032tpc032.png"
+                    ],
+                    "value_index": ""
+                },
+                {
+                    "field_slug": "available_date",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 1769814000,
+                    "value_index": "1769814000"
+                },
+                {
+                    "field_slug": "image",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": {
+                        "filename": "16_0_1_1768577823_7a2d938d.png",
+                        "path": "images/16_0_1_1768577823_7a2d938d.png",
+                        "url": "/modules/wepresta_acf/uploads/images/16_0_1_1768577823_7a2d938d.png",
+                        "size": 2491311,
+                        "mime": "image/png",
+                        "original_name": "Gemini_Generated_Image_c032tpc032tpc032.png"
+                    },
+                    "value_index": "Gemini_Generated_Image_c032tpc032tpc032.png"
+                },
+                {
+                    "field_slug": "title",
+                    "entity_type": "cpt_post",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "Maison de charme avec jardin",
+                    "value_index": "Maison de charme avec jardin"
+                },
+                {
+                    "field_slug": "address",
                     "entity_type": "cpt_post",
                     "entity_id": 2,
                     "id_product": null,
                     "id_shop": 1,
                     "id_lang": null,
-                    "value": "dedede",
-                    "value_index": "dedede"
+                    "value": "61 Rue des Bains 1205 Genève",
+                    "value_index": "61 Rue des Bains 1205 Genève"
                 },
                 {
-                    "field_slug": "text_field",
+                    "field_slug": "available_date",
                     "entity_type": "cpt_post",
-                    "entity_id": 3,
+                    "entity_id": 2,
                     "id_product": null,
                     "id_shop": 1,
                     "id_lang": null,
-                    "value": "dedede",
-                    "value_index": "dedede"
-                }
-            ]
-        },
-        {
-            "uuid": "639613fc-8fda-4f08-9b54-888ee111481c",
-            "title": "test (Copy)",
-            "slug": "test_copy",
-            "description": "",
-            "location_rules": [
-                {
-                    "==": [
-                        {
-                            "var": "entity_type"
-                        },
-                        "cpt_post:blog"
-                    ]
-                }
-            ],
-            "placement_tab": "extra",
-            "placement_position": "",
-            "position": 10,
-            "priority": 10,
-            "active": false,
-            "bo_options": [],
-            "fo_options": [],
-            "shop_ids": [
-                1
-            ],
-            "fields": [
-                {
-                    "id": 7,
-                    "uuid": "193c087f-4050-44c3-8862-3848513169e9",
-                    "id_parent": null,
-                    "type": "text",
-                    "title": "Text Field",
-                    "slug": "text_field",
-                    "instructions": "",
-                    "position": 1,
-                    "required": false,
-                    "translatable": false,
-                    "active": true,
-                    "config": [],
-                    "validation": [],
-                    "conditions": [],
-                    "wrapper": {
-                        "width": "100"
-                    },
-                    "fo_options": []
+                    "value": 1769814000,
+                    "value_index": "1769814000"
                 },
                 {
-                    "id": 8,
-                    "uuid": "223860ed-d656-4166-9aca-77751f46ad5e",
-                    "id_parent": null,
-                    "type": "richtext",
-                    "title": "Rich Text Editor",
-                    "slug": "rich_text_editor",
-                    "instructions": "",
-                    "position": 1,
-                    "required": false,
-                    "translatable": false,
-                    "active": true,
-                    "config": [],
-                    "validation": [],
-                    "conditions": [],
-                    "wrapper": {
-                        "width": "100"
+                    "field_slug": "bathrooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 4,
+                    "value_index": "4"
+                },
+                {
+                    "field_slug": "bedrooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 4,
+                    "value_index": "4"
+                },
+                {
+                    "field_slug": "construction_year",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 2012,
+                    "value_index": "2012"
+                },
+                {
+                    "field_slug": "description",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants.\n\nElle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse.",
+                    "value_index": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants.\n\nElle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse."
+                },
+                {
+                    "field_slug": "energy_rating",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "choice_2",
+                    "value_index": "choice_2"
+                },
+                {
+                    "field_slug": "features",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": [
+                        "choice_1",
+                        "choice_2",
+                        "choice_3",
+                        "choice_4"
+                    ],
+                    "value_index": "[\"choice_1\",\"choice_2\",\"choice_3\",\"choice_4\"]"
+                },
+                {
+                    "field_slug": "floor",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 2,
+                    "value_index": "2"
+                },
+                {
+                    "field_slug": "gallery",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": [
+                        "13_0_1_1768577711_7ac3f243.png",
+                        "images/13_0_1_1768577711_7ac3f243.png",
+                        "/modules/wepresta_acf/uploads/images/13_0_1_1768577711_7ac3f243.png",
+                        2491311,
+                        "image/png",
+                        "Gemini_Generated_Image_c032tpc032tpc032.png"
+                    ],
+                    "value_index": "[\"13_0_1_1768577711_7ac3f243.png\",\"images/13_0_1_1768577711_7ac3f243.png\",\"/modules/wepresta_acf/uploads/images/13_0_1_1768577711_7ac3f243.png\",2491311,\"image/png\",\"Gemini_Generated_Image_c032tpc032tpc032.png\"]"
+                },
+                {
+                    "field_slug": "image",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": {
+                        "filename": "16_0_1_1768577823_7a2d938d.png",
+                        "path": "images/16_0_1_1768577823_7a2d938d.png",
+                        "url": "/modules/wepresta_acf/uploads/images/16_0_1_1768577823_7a2d938d.png",
+                        "size": 2491311,
+                        "mime": "image/png",
+                        "original_name": "Gemini_Generated_Image_c032tpc032tpc032.png"
                     },
-                    "fo_options": []
+                    "value_index": "{\"filename\":\"16_0_1_1768577823_7a2d938d.png\",\"path\":\"images/16_0_1_1768577823_7a2d938d.png\",\"url\":\"/modules/wepresta_acf/uploads/images/16_0_1_1768577823_7a2d938d.png\",\"size\":2491311,\"mime\":\"image/png\",\"original_name\":\"Gemini_Generated_Image_c032tpc032tpc"
+                },
+                {
+                    "field_slug": "price",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 490000,
+                    "value_index": "490000"
+                },
+                {
+                    "field_slug": "reference",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "FHDJHEEUDE",
+                    "value_index": "FHDJHEEUDE"
+                },
+                {
+                    "field_slug": "rooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 5,
+                    "value_index": "5"
+                },
+                {
+                    "field_slug": "surface",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 290,
+                    "value_index": "290"
+                },
+                {
+                    "field_slug": "title",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "Maison de charme avec jardin",
+                    "value_index": "Maison de charme avec jardin"
                 }
-            ],
-            "field_values": []
+            ]
         }
     ],
     "cpt_types": [
         {
-            "uuid": "4c153dd5-a328-4ed6-b89b-14bba46ef5a5",
-            "slug": "dede",
-            "name": {
-                "2": "dede"
-            },
-            "description": {
-                "2": "ded"
-            },
+            "uuid": "9c68b624-0322-4337-9f58-4b4821345b82",
+            "slug": "property",
+            "name": "Property",
+            "description": "",
             "config": [],
-            "url_prefix": "dede",
+            "url_prefix": "property",
             "has_archive": true,
             "archive_slug": "",
             "seo_config": {
@@ -196,11 +864,11 @@
             "position": 0,
             "active": true,
             "translations": {
-                "2": {
-                    "id_wepresta_acf_cpt_type": 5,
-                    "id_lang": 2,
-                    "name": "dede",
-                    "description": "ded"
+                "1": {
+                    "id_wepresta_acf_cpt_type": 2,
+                    "id_lang": 1,
+                    "name": "Property",
+                    "description": ""
                 }
             },
             "acf_groups": [],
@@ -209,32 +877,32 @@
     ],
     "cpt_taxonomies": [
         {
-            "uuid": "ca7afadc-0472-4b70-8044-dfe4a9d91363",
-            "slug": "marketing",
-            "name": "Marketing",
+            "uuid": "5faefa76-e92d-45d5-910e-2465cc564684",
+            "slug": "transaction",
+            "name": "Transaction",
             "description": "",
             "hierarchical": true,
             "config": [],
             "active": true,
             "translations": {
-                "2": {
+                "1": {
                     "id_wepresta_acf_cpt_taxonomy": 3,
-                    "id_lang": 2,
-                    "name": "Marketing",
+                    "id_lang": 1,
+                    "name": "Transaction",
                     "description": ""
                 }
             },
             "terms": [
                 {
-                    "slug": "tech",
-                    "name": "Tech",
+                    "slug": "vente",
+                    "name": "Vente",
                     "description": "",
                     "position": 0,
                     "translations": []
                 },
                 {
-                    "slug": "tech-2",
-                    "name": "Tech 2",
+                    "slug": "location",
+                    "name": "Location",
                     "description": "",
                     "position": 0,
                     "translations": []
@@ -242,47 +910,108 @@
             ]
         },
         {
-            "uuid": "ced3bb3b-5d2a-4fc8-9e76-2ac646dfc9ca",
-            "slug": "dedede",
-            "name": "dedede",
+            "uuid": "d37a18f0-51a5-4cd9-abc7-c2f7f65494e2",
+            "slug": "property_type",
+            "name": "Property Type",
             "description": "",
             "hierarchical": true,
             "config": [],
             "active": true,
             "translations": {
-                "2": {
+                "1": {
                     "id_wepresta_acf_cpt_taxonomy": 4,
-                    "id_lang": 2,
-                    "name": "dedede",
+                    "id_lang": 1,
+                    "name": "Property Type",
                     "description": ""
                 }
             },
-            "terms": []
+            "terms": [
+                {
+                    "slug": "maison",
+                    "name": "Maison",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                },
+                {
+                    "slug": "appartement",
+                    "name": "Appartement",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                },
+                {
+                    "slug": "terrain",
+                    "name": "Terrain",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                }
+            ]
         }
     ],
     "cpt_posts": [
         {
-            "uuid": "c0a5968b-5bce-41cf-9892-5b5612a16443",
-            "type_slug": "dede",
-            "slug": "dede",
-            "title": "dede",
+            "uuid": "2b4d79da-ab58-453e-8cc2-0b2c4e48164b",
+            "type_slug": "property",
+            "slug": "maison_1",
+            "title": "Maison 1",
             "status": "draft",
             "seo_title": "",
             "seo_description": "",
             "seo_meta": [],
             "translations": {
-                "2": {
-                    "id_wepresta_acf_cpt_post": 4,
-                    "id_lang": 2,
-                    "title": "dede",
+                "1": {
+                    "id_wepresta_acf_cpt_post": 2,
+                    "id_lang": 1,
+                    "title": "Maison 1",
                     "seo_title": "",
                     "seo_description": ""
                 }
             },
-            "terms": [],
-            "acf_values": []
+            "terms": [
+                "vente",
+                "maison"
+            ],
+            "acf_values": {
+                "address": "61 Rue des Bains 1205 Genève",
+                "available_date": 1769814000,
+                "bathrooms": 4,
+                "bedrooms": 4,
+                "construction_year": 2012,
+                "description": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants.\n\nElle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse.",
+                "energy_rating": "choice_2",
+                "features": [
+                    "choice_1",
+                    "choice_2",
+                    "choice_3",
+                    "choice_4"
+                ],
+                "floor": 2,
+                "gallery": [
+                    "13_0_1_1768577711_7ac3f243.png",
+                    "images/13_0_1_1768577711_7ac3f243.png",
+                    "/modules/wepresta_acf/uploads/images/13_0_1_1768577711_7ac3f243.png",
+                    2491311,
+                    "image/png",
+                    "Gemini_Generated_Image_c032tpc032tpc032.png"
+                ],
+                "image": {
+                    "filename": "16_0_1_1768577823_7a2d938d.png",
+                    "path": "images/16_0_1_1768577823_7a2d938d.png",
+                    "url": "/modules/wepresta_acf/uploads/images/16_0_1_1768577823_7a2d938d.png",
+                    "size": 2491311,
+                    "mime": "image/png",
+                    "original_name": "Gemini_Generated_Image_c032tpc032tpc032.png"
+                },
+                "price": 490000,
+                "reference": "FHDJHEEUDE",
+                "rooms": 5,
+                "surface": 290,
+                "title": "Maison de charme avec jardin"
+            }
         }
     ],
-    "timestamp": 1768576395,
-    "updated_at": "2026-01-16T16:13:15+01:00"
+    "timestamp": 1768580944,
+    "updated_at": "2026-01-16T17:29:04+01:00"
 }

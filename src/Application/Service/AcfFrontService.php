@@ -283,7 +283,71 @@ final class AcfFrontService
     }
 
     /**
-     * Render field as HTML.
+     * Get array of labels for select/radio/checkbox fields.
+     *
+     * Returns an array of human-readable labels instead of values.
+     * For checkbox fields with multiple selections, returns array of labels.
+     * For other field types, returns array with single escaped value.
+     *
+     * @param string $slug Field slug
+     *
+     * @return array<int, string> Array of labels
+     */
+    public function labels(string $slug): array
+    {
+        $this->ensureContext();
+
+        $value = $this->getFieldValue($slug);
+
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        $fieldDef = $this->getFieldDefinition($slug);
+
+        if ($fieldDef === null) {
+            // Field definition not found, return escaped value as array
+            if (\is_string($value)) {
+                return [htmlspecialchars($value, ENT_QUOTES, 'UTF-8')];
+            }
+            return [\is_array($value) ? implode(', ', $value) : (string) $value];
+        }
+
+        $fieldType = $fieldDef['type'] ?? '';
+
+        // Only resolve labels for choice fields
+        if (!\in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
+            return \is_string($value) ? [htmlspecialchars($value, ENT_QUOTES, 'UTF-8')] : [(string) $value];
+        }
+
+        // Get config and choices
+        $config = $fieldDef['config'] ?? [];
+
+        if (\is_string($config)) {
+            $config = json_decode($config, true) ?: [];
+        }
+
+        $choices = $config['choices'] ?? [];
+
+        if (empty($choices)) {
+            return \is_array($value) ? $value : [$value];
+        }
+
+        $langId = $this->langId ?? $this->contextDetector->detect()['lang_id'] ?? 1;
+
+        // Handle checkbox (multiple values) or single value
+        if (\is_array($value)) {
+            return array_map(
+                fn($v) => $this->resolveChoiceLabel($v, $choices, $langId),
+                $value
+            );
+        }
+
+        // Single value for select/radio
+        return [$this->resolveChoiceLabel($value, $choices, $langId)];
+    }
+
+    /**
      *
      * @param string $slug Field slug
      * @param array<string, mixed> $options Render options

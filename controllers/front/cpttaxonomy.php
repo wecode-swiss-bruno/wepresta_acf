@@ -111,28 +111,42 @@ class Wepresta_AcfCpttaxonomyModuleFrontController extends ModuleFrontController
     private function getTaxonomyTemplate(string $typeSlug, string $taxonomySlug): string
     {
         // Template hierarchy (PS8 & PS9 compatible):
-        // PrestaShop automatically handles theme overrides for module templates
-        // Theme override path: themes/{theme}/modules/wepresta_acf/views/templates/front/cpt/taxonomy.tpl
-        //
-        // 1. module:wepresta_acf/views/templates/front/cpt/taxonomy-{type}-{taxonomy}.tpl
-        // 2. module:wepresta_acf/views/templates/front/cpt/taxonomy-{type}.tpl
-        // 3. module:wepresta_acf/views/templates/front/cpt/taxonomy.tpl (generic fallback)
+        // 1. themes/{active_theme}/modules/wepresta_acf/views/templates/front/cpt/taxonomy-{type}-{taxonomy}.tpl
+        // 2. modules/wepresta_acf/views/templates/front/cpt/taxonomy-{type}-{taxonomy}.tpl
+        // 3. themes/{active_theme}/modules/wepresta_acf/views/templates/front/cpt/taxonomy-{type}.tpl
+        // 4. modules/wepresta_acf/views/templates/front/cpt/taxonomy-{type}.tpl
+        // 5. themes/{active_theme}/modules/wepresta_acf/views/templates/front/cpt/taxonomy.tpl
+        // 6. modules/wepresta_acf/views/templates/front/cpt/taxonomy.tpl
 
+        $theme = $this->context->shop->theme_name ?? '';
         $moduleDir = $this->module->getLocalPath() . 'views/templates/front/cpt/';
+        $themeDir = _PS_THEME_DIR_ . 'modules/wepresta_acf/views/templates/front/cpt/';
 
-        // 1. Check for specific type-taxonomy template in MODULE
+        // 1. Check specific type-taxonomy template in THEME
+        $specificThemeTemplate = $themeDir . 'taxonomy-' . $typeSlug . '-' . $taxonomySlug . '.tpl';
+        if (file_exists($specificThemeTemplate)) {
+            return 'module:wepresta_acf/views/templates/front/cpt/taxonomy-' . $typeSlug . '-' . $taxonomySlug . '.tpl';
+        }
+
+        // 2. Check specific type-taxonomy template in MODULE
         $specificModuleTemplate = $moduleDir . 'taxonomy-' . $typeSlug . '-' . $taxonomySlug . '.tpl';
         if (file_exists($specificModuleTemplate)) {
             return 'module:wepresta_acf/views/templates/front/cpt/taxonomy-' . $typeSlug . '-' . $taxonomySlug . '.tpl';
         }
 
-        // 2. Check for specific type template in MODULE
+        // 3. Check type template in THEME
+        $typeThemeTemplate = $themeDir . 'taxonomy-' . $typeSlug . '.tpl';
+        if (file_exists($typeThemeTemplate)) {
+            return 'module:wepresta_acf/views/templates/front/cpt/taxonomy-' . $typeSlug . '.tpl';
+        }
+
+        // 4. Check type template in MODULE
         $typeModuleTemplate = $moduleDir . 'taxonomy-' . $typeSlug . '.tpl';
         if (file_exists($typeModuleTemplate)) {
             return 'module:wepresta_acf/views/templates/front/cpt/taxonomy-' . $typeSlug . '.tpl';
         }
 
-        // 3. Fallback to generic MODULE template (or theme override)
+        // 5. Fallback to generic template (theme override automatically handled by PrestaShop)
         return 'module:wepresta_acf/views/templates/front/cpt/taxonomy.tpl';
     }
 }

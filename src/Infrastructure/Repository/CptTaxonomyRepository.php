@@ -62,13 +62,17 @@ final class CptTaxonomyRepository extends AbstractRepository implements CptTaxon
         }, $rows);
     }
 
-    public function findAll(?int $limit = null, ?int $offset = null): array
+    public function findAll(?int $langId = null, ?int $limit = null, ?int $offset = null): array
     {
-        $rows = $this->findBy([], null, $limit);
-        return array_map(function ($row) {
+        $rows = $this->findBy([], null, $limit, $offset);
+        return array_map(function ($row) use ($langId) {
             $taxonomy = new CptTaxonomy($row);
             // Load all translations for each taxonomy
-            $taxonomy->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_taxonomy']));
+            if ($langId !== null) {
+                $taxonomy->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_taxonomy'], $langId));
+            } else {
+                $taxonomy->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_taxonomy']));
+            }
             return $taxonomy;
         }, $rows);
     }
@@ -95,14 +99,14 @@ final class CptTaxonomyRepository extends AbstractRepository implements CptTaxon
             return null;
         }
         $taxonomy = new CptTaxonomy($row);
-        
+
         // Always load all translations for editor
         $taxonomy->setTranslations($this->getTranslations($id));
-        
+
         // Load terms with translations
         $terms = $this->getTermsWithTranslations($id);
         $taxonomy->setTerms($terms);
-        
+
         return $taxonomy;
     }
 
@@ -170,10 +174,22 @@ final class CptTaxonomyRepository extends AbstractRepository implements CptTaxon
             if (empty($trans['name'])) {
                 continue;
             }
+
+            // Ensure we store plain strings, not arrays
+            $name = $trans['name'];
+            if (is_array($name)) {
+                $name = $name[$langId] ?? (reset($name) ?: '');
+            }
+
+            $description = $trans['description'] ?? '';
+            if (is_array($description)) {
+                $description = $description[$langId] ?? (reset($description) ?: '');
+            }
+
             $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'wepresta_acf_cpt_taxonomy_lang 
                     (id_wepresta_acf_cpt_taxonomy, id_lang, name, description) 
-                    VALUES (' . (int) $id . ', ' . (int) $langId . ', "' . pSQL($trans['name']) . '", "' . pSQL($trans['description'] ?? '') . '")
-                    ON DUPLICATE KEY UPDATE name = "' . pSQL($trans['name']) . '", description = "' . pSQL($trans['description'] ?? '') . '"';
+                    VALUES (' . (int) $id . ', ' . (int) $langId . ', "' . pSQL($name) . '", "' . pSQL($description) . '")
+                    ON DUPLICATE KEY UPDATE name = "' . pSQL($name) . '", description = "' . pSQL($description) . '"';
             \Db::getInstance()->execute($sql);
         }
     }

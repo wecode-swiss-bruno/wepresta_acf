@@ -51,7 +51,7 @@ final class CptType
 
         $this->uuid = $data['uuid'] ?? $this->generateUuid();
         $this->slug = $data['slug'] ?? '';
-        
+
         // Decode JSON for name if it's a string
         $name = $data['name'] ?? '';
         if (is_string($name) && !empty($name)) {
@@ -61,7 +61,7 @@ final class CptType
             }
         }
         $this->setName($name);
-        
+
         // Decode JSON for description if it's a string
         $description = $data['description'] ?? null;
         if (is_string($description) && !empty($description)) {
@@ -127,11 +127,16 @@ final class CptType
      */
     public function getName($langId = null)
     {
-        if ($langId && is_array($this->name)) {
+        if ($langId !== null && is_array($this->name)) {
             if (isset($this->name[$langId])) {
                 return $this->name[$langId];
             }
             // Fallback to default or first available
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            return $this->name[$defaultLangId] ?? (reset($this->name) ?: '');
+        }
+        // If name is an array, return default language or first available
+        if (is_array($this->name)) {
             $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
             return $this->name[$defaultLangId] ?? (reset($this->name) ?: '');
         }
@@ -143,11 +148,16 @@ final class CptType
      */
     public function getDescription($langId = null)
     {
-        if ($langId && is_array($this->description)) {
+        if ($langId !== null && is_array($this->description)) {
             if (isset($this->description[$langId])) {
                 return $this->description[$langId];
             }
             // Fallback to default or first available
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            return $this->description[$defaultLangId] ?? (reset($this->description) ?: '');
+        }
+        // If description is an array, return default language or first available
+        if (is_array($this->description)) {
             $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
             return $this->description[$defaultLangId] ?? (reset($this->description) ?: '');
         }
@@ -363,12 +373,26 @@ final class CptType
      */
     public function toArray(): array
     {
+        // For main table, store only the default language value as simple string (not JSON)
+        // Translations are stored separately in _lang table
+        $nameValue = $this->name;
+        if (is_array($this->name)) {
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            $nameValue = $this->name[$defaultLangId] ?? (reset($this->name) ?: '');
+        }
+
+        $descValue = $this->description;
+        if (is_array($this->description)) {
+            $defaultLangId = (int) \Configuration::get('PS_LANG_DEFAULT');
+            $descValue = $this->description[$defaultLangId] ?? (reset($this->description) ?: '');
+        }
+
         return [
             'id_wepresta_acf_cpt_type' => $this->id,
             'uuid' => $this->uuid,
             'slug' => $this->slug,
-            'name' => is_array($this->name) ? json_encode($this->name) : $this->name, // Fallback for single lang context if needed, but repo handles saving
-            'description' => is_array($this->description) ? json_encode($this->description) : $this->description,
+            'name' => $nameValue,
+            'description' => $descValue,
             'config' => json_encode($this->config),
             'url_prefix' => $this->urlPrefix,
             'has_archive' => $this->hasArchive ? 1 : 0,

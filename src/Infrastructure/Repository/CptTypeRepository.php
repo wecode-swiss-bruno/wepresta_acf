@@ -227,14 +227,16 @@ final class CptTypeRepository extends AbstractRepository implements CptTypeRepos
                 continue;
             }
 
+            // Ensure we store plain strings, not JSON or arrays
             $name = $trans['name'] ?? '';
             if (is_array($name)) {
-                $name = json_encode($name);
+                // If it's an array, take the value for this language or first available
+                $name = $name[$langId] ?? (reset($name) ?: '');
             }
 
             $description = $trans['description'] ?? '';
             if (is_array($description)) {
-                $description = json_encode($description);
+                $description = $description[$langId] ?? (reset($description) ?: '');
             }
 
             $sql = 'INSERT INTO ' . _DB_PREFIX_ . 'wepresta_acf_cpt_type_lang 

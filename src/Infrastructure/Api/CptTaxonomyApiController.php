@@ -35,7 +35,7 @@ final class CptTaxonomyApiController extends AbstractApiController
     public function list(Request $request): JsonResponse
     {
         try {
-            $taxonomies = $this->repository->findAll($this->context->getLangId());
+            $taxonomies = $this->repository->findAll(null);
             $data = array_map(function ($taxonomy) {
                 // Fetch terms for each taxonomy
                 $fullTaxonomy = $this->repository->findWithTerms($taxonomy->getId(), $this->context->getLangId());
