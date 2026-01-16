@@ -1,6 +1,6 @@
 {
     "version": "1.0",
-    "exported_at": "2026-01-16T13:32:07+01:00",
+    "exported_at": "2026-01-16T15:08:58+01:00",
     "module_version": "1.0.0",
     "prestashop_version": "9.0.2",
     "groups": [
@@ -31,12 +31,32 @@
             ],
             "fields": [
                 {
-                    "id": 1,
+                    "id": 3,
                     "uuid": "d73f52f4-c835-4c32-a286-eb5e5687cce2",
                     "id_parent": null,
                     "type": "text",
                     "title": "Text Field",
                     "slug": "text_field",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": []
+                },
+                {
+                    "id": 4,
+                    "uuid": "5da4c315-734f-4966-a7b4-934c6aa95fdc",
+                    "id_parent": null,
+                    "type": "richtext",
+                    "title": "Rich Text Editor",
+                    "slug": "rich_text_editor",
                     "instructions": "",
                     "position": 1,
                     "required": false,
@@ -61,43 +81,31 @@
                     "id_lang": null,
                     "value": "dedede",
                     "value_index": "dedede"
+                },
+                {
+                    "field_slug": "text_field",
+                    "entity_type": "cpt_post",
+                    "entity_id": 2,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "dedede",
+                    "value_index": "dedede"
+                },
+                {
+                    "field_slug": "text_field",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "dedede",
+                    "value_index": "dedede"
                 }
             ]
         }
     ],
-    "cpt_types": [
-        {
-            "uuid": "4c606700-f5c0-4296-9f3e-bf45505e36d4",
-            "slug": "blog",
-            "name": {
-                "2": "Blog"
-            },
-            "description": {
-                "2": "dedede"
-            },
-            "config": [],
-            "url_prefix": "blogd",
-            "has_archive": true,
-            "archive_slug": "",
-            "seo_config": {
-                "title_pattern": "{title} - {shop_name}",
-                "description_pattern": ""
-            },
-            "icon": "article",
-            "position": 0,
-            "active": true,
-            "translations": {
-                "2": {
-                    "id_wepresta_acf_cpt_type": 1,
-                    "id_lang": 2,
-                    "name": "Blog",
-                    "description": "dedede"
-                }
-            },
-            "acf_groups": [],
-            "taxonomies": []
-        }
-    ],
+    "cpt_types": [],
     "cpt_taxonomies": [
         {
             "uuid": "ca7afadc-0472-4b70-8044-dfe4a9d91363",
@@ -133,31 +141,7 @@
             ]
         }
     ],
-    "cpt_posts": [
-        {
-            "uuid": "db6c4598-93ac-4f4b-96b5-e7fb59e8a527",
-            "type_slug": "blog",
-            "slug": "article_1",
-            "title": "Article 1",
-            "status": "draft",
-            "seo_title": "",
-            "seo_description": "",
-            "seo_meta": [],
-            "translations": {
-                "2": {
-                    "id_wepresta_acf_cpt_post": 1,
-                    "id_lang": 2,
-                    "title": "Article 1",
-                    "seo_title": "",
-                    "seo_description": ""
-                }
-            },
-            "terms": [],
-            "acf_values": {
-                "text_field": "dedede"
-            }
-        }
-    ],
-    "timestamp": 1768566727,
-    "updated_at": "2026-01-16T13:32:07+01:00"
+    "cpt_posts": [],
+    "timestamp": 1768572538,
+    "updated_at": "2026-01-16T15:08:58+01:00"
 }

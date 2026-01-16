@@ -1389,10 +1389,22 @@ final class ExportImportService
         $typeSlug = $data['type_slug'] ?? null;
 
         if (!$typeSlug || !isset($typesMap[$typeSlug])) {
-            throw new Exception('Type not found for post: ' . ($data['slug'] ?? 'unknown'));
+            $this->logError('Type not found for post import', [
+                'post_slug' => $data['slug'] ?? 'unknown',
+                'type_slug' => $typeSlug,
+                'available_types' => array_keys($typesMap),
+            ]);
+
+            throw new Exception('Type not found for post: ' . ($data['slug'] ?? 'unknown') . ' (type_slug: ' . $typeSlug . ')');
         }
 
         $typeId = $typesMap[$typeSlug];
+
+        $this->logInfo('Importing CPT post', [
+            'post_slug' => $data['slug'],
+            'type_slug' => $typeSlug,
+            'type_id' => $typeId,
+        ]);
 
         // Create new CPT Post
         $post = new CptPost([
@@ -1411,8 +1423,8 @@ final class ExportImportService
             $post->setTranslations($data['translations']);
         }
 
-        // Save post
-        $postId = $this->cptPostRepository->save($post);
+        // Save post (with shopId to ensure proper association)
+        $postId = $this->cptPostRepository->save($post, 1);
 
         // Associate terms (resolve slugs to IDs)
         if (!empty($data['terms'])) {
@@ -1656,7 +1668,7 @@ final class ExportImportService
             $post->setTranslations($data['translations']);
         }
 
-        $this->cptPostRepository->save($post);
+        $this->cptPostRepository->save($post, 1);
 
         // Update terms associations
         if (isset($data['terms'])) {

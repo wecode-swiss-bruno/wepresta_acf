@@ -57,15 +57,8 @@
     },
     "scripts": {
         "copy-assets": "cp src/Wedev/Extension/[name]/Assets/js/*.js views/js/ 2>/dev/null || true",
-        "patch-autoload": "php scripts/patch-autoload.php",
-        "post-install-cmd": [
-            "@copy-assets",
-            "@patch-autoload"
-        ],
-        "post-update-cmd": [
-            "@copy-assets",
-            "@patch-autoload"
-        ],
+        "post-install-cmd": [],
+        "post-update-cmd": [],
         "phpstan": "phpstan analyse --configuration=phpstan.neon --memory-limit=2048M",
         "phpstan-baseline": "phpstan analyse --configuration=phpstan.neon --generate-baseline=phpstan-baseline.neon",
         "phpunit": "phpunit --configuration=phpunit.xml",

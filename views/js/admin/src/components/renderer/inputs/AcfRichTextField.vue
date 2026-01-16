@@ -70,7 +70,7 @@ watch(() => props.modelValue, (newValue) => {
   <div class="acf-rich-text">
     <textarea
       :id="uniqueId"
-      class="form-control rte"
+      class="form-control rte autoload_rte"
       :value="modelValue"
       :rows="config.rows || 10"
       placeholder="HTML Content..."

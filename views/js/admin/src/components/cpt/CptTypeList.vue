@@ -139,6 +139,17 @@ function confirmDelete(type: any) {
 <template>
   <div class="cpt-type-list">
     <div class="card">
+      <!-- Card Header with Actions -->
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+          <i class="material-icons mr-2" style="vertical-align: middle;">article</i>
+          {{ t('cptTypes') }}
+        </h4>
+        <button class="btn btn-primary" @click="cptStore.createNewType()">
+          <i class="material-icons mr-1">add</i>
+          {{ t('newCptType') }}
+        </button>
+      </div>
       <div class="card-body">
         <!-- Loading state -->
         <div v-if="loading" class="text-center py-5">

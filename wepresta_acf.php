@@ -146,6 +146,9 @@ class WeprestaAcf extends Module
             if (file_exists($this->getLocalPath() . 'views/dist/admin.js')) {
                 $this->context->controller->addJS($this->_path . 'views/dist/admin.js');
             }
+
+            // Load TinyMCE for Rich Text fields
+            $this->context->controller->addJqueryPlugin('tinymce');
         }
 
         // Detect entity edit pages (both legacy and Symfony controllers)

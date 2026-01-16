@@ -2082,9 +2082,9 @@
         <source>Newer configuration detected</source>
         <target>Nouvelle configuration détectée</target>
       </trans-unit>
-      <trans-unit id="521" resname="Next: ">
-        <source>Next: </source>
-        <target>Suivant : </target>
+      <trans-unit id="521" resname="Next">
+        <source>Next</source>
+        <target>Suivant</target>
       </trans-unit>
       <trans-unit id="522" resname="No">
         <source>No</source>
@@ -3404,11 +3404,11 @@
       </trans-unit>
       <trans-unit id="851" resname="Custom Post Types">
         <source>Custom Post Types</source>
-        <target>Types de publication personnalisés</target>
+        <target>Types de CPT</target>
       </trans-unit>
       <trans-unit id="852" resname="New CPT Type">
         <source>New CPT Type</source>
-        <target>Nouveau type de publication</target>
+        <target>Nouveau CPT</target>
       </trans-unit>
       <trans-unit id="853" resname="URL Prefix">
         <source>URL Prefix</source>

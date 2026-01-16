@@ -33,9 +33,9 @@ export default defineConfig(({ mode }) => {
                 output: {
                     format: 'iife',
                     name: 'WeprestaAcfEntityFields',
-                    // Hash in production for cache-busting
-                    entryFileNames: isProd ? 'entity-fields.[hash].js' : 'entity-fields.js',
-                    assetFileNames: isProd ? 'acf-entity-fields.[hash].[ext]' : 'acf-entity-fields.[ext]',
+                    // No hash in filenames for simpler asset loading
+                    entryFileNames: 'entity-fields.js',
+                    assetFileNames: 'acf-entity-fields.[ext]',
                     inlineDynamicImports: true
                 },
             },

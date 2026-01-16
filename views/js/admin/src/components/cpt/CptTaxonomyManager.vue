@@ -1,6 +1,17 @@
 <template>
   <div class="cpt-taxonomy-manager">
     <div class="card">
+      <!-- Card Header with Actions -->
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+          <i class="material-icons mr-2" style="vertical-align: middle;">category</i>
+          {{ t('taxonomies') }}
+        </h4>
+        <button class="btn btn-primary" @click="openCreateModal">
+          <i class="material-icons mr-1">add</i>
+          {{ t('newTaxonomy') }}
+        </button>
+      </div>
       <div class="card-body">
         <!-- Empty state -->
         <div v-if="cptStore.taxonomies.length === 0" class="text-center py-5">
@@ -447,9 +458,21 @@ async function editTaxonomy(taxonomy: any) {
 
 async function saveTaxonomy() {
   const defaultLangId = defaultLanguage.value?.id_lang
-  if (defaultLangId && taxTranslations[defaultLangId]) {
-    taxonomyForm.name = taxTranslations[defaultLangId].name
-    taxonomyForm.description = taxTranslations[defaultLangId].description
+  if (defaultLangId) {
+    // In single-language mode, sync taxonomyForm to taxTranslations first
+    if (languages.value.length === 1) {
+      if (!taxTranslations[defaultLangId]) {
+        taxTranslations[defaultLangId] = { name: '', description: '' }
+      }
+      taxTranslations[defaultLangId].name = taxonomyForm.name || ''
+      taxTranslations[defaultLangId].description = taxonomyForm.description || ''
+    }
+    
+    // Then sync translations back to taxonomyForm
+    if (taxTranslations[defaultLangId]) {
+      taxonomyForm.name = taxTranslations[defaultLangId].name
+      taxonomyForm.description = taxTranslations[defaultLangId].description
+    }
   }
 
   const payload = {

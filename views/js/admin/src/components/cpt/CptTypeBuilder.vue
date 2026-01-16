@@ -171,7 +171,7 @@
                   type="text"
                   class="form-control"
                   required
-                  pattern="[a-z0-9_-]+"
+                  pattern="[a-z0-9_\-]+"
                   :disabled="isEdit"
                 />
                 <small v-if="!isEdit" class="form-text text-muted">
@@ -440,6 +440,12 @@ const hasUnsavedChanges = computed(() => {
 
 // Step completion checks
 const step1Complete = computed(() => {
+  // In single-language mode, check formData directly
+  if (languages.value.length === 1) {
+    return !!formData.name && !!formData.slug
+  }
+  
+  // In multi-language mode, check translations
   const defaultLangId = defaultLanguage.value?.id_lang
   const hasName = defaultLangId && translations[defaultLangId]
     ? !!translations[defaultLangId].name
@@ -556,11 +562,23 @@ async function saveData() {
   saving.value = true
 
   try {
-    // Set default name/description from default language translation
+    // Sync data between formData and translations
     const defaultLangId = defaultLanguage.value?.id_lang
-    if (defaultLangId && translations[defaultLangId]) {
-      formData.name = translations[defaultLangId].name
-      formData.description = translations[defaultLangId].description
+    if (defaultLangId) {
+      // In single-language mode, sync formData to translations first
+      if (languages.value.length === 1) {
+        if (!translations[defaultLangId]) {
+          translations[defaultLangId] = { name: '', description: '' }
+        }
+        translations[defaultLangId].name = formData.name || ''
+        translations[defaultLangId].description = formData.description || ''
+      }
+      
+      // Then sync translations back to formData (for multi-language or to ensure consistency)
+      if (translations[defaultLangId]) {
+        formData.name = translations[defaultLangId].name
+        formData.description = translations[defaultLangId].description
+      }
     }
 
     // Prepare data

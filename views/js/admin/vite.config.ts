@@ -34,10 +34,10 @@ export default defineConfig(({ mode }) => {
         },
         output: {
           format: 'es',
-          // Add hash in production for cache-busting, simple names in dev for debugging
-          entryFileNames: isProd ? 'acf-[name].[hash].js' : 'acf-[name].js',
-          chunkFileNames: isProd ? 'acf-[name].[hash].js' : 'acf-[name].js',
-          assetFileNames: isProd ? 'acf-[name].[hash].[ext]' : 'acf-[name].[ext]',
+          // No hash in filenames for simpler asset loading
+          entryFileNames: 'acf-[name].js',
+          chunkFileNames: 'acf-[name].js',
+          assetFileNames: 'acf-[name].[ext]',
         },
       },
     },

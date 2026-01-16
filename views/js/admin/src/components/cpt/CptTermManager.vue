@@ -463,10 +463,23 @@ async function editTerm(term: CptTerm) {
 async function handleSave() {
   if (!cptStore.currentTaxonomy) return
   
+  
   const defaultLangId = defaultLanguage.value?.id_lang
-  if (defaultLangId && termTranslations[defaultLangId]) {
-    termForm.name = termTranslations[defaultLangId].name
-    termForm.description = termTranslations[defaultLangId].description
+  if (defaultLangId) {
+    // In single-language mode, sync termForm to termTranslations first
+    if (languages.value.length === 1) {
+      if (!termTranslations[defaultLangId]) {
+        termTranslations[defaultLangId] = { name: '', description: '' }
+      }
+      termTranslations[defaultLangId].name = termForm.name || ''
+      termTranslations[defaultLangId].description = termForm.description || ''
+    }
+    
+    // Then sync translations back to termForm
+    if (termTranslations[defaultLangId]) {
+      termForm.name = termTranslations[defaultLangId].name
+      termForm.description = termTranslations[defaultLangId].description
+    }
   }
 
   saving.value = true
