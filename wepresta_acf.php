@@ -632,6 +632,7 @@ class WeprestaAcf extends Module
         }
     }
 
+
     private function processMultiMediaFields(array $post, array $files, $fieldRepository, $fileUploadService, int $productId, int $shopId, array &$values, array &$processedSlugs): void
     {
         foreach ($post as $key => $val) {

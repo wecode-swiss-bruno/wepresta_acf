@@ -39,8 +39,21 @@ trait EntityFieldHooksTrait
         return $this->renderAdminFields('product', $params);
     }
 
-    // Legacy hooks removed for harmonization with Symfony FormHandler
-    // hookActionProductUpdate and hookActionProductAdd are no longer needed for PS8+
+    /**
+     * Sauvegarde les champs ACF lors de la mise à jour produit (legacy).
+     */
+    public function hookActionProductUpdate(array $params): void
+    {
+        $this->saveEntityFields('product', $params);
+    }
+
+    /**
+     * Sauvegarde les champs ACF lors de l'ajout produit (legacy).
+     */
+    public function hookActionProductAdd(array $params): void
+    {
+        $this->saveEntityFields('product', $params);
+    }
 
     // =========================================================================
     // CATEGORY HOOKS - ADMIN (Back-Office)

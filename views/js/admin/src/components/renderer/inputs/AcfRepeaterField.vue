@@ -548,6 +548,42 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                   @update:model-value="setSubfieldValue(row, subfield, $event)"
                 />
 
+                <!-- Image (single) -->
+                <AcfFileUploadField
+                  v-else-if="subfield.type === 'image'"
+                  :field="subfield"
+                  :model-value="getSubfieldValue(row, subfield)"
+                  :field-slug="subfield.slug"
+                  field-type="image"
+                  accept="image/*"
+                  :multiple="false"
+                  @update:model-value="setSubfieldValue(row, subfield, $event)"
+                />
+
+                <!-- Video (single) -->
+                <AcfFileUploadField
+                  v-else-if="subfield.type === 'video'"
+                  :field="subfield"
+                  :model-value="getSubfieldValue(row, subfield)"
+                  :field-slug="subfield.slug"
+                  field-type="video"
+                  accept="video/*"
+                  :multiple="false"
+                  @update:model-value="setSubfieldValue(row, subfield, $event)"
+                />
+
+                <!-- File (single) -->
+                <AcfFileUploadField
+                  v-else-if="subfield.type === 'file'"
+                  :field="subfield"
+                  :model-value="getSubfieldValue(row, subfield)"
+                  :field-slug="subfield.slug"
+                  field-type="file"
+                  :multiple="false"
+                  @update:model-value="setSubfieldValue(row, subfield, $event)"
+                />
+
+
                 <!-- Radio -->
                 <div v-else-if="subfield.type === 'radio'" class="radio-group">
                   <div

@@ -2,10 +2,10 @@
   <div class="cpt-type-list">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-header-title">Custom Post Types</h3>
+        <h3 class="card-header-title">{{ t('customPostTypes') }}</h3>
         <button class="btn btn-primary" @click="cptStore.createNewType()">
           <i class="material-icons">add</i>
-          New CPT Type
+          {{ t('newCptType') }}
         </button>
       </div>
       <div class="card-body">
@@ -18,20 +18,20 @@
         </div>
 
         <div v-else-if="cptStore.sortedTypes.length === 0" class="alert alert-info">
-          No CPT types yet. Create your first one!
+          {{ t('noCptTypeSaved') }}
         </div>
 
         <div v-else class="table-responsive">
           <table class="table">
             <thead>
               <tr>
-                <th>Icon</th>
-                <th>Name</th>
-                <th>Slug</th>
-                <th>URL Prefix</th>
-                <th>Archive</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>{{ t('icon') }}</th>
+                <th>{{ t('name') }}</th>
+                <th>{{ t('slug') }}</th>
+                <th>{{ t('urlPrefix') }}</th>
+                <th>{{ t('archive') }}</th>
+                <th>{{ t('status') }}</th>
+                <th>{{ t('actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -51,25 +51,25 @@
                   <code>/{{ type.url_prefix }}</code>
                 </td>
                 <td>
-                  <span v-if="type.has_archive" class="badge badge-success">Enabled</span>
-                  <span v-else class="badge badge-secondary">Disabled</span>
+                  <span v-if="type.has_archive" class="badge badge-success">{{ t('enabled') }}</span>
+                  <span v-else class="badge badge-secondary">{{ t('disabled') }}</span>
                 </td>
                 <td>
-                  <span v-if="type.active" class="badge badge-success">Active</span>
-                  <span v-else class="badge badge-secondary">Inactive</span>
+                  <span v-if="type.active" class="badge badge-success">{{ t('active') }}</span>
+                  <span v-else class="badge badge-secondary">{{ t('inactive') }}</span>
                 </td>
                 <td>
                   <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary" @click="cptStore.editType(type.id)" title="Edit">
+                    <button class="btn btn-sm btn-outline-secondary" @click="cptStore.editType(type.id)" :title="t('edit')">
                       <i class="material-icons">edit</i>
                     </button>
-                    <button class="btn btn-sm btn-outline-primary" @click="managePosts(type)" title="Manage Posts">
+                    <button class="btn btn-sm btn-outline-primary" @click="managePosts(type)" :title="t('managePosts')">
                       <i class="material-icons">list</i>
                     </button>
-                    <a v-if="type.view_url" :href="type.view_url" target="_blank" class="btn btn-sm btn-outline-info" title="View on Front">
+                    <a v-if="type.view_url" :href="type.view_url" target="_blank" class="btn btn-sm btn-outline-info" :title="t('viewOnFront')">
                       <i class="material-icons">visibility</i>
                     </a>
-                    <button class="btn btn-sm btn-outline-danger" @click="confirmDelete(type)" title="Delete">
+                    <button class="btn btn-sm btn-outline-danger" @click="confirmDelete(type)" :title="t('delete')">
                       <i class="material-icons">delete</i>
                     </button>
                   </div>
@@ -86,8 +86,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
+import { useTranslations } from '../../composables/useTranslations'
 
 const cptStore = useCptStore()
+const { t } = useTranslations()
 const loading = ref(false)
 const error = ref<string | null>(null)
 
@@ -105,7 +107,7 @@ function managePosts(type: any) {
 }
 
 function confirmDelete(type: any) {
-  if (confirm(`Delete ${type.name}? This will delete all posts.`)) {
+  if (confirm(t('confirmDeleteType', 'Delete {name}? This will delete all posts.', { name: type.name }))) {
     cptStore.deleteType(type.id)
   }
 }

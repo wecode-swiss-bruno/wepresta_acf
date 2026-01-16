@@ -7,12 +7,12 @@
             <i class="material-icons">arrow_back</i>
           </button>
           <h3 class="card-header-title mb-0">
-            {{ cptStore.currentType?.name }} Posts
+            {{ cptStore.currentType?.name }} {{ t('posts') }}
           </h3>
         </div>
         <button class="btn btn-primary" @click="addPost">
           <i class="material-icons">add</i>
-          Add New {{ cptStore.currentType?.name }}
+          {{ t('addNew') }} {{ cptStore.currentType?.name }}
         </button>
       </div>
       <div class="card-body">
@@ -25,7 +25,7 @@
         </div>
 
         <div v-else-if="cptStore.posts.length === 0" class="alert alert-info text-center">
-          No posts found for {{ cptStore.currentType?.name }}.
+          {{ t('noPostsFound', 'No posts found for this type.') }}
         </div>
 
         <div v-else class="table-responsive">
@@ -33,10 +33,10 @@
             <thead>
               <tr>
                 <th style="width: 50px">ID</th>
-                <th>Title</th>
-                <th>Slug</th>
-                <th>Status</th>
-                <th class="text-right">Actions</th>
+                <th>{{ t('title') }}</th>
+                <th>{{ t('slug') }}</th>
+                <th>{{ t('status') }}</th>
+                <th class="text-right">{{ t('actions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -49,19 +49,19 @@
                   <code>{{ post.slug }}</code>
                 </td>
                 <td>
-                  <span v-if="post.status === 'published'" class="badge badge-success">Published</span>
-                  <span v-else-if="post.status === 'draft'" class="badge badge-warning">Draft</span>
+                  <span v-if="post.status === 'published'" class="badge badge-success">{{ t('published') }}</span>
+                  <span v-else-if="post.status === 'draft'" class="badge badge-warning">{{ t('draft') }}</span>
                   <span v-else class="badge badge-secondary">{{ post.status }}</span>
                 </td>
                 <td class="text-right">
                   <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary" title="Edit" @click="editPost(post)">
+                    <button class="btn btn-sm btn-outline-secondary" :title="t('edit')" @click="editPost(post)">
                       <i class="material-icons">edit</i>
                     </button>
-                    <a v-if="post.view_url" :href="post.view_url" target="_blank" class="btn btn-sm btn-outline-info" title="View on Front">
+                    <a v-if="post.view_url" :href="post.view_url" target="_blank" class="btn btn-sm btn-outline-info" :title="t('viewOnFront')">
                       <i class="material-icons">visibility</i>
                     </a>
-                    <button class="btn btn-sm btn-outline-danger" @click="confirmDelete(post)" title="Delete">
+                    <button class="btn btn-sm btn-outline-danger" @click="confirmDelete(post)" :title="t('delete')">
                       <i class="material-icons">delete</i>
                     </button>
                   </div>
@@ -76,10 +76,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
+import { useTranslations } from '../../composables/useTranslations'
 
 const cptStore = useCptStore()
+const { t } = useTranslations()
 
 onMounted(() => {
   if (cptStore.currentType) {
@@ -100,7 +102,7 @@ function editPost(post: any) {
 }
 
 function confirmDelete(post: any) {
-  if (confirm(`Delete post "${post.title}"? This cannot be undone.`)) {
+  if (confirm(t('confirmDeletePost', 'Delete post "{title}"? This cannot be undone.', { title: post.title }))) {
     cptStore.deletePost(post.id, cptStore.currentType!.slug)
   }
 }

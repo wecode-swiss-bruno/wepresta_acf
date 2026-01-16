@@ -59,8 +59,27 @@
                     {if $subfield_value}
                     <div class="acf-subfield">
                         <strong>{$subfield_slug|replace:'_':' '|capitalize}:</strong>
+
+                        {* Handle arrays (images, files, etc) *}
                         {if is_array($subfield_value)}
-                        {$subfield_value|@json_encode nofilter}
+                        {* Check if it looks like an image/file object *}
+                        {if isset($subfield_value.url)}
+                        {if isset($subfield_value.mime) && $subfield_value.mime|strstr:'image'}
+                        <div class="acf-image-preview">
+                            <img src="{$subfield_value.url}" alt="{$subfield_value.filename}"
+                                style="max-width: 200px; height: auto;">
+                        </div>
+                        {else}
+                        <div class="acf-file-link">
+                            <a href="{$subfield_value.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="material-icons">file_download</i> {$subfield_value.filename}
+                            </a>
+                        </div>
+                        {/if}
+                        {else}
+                        {* Fallback for other arrays *}
+                        <pre>{$subfield_value|@json_encode nofilter}</pre>
+                        {/if}
                         {else}
                         {$subfield_value nofilter}
                         {/if}
