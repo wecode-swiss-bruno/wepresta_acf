@@ -384,6 +384,10 @@ services:
             $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
             $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
             $fieldValueRepository: '@WeprestaAcf\Domain\Repository\AcfFieldValueRepositoryInterface'
+            $cptTypeRepository: '@WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface'
+            $cptTaxonomyRepository: '@WeprestaAcf\Domain\Repository\CptTaxonomyRepositoryInterface'
+            $cptTermRepository: '@WeprestaAcf\Domain\Repository\CptTermRepositoryInterface'
+            $cptPostRepository: '@WeprestaAcf\Domain\Repository\CptPostRepositoryInterface'
         public: true
 
     WeprestaAcf\Application\Service\AutoSyncService:
@@ -537,6 +541,7 @@ services:
             $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
             $groupRepository: '@WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface'
             $fieldRepository: '@WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface'
+            $autoSyncService: '@WeprestaAcf\Application\Service\AutoSyncService'
         tags: ['controller.service_arguments']
         public: true
 
@@ -553,6 +558,7 @@ services:
             $valueProvider: '@WeprestaAcf\Application\Service\ValueProvider'
             $valueHandler: '@WeprestaAcf\Application\Service\ValueHandler'
             $locationProviderRegistry: '@WeprestaAcf\Application\Provider\LocationProviderRegistry'
+            $autoSyncService: '@WeprestaAcf\Application\Service\AutoSyncService'
         tags: ['controller.service_arguments']
         public: true
 
@@ -561,6 +567,7 @@ services:
             $repository: '@WeprestaAcf\Domain\Repository\CptTaxonomyRepositoryInterface'
             $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
             $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+            $autoSyncService: '@WeprestaAcf\Application\Service\AutoSyncService'
         tags: ['controller.service_arguments']
         public: true
 
@@ -570,6 +577,7 @@ services:
             $taxonomyRepository: '@WeprestaAcf\Domain\Repository\CptTaxonomyRepositoryInterface'
             $config: '@WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter'
             $context: '@WeprestaAcf\Wedev\Core\Adapter\ContextAdapter'
+            $autoSyncService: '@WeprestaAcf\Application\Service\AutoSyncService'
         tags: ['controller.service_arguments']
         public: true
 

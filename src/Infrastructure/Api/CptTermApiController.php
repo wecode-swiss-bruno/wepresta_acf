@@ -7,6 +7,7 @@ namespace WeprestaAcf\Infrastructure\Api;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use WeprestaAcf\Application\Service\AutoSyncService;
 use WeprestaAcf\Domain\Repository\CptTermRepositoryInterface;
 use WeprestaAcf\Domain\Repository\CptTaxonomyRepositoryInterface;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
@@ -20,12 +21,19 @@ final class CptTermApiController extends AbstractApiController
 {
     private CptTermRepositoryInterface $repository;
     private CptTaxonomyRepositoryInterface $taxonomyRepository;
+    private AutoSyncService $autoSyncService;
 
-    public function __construct(CptTermRepositoryInterface $repository, CptTaxonomyRepositoryInterface $taxonomyRepository, ConfigurationAdapter $config, ContextAdapter $context)
-    {
+    public function __construct(
+        CptTermRepositoryInterface $repository,
+        CptTaxonomyRepositoryInterface $taxonomyRepository,
+        ConfigurationAdapter $config,
+        ContextAdapter $context,
+        AutoSyncService $autoSyncService
+    ) {
         parent::__construct($config, $context);
         $this->repository = $repository;
         $this->taxonomyRepository = $taxonomyRepository;
+        $this->autoSyncService = $autoSyncService;
     }
 
     public function listByTaxonomy(int $taxonomyId, Request $request): JsonResponse
@@ -77,6 +85,10 @@ final class CptTermApiController extends AbstractApiController
             $data['id_wepresta_acf_cpt_taxonomy'] = $taxonomyId;
             $term = new \WeprestaAcf\Domain\Entity\CptTerm($data);
             $id = $this->repository->save($term);
+            
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+            
             return $this->jsonSuccess(['id' => $id], null, Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -98,6 +110,10 @@ final class CptTermApiController extends AbstractApiController
                 $term->setTranslations($data['translations']);
             }
             $this->repository->save($term);
+            
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+            
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -111,6 +127,10 @@ final class CptTermApiController extends AbstractApiController
                 return $this->jsonError('Term not found', Response::HTTP_NOT_FOUND);
             }
             $this->repository->delete($id);
+            
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+            
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);

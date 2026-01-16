@@ -15,6 +15,9 @@ interface CptTermRepositoryInterface
     public function find(int $id, ?int $langId = null): ?CptTerm;
     public function findBySlug(string $slug, int $taxonomyId, ?int $langId = null): ?CptTerm;
     public function findByTaxonomy(int $taxonomyId, ?int $langId = null): array;
+
+    public function findByPostId(int $postId, ?int $langId = null): array;
+
     public function findTopLevel(int $taxonomyId, ?int $langId = null): array;
     public function findChildren(int $parentId, ?int $langId = null): array;
     public function getTree(int $taxonomyId, ?int $langId = null): array;

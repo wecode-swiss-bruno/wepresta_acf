@@ -7,6 +7,7 @@ namespace WeprestaAcf\Infrastructure\Api;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use WeprestaAcf\Application\Service\AutoSyncService;
 use WeprestaAcf\Domain\Repository\CptTaxonomyRepositoryInterface;
 use WeprestaAcf\Wedev\Core\Adapter\ConfigurationAdapter;
 use WeprestaAcf\Wedev\Core\Adapter\ContextAdapter;
@@ -18,11 +19,17 @@ if (!defined('_PS_VERSION_')) {
 final class CptTaxonomyApiController extends AbstractApiController
 {
     private CptTaxonomyRepositoryInterface $repository;
+    private AutoSyncService $autoSyncService;
 
-    public function __construct(CptTaxonomyRepositoryInterface $repository, ConfigurationAdapter $config, ContextAdapter $context)
-    {
+    public function __construct(
+        CptTaxonomyRepositoryInterface $repository,
+        ConfigurationAdapter $config,
+        ContextAdapter $context,
+        AutoSyncService $autoSyncService
+    ) {
         parent::__construct($config, $context);
         $this->repository = $repository;
+        $this->autoSyncService = $autoSyncService;
     }
 
     public function list(Request $request): JsonResponse
@@ -30,7 +37,42 @@ final class CptTaxonomyApiController extends AbstractApiController
         try {
             $taxonomies = $this->repository->findAll($this->context->getLangId());
             $data = array_map(function ($taxonomy) {
-                return ['id' => $taxonomy->getId(), 'slug' => $taxonomy->getSlug(), 'name' => $taxonomy->getName()];
+                // Fetch terms for each taxonomy
+                $fullTaxonomy = $this->repository->findWithTerms($taxonomy->getId(), $this->context->getLangId());
+
+                $termsData = array_map(function ($term) {
+                    $name = $term->getName();
+                    $translations = $term->getTranslations();
+                    $langId = $this->context->getLangId();
+
+                    if (isset($translations[$langId]['name']) && !empty($translations[$langId]['name'])) {
+                        $name = $translations[$langId]['name'];
+                    } elseif (!empty($translations)) {
+                        // Fallback to first available translation if current lang not found
+                        foreach ($translations as $trans) {
+                            if (!empty($trans['name'])) {
+                                $name = $trans['name'];
+                                break;
+                            }
+                        }
+                    }
+
+                    return [
+                        'id' => $term->getId(),
+                        'name' => $name,
+                        'slug' => $term->getSlug(),
+                        'active' => $term->isActive(),
+                    ];
+                }, $fullTaxonomy->getTerms());
+
+                return [
+                    'id' => $fullTaxonomy->getId(),
+                    'slug' => $fullTaxonomy->getSlug(),
+                    'name' => $fullTaxonomy->getName(),
+                    'description' => $fullTaxonomy->getDescription(),
+                    'active' => $fullTaxonomy->isActive(),
+                    'terms' => $termsData
+                ];
             }, $taxonomies);
             return $this->jsonSuccess($data);
         } catch (\Exception $e) {
@@ -46,6 +88,32 @@ final class CptTaxonomyApiController extends AbstractApiController
             if (!$taxonomy) {
                 return $this->jsonError('Taxonomy not found', Response::HTTP_NOT_FOUND);
             }
+
+            $termsData = array_map(function ($term) {
+                $name = $term->getName();
+                $translations = $term->getTranslations();
+                $langId = $this->context->getLangId();
+
+                if (isset($translations[$langId]['name']) && !empty($translations[$langId]['name'])) {
+                    $name = $translations[$langId]['name'];
+                } elseif (!empty($translations)) {
+                    // Fallback to first available translation if current lang not found
+                    foreach ($translations as $trans) {
+                        if (!empty($trans['name'])) {
+                            $name = $trans['name'];
+                            break;
+                        }
+                    }
+                }
+
+                return [
+                    'id' => $term->getId(),
+                    'name' => $name,
+                    'slug' => $term->getSlug(),
+                    'active' => $term->isActive(),
+                ];
+            }, $taxonomy->getTerms());
+
             return $this->jsonSuccess([
                 'id' => $taxonomy->getId(),
                 'slug' => $taxonomy->getSlug(),
@@ -55,7 +123,7 @@ final class CptTaxonomyApiController extends AbstractApiController
                 'active' => $taxonomy->isActive(),
                 'config' => $taxonomy->getConfig(),
                 'translations' => $taxonomy->getTranslations(),
-                'terms' => $taxonomy->getTerms(),
+                'terms' => $termsData,
             ]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -74,6 +142,10 @@ final class CptTaxonomyApiController extends AbstractApiController
             }
             $taxonomy = new \WeprestaAcf\Domain\Entity\CptTaxonomy($data);
             $id = $this->repository->save($taxonomy);
+
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+
             return $this->jsonSuccess(['id' => $id], null, Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -110,6 +182,10 @@ final class CptTaxonomyApiController extends AbstractApiController
                 $taxonomy->setTranslations($data['translations']);
             }
             $this->repository->save($taxonomy);
+
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -123,6 +199,10 @@ final class CptTaxonomyApiController extends AbstractApiController
                 return $this->jsonError('Taxonomy not found', Response::HTTP_NOT_FOUND);
             }
             $this->repository->delete($id);
+
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);

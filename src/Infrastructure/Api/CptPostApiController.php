@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
+use WeprestaAcf\Application\Service\AutoSyncService;
 use WeprestaAcf\Application\Service\ValueHandler;
 use WeprestaAcf\Application\Service\ValueProvider;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
@@ -40,7 +41,8 @@ final class CptPostApiController extends AbstractApiController
         private readonly AcfFieldRepositoryInterface $fieldRepository,
         private readonly ValueProvider $valueProvider,
         private readonly ValueHandler $valueHandler,
-        private readonly LocationProviderRegistry $locationProviderRegistry
+        private readonly LocationProviderRegistry $locationProviderRegistry,
+        private readonly AutoSyncService $autoSyncService
     ) {
         parent::__construct($config, $context);
     }
@@ -207,6 +209,9 @@ final class CptPostApiController extends AbstractApiController
                 $this->valueHandler->saveEntityFieldValues('cpt_post', $id, $data['acf'], $shopId);
             }
 
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+
             return $this->jsonSuccess(['id' => $id], null, Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -253,6 +258,9 @@ final class CptPostApiController extends AbstractApiController
                 $this->valueHandler->saveEntityFieldValues('cpt_post', $id, $data['acf'], $shopId);
             }
 
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -266,6 +274,9 @@ final class CptPostApiController extends AbstractApiController
                 return $this->jsonError('Post not found', Response::HTTP_NOT_FOUND);
             }
             $this->repository->delete($id);
+
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
 
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
@@ -286,6 +297,9 @@ final class CptPostApiController extends AbstractApiController
             }
             $post->setStatus($data['status']);
             $this->repository->save($post);
+
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
 
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {

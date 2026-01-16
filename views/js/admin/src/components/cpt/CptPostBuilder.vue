@@ -243,9 +243,10 @@ const formData = ref({
 
 const relatedTaxonomies = computed(() => {
   if (!cptStore.currentType?.taxonomies) return []
-  return cptStore.taxonomies.filter(tax => 
-    cptStore.currentType?.taxonomies?.includes(tax.id!)
-  )
+  
+  return cptStore.taxonomies.filter(tax => {
+    return cptStore.currentType?.taxonomies?.includes(tax.id!)
+  })
 })
 
 onMounted(async () => {
@@ -356,9 +357,14 @@ onMounted(async () => {
       */
   }
 
-  // Ensure taxonomies are loaded
+  // Ensure full type details are loaded (specifically taxonomies list)
+  if (cptStore.currentType?.id && !cptStore.currentType.taxonomies) {
+    await cptStore.fetchType(cptStore.currentType.id)
+  }
+
+  // Ensure taxonomies definitions are loaded
   if (cptStore.taxonomies.length === 0) {
-    cptStore.fetchTaxonomies()
+    await cptStore.fetchTaxonomies()
   }
 })
 

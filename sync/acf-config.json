@@ -1,13 +1,13 @@
 {
     "version": "1.0",
-    "exported_at": "2026-01-11T21:36:04+01:00",
-    "module_version": "1.2.1",
+    "exported_at": "2026-01-16T13:32:07+01:00",
+    "module_version": "1.0.0",
     "prestashop_version": "9.0.2",
     "groups": [
         {
-            "uuid": "a9d30f6e-0816-472a-a1fa-4a6e6a341220",
-            "title": "Vidéo de présentation",
-            "slug": "video_de_presentation",
+            "uuid": "213289ad-f0d2-41db-84eb-d2d2dbb2ee63",
+            "title": "test",
+            "slug": "test",
             "description": "",
             "location_rules": [
                 {
@@ -15,7 +15,7 @@
                         {
                             "var": "entity_type"
                         },
-                        "product"
+                        "cpt_post:blog"
                     ]
                 }
             ],
@@ -31,15 +31,16 @@
             ],
             "fields": [
                 {
-                    "uuid": "f075121d-784e-4c7c-9c19-8d13b84be8dc",
+                    "id": 1,
+                    "uuid": "d73f52f4-c835-4c32-a286-eb5e5687cce2",
                     "id_parent": null,
-                    "type": "richtext",
-                    "title": "Rich Text Editor",
-                    "slug": "rich_text_editor",
+                    "type": "text",
+                    "title": "Text Field",
+                    "slug": "text_field",
                     "instructions": "",
-                    "position": 0,
+                    "position": 1,
                     "required": false,
-                    "translatable": true,
+                    "translatable": false,
                     "active": true,
                     "config": [],
                     "validation": [],
@@ -47,61 +48,116 @@
                     "wrapper": {
                         "width": "100"
                     },
-                    "fo_options": {
-                        "showTitle": true
-                    }
-                },
-                {
-                    "uuid": "18bbb593-4ace-4358-af49-201d64cf8b1c",
-                    "id_parent": null,
-                    "type": "video",
-                    "title": "Video Field",
-                    "slug": "video_field",
-                    "instructions": "",
-                    "position": 1,
-                    "required": false,
-                    "translatable": false,
-                    "active": true,
-                    "config": {
-                        "allowUrl": false,
-                        "allowVimeo": false,
-                        "allowUpload": false,
-                        "allowYouTube": true
-                    },
-                    "validation": [],
-                    "conditions": [],
-                    "wrapper": {
-                        "width": "100"
-                    },
-                    "fo_options": {
-                        "showTitle": false
-                    }
+                    "fo_options": []
                 }
             ],
             "field_values": [
                 {
-                    "field_slug": "video_field",
-                    "entity_type": "product",
+                    "field_slug": "text_field",
+                    "entity_type": "cpt_post",
                     "entity_id": 1,
                     "id_product": null,
                     "id_shop": 1,
                     "id_lang": null,
-                    "value": null,
-                    "value_index": ""
-                },
-                {
-                    "field_slug": "rich_text_editor",
-                    "entity_type": "product",
-                    "entity_id": 1,
-                    "id_product": null,
-                    "id_shop": 1,
-                    "id_lang": null,
-                    "value": "Comment utiliser ce produit ?",
-                    "value_index": "Comment utiliser ce produit ?"
+                    "value": "dedede",
+                    "value_index": "dedede"
                 }
             ]
         }
     ],
-    "timestamp": 1768163764,
-    "updated_at": "2026-01-11T21:36:04+01:00"
+    "cpt_types": [
+        {
+            "uuid": "4c606700-f5c0-4296-9f3e-bf45505e36d4",
+            "slug": "blog",
+            "name": {
+                "2": "Blog"
+            },
+            "description": {
+                "2": "dedede"
+            },
+            "config": [],
+            "url_prefix": "blogd",
+            "has_archive": true,
+            "archive_slug": "",
+            "seo_config": {
+                "title_pattern": "{title} - {shop_name}",
+                "description_pattern": ""
+            },
+            "icon": "article",
+            "position": 0,
+            "active": true,
+            "translations": {
+                "2": {
+                    "id_wepresta_acf_cpt_type": 1,
+                    "id_lang": 2,
+                    "name": "Blog",
+                    "description": "dedede"
+                }
+            },
+            "acf_groups": [],
+            "taxonomies": []
+        }
+    ],
+    "cpt_taxonomies": [
+        {
+            "uuid": "ca7afadc-0472-4b70-8044-dfe4a9d91363",
+            "slug": "marketing",
+            "name": "Marketing",
+            "description": "",
+            "hierarchical": true,
+            "config": [],
+            "active": true,
+            "translations": {
+                "2": {
+                    "id_wepresta_acf_cpt_taxonomy": 3,
+                    "id_lang": 2,
+                    "name": "Marketing",
+                    "description": ""
+                }
+            },
+            "terms": [
+                {
+                    "slug": "tech",
+                    "name": "Tech",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                },
+                {
+                    "slug": "tech-2",
+                    "name": "Tech 2",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                }
+            ]
+        }
+    ],
+    "cpt_posts": [
+        {
+            "uuid": "db6c4598-93ac-4f4b-96b5-e7fb59e8a527",
+            "type_slug": "blog",
+            "slug": "article_1",
+            "title": "Article 1",
+            "status": "draft",
+            "seo_title": "",
+            "seo_description": "",
+            "seo_meta": [],
+            "translations": {
+                "2": {
+                    "id_wepresta_acf_cpt_post": 1,
+                    "id_lang": 2,
+                    "title": "Article 1",
+                    "seo_title": "",
+                    "seo_description": ""
+                }
+            },
+            "terms": [],
+            "acf_values": {
+                "text_field": "dedede"
+            }
+        }
+    ],
+    "timestamp": 1768566727,
+    "updated_at": "2026-01-16T13:32:07+01:00"
 }

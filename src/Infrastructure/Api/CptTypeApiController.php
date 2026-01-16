@@ -7,6 +7,7 @@ namespace WeprestaAcf\Infrastructure\Api;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use WeprestaAcf\Application\Service\AutoSyncService;
 use WeprestaAcf\Domain\Repository\CptTypeRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
@@ -23,6 +24,7 @@ final class CptTypeApiController extends AbstractApiController
     private AcfGroupRepositoryInterface $groupRepository;
     private AcfFieldRepositoryInterface $fieldRepository;
     private \WeprestaAcf\Application\Service\CptUrlService $urlService;
+    private AutoSyncService $autoSyncService;
 
     public function __construct(
         CptTypeRepositoryInterface $repository,
@@ -30,13 +32,15 @@ final class CptTypeApiController extends AbstractApiController
         ConfigurationAdapter $config,
         ContextAdapter $context,
         AcfGroupRepositoryInterface $groupRepository,
-        AcfFieldRepositoryInterface $fieldRepository
+        AcfFieldRepositoryInterface $fieldRepository,
+        AutoSyncService $autoSyncService
     ) {
         parent::__construct($config, $context);
         $this->repository = $repository;
         $this->urlService = $urlService;
         $this->groupRepository = $groupRepository;
         $this->fieldRepository = $fieldRepository;
+        $this->autoSyncService = $autoSyncService;
     }
 
     public function list(Request $request): JsonResponse
@@ -81,7 +85,9 @@ final class CptTypeApiController extends AbstractApiController
                 'active' => $type->isActive(),
                 'acf_groups' => $type->getAcfGroups(),
                 'acf_groups_full' => $this->getHydratedAcfGroups($type->getAcfGroups()),
-                'taxonomies' => $type->getTaxonomies(),
+                'taxonomies' => array_map(function ($t) {
+                    return (int) ($t['id_wepresta_acf_cpt_taxonomy'] ?? $t['id'] ?? 0);
+                }, $type->getTaxonomies()),
                 'translations' => $type->getTranslations(),
                 'view_url' => $type->hasArchive() ? $this->urlService->getFriendlyUrl($type) : null,
             ];
@@ -109,6 +115,10 @@ final class CptTypeApiController extends AbstractApiController
             if (!empty($data['taxonomies'])) {
                 $this->repository->syncTaxonomies($id, $data['taxonomies']);
             }
+
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+
             return $this->jsonSuccess(['id' => $id], null, Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -148,6 +158,10 @@ final class CptTypeApiController extends AbstractApiController
             if (isset($data['taxonomies'])) {
                 $this->repository->syncTaxonomies($id, $data['taxonomies']);
             }
+
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -161,6 +175,10 @@ final class CptTypeApiController extends AbstractApiController
                 return $this->jsonError('Type not found', Response::HTTP_NOT_FOUND);
             }
             $this->repository->delete($id);
+
+            // Trigger auto-sync
+            $this->autoSyncService->markDirty();
+
             return $this->jsonSuccess(['success' => true]);
         } catch (\Exception $e) {
             return $this->jsonError($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);

@@ -107,12 +107,15 @@ function setupToolbarButtons(): void {
     store.saveGroup()
   })
 
-  watch(() => store.viewMode, (mode) => {
+  // Watch both viewMode and activeTab to determine button visibility
+  watch([() => store.viewMode, activeTab], ([mode, tab]) => {
+    const isAcfTab = tab === 'acf'
+    
     listBtns.forEach(btn => {
-      btn.classList.toggle('d-none', mode !== 'list')
+      btn.classList.toggle('d-none', !isAcfTab || mode !== 'list')
     })
     editBtns.forEach(btn => {
-      btn.classList.toggle('d-none', mode !== 'edit')
+      btn.classList.toggle('d-none', !isAcfTab || mode !== 'edit')
     })
   }, { immediate: true })
 }
@@ -165,11 +168,12 @@ onMounted(() => {
     <template v-if="activeTab === 'cpt'">
       <div class="cpt-content">
         <!-- CPT Sub-Navigation -->
-        <div class="btn-group mb-3" role="group">
+        <!-- CPT Sub-Navigation -->
+        <div class="cpt-subnav mb-4">
           <button
             type="button"
-            class="btn btn-sm"
-            :class="cptView === 'types' ? 'btn-primary' : 'btn-outline-secondary'"
+            class="subnav-item"
+            :class="{ active: cptView === 'types' || cptView === 'posts' || cptView === 'post-build' }"
             @click="cptView = 'types'; cptStore.viewMode = 'list'"
           >
             <i class="material-icons">article</i>
@@ -177,8 +181,8 @@ onMounted(() => {
           </button>
           <button
             type="button"
-            class="btn btn-sm"
-            :class="cptView === 'taxonomies' ? 'btn-primary' : 'btn-outline-secondary'"
+            class="subnav-item"
+            :class="{ active: cptView === 'taxonomies' }"
             @click="cptView = 'taxonomies'"
           >
             <i class="material-icons">category</i>
@@ -271,5 +275,45 @@ onMounted(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Sub-navigation (Segmented Control) */
+.cpt-subnav {
+  display: inline-flex;
+  background: #f1f1f1;
+  padding: 4px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.subnav-item {
+  border: none;
+  background: transparent;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.subnav-item:hover {
+  color: #495057;
+  background: rgba(0,0,0,0.03);
+}
+
+.subnav-item.active {
+  background: white;
+  color: #25b9d7; /* PrestaShop/ACF blue */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  font-weight: 600;
+}
+
+.subnav-item .material-icons {
+  font-size: 18px;
 }
 </style>

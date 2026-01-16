@@ -495,6 +495,7 @@ final class AcfServiceContainer
             self::$services[CptFrontService::class] = $service ?? new CptFrontService(
                 self::getPostRepository(),
                 self::getTypeRepository(),
+                self::getTermRepository(),
                 self::getContextAdapter()
             );
         }

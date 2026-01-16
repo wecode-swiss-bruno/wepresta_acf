@@ -342,21 +342,39 @@ final class AutoSyncService
                 return new ImportResult(false, 'Invalid JSON in sync file');
             }
 
+            // Temporarily disable auto-sync during import to prevent immediate re-export
+            $wasEnabled = $this->isEnabled();
+            $this->config->set('WEPRESTA_ACF_AUTO_SYNC_ENABLED', 0);
+
             // Import using appropriate mode
             $result = $merge
                 ? $this->exportImportService->importMerge($data)
                 : $this->exportImportService->importReplace($data);
 
+            // Re-enable auto-sync if it was enabled
+            if ($wasEnabled) {
+                $this->config->set('WEPRESTA_ACF_AUTO_SYNC_ENABLED', 1);
+            }
+
             // Update last sync timestamp if successful
             if ($result->isSuccess()) {
-                $fileTimestamp = $data['timestamp'] ?? filemtime($filePath);
-                $this->config->set('WEPRESTA_ACF_SYNC_LAST_UPDATE', $fileTimestamp);
-                $this->logInfo('Auto-sync: Configuration imported from file');
+                // Use current timestamp to prevent immediate re-export
+                // This ensures the file is considered "synchronized" after import
+                $this->config->set('WEPRESTA_ACF_SYNC_LAST_UPDATE', time());
+                $this->logInfo('Auto-sync: Configuration imported from file', [
+                    'created' => count($result->getCreated()),
+                    'updated' => count($result->getUpdated()),
+                ]);
             }
 
             return $result;
         } catch (Exception $e) {
             $this->logError('Auto-sync: Import failed', ['error' => $e->getMessage()]);
+
+            // Re-enable auto-sync if it was enabled
+            if (isset($wasEnabled) && $wasEnabled) {
+                $this->config->set('WEPRESTA_ACF_AUTO_SYNC_ENABLED', 1);
+            }
 
             return new ImportResult(false, 'Import error: ' . $e->getMessage());
         }

@@ -1270,6 +1270,55 @@ Utilisez `{foreach $acf->repeater('slug') as $row}` et non `{$acf->render('slug'
 
 ---
 
+## Afficher les taxonomies associées
+
+Pour afficher les termes (catégories, tags...) associés à un post CPT, utilisez la méthode `$cpt->getPostTerms($id_post)`.
+
+### Dans un template single (ex: `single-blog.tpl`)
+
+```smarty
+{* Récupérer les termes du post courant *}
+{assign var="terms" value=$cpt->getPostTerms($cpt_post.id)}
+
+{if $terms}
+    <div class="cpt-terms">
+        <span class="label">Catégories :</span>
+        <ul class="terms-list">
+        {foreach from=$terms item=term}
+            <li>
+                <span class="term-badge">{$term->getName()}</span>
+            </li>
+        {/foreach}
+        </ul>
+    </div>
+{/if}
+```
+
+### Dans une boucle archive (ex: `archive-blog.tpl`)
+
+```smarty
+{foreach from=$posts item=post}
+    <article class="post-card">
+        <h2>{$post->getTitle()}</h2>
+        
+        {* Récupérer les terms pour CHAQUE post dans la boucle *}
+        {assign var="post_terms" value=$cpt->getPostTerms($post->getId())}
+        
+        {if $post_terms}
+            <div class="meta-terms">
+                {foreach from=$post_terms item=term}
+                    <span class="badge">{$term->getName()}</span>
+                {/foreach}
+            </div>
+        {/if}
+        
+        {* ... *}
+    </article>
+{/foreach}
+```
+
+---
+
 ## Support
 
 **Module** : WePresta ACF  

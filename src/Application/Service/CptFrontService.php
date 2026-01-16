@@ -16,14 +16,20 @@ final class CptFrontService
 {
     private CptPostRepositoryInterface $postRepository;
     private CptTypeRepositoryInterface $typeRepository;
+    private \WeprestaAcf\Domain\Repository\CptTermRepositoryInterface $termRepository;
     private ContextAdapter $context;
     private ?int $currentPostId = null;
     private ?string $currentTypeSlug = null;
 
-    public function __construct(CptPostRepositoryInterface $postRepository, CptTypeRepositoryInterface $typeRepository, ContextAdapter $context)
-    {
+    public function __construct(
+        CptPostRepositoryInterface $postRepository,
+        CptTypeRepositoryInterface $typeRepository,
+        \WeprestaAcf\Domain\Repository\CptTermRepositoryInterface $termRepository,
+        ContextAdapter $context
+    ) {
         $this->postRepository = $postRepository;
         $this->typeRepository = $typeRepository;
+        $this->termRepository = $termRepository;
         $this->context = $context;
     }
 
@@ -45,6 +51,11 @@ final class CptFrontService
             return null;
         }
         return $this->postRepository->find($this->currentPostId, $this->context->getLangId(), $this->context->getShopId());
+    }
+
+    public function getPostTerms(int $postId): array
+    {
+        return $this->termRepository->findByPostId($postId, $this->context->getLangId());
     }
 
     public function getArchivePosts(int $limit = 10, int $offset = 0): array

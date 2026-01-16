@@ -62,6 +62,21 @@ final class CptTermRepository extends AbstractRepository implements CptTermRepos
         }, $rows);
     }
 
+    public function findByPostId(int $postId, ?int $langId = null): array
+    {
+        $sql = 'SELECT t.* FROM ' . _DB_PREFIX_ . 'wepresta_acf_cpt_term t
+                INNER JOIN ' . _DB_PREFIX_ . 'wepresta_acf_cpt_post_term pt ON t.id_wepresta_acf_cpt_term = pt.id_wepresta_acf_cpt_term
+                WHERE pt.id_wepresta_acf_cpt_post = ' . (int) $postId . ' ORDER BY t.position ASC';
+        $rows = \Db::getInstance()->executeS($sql) ?: [];
+        return array_map(function ($row) use ($langId) {
+            $term = new CptTerm($row);
+            if ($langId !== null) {
+                $term->setTranslations($this->getTranslations((int) $row['id_wepresta_acf_cpt_term'], $langId));
+            }
+            return $term;
+        }, $rows);
+    }
+
     public function findTopLevel(int $taxonomyId, ?int $langId = null): array
     {
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'wepresta_acf_cpt_term 

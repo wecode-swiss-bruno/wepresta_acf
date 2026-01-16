@@ -1,67 +1,157 @@
 <template>
   <div class="cpt-taxonomy-manager">
     <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-header-title">{{ t('taxonomies') }}</h3>
-        <button class="btn btn-primary btn-sm" @click="openCreateModal">
-          <i class="material-icons">add</i>
-          {{ t('newTaxonomy') }}
-        </button>
-      </div>
       <div class="card-body">
-        <div v-if="cptStore.taxonomies.length === 0" class="alert alert-info">
-          {{ t('noTaxonomiesYet') }}
+        <!-- Empty state -->
+        <div v-if="cptStore.taxonomies.length === 0" class="text-center py-5">
+          <i class="material-icons text-muted mb-3" style="font-size: 64px;">category</i>
+          <p class="text-muted mb-3">{{ t('noTaxonomiesYet') }}</p>
+          <div class="d-flex justify-content-center">
+            <button class="btn btn-outline-primary" @click="openCreateModal">
+              <i class="material-icons">add</i>
+              {{ t('newTaxonomy') }}
+            </button>
+          </div>
         </div>
 
-        <div v-else class="list-group">
-          <div
-            v-for="taxonomy in cptStore.taxonomies"
-            :key="taxonomy.id"
-            class="list-group-item d-flex justify-content-between align-items-center"
-          >
-            <div>
-              <strong>{{ taxonomy.name }}</strong>
-              <br>
-              <code>{{ taxonomy.slug }}</code>
-              <small v-if="taxonomy.description" class="text-muted d-block">
-                {{ taxonomy.description }}
-              </small>
+        <template v-else>
+          <!-- Bulk Actions Bar -->
+          <div v-if="hasSelectedTaxonomies" class="alert alert-light border d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center">
+              <i class="material-icons text-primary mr-2">check_circle</i>
+              <span class="font-weight-semibold">
+                {{ selectedCount }} {{ selectedCount === 1 ? t('taxonomySelected') : t('taxonomiesSelected') }}
+              </span>
             </div>
-            <div class="btn-group">
-              <button
-                class="btn btn-sm btn-outline-secondary"
-                @click="manageTerms(taxonomy)"
-                :title="t('manageTerms')"
-              >
-                <i class="material-icons">category</i>
-                {{ t('terms') }}
-              </button>
-              <button
-                class="btn btn-sm btn-outline-primary"
-                @click="editTaxonomy(taxonomy)"
-                :title="t('edit')"
-              >
-                <i class="material-icons">edit</i>
-              </button>
-              <button
-                class="btn btn-sm btn-outline-danger"
-                @click="deleteTaxonomy(taxonomy)"
-                :title="t('delete')"
-              >
-                <i class="material-icons">delete</i>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-outline-danger btn-sm" @click="confirmBulkDelete">
+                <i class="material-icons mr-1">delete</i>
+                {{ t('delete') }}
               </button>
             </div>
           </div>
-        </div>
+
+          <!-- Native PrestaShop Grid -->
+          <div class="grid js-grid" id="cpt_taxonomy_grid" data-grid-id="cpt_taxonomy">
+            <div class="table-responsive">
+              <table class="grid-table js-grid-table table" id="cpt_taxonomy_grid_table">
+                <thead class="thead-default">
+                  <tr class="column-headers">
+                    <th scope="col" data-type="selector" data-column-id="select" class="text-center">
+                      <input
+                        type="checkbox"
+                        class="form-check-input header-checkbox"
+                        :checked="isAllSelected"
+                        :indeterminate.prop="isIndeterminate"
+                        @change="toggleSelectAll"
+                        id="select-all-taxonomies"
+                      />
+                    </th>
+                    <th scope="col" data-type="identifier" data-column-id="id">
+                      <span role="columnheader">ID</span>
+                    </th>
+                    <th scope="col" data-type="data" data-column-id="name">
+                      <span role="columnheader">{{ t('name') }}</span>
+                    </th>
+                    <th scope="col" data-type="data" data-column-id="slug">
+                      <span role="columnheader">{{ t('slug') }}</span>
+                    </th>
+                    <th scope="col" data-type="data" data-column-id="description">
+                      <span role="columnheader">{{ t('description') }}</span>
+                    </th>
+                    <th scope="col" data-type="action" data-column-id="actions">
+                      <div class="grid-actions-header-text">{{ t('actions') }}</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="taxonomy in cptStore.taxonomies" :key="taxonomy.id">
+                    <td class="selector-type column-select text-center">
+                      <div class="form-check mb-0">
+                        <input
+                          type="checkbox"
+                          class="form-check-input"
+                          :checked="selectedTaxonomies.has(taxonomy.id!)"
+                          @change="toggleTaxonomySelection(taxonomy.id!)"
+                          :id="'select-taxonomy-' + taxonomy.id"
+                        />
+                      </div>
+                    </td>
+                    <td data-identifier class="identifier-type column-id">
+                      {{ taxonomy.id }}
+                    </td>
+                    <td class="data-type column-name text-left">
+                      <a
+                        href="#"
+                        class="text-primary font-weight-bold"
+                        @click.prevent="editTaxonomy(taxonomy)"
+                      >
+                        {{ taxonomy.name }}
+                      </a>
+                    </td>
+                    <td class="data-type column-slug text-left">
+                      <code class="text-muted">{{ taxonomy.slug }}</code>
+                    </td>
+                    <td class="data-type column-description text-left">
+                      <small class="text-muted">{{ taxonomy.description || '-' }}</small>
+                    </td>
+                    <td class="action-type column-actions">
+                      <div class="btn-group-action text-right">
+                        <div class="btn-group d-flex justify-content-end">
+                          <!-- Manage Terms -->
+                          <a
+                            href="#"
+                            class="btn tooltip-link dropdown-item inline-dropdown-item"
+                            data-toggle="pstooltip"
+                            data-placement="top"
+                            :data-original-title="t('manageTerms')"
+                            @click.prevent="manageTerms(taxonomy)"
+                          >
+                            <i class="material-icons">category</i>
+                          </a>
+                          <!-- Edit -->
+                          <a
+                            href="#"
+                            class="btn tooltip-link dropdown-item inline-dropdown-item"
+                            data-toggle="pstooltip"
+                            data-placement="top"
+                            :data-original-title="t('edit')"
+                            @click.prevent="editTaxonomy(taxonomy)"
+                          >
+                            <i class="material-icons">edit</i>
+                          </a>
+                          <!-- Delete -->
+                          <a
+                            href="#"
+                            class="btn tooltip-link dropdown-item inline-dropdown-item text-danger"
+                            data-toggle="pstooltip"
+                            data-placement="top"
+                            :data-original-title="t('delete')"
+                            @click.prevent="deleteTaxonomy(taxonomy)"
+                          >
+                            <i class="material-icons">delete</i>
+                          </a>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
-    <!-- Create Taxonomy Modal -->
-    <div v-if="showCreateTaxonomy" class="modal" style="display: block">
-      <div class="modal-dialog">
+    <!-- Create/Edit Taxonomy Modal -->
+    <div v-if="showCreateTaxonomy" class="modal fade show" style="display: block" tabindex="-1">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">{{ isEdit ? t('editTaxonomy') : t('newTaxonomy') }}</h5>
+            <h5 class="modal-title d-flex align-items-center">
+              <i class="material-icons mr-2">category</i>
+              {{ isEdit ? t('editTaxonomy') : t('newTaxonomy') }}
+            </h5>
             <button type="button" class="close" @click="showCreateTaxonomy = false">
               <span>&times;</span>
             </button>
@@ -81,7 +171,7 @@
                   </a>
                 </li>
               </ul>
-              <div class="translationsFields tab-content mt-2">
+              <div class="translationsFields tab-content mt-3">
                 <div
                   v-for="lang in languages"
                   :key="lang.id_lang"
@@ -152,16 +242,18 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="showCreateTaxonomy = false">
+            <button type="button" class="btn btn-outline-secondary" @click="showCreateTaxonomy = false">
               {{ t('cancel') }}
             </button>
             <button type="button" class="btn btn-primary" @click="saveTaxonomy">
+              <i class="material-icons mr-1">check</i>
               {{ isEdit ? t('update') : t('create') }}
             </button>
           </div>
         </div>
       </div>
     </div>
+    <div v-if="showCreateTaxonomy" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
@@ -169,12 +261,25 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
 import { useTranslations } from '../../composables/useTranslations'
+import { useApi } from '../../composables/useApi'
 
 const cptStore = useCptStore()
 const { t } = useTranslations()
+const api = useApi()
 const showCreateTaxonomy = ref(false)
 const isEdit = ref(false)
 const editId = ref<number | null>(null)
+
+// Selection state
+const selectedTaxonomies = ref<Set<number>>(new Set())
+const hasSelectedTaxonomies = computed(() => selectedTaxonomies.value.size > 0)
+const selectedCount = computed(() => selectedTaxonomies.value.size)
+const isAllSelected = computed(() => {
+  return cptStore.taxonomies.length > 0 && selectedTaxonomies.value.size === cptStore.taxonomies.length
+})
+const isIndeterminate = computed(() => {
+  return selectedTaxonomies.value.size > 0 && selectedTaxonomies.value.size < cptStore.taxonomies.length
+})
 
 // Languages
 const languages = computed(() => (window as any).acfConfig?.languages || [])
@@ -208,6 +313,63 @@ const taxonomyForm = reactive({
   hierarchical: true
 })
 
+// Selection methods
+function toggleTaxonomySelection(id: number): void {
+  if (selectedTaxonomies.value.has(id)) {
+    selectedTaxonomies.value.delete(id)
+  } else {
+    selectedTaxonomies.value.add(id)
+  }
+}
+
+function toggleSelectAll(): void {
+  if (isAllSelected.value) {
+    selectedTaxonomies.value.clear()
+  } else {
+    selectedTaxonomies.value.clear()
+    cptStore.taxonomies.forEach(tax => {
+      if (tax.id) selectedTaxonomies.value.add(tax.id)
+    })
+  }
+}
+
+function clearSelection(): void {
+  selectedTaxonomies.value.clear()
+}
+
+// Bulk delete
+function confirmBulkDelete(): void {
+  const ids = Array.from(selectedTaxonomies.value)
+  if (ids.length === 0) return
+  
+  const message = ids.length === 1
+    ? t('confirmDeleteTaxonomy')
+    : t('confirmDeleteTaxonomies', 'Delete {count} taxonomies?', { count: ids.length.toString() })
+  
+  if (confirm(message)) {
+    bulkDelete(ids)
+  }
+}
+
+async function bulkDelete(ids: number[]): Promise<void> {
+  try {
+    const response = await api.fetchJson('/cpt/taxonomies/bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify({ taxonomyIds: ids })
+    })
+    
+    if (response.success) {
+      await cptStore.fetchTaxonomies()
+      clearSelection()
+      alert(t('bulkDeleteSuccess'))
+    } else {
+      alert(t('bulkDeleteError') + ': ' + (response.error || 'Unknown error'))
+    }
+  } catch (e) {
+    alert(t('bulkDeleteError') + ': ' + (e as Error).message)
+  }
+}
+
 function generateTaxSlug() {
   if (!isEdit.value) {
     const defaultLangId = defaultLanguage.value?.id_lang
@@ -230,7 +392,6 @@ function resetForm() {
   isEdit.value = false
   editId.value = null
   
-  // Reset translations
   Object.keys(taxTranslations).forEach((key) => {
     taxTranslations[parseInt(key)] = { name: '', description: '' }
   })
@@ -246,14 +407,12 @@ async function editTaxonomy(taxonomy: any) {
   isEdit.value = true
   editId.value = taxonomy.id
   
-  // Ensure translations are initialized
   languages.value.forEach((lang: any) => {
     if (!taxTranslations[lang.id_lang]) {
       taxTranslations[lang.id_lang] = { name: '', description: '' }
     }
   })
   
-  // Fetch full taxonomy data including translations
   const fullTaxonomy = await cptStore.fetchTaxonomy(taxonomy.id)
   
   if (fullTaxonomy) {
@@ -262,28 +421,23 @@ async function editTaxonomy(taxonomy: any) {
     taxonomyForm.description = fullTaxonomy.description || ''
     taxonomyForm.hierarchical = fullTaxonomy.hierarchical !== false
     
-    // Load translations
     if (fullTaxonomy.translations) {
-      const translations = fullTaxonomy.translations
-      Object.keys(translations).forEach((langId) => {
+      Object.keys(fullTaxonomy.translations).forEach((langId) => {
         const id = parseInt(langId)
-        if (taxTranslations[id as unknown as number]) {
-          taxTranslations[id as unknown as number] = {
-            name: translations[langId]?.name || '',
-            description: translations[langId]?.description || ''
+        if (taxTranslations[id]) {
+          taxTranslations[id] = {
+            name: fullTaxonomy.translations[langId]?.name || '',
+            description: fullTaxonomy.translations[langId]?.description || ''
           }
         }
       })
     }
 
-    // Fallback for legacy data (if translations missing)
     const defaultLangId = defaultLanguage.value?.id_lang
-    if (defaultLangId && (!taxTranslations[defaultLangId]?.name || taxTranslations[defaultLangId].name === '') && fullTaxonomy.name) {
-      if (taxTranslations[defaultLangId]) {
-        taxTranslations[defaultLangId].name = fullTaxonomy.name
-        if (fullTaxonomy.description) {
-           taxTranslations[defaultLangId].description = fullTaxonomy.description
-        }
+    if (defaultLangId && (!taxTranslations[defaultLangId]?.name) && fullTaxonomy.name) {
+      taxTranslations[defaultLangId] = {
+        name: fullTaxonomy.name,
+        description: fullTaxonomy.description || ''
       }
     }
     
@@ -292,7 +446,6 @@ async function editTaxonomy(taxonomy: any) {
 }
 
 async function saveTaxonomy() {
-  // Set default name/description from default language translation
   const defaultLangId = defaultLanguage.value?.id_lang
   if (defaultLangId && taxTranslations[defaultLangId]) {
     taxonomyForm.name = taxTranslations[defaultLangId].name
@@ -329,16 +482,76 @@ function deleteTaxonomy(taxonomy: any) {
 </script>
 
 <style scoped>
-.modal {
+/* Native PrestaShop Grid styles */
+.grid-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.grid-table td {
+  vertical-align: middle;
+}
+
+.grid-table .column-select {
+  width: 60px;
+}
+
+.grid-table .column-id {
+  width: 60px;
+}
+
+.grid-table .column-actions {
+  width: 140px;
+}
+
+/* Action buttons */
+.btn-group-action .btn,
+.btn-group-action .dropdown-item.inline-dropdown-item {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: none;
+}
+
+.btn-group-action .btn:hover {
+  background: #f8f9fa;
+}
+
+.btn-group-action .material-icons {
+  font-size: 20px;
+}
+
+/* Checkboxes */
+.grid-table .column-select .form-check {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-table thead .header-checkbox {
+  margin: 0;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
 }
 
-.form-section {
-  border-bottom: 1px solid #e9ecef;
-  padding-bottom: 1.5rem;
+.modal {
+  z-index: 1050;
 }
 
-.form-section:last-child {
-  border-bottom: none;
+/* Empty state */
+.text-center.py-5 .material-icons {
+  display: block;
+  margin: 0 auto 1rem;
 }
 </style>
