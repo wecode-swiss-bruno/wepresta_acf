@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { AcfField } from '@/types'
 import AcfFileUploadField from './AcfFileUploadField.vue'
+import AcfRelationField from './AcfRelationField.vue'
 import { useTranslations } from '@/composables/useTranslations'
 
 interface RepeaterRow {
@@ -31,19 +32,52 @@ const expandedRows = ref<Set<string>>(new Set())
 // Load initial rows
 const init = () => {
   const value = props.modelValue
+  
   if (!value) {
     rows.value = []
     return
   }
 
-  if (typeof value === 'string') {
-    try {
-      rows.value = JSON.parse(value)
-    } catch {
-      rows.value = []
-    }
-  } else if (Array.isArray(value)) {
+  // If it's already an array, use it directly
+  if (Array.isArray(value)) {
     rows.value = value
+  } else if (typeof value === 'string') {
+    try {
+      // Sanitize the JSON string to escape literal control characters
+      // that may have been introduced by user input in textareas
+      const sanitized = value
+        .replace(/[\r\n]+/g, '\\n') // Replace literal newlines with escaped
+        .replace(/\t/g, '\\t')      // Replace literal tabs with escaped
+      
+      rows.value = JSON.parse(sanitized)
+    } catch (e) {
+      // Try alternative: maybe the backend double-encoded it
+      try {
+        rows.value = JSON.parse(JSON.parse(value))
+      } catch {
+        rows.value = []
+      }
+    }
+  } else if (typeof value === 'object') {
+    // Could be a proxy, a single row object, or an array-like object
+    
+    // Check if it's a single row object (has row_id property)
+    if (value.row_id && value.values) {
+      rows.value = [value as RepeaterRow]
+    } 
+    // Check if it looks like an array (has numeric keys or is iterable)
+    else if (value[0] !== undefined || (Symbol.iterator in Object(value))) {
+      rows.value = Array.from(value as Iterable<RepeaterRow>)
+    }
+    // Try Object.values as fallback
+    else {
+      const arr = Object.values(value) as RepeaterRow[]
+      if (arr.length > 0 && (arr[0] as any)?.row_id) {
+        rows.value = arr
+      } else {
+        rows.value = []
+      }
+    }
   } else {
     rows.value = []
   }
@@ -58,6 +92,24 @@ const init = () => {
 }
 
 init()
+
+// Watch for modelValue changes (data loads async after component mounts)
+import { watch } from 'vue'
+watch(() => props.modelValue, (newValue, oldValue) => {
+  // Skip if no change or empty to empty
+  if (newValue === oldValue) {
+    return
+  }
+  
+  // Init on any truthy value (including first load)
+  // This handles strings, arrays, and Proxy objects that wrap arrays
+  if (newValue) {
+    init()
+  } else {
+    // Value was cleared
+    rows.value = []
+  }
+}, { immediate: true, deep: true })
 
 // Get repeater config
 const repeaterConfig = computed(() => ({
@@ -757,14 +809,13 @@ function parseChoices(choices: any): Array<{ value: string; label: string }> {
                   @update:model-value="setSubfieldValue(row, subfield, $event)"
                 />
 
-                <!-- Relation (simplified - show IDs) -->
-                <div v-else-if="subfield.type === 'relation'" class="relation-field-placeholder">
-                  <small class="text-muted">
-                    <i class="material-icons" style="font-size: 14px; vertical-align: middle;">link</i>
-                    {{ t('relationField', undefined, { type: (subfield.config?.entityType as string | number) || 'entity' }) }}
-                    - {{ t('useEntityEditorSelection') }}
-                  </small>
-                </div>
+                <!-- Relation -->
+                <AcfRelationField
+                  v-else-if="subfield.type === 'relation'"
+                  :field="subfield"
+                  :model-value="getSubfieldValue(row, subfield)"
+                  @update:model-value="setSubfieldValue(row, subfield, $event)"
+                />
 
                 <!-- Unsupported type -->
                 <div v-else class="alert alert-warning">

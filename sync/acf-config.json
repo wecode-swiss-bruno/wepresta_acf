@@ -1,13 +1,13 @@
 {
     "version": "1.0",
-    "exported_at": "2026-01-16T17:29:04+01:00",
+    "exported_at": "2026-01-18T17:02:06+01:00",
     "module_version": "1.0.0",
     "prestashop_version": "9.0.2",
     "groups": [
         {
             "uuid": "0c2f2e13-6e7a-499c-8e59-5d98baafb0d1",
-            "title": "Properties",
-            "slug": "properties",
+            "title": "Real Estate Announcement",
+            "slug": "real_estate_announcement",
             "description": "",
             "location_rules": [
                 {
@@ -15,7 +15,7 @@
                         {
                             "var": "entity_type"
                         },
-                        "cpt_post:property"
+                        "cpt_post:properties"
                     ]
                 }
             ],
@@ -31,7 +31,7 @@
             ],
             "fields": [
                 {
-                    "id": 18,
+                    "id": 35,
                     "uuid": "18bb4482-3664-478e-8e40-46b6e580f423",
                     "id_parent": null,
                     "type": "text",
@@ -55,7 +55,7 @@
                     }
                 },
                 {
-                    "id": 19,
+                    "id": 36,
                     "uuid": "58f3d8bf-8c15-423a-aa70-2d80312cbde8",
                     "id_parent": null,
                     "type": "number",
@@ -79,7 +79,7 @@
                     }
                 },
                 {
-                    "id": 20,
+                    "id": 37,
                     "uuid": "e8816b43-5cc4-47e8-a62d-2776f9ba3056",
                     "id_parent": null,
                     "type": "number",
@@ -103,7 +103,7 @@
                     }
                 },
                 {
-                    "id": 21,
+                    "id": 38,
                     "uuid": "099286ba-a1d3-4a48-8ab1-84e19df5fd8a",
                     "id_parent": null,
                     "type": "number",
@@ -125,7 +125,7 @@
                     }
                 },
                 {
-                    "id": 22,
+                    "id": 39,
                     "uuid": "848f1d60-8562-46f6-a3e0-e41abc978f57",
                     "id_parent": null,
                     "type": "number",
@@ -147,7 +147,7 @@
                     }
                 },
                 {
-                    "id": 23,
+                    "id": 40,
                     "uuid": "5a5f3054-c0cb-4e25-a929-2c6e7a0ace4c",
                     "id_parent": null,
                     "type": "number",
@@ -169,7 +169,7 @@
                     }
                 },
                 {
-                    "id": 24,
+                    "id": 41,
                     "uuid": "834bf0bb-f8c4-4f69-b118-25bcecad571f",
                     "id_parent": null,
                     "type": "number",
@@ -191,7 +191,7 @@
                     }
                 },
                 {
-                    "id": 25,
+                    "id": 42,
                     "uuid": "6429b85c-a28b-4a78-aad0-f57d145aeba7",
                     "id_parent": null,
                     "type": "number",
@@ -213,7 +213,7 @@
                     }
                 },
                 {
-                    "id": 26,
+                    "id": 43,
                     "uuid": "1a522d75-f09d-4974-acb7-1b5abbca2895",
                     "id_parent": null,
                     "type": "select",
@@ -273,7 +273,7 @@
                     }
                 },
                 {
-                    "id": 27,
+                    "id": 44,
                     "uuid": "84ae9e02-e02d-4417-9572-cdd6345d6b06",
                     "id_parent": null,
                     "type": "text",
@@ -295,7 +295,7 @@
                     }
                 },
                 {
-                    "id": 28,
+                    "id": 45,
                     "uuid": "fa363ab8-c47d-4658-a32a-1b2cffa23814",
                     "id_parent": null,
                     "type": "textarea",
@@ -304,7 +304,7 @@
                     "instructions": "",
                     "position": 11,
                     "required": false,
-                    "translatable": false,
+                    "translatable": true,
                     "active": true,
                     "config": [],
                     "validation": [],
@@ -317,7 +317,7 @@
                     }
                 },
                 {
-                    "id": 29,
+                    "id": 46,
                     "uuid": "6ec31c37-58eb-4757-9776-71ba898ce52d",
                     "id_parent": null,
                     "type": "checkbox",
@@ -370,7 +370,7 @@
                     }
                 },
                 {
-                    "id": 30,
+                    "id": 47,
                     "uuid": "9e120e84-cd33-419a-ad1d-5bad5289b88a",
                     "id_parent": null,
                     "type": "gallery",
@@ -392,7 +392,7 @@
                     }
                 },
                 {
-                    "id": 31,
+                    "id": 48,
                     "uuid": "4a837553-39b5-4d85-9ec0-8b865d8570dd",
                     "id_parent": null,
                     "type": "file",
@@ -418,7 +418,7 @@
                     }
                 },
                 {
-                    "id": 32,
+                    "id": 49,
                     "uuid": "3969d24d-c7b5-427f-ab8b-c5f6244903d7",
                     "id_parent": null,
                     "type": "date",
@@ -440,7 +440,7 @@
                     }
                 },
                 {
-                    "id": 33,
+                    "id": 50,
                     "uuid": "3285354a-117b-402d-8319-6d4f6853f143",
                     "id_parent": null,
                     "type": "image",
@@ -462,7 +462,7 @@
                     }
                 },
                 {
-                    "id": 34,
+                    "id": 51,
                     "uuid": "3bf0cd92-ce75-41ae-a90d-cc7f9487b670",
                     "id_parent": null,
                     "type": "text",
@@ -471,7 +471,7 @@
                     "instructions": "",
                     "position": 16,
                     "required": false,
-                    "translatable": false,
+                    "translatable": true,
                     "active": true,
                     "config": [],
                     "validation": [],
@@ -842,6 +842,745 @@
                     "id_lang": null,
                     "value": "Maison de charme avec jardin",
                     "value_index": "Maison de charme avec jardin"
+                },
+                {
+                    "field_slug": "address",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "61 Rue des Bains 1205 Genève",
+                    "value_index": "61 Rue des Bains 1205 Genève"
+                },
+                {
+                    "field_slug": "available_date",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 1769814000,
+                    "value_index": "1769814000"
+                },
+                {
+                    "field_slug": "bathrooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 4,
+                    "value_index": "+000000004.000000"
+                },
+                {
+                    "field_slug": "bedrooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 4,
+                    "value_index": "+000000004.000000"
+                },
+                {
+                    "field_slug": "construction_year",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 2012,
+                    "value_index": "+000002012.000000"
+                },
+                {
+                    "field_slug": "description",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants. Elle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse.",
+                    "value_index": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants. Elle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse."
+                },
+                {
+                    "field_slug": "energy_rating",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "choice_2",
+                    "value_index": "choice_2"
+                },
+                {
+                    "field_slug": "features",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": [
+                        "choice_1",
+                        "choice_2",
+                        "choice_3",
+                        "choice_4"
+                    ],
+                    "value_index": "choice_1,choice_2,choice_3,choice_4"
+                },
+                {
+                    "field_slug": "floor",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 2,
+                    "value_index": "+000000002.000000"
+                },
+                {
+                    "field_slug": "gallery",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": [
+                        "13_0_1_1768577711_7ac3f243.png",
+                        "images/13_0_1_1768577711_7ac3f243.png",
+                        "/modules/wepresta_acf/uploads/images/13_0_1_1768577711_7ac3f243.png",
+                        2491311,
+                        "image/png",
+                        "Gemini_Generated_Image_c032tpc032tpc032.png"
+                    ],
+                    "value_index": ""
+                },
+                {
+                    "field_slug": "image",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": {
+                        "filename": "16_0_1_1768577823_7a2d938d.png",
+                        "path": "images/16_0_1_1768577823_7a2d938d.png",
+                        "url": "/modules/wepresta_acf/uploads/images/16_0_1_1768577823_7a2d938d.png",
+                        "size": 2491311,
+                        "mime": "image/png",
+                        "original_name": "Gemini_Generated_Image_c032tpc032tpc032.png"
+                    },
+                    "value_index": "Gemini_Generated_Image_c032tpc032tpc032.png"
+                },
+                {
+                    "field_slug": "price",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 490000,
+                    "value_index": "+000490000.000000"
+                },
+                {
+                    "field_slug": "reference",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "FHDJHEEUDE",
+                    "value_index": "FHDJHEEUDE"
+                },
+                {
+                    "field_slug": "rooms",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 5,
+                    "value_index": "+000000005.000000"
+                },
+                {
+                    "field_slug": "surface",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 290,
+                    "value_index": "+000000290.000000"
+                },
+                {
+                    "field_slug": "title",
+                    "entity_type": "cpt_post",
+                    "entity_id": 3,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "Maison de charme avec jardin",
+                    "value_index": "Maison de charme avec jardin"
+                }
+            ]
+        },
+        {
+            "uuid": "eb6b9482-b58c-47e4-9d9b-d68a637335b3",
+            "title": "Gift Guides",
+            "slug": "gift_guides",
+            "description": "",
+            "location_rules": [
+                {
+                    "==": [
+                        {
+                            "var": "entity_type"
+                        },
+                        "cpt_post:gift_guides"
+                    ]
+                }
+            ],
+            "placement_tab": "extra",
+            "placement_position": "",
+            "position": 10,
+            "priority": 10,
+            "active": true,
+            "bo_options": [],
+            "fo_options": [],
+            "shop_ids": [
+                1
+            ],
+            "fields": [
+                {
+                    "id": 70,
+                    "uuid": "53c7cb9e-6dcb-4652-ac0d-c5cd5373b579",
+                    "id_parent": null,
+                    "type": "image",
+                    "title": "Image Upload",
+                    "slug": "hero_image",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 71,
+                    "uuid": "12e849d7-0841-4d85-957d-c20b8c44c6e0",
+                    "id_parent": null,
+                    "type": "richtext",
+                    "title": "Rich Text Editor",
+                    "slug": "intro_text",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": true,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 72,
+                    "uuid": "61e9900b-fb34-4a4f-802e-6dc274c68711",
+                    "id_parent": null,
+                    "type": "repeater",
+                    "title": "Repeater Field",
+                    "slug": "gift_sections",
+                    "instructions": "",
+                    "position": 2,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 76,
+                    "uuid": "172f2a4f-78a2-490e-be47-f2cf6f607c0d",
+                    "id_parent": null,
+                    "type": "list",
+                    "title": "List Field",
+                    "slug": "expert_tips",
+                    "instructions": "",
+                    "position": 3,
+                    "required": false,
+                    "translatable": true,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 77,
+                    "uuid": "0b570227-dba5-40ed-8243-dcd1849c27f3",
+                    "id_parent": null,
+                    "type": "boolean",
+                    "title": "Toggle Field",
+                    "slug": "gift_wrapping_available",
+                    "instructions": "",
+                    "position": 4,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 78,
+                    "uuid": "8eb26b2d-a2c6-4b50-b4ab-919b9e09b88f",
+                    "id_parent": null,
+                    "type": "date",
+                    "title": "Date Field",
+                    "slug": "delivery_deadline",
+                    "instructions": "",
+                    "position": 5,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 73,
+                    "uuid": "199b2eef-2220-4f96-9883-5424effd95fc",
+                    "id_parent": 72,
+                    "type": "text",
+                    "title": "Text Field",
+                    "slug": "section_title",
+                    "instructions": "",
+                    "position": 0,
+                    "required": false,
+                    "translatable": true,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 75,
+                    "uuid": "f0d06073-6e57-4941-a6d5-e9f9de5ba3c7",
+                    "id_parent": 72,
+                    "type": "relation",
+                    "title": "Relation Field",
+                    "slug": "products",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "multiple": true,
+                        "displayFormat": "thumbnail_name"
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 74,
+                    "uuid": "fd87fdd8-3d66-435a-b124-26ab6606c989",
+                    "id_parent": 72,
+                    "type": "textarea",
+                    "title": "Textarea",
+                    "slug": "section_description",
+                    "instructions": "",
+                    "position": 2,
+                    "required": false,
+                    "translatable": true,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                }
+            ],
+            "field_values": [
+                {
+                    "field_slug": "hero_image",
+                    "entity_type": "cpt_post",
+                    "entity_id": 4,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": {
+                        "filename": "70_0_1_1768600569_2bb1be99.jpg",
+                        "path": "images/70_0_1_1768600569_2bb1be99.jpg",
+                        "url": "/modules/wepresta_acf/uploads/images/70_0_1_1768600569_2bb1be99.jpg",
+                        "size": 59893,
+                        "mime": "image/jpeg",
+                        "original_name": "Womens-Gifts-Carousel.jpg"
+                    },
+                    "value_index": "Womens-Gifts-Carousel.jpg"
+                },
+                {
+                    "field_slug": "gift_sections",
+                    "entity_type": "cpt_post",
+                    "entity_id": 4,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "[{\"row_id\":\"dbd2e848-73c7-4422-8a2a-d5989ada82f6\",\"collapsed\":false,\"values\":{\"section_title\":{\"1\":\"Duis id felis venenatis quam dignissim auctor. Proin congue bibendum mi.\",\"2\":\"Duis id felis venenatis quam dignissim auctor. Proin congue bibendum mi.\",\"3\":\"\",\"4\":\"\",\"5\":\"\"},\"products\":\"4,5,3,15\",\"section_description\":{\"1\":\"\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ullamcorper iaculis dolor sit amet aliquam. Donec ornare quis velit ac ultrices. Nullam tincidunt elementum varius. Curabitur in sollicitudin est. Sed orci augue, fringilla et velit eu, vulputate volutpat risus. Quisque libero ligula, congue non consectetur sit amet, lobortis a nulla. Phasellus condimentum ullamcorper consequat. Praesent tincidunt mauris at nisl pretium, non posuere nunc aliquam.\",\"2\":\"\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ullamcorper iaculis dolor sit amet aliquam. Donec ornare quis velit ac ultrices. Nullam tincidunt elementum varius. Curabitur in sollicitudin est. Sed orci augue, fringilla et velit eu, vulputate volutpat risus. Quisque libero ligula, congue non consectetur sit amet, lobortis a nulla. Phasellus condimentum ullamcorper consequat. Praesent tincidunt mauris at nisl pretium, non posuere nunc aliquam.\",\"3\":\"\",\"4\":\"\",\"5\":\"\"}}},{\"row_id\":\"849836a6-0d9e-4f96-948f-6262dcf5f4f7\",\"collapsed\":false,\"values\":{\"section_title\":{\"1\":\"\",\"2\":\"Phasellus commodo vitae enim sed tincidunt. \",\"3\":\"\",\"4\":\"\",\"5\":\"\"},\"products\":\"2,7,6,19\",\"section_description\":{\"1\":\"\",\"2\":\"Phasellus commodo vitae enim sed tincidunt. Aliquam erat volutpat. Vestibulum faucibus tortor quis turpis porttitor, quis vulputate libero tristique. Nulla eget quam gravida, tincidunt lacus ut, semper quam. Pellentesque quis posuere erat, vitae feugiat nibh. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu nisi quam. Integer quis ligula laoreet, viverra leo nec, egestas leo.\",\"3\":\"\",\"4\":\"\",\"5\":\"\"}}},{\"row_id\":\"252ff1f7-893e-4789-ba79-57f511e87b5c\",\"collapsed\":false,\"values\":{\"section_title\":{\"1\":\"\",\"2\":\"Duis vitae lectus nisl.\",\"3\":\"\",\"4\":\"\",\"5\":\"\"},\"products\":\"1\",\"section_description\":{\"1\":\"\",\"2\":\"Sed vel nunc nunc. In iaculis felis vulputate felis rhoncus dapibus. Donec ultricies scelerisque lacus. Etiam tincidunt fermentum turpis, pharetra volutpat eros condimentum sed. Phasellus molestie leo nibh, at sodales velit varius nec. Vestibulum sagittis mollis turpis at convallis. Duis vitae lectus nisl.\",\"3\":\"\",\"4\":\"\",\"5\":\"\"}}}]",
+                    "value_index": "3 rows"
+                },
+                {
+                    "field_slug": "expert_tips",
+                    "entity_type": "cpt_post",
+                    "entity_id": 4,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": [
+                        "Quibus occurrere bene pertinax miles explicatis",
+                        "Nec vox accusatoris ulla licet subditicii in his",
+                        "Nec vox accusatoris ulla licet subditicii in his"
+                    ],
+                    "value_index": " |  | "
+                },
+                {
+                    "field_slug": "delivery_deadline",
+                    "entity_type": "cpt_post",
+                    "entity_id": 4,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": 1264978800,
+                    "value_index": "1264978800"
+                },
+                {
+                    "field_slug": "intro_text",
+                    "entity_type": "cpt_post",
+                    "entity_id": 4,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "<p>Novo denique perniciosoque exemplo idem Gallus ausus est inire flagitium grave, quod Romae cum ultimo dedecore temptasse aliquando dicitur Gallienus, et adhibitis paucis clam ferro succinctis vesperi per tabernas palabatur et conpita quaeritando Graeco sermone, cuius erat inpendio gnarus, quid de Caesare quisque sentiret. et haec confidenter agebat in urbe ubi pernoctantium luminum claritudo dierum solet imitari fulgorem. postremo agnitus saepe iamque, si prodisset, conspicuum se fore contemplans, non nisi luce palam egrediens ad agenda quae putabat seria cernebatur. et haec quidem medullitus multis gementibus agebantur.</p>",
+                    "value_index": "Novo denique perniciosoque exemplo idem Gallus ausus est inire flagitium grave, quod Romae cum ultimo dedecore temptasse aliquando dicitur Gallienus, et adhibitis paucis clam ferro succinctis vesperi per tabernas palabatur et conpita quaeritando Graeco se"
+                }
+            ]
+        },
+        {
+            "uuid": "77751487-0a4e-4202-9f53-4a6630f403b3",
+            "title": "Badge/Label Products",
+            "slug": "badgelabel_products",
+            "description": "",
+            "location_rules": [
+                {
+                    "==": [
+                        {
+                            "var": "entity_type"
+                        },
+                        "product"
+                    ]
+                }
+            ],
+            "placement_tab": "extra",
+            "placement_position": "",
+            "position": 10,
+            "priority": 10,
+            "active": true,
+            "bo_options": [],
+            "fo_options": [],
+            "shop_ids": [
+                1
+            ],
+            "fields": [
+                {
+                    "id": 79,
+                    "uuid": "bcb3367e-87a7-4826-bb5b-2bf95fb1a2a7",
+                    "id_parent": null,
+                    "type": "select",
+                    "title": "Badge Type",
+                    "slug": "badge_type",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "choices": [
+                            {
+                                "label": "",
+                                "value": "choice_1",
+                                "translations": {
+                                    "1": "New",
+                                    "2": "New",
+                                    "3": "",
+                                    "4": "",
+                                    "5": ""
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_2",
+                                "translations": {
+                                    "1": "Best-seller",
+                                    "2": "Best-seller",
+                                    "3": "",
+                                    "4": "",
+                                    "5": ""
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_3",
+                                "translations": {
+                                    "1": "Exclusif",
+                                    "2": "Exclusif",
+                                    "3": "",
+                                    "4": "",
+                                    "5": ""
+                                }
+                            },
+                            {
+                                "label": "",
+                                "value": "choice_4",
+                                "translations": {
+                                    "1": "Made in France",
+                                    "2": "Made in France",
+                                    "3": "",
+                                    "4": "",
+                                    "5": ""
+                                }
+                            }
+                        ]
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 80,
+                    "uuid": "438b29df-ecf8-4414-b78e-1c5e0b9248d9",
+                    "id_parent": null,
+                    "type": "color",
+                    "title": "Badge Color",
+                    "slug": "badge_color",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "showHex": false
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                }
+            ],
+            "field_values": [
+                {
+                    "field_slug": "badge_type",
+                    "entity_type": "product",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "choice_4",
+                    "value_index": "choice_4"
+                },
+                {
+                    "field_slug": "badge_color",
+                    "entity_type": "product",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": "#FF0000",
+                    "value_index": "#FF0000"
+                }
+            ]
+        },
+        {
+            "uuid": "cf994f42-4ccc-411e-b15b-b004f4ec643a",
+            "title": "FAQ Products",
+            "slug": "faq_products",
+            "description": "",
+            "location_rules": [
+                {
+                    "==": [
+                        {
+                            "var": "entity_type"
+                        },
+                        "product"
+                    ]
+                }
+            ],
+            "placement_tab": "extra",
+            "placement_position": "",
+            "position": 10,
+            "priority": 10,
+            "active": true,
+            "bo_options": [],
+            "fo_options": [],
+            "shop_ids": [
+                1
+            ],
+            "fields": [
+                {
+                    "id": 81,
+                    "uuid": "2185e4e8-e02b-4724-b86d-087a5bfbb7ca",
+                    "id_parent": null,
+                    "type": "repeater",
+                    "title": "Repeater Field",
+                    "slug": "repeater_field",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 82,
+                    "uuid": "c75d8f41-b3dd-4386-bc26-67897001e00b",
+                    "id_parent": 81,
+                    "type": "text",
+                    "title": "Text Field",
+                    "slug": "question",
+                    "instructions": "",
+                    "position": 0,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": {
+                        "placeholder": "How this product's working ?"
+                    },
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                },
+                {
+                    "id": 83,
+                    "uuid": "89b0fc3a-e818-4e3d-ae58-e6c8198dafe5",
+                    "id_parent": 81,
+                    "type": "richtext",
+                    "title": "Rich Text Editor",
+                    "slug": "answer",
+                    "instructions": "",
+                    "position": 1,
+                    "required": false,
+                    "translatable": false,
+                    "active": true,
+                    "config": [],
+                    "validation": [],
+                    "conditions": [],
+                    "wrapper": {
+                        "width": "100"
+                    },
+                    "fo_options": {
+                        "showTitle": true
+                    }
+                }
+            ],
+            "field_values": [
+                {
+                    "field_slug": "repeater_field",
+                    "entity_type": "product",
+                    "entity_id": 1,
+                    "id_product": null,
+                    "id_shop": 1,
+                    "id_lang": null,
+                    "value": [
+                        {
+                            "row_id": "39056d95-42f9-4510-8e98-95cf52221c17",
+                            "collapsed": false,
+                            "values": {
+                                "answer": "Martinus agens illas provincias pro praefectis aerumnas innocentium graviter gemens saepeque obsecrans, ut ab omni culpa inmunibus parceretur, cum non inpetraret, minabatur se discessurum: ut saltem id metuens perquisitor malivolus tandem desineret quieti coalitos homines in aperta pericula proiectare.",
+                                "question": "Quod opera consulta cogitabatur astute, ut hoc"
+                            }
+                        },
+                        {
+                            "row_id": "7986cf85-872c-4460-8eac-2e0d15de18f5",
+                            "collapsed": false,
+                            "values": {
+                                "answer": "Martinus agens illas provincias pro praefectis aerumnas innocentium graviter gemens saepeque obsecrans, ut ab omni culpa inmunibus parceretur, cum non inpetraret, minabatur se discessurum: ut saltem id metuens perquisitor malivolus tandem desineret quieti coalitos homines in aperta pericula proiectare.",
+                                "question": "Quod opera consulta cogitabatur astute, ut hoc"
+                            }
+                        }
+                    ],
+                    "value_index": "2 rows"
                 }
             ]
         }
@@ -849,11 +1588,11 @@
     "cpt_types": [
         {
             "uuid": "9c68b624-0322-4337-9f58-4b4821345b82",
-            "slug": "property",
-            "name": "Property",
+            "slug": "properties",
+            "name": "Annonce Immobilières",
             "description": "",
             "config": [],
-            "url_prefix": "property",
+            "url_prefix": "real-estate-announcement",
             "has_archive": true,
             "archive_slug": "",
             "seo_config": {
@@ -865,9 +1604,66 @@
             "active": true,
             "translations": {
                 "1": {
-                    "id_wepresta_acf_cpt_type": 2,
+                    "id_wepresta_acf_cpt_type": 3,
                     "id_lang": 1,
-                    "name": "Property",
+                    "name": "Real Estate Announcement",
+                    "description": ""
+                },
+                "2": {
+                    "id_wepresta_acf_cpt_type": 3,
+                    "id_lang": 2,
+                    "name": "Annonce Immobilières",
+                    "description": ""
+                },
+                "3": {
+                    "id_wepresta_acf_cpt_type": 3,
+                    "id_lang": 3,
+                    "name": "Anuncio de bienes raíces",
+                    "description": ""
+                },
+                "4": {
+                    "id_wepresta_acf_cpt_type": 3,
+                    "id_lang": 4,
+                    "name": "Annuncio immobiliare",
+                    "description": ""
+                },
+                "5": {
+                    "id_wepresta_acf_cpt_type": 3,
+                    "id_lang": 5,
+                    "name": "Ogłoszenie o nieruchomościach",
+                    "description": ""
+                }
+            },
+            "acf_groups": [],
+            "taxonomies": []
+        },
+        {
+            "uuid": "ebec2c8b-fd89-4510-acd0-01221036dc72",
+            "slug": "gift_guides",
+            "name": "Guides Cadeaux",
+            "description": "",
+            "config": [],
+            "url_prefix": "gift_guides",
+            "has_archive": false,
+            "archive_slug": "",
+            "seo_config": {
+                "title_pattern": "{title} - {shop_name}",
+                "description_pattern": ""
+            },
+            "icon": "redeem",
+            "position": 0,
+            "active": true,
+            "translations": {
+                "1": {
+                    "id_wepresta_acf_cpt_type": 4,
+                    "id_lang": 1,
+                    "name": "Gift Guides",
+                    "description": ""
+                },
+                "2": {
+                    "id_wepresta_acf_cpt_type": 4,
+                    "id_lang": 2,
+                    "name": "Guides Cadeaux",
                     "description": ""
                 }
             },
@@ -886,7 +1682,7 @@
             "active": true,
             "translations": {
                 "1": {
-                    "id_wepresta_acf_cpt_taxonomy": 3,
+                    "id_wepresta_acf_cpt_taxonomy": 5,
                     "id_lang": 1,
                     "name": "Transaction",
                     "description": ""
@@ -919,7 +1715,7 @@
             "active": true,
             "translations": {
                 "1": {
-                    "id_wepresta_acf_cpt_taxonomy": 4,
+                    "id_wepresta_acf_cpt_taxonomy": 6,
                     "id_lang": 1,
                     "name": "Property Type",
                     "description": ""
@@ -948,23 +1744,175 @@
                     "translations": []
                 }
             ]
+        },
+        {
+            "uuid": "7aa1d2b7-a7ae-4425-b32f-c40695f87e0e",
+            "slug": "occasion",
+            "name": "Occasion",
+            "description": "",
+            "hierarchical": true,
+            "config": [],
+            "active": true,
+            "translations": {
+                "1": {
+                    "id_wepresta_acf_cpt_taxonomy": 7,
+                    "id_lang": 1,
+                    "name": "Occasion",
+                    "description": ""
+                },
+                "2": {
+                    "id_wepresta_acf_cpt_taxonomy": 7,
+                    "id_lang": 2,
+                    "name": "Occasion",
+                    "description": ""
+                }
+            },
+            "terms": [
+                {
+                    "slug": "christmas",
+                    "name": "Noël",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                },
+                {
+                    "slug": "Birthday",
+                    "name": "Anniversaire",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                }
+            ]
+        },
+        {
+            "uuid": "0a5e6558-9ced-41ef-bbdd-abb51f3b6ccd",
+            "slug": "destinataire",
+            "name": "Destinataire",
+            "description": "",
+            "hierarchical": true,
+            "config": [],
+            "active": true,
+            "translations": {
+                "1": {
+                    "id_wepresta_acf_cpt_taxonomy": 8,
+                    "id_lang": 1,
+                    "name": "Recipient",
+                    "description": ""
+                },
+                "2": {
+                    "id_wepresta_acf_cpt_taxonomy": 8,
+                    "id_lang": 2,
+                    "name": "Destinataire",
+                    "description": ""
+                }
+            },
+            "terms": [
+                {
+                    "slug": "pour-elle",
+                    "name": "Pour elle",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                },
+                {
+                    "slug": "him",
+                    "name": "Pour lui",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                }
+            ]
+        },
+        {
+            "uuid": "695beeda-d0f8-4d76-87c7-8f6524e114dd",
+            "slug": "budget",
+            "name": "Budget",
+            "description": "",
+            "hierarchical": true,
+            "config": [],
+            "active": true,
+            "translations": {
+                "1": {
+                    "id_wepresta_acf_cpt_taxonomy": 9,
+                    "id_lang": 1,
+                    "name": "Budget",
+                    "description": ""
+                },
+                "2": {
+                    "id_wepresta_acf_cpt_taxonomy": 9,
+                    "id_lang": 2,
+                    "name": "Budget",
+                    "description": ""
+                }
+            },
+            "terms": [
+                {
+                    "slug": "30",
+                    "name": "30€",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                },
+                {
+                    "slug": "30-50",
+                    "name": "30-50€",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                },
+                {
+                    "slug": "50",
+                    "name": ">50€",
+                    "description": "",
+                    "position": 0,
+                    "translations": []
+                }
+            ]
         }
     ],
     "cpt_posts": [
         {
             "uuid": "2b4d79da-ab58-453e-8cc2-0b2c4e48164b",
-            "type_slug": "property",
-            "slug": "maison_1",
+            "type_slug": "properties",
+            "slug": "house_1",
             "title": "Maison 1",
-            "status": "draft",
+            "status": "published",
             "seo_title": "",
             "seo_description": "",
             "seo_meta": [],
             "translations": {
                 "1": {
-                    "id_wepresta_acf_cpt_post": 2,
+                    "id_wepresta_acf_cpt_post": 3,
                     "id_lang": 1,
+                    "title": "House 1",
+                    "seo_title": "House 1",
+                    "seo_description": ""
+                },
+                "2": {
+                    "id_wepresta_acf_cpt_post": 3,
+                    "id_lang": 2,
                     "title": "Maison 1",
+                    "seo_title": "",
+                    "seo_description": ""
+                },
+                "3": {
+                    "id_wepresta_acf_cpt_post": 3,
+                    "id_lang": 3,
+                    "title": "Casa 1",
+                    "seo_title": "",
+                    "seo_description": ""
+                },
+                "4": {
+                    "id_wepresta_acf_cpt_post": 3,
+                    "id_lang": 4,
+                    "title": "Casa 1",
+                    "seo_title": "",
+                    "seo_description": ""
+                },
+                "5": {
+                    "id_wepresta_acf_cpt_post": 3,
+                    "id_lang": 5,
+                    "title": "Dom 1",
                     "seo_title": "",
                     "seo_description": ""
                 }
@@ -979,7 +1927,13 @@
                 "bathrooms": 4,
                 "bedrooms": 4,
                 "construction_year": 2012,
-                "description": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants.\n\nElle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse.",
+                "description": {
+                    "2": "Cette charmante maison en pierre de style traditionnel dispose d'un jardin soigneusement entretenu et de volets bleus élégants. Elle offre un cadre de vie paisible avec un garage attenant, une entrée accueillante et une atmosphère chaleureuse.",
+                    "1": "This charming, traditional-style stone house features a meticulously maintained garden and elegant blue shutters. It offers a peaceful living environment with an attached garage, a welcoming entrance, and a warm atmosphere.",
+                    "3": "Esta encantadora casa de piedra de estilo tradicional cuenta con un jardín cuidadosamente cuidado y elegantes contraventanas azules. Ofrece un ambiente tranquilo con garaje adjunto, una entrada acogedora y un ambiente cálido.",
+                    "4": "Questa affascinante casa in pietra in stile tradizionale vanta un giardino curato con cura ed eleganti persiane blu. Offre un ambiente tranquillo con garage annesso, un ingresso accogliente e un'atmosfera calda.",
+                    "5": "Ten urokliwy, tradycyjny kamienny dom z pieczołowicie utrzymanym ogrodem i eleganckimi niebieskimi okiennicami oferuje spokojne otoczenie, garaż w bryle budynku, przyjazne wejście i ciepłą atmosferę."
+                },
                 "energy_rating": "choice_2",
                 "features": [
                     "choice_1",
@@ -1008,10 +1962,139 @@
                 "reference": "FHDJHEEUDE",
                 "rooms": 5,
                 "surface": 290,
-                "title": "Maison de charme avec jardin"
+                "title": {
+                    "2": "Maison de charme avec jardin",
+                    "1": "Charming house with garden",
+                    "3": "Encantadora casa con jardín",
+                    "4": "Incantevole casa con giardino",
+                    "5": "Uroczy dom z ogrodem"
+                }
+            }
+        },
+        {
+            "uuid": "16f3e092-4565-44ae-ad84-06a6aa1626ca",
+            "type_slug": "gift_guides",
+            "slug": "guide_1",
+            "title": "Guide 1",
+            "status": "published",
+            "seo_title": "",
+            "seo_description": "",
+            "seo_meta": [],
+            "translations": {
+                "1": {
+                    "id_wepresta_acf_cpt_post": 4,
+                    "id_lang": 1,
+                    "title": "Guide 1",
+                    "seo_title": "Guide 1",
+                    "seo_description": ""
+                },
+                "2": {
+                    "id_wepresta_acf_cpt_post": 4,
+                    "id_lang": 2,
+                    "title": "Guide 1",
+                    "seo_title": "",
+                    "seo_description": ""
+                }
+            },
+            "terms": [
+                "christmas",
+                "pour-elle",
+                "50"
+            ],
+            "acf_values": {
+                "delivery_deadline": 1264978800,
+                "expert_tips": {
+                    "2": [
+                        "Quibus occurrere bene pertinax miles explicatis",
+                        "Nec vox accusatoris ulla licet subditicii in his",
+                        "Nec vox accusatoris ulla licet subditicii in his"
+                    ],
+                    "1": [
+                        "Nec vox accusatoris ulla licet subditicii in his",
+                        "Nec vox accusatoris ulla licet subditicii in his",
+                        "Nec vox accusatoris ulla licet subditicii in his"
+                    ]
+                },
+                "gift_sections": [
+                    {
+                        "row_id": "dbd2e848-73c7-4422-8a2a-d5989ada82f6",
+                        "collapsed": false,
+                        "values": {
+                            "section_title": {
+                                "1": "Duis id felis venenatis quam dignissim auctor. Proin congue bibendum mi.",
+                                "2": "Duis id felis venenatis quam dignissim auctor. Proin congue bibendum mi.",
+                                "3": "",
+                                "4": "",
+                                "5": ""
+                            },
+                            "products": "4,5,3,15",
+                            "section_description": {
+                                "1": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ullamcorper iaculis dolor sit amet aliquam. Donec ornare quis velit ac ultrices. Nullam tincidunt elementum varius. Curabitur in sollicitudin est. Sed orci augue, fringilla et velit eu, vulputate volutpat risus. Quisque libero ligula, congue non consectetur sit amet, lobortis a nulla. Phasellus condimentum ullamcorper consequat. Praesent tincidunt mauris at nisl pretium, non posuere nunc aliquam.",
+                                "2": "\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ullamcorper iaculis dolor sit amet aliquam. Donec ornare quis velit ac ultrices. Nullam tincidunt elementum varius. Curabitur in sollicitudin est. Sed orci augue, fringilla et velit eu, vulputate volutpat risus. Quisque libero ligula, congue non consectetur sit amet, lobortis a nulla. Phasellus condimentum ullamcorper consequat. Praesent tincidunt mauris at nisl pretium, non posuere nunc aliquam.",
+                                "3": "",
+                                "4": "",
+                                "5": ""
+                            }
+                        }
+                    },
+                    {
+                        "row_id": "849836a6-0d9e-4f96-948f-6262dcf5f4f7",
+                        "collapsed": false,
+                        "values": {
+                            "section_title": {
+                                "1": "",
+                                "2": "Phasellus commodo vitae enim sed tincidunt. ",
+                                "3": "",
+                                "4": "",
+                                "5": ""
+                            },
+                            "products": "2,7,6,19",
+                            "section_description": {
+                                "1": "",
+                                "2": "Phasellus commodo vitae enim sed tincidunt. Aliquam erat volutpat. Vestibulum faucibus tortor quis turpis porttitor, quis vulputate libero tristique. Nulla eget quam gravida, tincidunt lacus ut, semper quam. Pellentesque quis posuere erat, vitae feugiat nibh. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In eu nisi quam. Integer quis ligula laoreet, viverra leo nec, egestas leo.",
+                                "3": "",
+                                "4": "",
+                                "5": ""
+                            }
+                        }
+                    },
+                    {
+                        "row_id": "252ff1f7-893e-4789-ba79-57f511e87b5c",
+                        "collapsed": false,
+                        "values": {
+                            "section_title": {
+                                "1": "",
+                                "2": "Duis vitae lectus nisl.",
+                                "3": "",
+                                "4": "",
+                                "5": ""
+                            },
+                            "products": "1",
+                            "section_description": {
+                                "1": "",
+                                "2": "Sed vel nunc nunc. In iaculis felis vulputate felis rhoncus dapibus. Donec ultricies scelerisque lacus. Etiam tincidunt fermentum turpis, pharetra volutpat eros condimentum sed. Phasellus molestie leo nibh, at sodales velit varius nec. Vestibulum sagittis mollis turpis at convallis. Duis vitae lectus nisl.",
+                                "3": "",
+                                "4": "",
+                                "5": ""
+                            }
+                        }
+                    }
+                ],
+                "hero_image": {
+                    "filename": "70_0_1_1768600569_2bb1be99.jpg",
+                    "path": "images/70_0_1_1768600569_2bb1be99.jpg",
+                    "url": "/modules/wepresta_acf/uploads/images/70_0_1_1768600569_2bb1be99.jpg",
+                    "size": 59893,
+                    "mime": "image/jpeg",
+                    "original_name": "Womens-Gifts-Carousel.jpg"
+                },
+                "intro_text": {
+                    "2": "Novo denique perniciosoque exemplo idem Gallus ausus est inire flagitium grave, quod Romae cum ultimo dedecore temptasse aliquando dicitur Gallienus, et adhibitis paucis clam ferro succinctis vesperi per tabernas palabatur et conpita quaeritando Graeco sermone, cuius erat inpendio gnarus, quid de Caesare quisque sentiret. et haec confidenter agebat in urbe ubi pernoctantium luminum claritudo dierum solet imitari fulgorem. postremo agnitus saepe iamque, si prodisset, conspicuum se fore contemplans, non nisi luce palam egrediens ad agenda quae putabat seria cernebatur. et haec quidem medullitus multis gementibus agebantur.",
+                    "1": "Novo denique perniciosoque exemplo idem Gallus ausus est inire flagitium grave, quod Romae cum ultimo dedecore temptasse aliquando dicitur Gallienus, et adhibitis paucis clam ferro succinctis vesperi per tabernas palabatur et conpita quaeritando Graeco sermone, cuius erat inpendio gnarus, quid de Caesare quisque sentiret. et haec confidenter agebat in urbe ubi pernoctantium luminum claritudo dierum solet imitari fulgorem. postremo agnitus saepe iamque, si prodisset, conspicuum se fore contemplans, non nisi luce palam egrediens ad agenda quae putabat seria cernebatur. et haec quidem medullitus multis gementibus agebantur."
+                }
             }
         }
     ],
-    "timestamp": 1768580944,
-    "updated_at": "2026-01-16T17:29:04+01:00"
+    "timestamp": 1768752126,
+    "updated_at": "2026-01-18T17:02:06+01:00"
 }

@@ -124,7 +124,6 @@ function mountAcfApp(container: HTMLElement): void {
   // Mark container as initialized
   container.classList.add('acf-vue-initialized')
 
-  console.log(`ACF: Mounted entity fields app for ${config.entityType} #${config.entityId}`)
 }
 
 /**
@@ -170,7 +169,6 @@ function _mountAllContainers(): void {
     return
   }
 
-  console.log(`ACF: Found ${containers.length} entity fields container(s)`)
 
   containers.forEach(container => {
     try {
@@ -209,7 +207,6 @@ function unpackAcfContainers(root: HTMLElement | Document = document): void {
     return
   }
 
-  console.log(`ACF: Found ${hiddenContainers.length} hidden container(s) to unpack`)
 
   hiddenContainers.forEach(container => {
     try {
@@ -237,7 +234,6 @@ function unpackAcfContainers(root: HTMLElement | Document = document): void {
         container.classList.remove('acf-container-data')
         container.classList.add('acf-container-data-processed')
 
-        console.log('ACF: Unpacked container successfully')
       }
     } catch (e) {
       console.error('ACF: Failed to unpack container:', e)

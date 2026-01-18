@@ -122,7 +122,7 @@
                         v-model="translations[lang.id_lang].name"
                         type="text"
                         class="form-control"
-                        :required="lang.is_default"
+                        :required="lang.is_default && activeStep === 1"
                         @input="lang.is_default && generateSlug()"
                       />
                     </div>
@@ -147,7 +147,7 @@
                     v-model="formData.name"
                     type="text"
                     class="form-control"
-                    required
+                    :required="activeStep === 1"
                     @input="generateSlug"
                   />
                 </div>
@@ -170,7 +170,7 @@
                   v-model="formData.slug"
                   type="text"
                   class="form-control"
-                  required
+                  :required="activeStep === 1"
                   pattern="[a-z0-9_\-]+"
                   :disabled="isEdit"
                 />
@@ -223,7 +223,7 @@
                     v-model="formData.url_prefix"
                     type="text"
                     class="form-control"
-                    required
+                    :required="activeStep === 2"
                   />
                   <div class="input-group-append">
                     <span class="input-group-text">/post-slug</span>
@@ -405,15 +405,26 @@ const languages = computed(() => (window as any).acfConfig?.languages || [])
 const defaultLanguage = computed(() => languages.value.find((l: any) => l.is_default) || languages.value[0])
 const currentLangCode = ref('')
 
-// Initialize currentLangCode when languages load
+// Translations state - declared before watcher to avoid reference issues
+const translations = reactive<Record<number, { name: string; description: string }>>({})
+
+// Function to initialize translations for all languages
+function initializeTranslationsForAllLanguages() {
+  languages.value.forEach((lang: any) => {
+    if (!translations[lang.id_lang]) {
+      translations[lang.id_lang] = { name: '', description: '' }
+    }
+  })
+}
+
+// Initialize currentLangCode and translations when languages load
 watch(languages, (langs) => {
   if (langs.length > 0 && !currentLangCode.value) {
     currentLangCode.value = defaultLanguage.value?.iso_code || langs[0].iso_code
   }
+  // Initialize translations for all languages immediately
+  initializeTranslationsForAllLanguages()
 }, { immediate: true })
-
-// Translations state
-const translations = reactive<Record<number, { name: string; description: string }>>({})
 
 const formData = reactive<Partial<CptType>>({
   name: '',
@@ -445,11 +456,18 @@ const step1Complete = computed(() => {
     return !!formData.name && !!formData.slug
   }
   
-  // In multi-language mode, check translations
+  // In multi-language mode, check translations OR formData (for edit mode fallback)
   const defaultLangId = defaultLanguage.value?.id_lang
-  const hasName = defaultLangId && translations[defaultLangId]
-    ? !!translations[defaultLangId].name
-    : !!formData.name
+  
+  // Check translations first, then fall back to formData.name (which is populated during edit)
+  let hasName = false
+  if (defaultLangId && translations[defaultLangId] && translations[defaultLangId].name) {
+    hasName = true
+  } else if (formData.name) {
+    // Fallback: formData.name is populated when loading existing type
+    hasName = true
+  }
+  
   return hasName && !!formData.slug
 })
 
@@ -496,9 +514,10 @@ const initForm = async () => {
       if (type.translations) {
         Object.keys(type.translations).forEach((langId) => {
           const id = parseInt(langId)
+          const typeTranslations = type.translations as Record<number, { name: string; description: string }>
           translations[id] = {
-            name: type.translations[id]?.name || '',
-            description: type.translations[id]?.description || ''
+            name: typeTranslations[id]?.name || '',
+            description: typeTranslations[id]?.description || ''
           }
         })
       }
@@ -520,8 +539,8 @@ onMounted(initForm)
 
 function generateSlug() {
   if (!isEdit.value) {
-    // In single-language mode, use formData.name directly
-    let sourceName = formData.name
+    // Get the source name as a string
+    let sourceName = ''
     
     // In multi-language mode, use translations
     if (languages.value.length > 1) {
@@ -529,9 +548,20 @@ function generateSlug() {
       if (defaultLangId && translations[defaultLangId] && translations[defaultLangId].name) {
         sourceName = translations[defaultLangId].name
       }
+    } else {
+      // In single-language mode, extract string from formData.name
+      if (typeof formData.name === 'string') {
+        sourceName = formData.name
+      } else if (formData.name && typeof formData.name === 'object') {
+        // formData.name is a Record<number, string>, get value for default lang
+        const defaultLangId = defaultLanguage.value?.id_lang
+        if (defaultLangId) {
+          sourceName = (formData.name as Record<number, string>)[defaultLangId] || ''
+        }
+      }
     }
     
-    formData.slug = (sourceName || '')
+    formData.slug = sourceName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '_')
       .replace(/^_|_$/g, '')
@@ -570,19 +600,30 @@ async function saveData() {
     // Sync data between formData and translations
     const defaultLangId = defaultLanguage.value?.id_lang
     if (defaultLangId) {
+      // Ensure translations object exists for default language
+      if (!translations[defaultLangId]) {
+        translations[defaultLangId] = { name: '', description: '' }
+      }
+      
       // In single-language mode, sync formData to translations first
       if (languages.value.length === 1) {
-        if (!translations[defaultLangId]) {
-          translations[defaultLangId] = { name: '', description: '' }
-        }
-        translations[defaultLangId].name = formData.name || ''
-        translations[defaultLangId].description = formData.description || ''
+        // Handle the case where formData.name might be an object or string
+        const nameValue = typeof formData.name === 'string' 
+          ? formData.name 
+          : (formData.name && typeof formData.name === 'object' ? (formData.name as Record<number, string>)[defaultLangId] || '' : '')
+        const descValue = typeof formData.description === 'string'
+          ? formData.description
+          : (formData.description && typeof formData.description === 'object' ? (formData.description as Record<number, string>)[defaultLangId] || '' : '')
+        
+        translations[defaultLangId].name = nameValue
+        translations[defaultLangId].description = descValue
       }
       
       // Then sync translations back to formData (for multi-language or to ensure consistency)
-      if (translations[defaultLangId]) {
+      // Only if translations has valid string values
+      if (translations[defaultLangId] && typeof translations[defaultLangId].name === 'string') {
         formData.name = translations[defaultLangId].name
-        formData.description = translations[defaultLangId].description
+        formData.description = translations[defaultLangId].description || ''
       }
     }
 

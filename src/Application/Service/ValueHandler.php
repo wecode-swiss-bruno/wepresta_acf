@@ -37,14 +37,6 @@ final class ValueHandler
      */
     public function saveEntityFieldValues(string $entityType, int $entityId, array $values, ?int $shopId = null, ?int $langId = null): void
     {
-        $this->logInfo('Saving entity field values', [
-            'entity_type' => $entityType,
-            'entity_id' => $entityId,
-            'field_count' => \count($values),
-            'shop_id' => $shopId,
-            'lang_id' => $langId,
-        ]);
-
         foreach ($values as $identifier => $value) {
             $this->saveEntityFieldValue($entityType, $entityId, $identifier, $value, $shopId, $langId);
         }
@@ -67,14 +59,11 @@ final class ValueHandler
         }
 
         if (!$field) {
-            $this->logWarning('Field not found', ['identifier' => $identifier, 'entity_type' => $entityType, 'entity_id' => $entityId]);
-
             return false;
         }
 
         $fieldId = (int) $field['id_wepresta_acf_field'];
         $fieldType = $field['type'];
-        $fieldSlug = $field['slug'];
         $isTranslatable = (bool) ($field['value_translatable'] ?? $field['translatable'] ?? false);
         $config = $this->parseJsonConfig($field['config'] ?? '{}');
 
@@ -98,21 +87,16 @@ final class ValueHandler
         }
 
         // Non-translatable field: single value
+        // For non-translatable fields that might have been wrapped in lang array by frontend, unwrap it
+        if (!$isTranslatable && \is_array($value) && $this->isLangValueArray($value) && $fieldType !== 'repeater' && $fieldType !== 'list' && $fieldType !== 'gallery' && $fieldType !== 'files' && $fieldType !== 'checkbox') {
+            $value = reset($value);
+        }
+
         $normalizedValue = $this->fieldTypeRegistry->normalizeValue($fieldType, $value, $config);
         $storableValue = $this->toStorableValue($normalizedValue);
         $indexValue = $this->fieldTypeRegistry->getIndexValue($fieldType, $normalizedValue, $config);
 
-        $result = $this->valueRepository->saveEntity($fieldId, $entityType, $entityId, $storableValue, $shopId, $langId, $isTranslatable, $indexValue);
-
-        $this->logDebug('Field value saved', [
-            'field_id' => $fieldId,
-            'slug' => $fieldSlug,
-            'entity_type' => $entityType,
-            'entity_id' => $entityId,
-            'success' => $result,
-        ]);
-
-        return $result;
+        return $this->valueRepository->saveEntity($fieldId, $entityType, $entityId, $storableValue, $shopId, $langId, $isTranslatable, $indexValue);
     }
 
     public function deleteProductFieldValues(int $productId, ?int $shopId = null): bool

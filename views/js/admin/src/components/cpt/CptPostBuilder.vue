@@ -205,6 +205,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, inject } from 'vue'
 import { useCptStore } from '../../stores/cptStore'
+import { useBuilderStore } from '../../stores/builderStore'
 import { useApi } from '../../composables/useApi'
 import { useTranslations } from '../../composables/useTranslations'
 import AcfEntityFields from '@/components/renderer/AcfEntityFields.vue'
@@ -269,8 +270,7 @@ onMounted(async () => {
       seo_description: '' 
     }
   })
-  
-  console.log('[CptPostBuilder] Initialized translations for languages:', languages.value, 'translations:', translations.value)
+
 
   // Fetch relations for this type
   if (cptStore.currentType?.id) {
@@ -337,26 +337,30 @@ onMounted(async () => {
     }
   } else {
       // Create mode - we need to fetch ACF groups for this type
-      // Currently API listByType doesn't return groups, but we need them.
-      // Maybe we can fetch "empty" post structure or just fetch type definition with groups?
-      // CptType includes acf_groups ID list.
-      // We need the full group definition.
-      // Ideally API should provide a "schema" endpoint or we assume groups are loaded otherwise.
-      // For now, let's try to fetch type details which might include group details or use a helper.
-      // If CptType has group IDs, we can fetch groups individually if needed, OR update CptType API to return full groups.
-      // Or just wait for store to have them?
-      // The Implementation Plan said update API show method. 
-      // For CREATE, we might need a "prepare" endpoint.
-      // Or we can rely on `cptStore.currentType` having generic info, and maybe fetch groups via builderStore?
-      // `builderStore.loadGroups()` loads all groups.
-      // Let's use builderStore to get groups for this type.
-      
-      /* 
-      const builderStore = useBuilderStore() - need to import it
+      // Load all groups and filter by location rules matching cpt_post:{type_slug}
+      const builderStore = useBuilderStore()
       await builderStore.loadGroups()
-      const typeGroupIds = cptStore.currentType?.acf_groups || []
-      acfGroups.value = builderStore.groups.filter(g => typeGroupIds.includes(g.id))
-      */
+      
+      const typeSlug = cptStore.currentType?.slug
+      if (typeSlug) {
+        // Filter groups that have location rules matching cpt_post:{type_slug}
+        acfGroups.value = builderStore.groups.filter(group => {
+          if (!group.locationRules || !Array.isArray(group.locationRules)) return false
+          
+          // Check each location rule for cpt_post:{type_slug} match
+          return group.locationRules.some((rule: any) => {
+            // Handle the JSON Logic format: {"==": [{"var": "entity_type"}, "cpt_post:gift_guides"]}
+            if (rule && rule['==']) {
+              const condition = rule['==']
+              if (Array.isArray(condition) && condition.length === 2) {
+                const entityTypeValue = condition[1]
+                return entityTypeValue === `cpt_post:${typeSlug}`
+              }
+            }
+            return false
+          })
+        })
+      }
   }
 
   // Ensure full type details are loaded (specifically taxonomies list)
@@ -441,9 +445,6 @@ function onTitleInput(event: Event, langId: number) {
 async function handleSubmit() {
   saving.value = true
   try {
-    console.log('[CptPostBuilder] Before submit - translations:', JSON.stringify(translations.value))
-    console.log('[CptPostBuilder] Before submit - formData:', JSON.stringify(formData.value))
-    
     // Add translations to payload
     const payload = {
         ...formData.value,
@@ -457,7 +458,6 @@ async function handleSubmit() {
         payload.seo_description = defTrans.seo_description
     }
     
-    console.log('[CptPostBuilder] Final payload:', JSON.stringify(payload))
 
     if (isEdit.value) {
       await cptStore.updatePost(props.postId!, cptStore.currentType!.slug, payload)

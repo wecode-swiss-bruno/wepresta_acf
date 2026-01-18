@@ -21,10 +21,17 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+use Category;
+use CMS;
+use Context;
 use Generator;
 use Hook;
+use Image;
+use ImageType;
 use PrestaShopLogger;
+use Product;
 use Throwable;
+use Validate;
 use WeprestaAcf\Application\Provider\LocationProviderRegistry;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
@@ -423,12 +430,17 @@ final class AcfFrontService
     /**
      * Get repeater field rows as iterable.
      *
+     * Automatically resolves:
+     * - Multilang fields (text, textarea, richtext) to current language
+     * - Select/radio/checkbox labels
+     * - Relation fields (product, category, cms) to enriched data
+     *
      * @param string $slug Repeater field slug
-     * @param bool $resolveLabels Whether to resolve select/radio/checkbox labels (default: true)
+     * @param bool $resolveAll Whether to resolve labels, multilang and relations (default: true)
      *
      * @return Generator<int, array<string, mixed>>
      */
-    public function repeater(string $slug, bool $resolveLabels = true): Generator
+    public function repeater(string $slug, bool $resolveAll = true): Generator
     {
         $this->ensureContext();
 
@@ -438,8 +450,9 @@ final class AcfFrontService
             return;
         }
 
-        // Get sub-fields definitions for label resolution
-        $subFields = $resolveLabels ? $this->getRepeaterSubFields($slug) : [];
+        // Get sub-fields definitions for resolution
+        $subFields = $resolveAll ? $this->getRepeaterSubFields($slug) : [];
+        $langId = $this->langId ?? $this->contextDetector->detect()['lang_id'] ?? 1;
 
         // Repeater structure: [{"row_id": "...", "values": {...}}, ...]
         foreach ($value as $index => $row) {
@@ -454,9 +467,9 @@ final class AcfFrontService
                 continue;
             }
 
-            // Resolve labels for select/radio/checkbox fields
-            if ($resolveLabels && !empty($subFields)) {
-                $rowValues = $this->resolveSubFieldLabels($rowValues, $subFields);
+            // Process each field value
+            if ($resolveAll) {
+                $rowValues = $this->processRepeaterRowValues($rowValues, $subFields, $langId);
             }
 
             // Add row metadata
@@ -465,6 +478,413 @@ final class AcfFrontService
 
             yield $index => $rowValues;
         }
+    }
+
+    /**
+     * Process all values in a repeater row.
+     *
+     * @param array<string, mixed> $rowValues Row values
+     * @param array<string, array<string, mixed>> $subFields Sub-field definitions
+     * @param int $langId Current language ID
+     *
+     * @return array<string, mixed> Processed row values
+     */
+    private function processRepeaterRowValues(array $rowValues, array $subFields, int $langId): array
+    {
+        foreach ($rowValues as $slug => $value) {
+            // Skip metadata keys
+            if (str_starts_with($slug, '_')) {
+                continue;
+            }
+
+            $fieldDef = $subFields[$slug] ?? null;
+
+            // 1. Resolve multilang arrays first (for any field type)
+            if (\is_array($value) && $this->isMultilangArray($value)) {
+                $value = $this->resolveMultilangValue($value, $langId);
+                $rowValues[$slug] = $value;
+            }
+
+            if ($fieldDef === null) {
+                continue;
+            }
+
+            $fieldType = $fieldDef['type'] ?? '';
+
+            // 2. Resolve choice field labels (select, radio, checkbox)
+            if (\in_array($fieldType, ['select', 'radio', 'checkbox'], true)) {
+                $rowValues[$slug] = $this->resolveSubFieldChoiceValue($value, $fieldDef, $langId);
+                continue;
+            }
+
+            // 3. Resolve relation fields
+            if ($this->isRelationField($fieldDef)) {
+                $rowValues[$slug] = $this->resolveRelation($value, $fieldDef, $langId);
+                continue;
+            }
+        }
+
+        return $rowValues;
+    }
+
+    /**
+     * Check if array is a multilang structure (keys are language IDs).
+     *
+     * Multilang arrays have numeric string keys like "1", "2", etc.
+     * Example: {"1": "English text", "2": "French text", "3": "German text"}
+     *
+     * @param array<mixed> $array Array to check
+     *
+     * @return bool True if multilang array
+     */
+    private function isMultilangArray(array $array): bool
+    {
+        if (empty($array)) {
+            return false;
+        }
+
+        // Check if all keys are numeric (language IDs)
+        foreach (array_keys($array) as $key) {
+            if (!is_numeric($key)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Resolve multilang value to current language.
+     *
+     * @param array<int|string, mixed> $multilangValue Multilang array
+     * @param int $langId Current language ID
+     *
+     * @return mixed Resolved value for current language
+     */
+    private function resolveMultilangValue(array $multilangValue, int $langId): mixed
+    {
+        // Try current language
+        $langKey = (string) $langId;
+        if (isset($multilangValue[$langKey]) && $multilangValue[$langKey] !== '') {
+            return $multilangValue[$langKey];
+        }
+
+        // Try integer key
+        if (isset($multilangValue[$langId]) && $multilangValue[$langId] !== '') {
+            return $multilangValue[$langId];
+        }
+
+        // Fallback to language ID 1 (default) or context default lang
+        // Ideally we should use Configuration::get('PS_LANG_DEFAULT') but checking keys 1 (common default) first
+        if (isset($multilangValue['1']) && $multilangValue['1'] !== '') {
+            return $multilangValue['1'];
+        }
+        if (isset($multilangValue[1]) && $multilangValue[1] !== '') {
+            return $multilangValue[1];
+        }
+
+        // Last resort: first non-empty value
+        foreach ($multilangValue as $val) {
+            if ($val !== null && $val !== '') {
+                return $val;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Check if field is a relation type.
+     *
+     * @param array<string, mixed> $fieldDef Field definition
+     *
+     * @return bool True if relation field
+     */
+    private function isRelationField(array $fieldDef): bool
+    {
+        $fieldType = $fieldDef['type'] ?? '';
+
+        // Direct relation types
+        if (\in_array($fieldType, ['relation', 'product', 'category', 'cms', 'cpt_post'], true)) {
+            return true;
+        }
+
+        // Check config for relation_type
+        $config = $fieldDef['config'] ?? [];
+        if (\is_string($config)) {
+            $config = json_decode($config, true) ?: [];
+        }
+
+        return isset($config['relation_type']) || isset($config['relationType']);
+    }
+
+    /**
+     * Get relation type from field definition.
+     *
+     * @param array<string, mixed> $fieldDef Field definition
+     *
+     * @return string Relation type (product, category, cms, cpt_post)
+     */
+    private function getRelationType(array $fieldDef): string
+    {
+        $fieldType = $fieldDef['type'] ?? '';
+
+        // Direct types
+        if (\in_array($fieldType, ['product', 'category', 'cms', 'cpt_post'], true)) {
+            return $fieldType;
+        }
+
+        // Check config
+        $config = $fieldDef['config'] ?? [];
+        if (\is_string($config)) {
+            $config = json_decode($config, true) ?: [];
+        }
+
+        return $config['relation_type'] ?? $config['relationType'] ?? 'product';
+    }
+
+    /**
+     * Resolve relation field to enriched data.
+     *
+     * @param mixed $value Field value (ID or comma-separated IDs)
+     * @param array<string, mixed> $fieldDef Field definition
+     * @param int $langId Language ID
+     *
+     * @return array<int, array<string, mixed>> Enriched relation data
+     */
+    private function resolveRelation(mixed $value, array $fieldDef, int $langId): array
+    {
+        if (empty($value)) {
+            return [];
+        }
+
+        $relationType = $this->getRelationType($fieldDef);
+
+        // Handle single or multiple IDs
+        $ids = \is_array($value) ? $value : explode(',', (string) $value);
+        $ids = array_filter(array_map('intval', $ids));
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        try {
+            return match ($relationType) {
+                'product' => $this->resolveProducts($ids, $langId),
+                'category' => $this->resolveCategories($ids, $langId),
+                'cms' => $this->resolveCmsPages($ids, $langId),
+                'cpt_post' => $this->resolveCptPosts($ids, $langId),
+                default => array_map(fn($id) => ['id' => $id], $ids),
+            };
+        } catch (Throwable $e) {
+            $this->logError("Error resolving relation ({$relationType}): " . $e->getMessage());
+            return array_map(fn($id) => ['id' => $id], $ids);
+        }
+    }
+
+    /**
+     * Resolve product IDs to enriched product data.
+     *
+     * @param array<int> $ids Product IDs
+     * @param int $langId Language ID
+     *
+     * @return array<int, array<string, mixed>> Enriched product data
+     */
+    private function resolveProducts(array $ids, int $langId): array
+    {
+        $products = [];
+        $context = Context::getContext();
+
+        foreach ($ids as $idProduct) {
+            try {
+                $product = new Product($idProduct, false, $langId);
+
+                if (!Validate::isLoadedObject($product) || !$product->active) {
+                    continue;
+                }
+
+                // Get product image
+                $imageUrl = '';
+                $cover = Product::getCover($idProduct);
+                if ($cover && isset($cover['id_image'])) {
+                    $imageUrl = $context->link->getImageLink(
+                        $product->link_rewrite,
+                        (int) $cover['id_image'],
+                        ImageType::getFormattedName('home')
+                    );
+                }
+
+                // Get product prices
+                $priceWithTax = Product::getPriceStatic($idProduct, true);
+                $priceWithoutReduction = Product::getPriceStatic($idProduct, true, null, 6, null, false, false);
+                $hasDiscount = $priceWithoutReduction > $priceWithTax;
+
+                $products[] = [
+                    'id' => $idProduct,
+                    'name' => $product->name,
+                    'description_short' => $product->description_short,
+                    'link' => $context->link->getProductLink($product),
+                    'image' => $imageUrl,
+                    'price' => $priceWithTax,
+                    'price_formatted' => $context->currentLocale->formatPrice($priceWithTax, $context->currency->iso_code),
+                    'price_without_reduction' => $hasDiscount ? $priceWithoutReduction : null,
+                    'price_without_reduction_formatted' => $hasDiscount
+                        ? $context->currentLocale->formatPrice($priceWithoutReduction, $context->currency->iso_code)
+                        : null,
+                    'has_discount' => $hasDiscount,
+                    'discount_percentage' => $hasDiscount
+                        ? round((1 - $priceWithTax / $priceWithoutReduction) * 100)
+                        : 0,
+                    'reference' => $product->reference,
+                    'available' => $product->checkQty(1),
+                    'quantity' => Product::getQuantity($idProduct),
+                ];
+            } catch (Throwable $e) {
+                $this->logError("Error loading product #{$idProduct}: " . $e->getMessage());
+                continue;
+            }
+        }
+
+        return $products;
+    }
+
+    /**
+     * Resolve category IDs to enriched category data.
+     *
+     * @param array<int> $ids Category IDs
+     * @param int $langId Language ID
+     *
+     * @return array<int, array<string, mixed>> Enriched category data
+     */
+    private function resolveCategories(array $ids, int $langId): array
+    {
+        $categories = [];
+        $context = Context::getContext();
+
+        foreach ($ids as $idCategory) {
+            try {
+                $category = new Category($idCategory, $langId);
+
+                if (!Validate::isLoadedObject($category) || !$category->active) {
+                    continue;
+                }
+
+                // Get category image
+                $imageUrl = '';
+                if (file_exists(_PS_CAT_IMG_DIR_ . $idCategory . '.jpg')) {
+                    $imageUrl = $context->link->getCatImageLink(
+                        $category->link_rewrite,
+                        $idCategory,
+                        ImageType::getFormattedName('category')
+                    );
+                }
+
+                $categories[] = [
+                    'id' => $idCategory,
+                    'name' => $category->name,
+                    'description' => $category->description,
+                    'link' => $context->link->getCategoryLink($category),
+                    'image' => $imageUrl,
+                    'products_count' => $category->getProducts($langId, 1, 1, null, null, true),
+                ];
+            } catch (Throwable $e) {
+                $this->logError("Error loading category #{$idCategory}: " . $e->getMessage());
+                continue;
+            }
+        }
+
+        return $categories;
+    }
+
+    /**
+     * Resolve CMS page IDs to enriched page data.
+     *
+     * @param array<int> $ids CMS page IDs
+     * @param int $langId Language ID
+     *
+     * @return array<int, array<string, mixed>> Enriched CMS page data
+     */
+    private function resolveCmsPages(array $ids, int $langId): array
+    {
+        $pages = [];
+        $context = Context::getContext();
+
+        foreach ($ids as $idCms) {
+            try {
+                $cms = new CMS($idCms, $langId);
+
+                if (!Validate::isLoadedObject($cms) || !$cms->active) {
+                    continue;
+                }
+
+                $pages[] = [
+                    'id' => $idCms,
+                    'title' => $cms->meta_title,
+                    'description' => $cms->meta_description,
+                    'content' => $cms->content,
+                    'link' => $context->link->getCMSLink($cms),
+                ];
+            } catch (Throwable $e) {
+                $this->logError("Error loading CMS page #{$idCms}: " . $e->getMessage());
+                continue;
+            }
+        }
+
+        return $pages;
+    }
+
+    /**
+     * Resolve CPT post IDs to enriched post data.
+     *
+     * @param array<int> $ids CPT post IDs
+     * @param int $langId Language ID
+     *
+     * @return array<int, array<string, mixed>> Enriched CPT post data
+     */
+    private function resolveCptPosts(array $ids, int $langId): array
+    {
+        // This would require access to CPT repository
+        // For now, return basic structure
+        return array_map(fn($id) => [
+            'id' => $id,
+            // Additional fields would be loaded from CPT repository
+        ], $ids);
+    }
+
+    /**
+     * Resolve choice field value to label.
+     *
+     * @param mixed $value Field value
+     * @param array<string, mixed> $fieldDef Field definition
+     * @param int $langId Language ID
+     *
+     * @return mixed Resolved label(s) or original value
+     */
+    private function resolveSubFieldChoiceValue(mixed $value, array $fieldDef, int $langId): mixed
+    {
+        $config = $fieldDef['config'] ?? [];
+        if (\is_string($config)) {
+            $config = json_decode($config, true) ?: [];
+        }
+
+        $choices = $config['choices'] ?? [];
+
+        if (empty($choices)) {
+            return $value;
+        }
+
+        $fieldType = $fieldDef['type'] ?? '';
+
+        // Handle checkbox (multiple values)
+        if ($fieldType === 'checkbox' && \is_array($value)) {
+            return array_map(
+                fn($v) => $this->resolveChoiceLabel($v, $choices, $langId),
+                $value
+            );
+        }
+
+        // Single value for select/radio
+        return $this->resolveChoiceLabel($value, $choices, $langId);
     }
 
     /**
@@ -739,6 +1159,8 @@ final class AcfFrontService
 
     /**
      * Resolve labels for select/radio/checkbox fields in a row.
+     *
+     * @deprecated Use processRepeaterRowValues() instead
      *
      * @param array<string, mixed> $rowValues Row values
      * @param array<string, array<string, mixed>> $subFields Sub-field definitions

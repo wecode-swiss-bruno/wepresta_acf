@@ -468,14 +468,35 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
             return null;
         }
 
+        // First try direct decode
         $decoded = json_decode($value, true);
 
-        // Return original if JSON decode failed
-        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
-            return $value;
+        // If decode succeeded, return it
+        if ($decoded !== null || json_last_error() === JSON_ERROR_NONE) {
+            return $decoded ?? $value;
         }
 
-        return $decoded ?? $value;
+        // If decode failed, it might be due to literal newlines/tabs in the JSON
+        // Try to sanitize and decode again
+        $sanitized = preg_replace_callback(
+            '/"([^"\\\\]*(?:\\\\.[^"\\\\]*)*)"/s',
+            function ($matches) {
+                // Escape literal newlines and tabs inside string values
+                $content = $matches[1];
+                $content = str_replace(["\r\n", "\r", "\n", "\t"], ["\\r\\n", "\\r", "\\n", "\\t"], $content);
+                return '"' . $content . '"';
+            },
+            $value
+        );
+
+        $decoded = json_decode($sanitized, true);
+
+        // Return decoded if successful, otherwise original value
+        if ($decoded !== null || json_last_error() === JSON_ERROR_NONE) {
+            return $decoded ?? $value;
+        }
+
+        return $value;
     }
 
     private function decodeMetaRow(array $row): array
@@ -586,19 +607,21 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
 
         if ($existing) {
             $valueId = (int) $existing[$this->getPrimaryKey()];
+            // Note: Do NOT use pSQL() here - Db::update() already escapes values
             $this->db->update($this->getTableName(), [
-                'value' => $value !== null ? pSQL($value) : null,
-                'value_index' => $indexValue !== null ? pSQL(substr($indexValue, 0, 255)) : null,
+                'value' => $value,
+                'value_index' => $indexValue !== null ? substr($indexValue, 0, 255) : null,
                 'date_upd' => $now,
             ], $where);
         } else {
+            // Note: Do NOT use pSQL() here - Db::insert() already escapes values
             $success = $this->db->insert($this->getTableName(), [
                 self::FK_FIELD => $fieldId,
                 'entity_type' => pSQL($entityType),
                 'entity_id' => $entityId,
                 'id_shop' => $shopId,
-                'value' => $value !== null ? pSQL($value) : null,
-                'value_index' => $indexValue !== null ? pSQL(substr($indexValue, 0, 255)) : null,
+                'value' => $value,
+                'value_index' => $indexValue !== null ? substr($indexValue, 0, 255) : null,
                 'date_add' => $now,
                 'date_upd' => $now,
             ]);
@@ -613,7 +636,6 @@ final class AcfFieldValueRepository extends AbstractRepository implements AcfFie
         // For translatable fields, also save to lang table
         if ($isTranslatable) {
             $effectiveLangId = $langId ?? $this->getDefaultLangId();
-
             return $this->saveLangValue($valueId, $effectiveLangId, $value, $indexValue);
         }
 

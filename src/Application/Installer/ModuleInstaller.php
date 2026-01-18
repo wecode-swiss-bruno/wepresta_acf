@@ -234,7 +234,7 @@ EOF;
             [
                 'class_name' => 'AdminWeprestaAcf',
                 'route_name' => '',
-                'name' => 'Advanced Custom Fields',
+                'name' => 'Advanced Custom Fields / Custom Post Type',
                 'parent' => 'AdminWepresta',
                 'icon' => 'view_list',
                 'visible' => true,
@@ -242,7 +242,7 @@ EOF;
             [
                 'class_name' => 'AdminWeprestaAcfBuilder',
                 'route_name' => 'wepresta_acf_builder',
-                'name' => 'Field Groups',
+                'name' => 'Builder',
                 'parent' => 'AdminWeprestaAcf',
                 'icon' => 'view_list',
                 'visible' => true,

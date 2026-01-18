@@ -91,7 +91,7 @@ final class BuilderController extends FrameworkBundleAdminController
         $csrfToken = $this->generateCsrfToken();
 
         return $this->render('@Modules/wepresta_acf/views/templates/admin/builder.html.twig', [
-            'layoutTitle' => $this->trans('ACF Field Builder', 'Modules.Weprestaacf.Admin'),
+            'layoutTitle' => $this->trans('ACF / CPT Field Builder', 'Modules.Weprestaacf.Admin'),
             'fieldTypes' => $fieldTypes,
             'locations' => $locations,
             'languages' => $languages,

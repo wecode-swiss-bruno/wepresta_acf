@@ -765,6 +765,78 @@
             }
         };
     </script>
+    
+    {# Load TinyMCE for Rich Text fields #}
+    {# Try to load PrestaShop bundled TinyMCE first #}
+    <script>
+        // Try loading TinyMCE from different PrestaShop paths
+        (function() {
+            if (typeof tinymce !== 'undefined') {
+                // TinyMCE already loaded
+                initTinyMceSetup();
+                return;
+            }
+            
+            var scripts = [
+                '/js/tiny_mce/tinymce.min.js',
+                '/js/tinymce/tinymce.min.js',
+                '{{ baseAdminPath is defined ? baseAdminPath : "/admin" }}/themes/new-theme/public/tinymce.min.js'
+            ];
+            
+            function loadScript(url, callback) {
+                var script = document.createElement('script');
+                script.src = url;
+                script.onload = callback;
+                script.onerror = function() { callback(new Error('Failed to load ' + url)); };
+                document.head.appendChild(script);
+            }
+            
+            function tryLoadNext(index) {
+                if (index >= scripts.length) {
+                    console.warn('[ACF] Could not load TinyMCE from any known path');
+                    initTinyMceSetup();
+                    return;
+                }
+                loadScript(scripts[index], function(err) {
+                    if (err || typeof tinymce === 'undefined') {
+                        tryLoadNext(index + 1);
+                    } else {
+                        initTinyMceSetup();
+                    }
+                });
+            }
+            
+            tryLoadNext(0);
+        })();
+        
+        function initTinyMceSetup() {
+            // Setup TinyMCE for ACF Rich Text fields
+            window.tinySetup = window.tinySetup || function(config) {
+                if (typeof tinymce === 'undefined') {
+                    console.warn('[ACF] TinyMCE not loaded, falling back to textarea');
+                    return;
+                }
+                
+                const defaultConfig = {
+                    menubar: false,
+                    statusbar: true,
+                    relative_urls: false,
+                    convert_urls: false,
+                    entity_encoding: 'raw',
+                    plugins: 'lists link image code table',
+                    toolbar: 'bold italic underline | alignleft aligncenter alignright | bullist numlist | link image | code',
+                    valid_children: '+body[style]',
+                    height: 300,
+                    min_height: 200,
+                    branding: false,
+                };
+                
+                const finalConfig = { ...defaultConfig, ...config };
+                tinymce.init(finalConfig);
+            };
+        }
+    </script>
+    
     {# Vue.js Builder Script - uses Vite manifest for cache-busting #}
     {{ vite_script('main') }}
 {% endblock %}
