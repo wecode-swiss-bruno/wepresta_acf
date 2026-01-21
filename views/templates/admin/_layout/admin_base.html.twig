@@ -12,7 +12,7 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="{{ asset('../modules/wepresta_acf/views/css/dist/admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('../modules/wepresta_acf/views/css/admin.css') }}">
     {% block extra_stylesheets %}{% endblock %}
 {% endblock %}
 
@@ -26,6 +26,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('../modules/wepresta_acf/views/dist/admin.js') }}"></script>
+    <script src="{{ asset('../modules/wepresta_acf/views/js/admin.js') }}"></script>
     {% block extra_javascripts %}{% endblock %}
 {% endblock %}

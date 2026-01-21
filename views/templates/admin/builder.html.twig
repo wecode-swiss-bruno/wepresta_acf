@@ -14,8 +14,8 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    {# Admin SCSS compiled by Webpack Encore → views/css/dist/admin.css #}
-    <link rel="stylesheet" href="/modules/wepresta_acf/views/css/dist/admin.css">
+    {# Admin SCSS compiled by Webpack Encore → views/css/admin.css #}
+    <link rel="stylesheet" href="/modules/wepresta_acf/views/css/admin.css">
     {# Vue.js Builder CSS - uses Vite manifest for cache-busting #}
     {{ vite_stylesheet('main') }}
 {% endblock %}

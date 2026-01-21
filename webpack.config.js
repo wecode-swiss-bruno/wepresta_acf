@@ -22,19 +22,20 @@ if (!Encore.isRuntimeEnvironmentConfigured()) {
 
 Encore
     // directory where compiled assets will be stored
-    .setOutputPath('views/dist/')
+    // PrestaShop Addons requires JS in /views/js/
+    .setOutputPath('views/js/')
 
     // public path used by the web server to access the output path
-    .setPublicPath('/modules/wepresta_acf/views/dist')
+    .setPublicPath('/modules/wepresta_acf/views/js')
 
     // manifest.json for cache busting
     .setManifestKeyPrefix('wepresta_acf')
 
-    // CSS output to views/css/dist/ for PrestaShop Addons compliance
+    // CSS output to views/css/ for PrestaShop Addons compliance
     .configureMiniCssExtractPlugin(
         (loaderOptions) => {},
         (pluginOptions) => {
-            pluginOptions.filename = '../css/dist/[name].css';
+            pluginOptions.filename = '../css/[name].css';
         }
     )
 
@@ -57,7 +58,13 @@ Encore
      * list of features, see:
      * https://symfony.com/doc/current/frontend.html#adding-more-features
      */
-    .cleanupOutputBeforeBuild()
+    // Clean only JS output files, keep existing assets and admin/ folder (Vue app source)
+    // Note: CSS and images outside views/js/ are not cleaned (clean-webpack-plugin limitation)
+    .cleanupOutputBeforeBuild([
+        'admin.js',
+        'manifest.json',
+        'entrypoints.json'
+    ])
     .enableBuildNotifications()
     .enableSourceMaps(!Encore.isProduction())
     // Disable versioning for PrestaShop modules (simpler asset loading)
@@ -89,10 +96,10 @@ Encore
     // uncomment to enable TypeScript
     // .enableTypeScriptLoader()
 
-    // Copy static images
+    // Copy static images to views/img/ for PrestaShop Addons compliance
     .copyFiles({
         from: './_dev/images',
-        to: 'images/[path][name].[hash:8].[ext]',
+        to: '../img/[path][name].[hash:8].[ext]',
         pattern: /\.(png|jpg|jpeg|gif|ico|svg|webp)$/
     })
 

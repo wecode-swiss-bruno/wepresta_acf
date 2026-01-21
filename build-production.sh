@@ -75,7 +75,9 @@ rsync -a --exclude='.git' \
          --exclude='.editorconfig' \
          --exclude='.gitignore' \
          --exclude='.gitattributes' \
-         --include='views/dist/***' \
+         --include='views/js/admin.js' \
+         --include='views/js/manifest.json' \
+         --include='views/js/entrypoints.json' \
          --include='views/js/admin/dist/***' \
          --include='views/css/***' \
          ./ "$BUILD_DIR/$MODULE_NAME/"

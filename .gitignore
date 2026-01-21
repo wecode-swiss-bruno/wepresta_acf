@@ -10,8 +10,11 @@ node_modules/
 # BUILD ARTIFACTS (generated files - rebuild with npm run build)
 # =============================================================================
 
-# Webpack Encore output
-/views/dist/
+# Webpack Encore output (JS in views/js/, CSS in views/css/)
+/views/js/admin.js
+/views/js/manifest.json
+/views/js/entrypoints.json
+/views/css/admin.css
 
 # Vite Vue.js output (rebuild with: cd views/js/admin && npm run build)
 /views/js/admin/dist/
