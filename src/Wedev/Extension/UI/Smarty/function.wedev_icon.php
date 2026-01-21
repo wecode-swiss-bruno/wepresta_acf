@@ -8,6 +8,11 @@
 
 declare(strict_types=1);
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+
 /**
  * =============================================================================
  * WEDEV UI - Smarty Function: wedev_icon

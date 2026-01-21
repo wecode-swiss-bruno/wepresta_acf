@@ -14,6 +14,11 @@
 
 declare(strict_types=1);
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+
 // In PrestaShop context, register only the module's PSR-4 autoloader
 // This avoids conflicts with dev dependencies that have different Symfony versions
 if (defined('_PS_VERSION_')) {

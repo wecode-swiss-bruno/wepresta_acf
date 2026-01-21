@@ -22,7 +22,7 @@
 
 declare(strict_types=1);
 
-if (! defined('_PS_VERSION_')) {
+if (!defined('_PS_VERSION_')) {
     exit;
 }
 
