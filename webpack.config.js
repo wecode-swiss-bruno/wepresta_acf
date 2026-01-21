@@ -6,6 +6,10 @@
  * - TypeScript support
  * - PostCSS + Autoprefixer
  * - Minification production
+ * 
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license AFL-3.0
  */
 
 const Encore = require('@symfony/webpack-encore');
@@ -26,6 +30,14 @@ Encore
     // manifest.json for cache busting
     .setManifestKeyPrefix('wepresta_acf')
 
+    // CSS output to views/css/dist/ for PrestaShop Addons compliance
+    .configureMiniCssExtractPlugin(
+        (loaderOptions) => {},
+        (pluginOptions) => {
+            pluginOptions.filename = '../css/dist/[name].css';
+        }
+    )
+
     /*
      * ENTRY CONFIG
      */
@@ -35,11 +47,8 @@ Encore
     // .enableStimulusBridge('./assets/controllers.json')
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
-    .splitEntryChunks()
-
-    // will require an extra script tag for runtime.js
-    // but, you probably want this, unless you're building a single-page app
-    .enableSingleRuntimeChunk()
+    // Disabled chunk splitting for PrestaShop Addons compatibility
+    .disableSingleRuntimeChunk()
 
     /*
      * FEATURE CONFIG

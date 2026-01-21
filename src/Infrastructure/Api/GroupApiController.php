@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Context;
 use Exception;
 use stdClass;

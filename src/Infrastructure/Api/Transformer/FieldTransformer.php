@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api\Transformer;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Infrastructure\Api\Response\FieldResponse;
 

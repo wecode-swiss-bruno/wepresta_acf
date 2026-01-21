@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Brick;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Discovers ACF bricks from installed modules.
  *

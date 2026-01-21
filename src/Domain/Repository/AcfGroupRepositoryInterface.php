@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Domain\Repository;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 interface AcfGroupRepositoryInterface
 {
     public function findById(int $id): ?array;

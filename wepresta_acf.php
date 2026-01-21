@@ -34,7 +34,7 @@ class WeprestaAcf extends Module
     {
         $this->name = 'wepresta_acf';
         $this->tab = 'administration';
-        $this->version = self::VERSION;
+        $this->version = '1.0.0';
         $this->author = 'WePresta';
         $this->need_instance = false;
         $this->ps_versions_compliancy = ['min' => '8.0.0', 'max' => _PS_VERSION_];
@@ -42,8 +42,8 @@ class WeprestaAcf extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->trans('ACF (Advanced Custom Fields) and CPT (Custom Post Types) for PrestaShop', [], 'Modules.Weprestaacf.Admin');
-        $this->description = $this->trans('Advanced Custom Fields for PrestaShop with CPT support', [], 'Modules.Weprestaacf.Admin');
+        $this->displayName = $this->trans('ACF (Advanced Custom Fields) & CPT (Custom Post Types) for PrestaShop', [], 'Modules.Weprestaacf.Admin');
+        $this->description = $this->trans('Advanced Custom Fields And Custom Post Types for PrestaShop', [], 'Modules.Weprestaacf.Admin'); 
         $this->confirmUninstall = $this->trans('Delete all custom fields and values?', [], 'Modules.Weprestaacf.Admin');
 
         AcfServiceContainer::init($this);
@@ -120,7 +120,11 @@ class WeprestaAcf extends Module
             $router = $this->getContainer()->get('router');
             Tools::redirectAdmin($router->generate('wepresta_acf_builder'));
         } catch (Exception $e) {
-            return '<div class="alert alert-danger">Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
+            $this->context->smarty->assign([
+                'error_message' => $e->getMessage(),
+            ]);
+
+            return $this->fetch('module:wepresta_acf/views/templates/admin/error.tpl');
         }
 
         return '';
@@ -139,8 +143,9 @@ class WeprestaAcf extends Module
         }
 
         if (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'], true)) {
-            if (file_exists($this->getLocalPath() . 'views/dist/admin.css')) {
-                $this->context->controller->addCSS($this->_path . 'views/dist/admin.css');
+            // CSS output in views/css/dist/ for PrestaShop Addons compliance
+            if (file_exists($this->getLocalPath() . 'views/css/dist/admin.css')) {
+                $this->context->controller->addCSS($this->_path . 'views/css/dist/admin.css');
             }
 
             if (file_exists($this->getLocalPath() . 'views/dist/admin.js')) {
@@ -155,22 +160,21 @@ class WeprestaAcf extends Module
         $isEntityPage = $this->isEntityEditPage($controller);
 
         if ($isEntityPage) {
-            // Entity Fields App (Vue)
+            // Entity Fields App (Vue) - CSS in views/css/admin/ for PrestaShop Addons compliance
             $jsPath = $this->getLocalPath() . 'views/js/admin/dist/entity-fields.js';
-            $cssPath = $this->getLocalPath() . 'views/js/admin/dist/acf-entity-fields.css';
+            $cssPath = $this->getLocalPath() . 'views/css/admin/acf-main.css';
             $jsVer = file_exists($jsPath) ? filemtime($jsPath) : self::VERSION;
             $cssVer = file_exists($cssPath) ? filemtime($cssPath) : self::VERSION;
 
             $this->context->controller->addJS($this->_path . 'views/js/admin/dist/entity-fields.js?v=' . $jsVer);
-            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-entity-fields.css?v=' . $cssVer);
-            // Also load main styles if shared styles are needed (usually yes for variables)
-            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-main.css?v=' . $cssVer);
+            // Load main styles (entity-fields uses shared styles from acf-main.css)
+            $this->context->controller->addCSS($this->_path . 'views/css/admin/acf-main.css?v=' . $cssVer);
         } elseif (in_array($controller, ['AdminWeprestaAcfBuilder', 'AdminWeprestaAcfConfiguration', 'AdminWeprestaAcfSync'])) {
             // Builder App (Vue)
             // Note: If using ESM build, this might need module type or IIFE rebuild.
             // For now assuming acf-admin.js is available (might need rebuild if users see errors here too)
             $this->context->controller->addJS($this->_path . 'views/js/admin/dist/acf-admin.js');
-            $this->context->controller->addCSS($this->_path . 'views/js/admin/dist/acf-main.css');
+            $this->context->controller->addCSS($this->_path . 'views/css/admin/acf-main.css');
         } else {
             // Fallback or global assets if needed
             $this->context->controller->addCSS($this->_path . 'views/css/admin-fields.css');

@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class SlugGenerator
 {
     public function generate(string $input): string

@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use InvalidArgumentException;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use Symfony\Component\HttpFoundation\JsonResponse;

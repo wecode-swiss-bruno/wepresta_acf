@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\FieldType;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 /**

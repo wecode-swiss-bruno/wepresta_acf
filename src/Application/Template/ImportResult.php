@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Template;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Result of a field group import operation.
  */

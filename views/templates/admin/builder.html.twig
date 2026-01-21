@@ -1,3 +1,11 @@
+{#**
+ * WePresta ACF - Advanced Custom Fields for PrestaShop
+ *
+ * @author    WePresta
+ * @copyright 2024-2025 WePresta
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ *#}
+
 {% extends '@PrestaShop/Admin/layout.html.twig' %}
 
 {# Import WEDEV UI Macros via relative path #}
@@ -6,8 +14,8 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    {# Admin SCSS compiled by Webpack Encore → views/dist/admin.css #}
-    <link rel="stylesheet" href="/modules/wepresta_acf/views/dist/admin.css">
+    {# Admin SCSS compiled by Webpack Encore → views/css/dist/admin.css #}
+    <link rel="stylesheet" href="/modules/wepresta_acf/views/css/dist/admin.css">
     {# Vue.js Builder CSS - uses Vite manifest for cache-busting #}
     {{ vite_stylesheet('main') }}
 {% endblock %}

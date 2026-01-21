@@ -19,6 +19,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\FieldType;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Interface for all ACF field types.
  *

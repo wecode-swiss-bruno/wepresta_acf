@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api\Response;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Group response DTO.
  */

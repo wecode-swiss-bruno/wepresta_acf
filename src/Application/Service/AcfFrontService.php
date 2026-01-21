@@ -21,6 +21,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Category;
 use CMS;
 use Context;

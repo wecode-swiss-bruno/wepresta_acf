@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Template;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use JsonException;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;

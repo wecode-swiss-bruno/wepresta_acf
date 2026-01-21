@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Repository;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Db;
 use DbQuery;
 

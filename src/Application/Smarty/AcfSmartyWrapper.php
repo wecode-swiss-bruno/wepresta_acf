@@ -21,6 +21,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Smarty;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Generator;
 use WeprestaAcf\Application\Service\AcfFrontService;
 use WeprestaAcf\Application\Service\AcfServiceContainer;

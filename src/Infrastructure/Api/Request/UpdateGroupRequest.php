@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api\Request;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Update group request DTO.
  */

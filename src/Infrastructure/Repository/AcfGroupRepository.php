@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Repository;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Db;
 use DbQuery;
 use Shop;

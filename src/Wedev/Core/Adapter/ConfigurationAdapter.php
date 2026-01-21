@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Adapter;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Configuration;
 
 /**

@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api\Service;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use WeprestaAcf\Application\Service\AutoSyncService;
 use WeprestaAcf\Application\Service\SlugGenerator;
 use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;

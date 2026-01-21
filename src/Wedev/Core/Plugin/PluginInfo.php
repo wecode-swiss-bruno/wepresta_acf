@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Plugin;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Value object containing plugin metadata.
  *

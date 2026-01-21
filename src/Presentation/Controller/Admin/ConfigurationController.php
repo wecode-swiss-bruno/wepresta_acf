@@ -8,6 +8,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Presentation\Controller\Admin;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Configuration;
 use Module;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;

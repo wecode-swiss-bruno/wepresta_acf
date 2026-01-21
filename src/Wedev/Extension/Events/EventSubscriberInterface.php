@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\Events;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Interface for event subscribers.
  *

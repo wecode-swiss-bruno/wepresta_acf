@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Config;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Configuration centralisée des hooks ACF - Version V1 (Product + Category).
  *

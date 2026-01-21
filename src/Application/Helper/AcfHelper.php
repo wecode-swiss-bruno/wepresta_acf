@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Helper;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Context;
 use WeprestaAcf\Infrastructure\Repository\AcfFieldRepository;
 use WeprestaAcf\Infrastructure\Repository\AcfFieldValueRepository;

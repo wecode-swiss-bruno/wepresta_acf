@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Domain\Event;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use WeprestaAcf\Wedev\Extension\Events\AbstractDomainEvent;
 
 /**

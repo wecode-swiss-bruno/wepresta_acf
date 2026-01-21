@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\EntityFields;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Helper class for building context arrays for entity field location rules.
  *

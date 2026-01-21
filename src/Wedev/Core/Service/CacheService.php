@@ -13,6 +13,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Service;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use Cache;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;

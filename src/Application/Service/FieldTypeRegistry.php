@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Service;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use InvalidArgumentException;
 use WeprestaAcf\Application\FieldType\BooleanField;
 use WeprestaAcf\Application\FieldType\CheckboxField;

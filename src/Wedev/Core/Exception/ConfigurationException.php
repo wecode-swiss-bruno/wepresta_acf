@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Exception;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Exception pour les erreurs de configuration.
  *

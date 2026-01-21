@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Provider;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use WeprestaAcf\Application\Config\EntityHooksConfig;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldProviderInterface;
 use WeprestaAcf\Wedev\Extension\EntityFields\EntityFieldRegistry;

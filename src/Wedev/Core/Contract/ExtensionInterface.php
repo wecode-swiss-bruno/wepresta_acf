@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Contract;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Interface pour les Extensions WEDEV.
  *

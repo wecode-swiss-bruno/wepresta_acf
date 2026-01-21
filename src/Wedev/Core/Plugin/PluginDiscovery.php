@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Core\Plugin;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 use ReflectionClass;
 use WeprestaAcf\Wedev\Core\Contract\PluginInterface;
 

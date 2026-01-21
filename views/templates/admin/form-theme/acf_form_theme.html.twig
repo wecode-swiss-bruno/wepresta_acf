@@ -1,3 +1,11 @@
+{#**
+ * WePresta ACF - Advanced Custom Fields for PrestaShop
+ *
+ * @author    WePresta
+ * @copyright 2024-2025 WePresta
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ *#}
+
 {#
  # ACF Form Theme for Symfony Forms
  # Renders the pre-generated ACF HTML within Symfony forms
@@ -6,4 +14,3 @@
 {% block acf_container_widget %}
     {{ form.vars.acf_html|raw }}
 {% endblock %}
-

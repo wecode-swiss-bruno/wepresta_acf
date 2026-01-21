@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Wedev\Extension\EntityFields;
 
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 /**
  * Interface for modules to register entity types that support custom fields.
  *
