@@ -27,6 +27,11 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Application\Twig;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
