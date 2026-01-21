@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
     <name>wepresta_acf</name>
-    <displayName><![CDATA[WePresta ACF]]></displayName>
+    <displayName><![CDATA[ACF (Advanced Custom Fields) and CPT (Custom Post Types) for PrestaShop]]></displayName>
     <version><![CDATA[1.0.0]]></version>
-    <description><![CDATA[Advanced Custom Fields for PrestaShop - ACF-style field builder]]></description>
+    <description><![CDATA[Advanced Custom Fields for PrestaShop with CPT support]]></description>
     <author><![CDATA[WePresta]]></author>
     <tab><![CDATA[administration]]></tab>
 	<confirmUninstall><![CDATA[Delete all custom fields and values?]]></confirmUninstall>
