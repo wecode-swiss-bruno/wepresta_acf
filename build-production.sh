@@ -181,9 +181,10 @@ echo -e "${YELLOW}[6/7]${NC} Création du fichier ZIP..."
 
 cd "$BUILD_DIR"
 
-# Créer le ZIP (exclure les fichiers cachés restants)
+# Créer le ZIP (exclure les fichiers cachés restants mais garder .htaccess)
 zip -r "../$ZIP_NAME" "$MODULE_NAME" \
-    -x "*/.*" \
+    -x "*/.git*" \
+    -x "*/.cursor*" \
     -x "*/__pycache__/*" \
     -x "*.DS_Store" \
     -q
