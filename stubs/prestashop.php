@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * PrestaShop Stubs pour PHPStan.
  *
  * Ces stubs permettent à PHPStan d'analyser le code sans avoir PrestaShop installé

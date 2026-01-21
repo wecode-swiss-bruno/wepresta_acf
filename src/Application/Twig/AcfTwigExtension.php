@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * ACF Twig Extension.
  *
  * Provides Twig functions for accessing ACF fields in templates.

@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
 /**
  * PHP-CS-Fixer Configuration
  *
@@ -180,4 +186,3 @@ return (new PhpCsFixer\Config())
     ])
     ->setFinder($finder)
     ->setCacheFile('var/cache/.php-cs-fixer.cache');
-

@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * Vite Asset Extension.
  *
  * Provides Twig functions for loading Vite-compiled assets with manifest support.

@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * Smarty function: acf_group.
  *
  * Render all fields from an ACF group.

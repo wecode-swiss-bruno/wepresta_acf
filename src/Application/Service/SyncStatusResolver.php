@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * SyncStatusResolver - Resolve sync status per group.
  *
  * Lightweight class to check individual group sync status.

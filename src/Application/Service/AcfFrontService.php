@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * ACF Front-Office Service.
  *
  * Main service for rendering ACF fields in front-office templates.

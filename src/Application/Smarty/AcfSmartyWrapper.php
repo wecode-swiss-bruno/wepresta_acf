@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * ACF Smarty Wrapper.
  *
  * This class wraps AcfFrontService to provide a clean API for Smarty templates.

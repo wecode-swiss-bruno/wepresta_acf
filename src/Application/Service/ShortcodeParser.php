@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * ACF Shortcode Parser.
  *
  * Parses WordPress-style shortcodes in WYSIWYG content (CMS pages, product descriptions).

@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * FieldTypeLoader - Discover and load custom field types.
  *
  * Discovers field types from:

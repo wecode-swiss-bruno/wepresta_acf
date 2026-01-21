@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * SyncService - JSON Sync for Field Groups.
  *
  * Handles bidirectional synchronization between database and theme JSON files.

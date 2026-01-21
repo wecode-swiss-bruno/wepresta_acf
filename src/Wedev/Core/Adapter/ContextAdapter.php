@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * WEDEV Core - ContextAdapter.
  *
  * ⚠️ NE PAS MODIFIER - Géré par WEDEV CLI

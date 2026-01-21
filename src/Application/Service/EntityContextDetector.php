@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @author WePresta
+ * @copyright 2024-2025 WePresta
+ * @license MIT
+ */
+
+/**
  * Entity Context Detector.
  *
  * Automatically detects the current entity context from PrestaShop's
