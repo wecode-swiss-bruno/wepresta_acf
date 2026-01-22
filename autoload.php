@@ -50,12 +50,12 @@ if (defined('_PS_VERSION_')) {
         $GLOBALS['wepresta_acf_autoloader_registered'] = true;
         $moduleDir = __DIR__;
 
-        spl_autoload_register(function ($class) use ($moduleDir) {
+        spl_autoload_register(function ($class) use ($moduleDir): void {
             $prefix = 'WeprestaAcf\\';
             $len = strlen($prefix);
 
             if (strncmp($prefix, $class, $len) !== 0) {
-                return false;
+                return;
             }
 
             $baseDir = $moduleDir . '/src/';
@@ -64,11 +64,7 @@ if (defined('_PS_VERSION_')) {
 
             if (file_exists($file)) {
                 require_once $file;
-
-                return true;
             }
-
-            return false;
         }, true, true);
     }
 

@@ -263,7 +263,7 @@ EOF;
             [
                 'class_name' => 'AdminWeprestaAcf',
                 'route_name' => '',
-                'name' => 'Advanced Custom Fields / Custom Post Type',
+                'name' => 'ACF / CPT',
                 'parent' => 'AdminWepresta',
                 'icon' => 'view_list',
                 'visible' => true,

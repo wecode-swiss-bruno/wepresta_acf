@@ -19,26 +19,29 @@ services:
     # =========================================================================
 
     WeprestaAcf\Application\:
-        resource: '../src/Application/*'
+        resource: '../src/Application/'
         exclude:
-            - '../src/Application/FieldType/'
-            - '../src/Application/Brick/'
+            - '../src/Application/{FieldType,Brick}/'
+            - '../src/Application/**/{index}.php'
     
     # Form Types - explicit registration
     WeprestaAcf\Application\Form\:
-        resource: '../src/Application/Form/*'
+        resource: '../src/Application/Form/'
+        exclude:
+            - '../src/Application/Form/**/{index}.php'
         tags: ['form.type']
 
     WeprestaAcf\Infrastructure\:
-        resource: '../src/Infrastructure/*'
+        resource: '../src/Infrastructure/'
         exclude:
-            - '../src/Infrastructure/Api/'
-            - '../src/Infrastructure/Adapter/'
+            - '../src/Infrastructure/{Api,Adapter}/'
+            - '../src/Infrastructure/**/{index}.php'
 
     WeprestaAcf\Presentation\Controller\:
-        resource: '../src/Presentation/Controller/*'
+        resource: '../src/Presentation/Controller/'
         exclude:
             - '../src/Presentation/Controller/Admin/BuilderController.php'
+            - '../src/Presentation/Controller/**/{index}.php'
         tags: ['controller.service_arguments']
 
 
@@ -148,17 +151,23 @@ services:
 
     # API Transformers
     WeprestaAcf\Infrastructure\Api\Transformer\:
-        resource: '../src/Infrastructure/Api/Transformer/*'
+        resource: '../src/Infrastructure/Api/Transformer/'
+        exclude:
+            - '../src/Infrastructure/Api/Transformer/**/{index}.php'
         public: true
 
     # API Validators
     WeprestaAcf\Infrastructure\Api\Validator\:
-        resource: '../src/Infrastructure/Api/Validator/*'
+        resource: '../src/Infrastructure/Api/Validator/'
+        exclude:
+            - '../src/Infrastructure/Api/Validator/**/{index}.php'
         public: true
 
     # API Services (Business Logic)
     WeprestaAcf\Infrastructure\Api\Service\:
-        resource: '../src/Infrastructure/Api/Service/*'
+        resource: '../src/Infrastructure/Api/Service/'
+        exclude:
+            - '../src/Infrastructure/Api/Service/**/{index}.php'
         public: true
 
     # =========================================================================

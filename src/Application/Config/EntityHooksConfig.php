@@ -180,8 +180,8 @@ final class EntityHooksConfig
             $hooks[] = $config['display'];
             $hooks = array_merge($hooks, $config['save']);
 
-            // Ajouter les hooks Symfony si présents
-            if (isset($config['symfony']) && \is_array($config['symfony'])) {
+            // Ajouter les hooks Symfony
+            if (\is_array($config['symfony'])) {
                 $hooks[] = $config['symfony']['form_builder'];
                 $hooks = array_merge($hooks, $config['symfony']['form_handlers']);
             }
