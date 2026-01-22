@@ -24,7 +24,6 @@
         "phpunit/phpunit": "^10.0",
         "prestashop/php-coding-standards": "^5.0",
         "friendsofphp/php-cs-fixer": "^3.40",
-        "rector/rector": "^1.0",
         "mockery/mockery": "^1.6",
         "fakerphp/faker": "^1.23",
         "phpstan/extension-installer": "^1.3",
@@ -65,8 +64,6 @@
         "phpunit-coverage": "XDEBUG_MODE=coverage phpunit --configuration=phpunit.xml --coverage-html=var/coverage",
         "cs-check": "php-cs-fixer fix --dry-run --diff --config=.php-cs-fixer.php",
         "cs-fix": "php-cs-fixer fix --config=.php-cs-fixer.php",
-        "rector": "rector process --config=rector.php",
-        "rector-dry": "rector process --config=rector.php --dry-run",
         "psalm": "psalm --config=psalm.xml",
         "infection": "infection --configuration=infection.json --threads=4",
         "test": [
@@ -75,8 +72,7 @@
             "@phpunit"
         ],
         "fix": [
-            "@cs-fix",
-            "@rector"
+            "@cs-fix"
         ],
         "qa": [
             "@test",
@@ -90,9 +86,8 @@
         "phpunit": "Lance les tests unitaires",
         "cs-check": "Vérifie le style de code",
         "cs-fix": "Corrige le style de code",
-        "rector": "Refactoring automatique",
         "test": "Lance tous les tests",
-        "fix": "Corrige code style + rector",
+        "fix": "Corrige code style",
         "qa": "Quality Assurance complète"
     }
 }

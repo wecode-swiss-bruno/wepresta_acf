@@ -13,7 +13,34 @@
  */
 
 const Encore = require('@symfony/webpack-encore');
+const webpack = require('webpack');
 const path = require('path');
+
+const licenseBanner = `/**
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
+ * that is bundled with this package in the file LICENSE.md.
+ * It is also available through the world-wide-web at this URL:
+ * https://opensource.org/licenses/AFL-3.0
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to https://devdocs.prestashop.com/ for more information.
+ *
+ * @author    PrestaShop SA and Contributors <contact@prestashop.com>
+ * @copyright Since 2007 PrestaShop SA and Contributors
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ */
+`;
 
 // Manually configure the runtime environment if not already configured yet by the "encore" command.
 if (!Encore.isRuntimeEnvironmentConfigured()) {
@@ -33,7 +60,7 @@ Encore
 
     // CSS output to views/css/ for PrestaShop Addons compliance
     .configureMiniCssExtractPlugin(
-        (loaderOptions) => {},
+        (loaderOptions) => { },
         (pluginOptions) => {
             pluginOptions.filename = '../css/[name].css';
         }
@@ -107,6 +134,23 @@ Encore
     .addAliases({
         '@': path.resolve(__dirname, '_dev/js'),
         '@scss': path.resolve(__dirname, '_dev/scss'),
+    })
+
+    // Add license banner
+    .addPlugin(new webpack.BannerPlugin({
+        banner: licenseBanner.replace(/^\/\*\*?/, '/*!'),
+        raw: true,
+        entryOnly: true
+    }))
+
+    // Prevent license extraction
+    .configureTerserPlugin((options) => {
+        options.extractComments = false;
+        options.terserOptions = {
+            format: {
+                comments: /^\**!/i,
+            },
+        };
     });
 
 module.exports = Encore.getWebpackConfig();

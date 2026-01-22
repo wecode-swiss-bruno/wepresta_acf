@@ -141,6 +141,18 @@ TO_REMOVE=(
     "test_*.php"
     "*.bak"
     "*.log"
+    # Vue admin app - keep only dist/, remove dev files
+    "views/js/admin/node_modules"
+    "views/js/admin/src"
+    "views/js/admin/package.json"
+    "views/js/admin/package-lock.json"
+    "views/js/admin/vite.config.js"
+    "views/js/admin/vite.config.ts"
+    "views/js/admin/tsconfig.json"
+    "views/js/admin/tsconfig.node.json"
+    "views/js/admin/.eslintrc.cjs"
+    "views/js/admin/env.d.ts"
+    "views/js/admin/index.html"
 )
 
 REMOVED_COUNT=0
@@ -178,6 +190,55 @@ fi
 cd ../..
 
 echo -e "${GREEN}✓${NC} $REMOVED_COUNT éléments supprimés\n"
+
+# ============================================================================
+# 5.1. CRÉATION DES INDEX.PHP MANQUANTS (Sécurité PrestaShop)
+# ============================================================================
+echo -e "${YELLOW}[5.1/7]${NC} Création des fichiers index.php manquants..."
+
+cd "$BUILD_DIR/$MODULE_NAME"
+
+# Contenu standard d'un index.php PrestaShop
+INDEX_CONTENT='<?php
+/**
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
+ * that is bundled with this package in the file LICENSE.md.
+ * It is also available through the world-wide-web at this URL:
+ * https://opensource.org/licenses/AFL-3.0
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * @author    WePresta <mail@wepresta.shop>
+ * @copyright Since 2024 WePresta
+ * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ */
+
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+header("Location: ../");
+exit;
+'
+
+INDEX_COUNT=0
+# Find all directories and add index.php if missing
+find . -type d | while read dir; do
+    if [ ! -f "$dir/index.php" ]; then
+        echo "$INDEX_CONTENT" > "$dir/index.php"
+        ((INDEX_COUNT++))
+        echo "  + $dir/index.php"
+    fi
+done
+
+cd ../..
 
 # ============================================================================
 # 6. CRÉATION DU ZIP

@@ -1,10 +1,10 @@
 {**
- * WePresta ACF - Advanced Custom Fields for PrestaShop
- *
- * @author    WePresta
- * @copyright 2024-2025 WePresta
- * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
- *}
+* WePresta ACF - Advanced Custom Fields for PrestaShop
+*
+* @author WePresta
+* @copyright 2024-2025 WePresta
+* @license https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+*}
 
 {extends file='page.tpl'}
 
@@ -44,7 +44,7 @@
             <h3 class="acf-field-title">{$field.title}</h3>
             {/if}
             <div class="acf-field-value">
-                {$field.rendered nofilter}
+                {$field.rendered}
             </div>
         </div>
         {/if}
@@ -86,10 +86,10 @@
                         {/if}
                         {else}
                         {* Fallback for other arrays *}
-                        <pre>{$subfield_value|@json_encode nofilter}</pre>
+                        <pre>{$subfield_value|@json_encode}</pre>
                         {/if}
                         {else}
-                        {$subfield_value nofilter}
+                        {$subfield_value}
                         {/if}
                     </div>
                     {/if}

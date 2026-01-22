@@ -69,7 +69,7 @@ final class SlugValidator
         if (empty($slug)) {
             $slug = $this->slugGenerator->generateUnique(
                 $title,
-                fn (string $testSlug, ?int $excludeId) => $this->fieldSlugExists($testSlug, $groupId, $excludeId),
+                fn(string $testSlug, ?int $excludeId) => $this->fieldSlugExists($testSlug, $groupId, $excludeId),
                 $excludeFieldId
             );
 
@@ -106,7 +106,7 @@ final class SlugValidator
         if (empty($slug)) {
             $slug = $this->slugGenerator->generateUnique(
                 $title,
-                fn (string $testSlug, ?int $excludeId) => $this->groupSlugExists($testSlug, $excludeId),
+                fn(string $testSlug, ?int $excludeId) => $this->groupSlugExists($testSlug, $excludeId),
                 $excludeGroupId
             );
 
@@ -131,7 +131,7 @@ final class SlugValidator
     {
         $existing = $this->fieldRepository->findOneBy([
             'slug' => $slug,
-            'id_group' => $groupId,
+            'id_wepresta_acf_group' => $groupId,
         ]);
 
         if ($existing === null) {
