@@ -28,7 +28,6 @@ declare(strict_types=1);
 
 namespace WeprestaAcf\Infrastructure\Api\Validator;
 
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -38,50 +37,50 @@ use WeprestaAcf\Domain\Repository\AcfFieldRepositoryInterface;
 use WeprestaAcf\Domain\Repository\AcfGroupRepositoryInterface;
 
 /**
- * Slug validation service.
+ * Validates and resolves slugs for fields and groups.
  */
 final class SlugValidator
 {
     public function __construct(
-        private readonly SlugGenerator $slugGenerator,
+        private readonly AcfFieldRepositoryInterface $fieldRepository,
         private readonly AcfGroupRepositoryInterface $groupRepository,
-        private readonly AcfFieldRepositoryInterface $fieldRepository
+        private readonly SlugGenerator $slugGenerator
     ) {
     }
 
     /**
-     * Resolve and validate group slug.
-     * Returns null if slug already exists (error case).
+     * Resolve a field slug, generating one from title if not provided.
+     * Returns null if the slug already exists in the group.
+     *
+     * @param string|null $slug Provided slug (optional)
+     * @param string $title Field title (used to generate slug if not provided)
+     * @param int $groupId Group ID to check uniqueness within
+     * @param int|null $excludeFieldId Field ID to exclude from uniqueness check (for updates)
+     *
+     * @return string|null Resolved slug or null if invalid/duplicate
      */
-    public function resolveGroupSlug(
-        string $slug,
+    public function resolveFieldSlug(
+        ?string $slug,
         string $title,
-        ?int $excludeId = null
+        int $groupId,
+        ?int $excludeFieldId = null
     ): ?string {
-        $slug = trim($slug);
-
-        // Generate from title if empty
-        if (empty($slug) || $slug === '-') {
-            return $this->slugGenerator->generateUnique(
+        // Generate slug from title if not provided
+        if (empty($slug)) {
+            $slug = $this->slugGenerator->generateUnique(
                 $title,
-                fn ($s, $id) => $this->groupRepository->slugExists($s, $id),
-                $excludeId
+                fn (string $testSlug, ?int $excludeId) => $this->fieldSlugExists($testSlug, $groupId, $excludeId),
+                $excludeFieldId
             );
+
+            return $slug;
         }
 
-        // Normalize provided slug
+        // Sanitize provided slug
         $slug = $this->slugGenerator->generate($slug);
 
-        if (empty($slug)) {
-            return $this->slugGenerator->generateUnique(
-                $title,
-                fn ($s, $id) => $this->groupRepository->slugExists($s, $id),
-                $excludeId
-            );
-        }
-
-        // Check uniqueness
-        if ($this->groupRepository->slugExists($slug, $excludeId)) {
+        // Check if slug already exists in group
+        if ($this->fieldSlugExists($slug, $groupId, $excludeFieldId)) {
             return null;
         }
 
@@ -89,43 +88,80 @@ final class SlugValidator
     }
 
     /**
-     * Resolve and validate field slug within a group.
-     * Returns null if slug already exists (error case).
+     * Resolve a group slug, generating one from title if not provided.
+     * Returns null if the slug already exists.
+     *
+     * @param string|null $slug Provided slug (optional)
+     * @param string $title Group title (used to generate slug if not provided)
+     * @param int|null $excludeGroupId Group ID to exclude from uniqueness check (for updates)
+     *
+     * @return string|null Resolved slug or null if invalid/duplicate
      */
-    public function resolveFieldSlug(
-        string $slug,
+    public function resolveGroupSlug(
+        ?string $slug,
         string $title,
-        int $groupId,
-        ?int $excludeId = null,
-        ?string $currentSlug = null
+        ?int $excludeGroupId = null
     ): ?string {
-        $slug = trim($slug);
-
-        // Generate from title if empty
-        if (empty($slug) || $slug === '-') {
-            return $this->slugGenerator->generateUnique(
+        // Generate slug from title if not provided
+        if (empty($slug)) {
+            $slug = $this->slugGenerator->generateUnique(
                 $title,
-                fn ($s, $id) => $this->fieldRepository->slugExistsInGroup($s, $groupId, $id),
-                $excludeId
+                fn (string $testSlug, ?int $excludeId) => $this->groupSlugExists($testSlug, $excludeId),
+                $excludeGroupId
             );
+
+            return $slug;
         }
 
-        // Normalize provided slug
+        // Sanitize provided slug
         $slug = $this->slugGenerator->generate($slug);
 
-        if (empty($slug)) {
-            return $this->slugGenerator->generateUnique(
-                $title,
-                fn ($s, $id) => $this->fieldRepository->slugExistsInGroup($s, $groupId, $id),
-                $excludeId
-            );
-        }
-
-        // Check uniqueness (skip if unchanged)
-        if ($slug !== $currentSlug && $this->fieldRepository->slugExistsInGroup($slug, $groupId, $excludeId)) {
+        // Check if slug already exists
+        if ($this->groupSlugExists($slug, $excludeGroupId)) {
             return null;
         }
 
         return $slug;
+    }
+
+    /**
+     * Check if a field slug exists within a group.
+     */
+    private function fieldSlugExists(string $slug, int $groupId, ?int $excludeFieldId = null): bool
+    {
+        $existing = $this->fieldRepository->findOneBy([
+            'slug' => $slug,
+            'id_group' => $groupId,
+        ]);
+
+        if ($existing === null) {
+            return false;
+        }
+
+        // If we're updating and found the same field, it's ok
+        if ($excludeFieldId !== null && (int) $existing['id_acf_field'] === $excludeFieldId) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if a group slug exists.
+     */
+    private function groupSlugExists(string $slug, ?int $excludeGroupId = null): bool
+    {
+        $existing = $this->groupRepository->findOneBy(['slug' => $slug]);
+
+        if ($existing === null) {
+            return false;
+        }
+
+        // If we're updating and found the same group, it's ok
+        if ($excludeGroupId !== null && (int) $existing['id_acf_group'] === $excludeGroupId) {
+            return false;
+        }
+
+        return true;
     }
 }
