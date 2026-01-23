@@ -63,11 +63,12 @@ class WeprestaAcf extends Module
         $this->need_instance = false;
         $this->ps_versions_compliancy = ['min' => '8.0.0', 'max' => _PS_VERSION_];
         $this->bootstrap = true;
+        $this->module_key = 'fccb369330b6260ebf7ba0e11522432f';
 
         parent::__construct();
 
         $this->displayName = $this->trans('ACF (Advanced Custom Fields) & CPT (Custom Post Types) for PrestaShop', [], 'Modules.Weprestaacf.Admin');
-        $this->description = $this->trans('Advanced Custom Fields And Custom Post Types for PrestaShop', [], 'Modules.Weprestaacf.Admin'); 
+        $this->description = $this->trans('Advanced Custom Fields And Custom Post Types for PrestaShop', [], 'Modules.Weprestaacf.Admin');
         $this->confirmUninstall = $this->trans('Delete all custom fields and values?', [], 'Modules.Weprestaacf.Admin');
 
         AcfServiceContainer::init($this);

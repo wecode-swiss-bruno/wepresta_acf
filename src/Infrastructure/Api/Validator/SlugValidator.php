@@ -139,7 +139,7 @@ final class SlugValidator
         }
 
         // If we're updating and found the same field, it's ok
-        if ($excludeFieldId !== null && (int) $existing['id_acf_field'] === $excludeFieldId) {
+        if ($excludeFieldId !== null && (int) $existing['id_wepresta_acf_field'] === $excludeFieldId) {
             return false;
         }
 
@@ -158,7 +158,7 @@ final class SlugValidator
         }
 
         // If we're updating and found the same group, it's ok
-        if ($excludeGroupId !== null && (int) $existing['id_acf_group'] === $excludeGroupId) {
+        if ($excludeGroupId !== null && (int) $existing['id_wepresta_acf_group'] === $excludeGroupId) {
             return false;
         }
 
